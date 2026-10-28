@@ -1,0 +1,54 @@
+{
+ "book": 7,
+ "chapter": 15,
+ "tasks": [
+  {
+   "id": "graph-bfs-distances",
+   "title": "Distances by breadth-first search",
+   "statement": "Write a function bfs_distances(graph, start): graph is a dictionary \"vertex → list of neighbors\" (vertex names are strings). Return a dictionary \"vertex → minimum number of edges from start\" for all reachable vertices.",
+   "hint": "A queue and a distance dictionary (which doubles as the \"visited\" set): a neighbor gets dist[v] + 1 if it has not been visited yet."
+  },
+  {
+   "id": "graph-components",
+   "title": "Connected components",
+   "statement": "Write a function count_components(graph): the number of connected components of an undirected graph (a dictionary \"vertex → list of neighbors\", each edge recorded in both directions). The check feeds a chain of 200,000 vertices, so the traversal must be iterative (recursion will crash).",
+   "hint": "For each unvisited vertex start a traversal with a stack or queue and increment the component counter."
+  },
+  {
+   "id": "graph-undirected-cycle",
+   "title": "Cycle in an undirected graph",
+   "statement": "Write a function has_cycle(graph): True if an undirected graph (each edge recorded in both directions, no loops or multiple edges) contains a cycle. During the traversal remember the vertex's \"parent\": going back to it does not count as a cycle.",
+   "hint": "DFS/BFS with (vertex, parent): if a neighbor has already been visited and is not the parent, a cycle is found."
+  },
+  {
+   "id": "graph-topological",
+   "title": "Topological sort",
+   "statement": "Write a function topo_order(graph): graph is a directed graph without cycles, \"vertex → list of the vertices it points to\". Return an order of vertices in which each one comes before all of its descendants; of the several valid orders, take the lexicographically smallest (in Kahn's algorithm choose the smallest ready vertex, using a heap). If there is a cycle, return an empty list.",
+   "hint": "The indegree of each vertex; the heap holds the vertices with zero; pop one and decrease the indegree of its neighbors. If not all vertices were output, there is a cycle."
+  },
+  {
+   "id": "graph-bipartite",
+   "title": "Bipartite graph",
+   "statement": "Write a function is_bipartite(graph): True if the vertices of an undirected graph can be colored with two colors so that the ends of every edge have different colors. The graph may be disconnected.",
+   "hint": "A traversal with coloring: a neighbor gets the opposite color; if an already colored neighbor has the same color, the graph is not bipartite."
+  },
+  {
+   "id": "grid-islands",
+   "title": "Number of islands",
+   "statement": "Write a function count_islands(grid): grid is a list of strings made of '1' (land) and '0' (water). An island is a group of land cells connected horizontally and vertically. Return the number of islands. The check feeds a 1000×1000 field, so no recursion.",
+   "hint": "For each '1' cell not seen yet, run a traversal (stack) in four directions and increment the counter."
+  },
+  {
+   "id": "grid-shortest-path",
+   "title": "Shortest path in a maze",
+   "statement": "Write a function maze_steps(grid): grid is a list of strings made of '.' (passage) and '#' (wall). Return the minimum number of steps from the top-left corner to the bottom-right corner (a step goes to a neighboring cell horizontally or vertically), or -1. The field is up to 501×501: breadth-first search is needed.",
+   "hint": "A queue of cells with distances and a visited list; neighbors only inside the field and not walls."
+  },
+  {
+   "id": "union-find-class",
+   "title": "Disjoint set union",
+   "statement": "Define a class UnionFind(n): elements 0..n-1, each initially in its own set. Methods: find(x) is the representative of the set, union(a, b) merges, connected(a, b), and the attribute count is the number of sets. Path compression and union by size are required: the check performs a million operations.",
+   "hint": "parent[i] = i; find with path compression (iteratively!); union by size; on a merge, count -= 1."
+  }
+ ]
+}

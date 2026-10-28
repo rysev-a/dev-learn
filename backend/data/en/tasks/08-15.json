@@ -1,0 +1,72 @@
+{
+ "book": 8,
+ "chapter": 15,
+ "tasks": [
+  {
+   "id": "u15-relay",
+   "title": "A pipe between parent and child",
+   "statement": "relay(const char *msg, char *out, size_t n) → int: create a pipe (pipe) and a child process (fork); the child writes the whole string msg (without the terminating zero) into the pipe and exits, and the parent reads from the pipe until end of file into out (at most n−1 bytes, append '\\0'), waits for the child (waitpid), and returns the number of bytes read, or −1 on error. Do not forget to close the unneeded pipe ends in both processes: otherwise the reader will not get end of file.",
+   "hint": "The reader gets end of file only when ALL copies of the write end are closed, including the one left in the parent after fork. A message longer than the pipe buffer does not fit at once: the child will wait while the parent reads."
+  },
+  {
+   "id": "u15-sigpipe",
+   "title": "Writing to a pipe with no readers: EPIPE and SIGPIPE",
+   "statement": "epipe_errno() → int: create a pipe, close the read end, ignore SIGPIPE (signal(SIGPIPE, SIG_IGN)), and write a byte to the write end; return the errno of that write. sigpipe_count() → int: do the same thing, but instead of ignoring the signal, install a handler (sigaction) that increments a counter; return the counter value after the write (after returning, do not forget to restore the previous action).",
+   "hint": "If a pipe has no readers, the kernel sends SIGPIPE to the writing process, and if the signal is ignored, write returns −1 with errno = EPIPE. The signal handler must only increment a variable of type volatile sig_atomic_t."
+  },
+  {
+   "id": "u15-pipe-size",
+   "title": "Pipe capacity: 64 KiB and PIPE_BUF",
+   "statement": "pipe_capacity() → int: create a pipe, make the write end non-blocking (O_NONBLOCK), and write one byte at a time until write returns EAGAIN; return the number of bytes written. pipe_resize(int bytes) → int: create a pipe, call fcntl(F_SETPIPE_SZ, bytes), and return fcntl(F_GETPIPE_SZ) (the actual size), or −1 on error. atomic_limit() → int: the maximum size of a write to a pipe that is guaranteed to be written atomically (PIPE_BUF).",
+   "hint": "Write one byte at a time to the non-blocking end until the EAGAIN error: you get the buffer capacity. F_SETPIPE_SZ rounds the size up to a power of two, and F_GETPIPE_SZ returns the final value."
+  },
+  {
+   "id": "u15-fifo",
+   "title": "Named pipe (FIFO)",
+   "statement": "fifo_roundtrip(const char *path, const char *msg, char *out, size_t n) → int: create a FIFO at path (mkfifo, mode 0600); the child (fork) opens it for writing, sends msg, and exits; the parent opens it for reading, reads until end of file into out (at most n−1 bytes, append '\\0'), waits for the child, REMOVES the file (unlink), and returns the number of bytes read; error → −1. is_fifo(const char *path) → int: create a FIFO at the path, check it with stat and S_ISFIFO, remove it; return 1 or 0.",
+   "hint": "open(FIFO, O_WRONLY) blocks until someone opens the same FIFO for reading, and vice versa: the processes meet at the open point. A FIFO file stores no data: remove it when you are done."
+  },
+  {
+   "id": "u15-pass-fd",
+   "title": "Passing a descriptor over a socket",
+   "statement": "send_fd(int sock, int fd) → int: send the descriptor fd over the Unix domain socket sock with a sendmsg message carrying SCM_RIGHTS ancillary data (send one byte 'F' as the data); 0 on success, −1 on error. recv_fd(int sock) → int: receive such a message (recvmsg) and return the NEW descriptor that the kernel created in your process, or −1.",
+   "hint": "A descriptor is passed not as a number, but as an SCM_RIGHTS control message: the kernel creates in the receiver a new descriptor for the same open file description (which is why they share the offset). At least one byte of ordinary data is needed."
+  },
+  {
+   "id": "u15-peercred",
+   "title": "Who connected: SO_PEERCRED",
+   "statement": "accept_peer(int lfd, int *pid, int *uid) → int: accept a connection on the listening Unix domain socket lfd (accept), find out through getsockopt(SO_PEERCRED) the process number and user of the connecting peer, write them to *pid and *uid, and close the accepted connection; 0 on success, −1 on error.",
+   "hint": "The struct ucred structure (pid, uid, gid) is filled by a getsockopt call with level SOL_SOCKET and option SO_PEERCRED; the kernel records there the data of whoever performed connect."
+  },
+  {
+   "id": "u15-shared-counter",
+   "title": "Shared memory and atomic operations",
+   "statement": "shared_counter(int nproc, int per) → long: create shared anonymous memory (mmap with MAP_SHARED | MAP_ANONYMOUS) for one long number; start nproc child processes (fork), each increments the number per times with an ATOMIC operation (for example, __atomic_fetch_add); the parent waits for all of them and returns the result (it must be nproc × per). Errors → −1.",
+   "hint": "MAP_SHARED | MAP_ANONYMOUS gives memory that both the parent and the children see after fork (with MAP_PRIVATE each would get its own copy). A plain ++ is a read, an add, and a write: two processes lose updates, an atomic operation does not."
+  },
+  {
+   "id": "u15-pshared-mutex",
+   "title": "A mutex in shared memory",
+   "statement": "locked_counter(int nproc, int per) → long: in shared anonymous memory (MAP_SHARED | MAP_ANONYMOUS) place a structure made of a pthread_mutex_t mutex and a long number. Initialize the mutex with the PTHREAD_PROCESS_SHARED attribute. nproc child processes each take the mutex per times, increment the number (with a plain ++), and release it. The parent returns the result (nproc × per), error → −1.",
+   "hint": "A default mutex is meant for threads of one process. For different processes to be able to use it, it must be created with the pthread_mutexattr_setpshared(PTHREAD_PROCESS_SHARED) attribute and placed in shared memory."
+  },
+  {
+   "id": "u15-futex-lock",
+   "title": "Your own mutex on a futex",
+   "statement": "fx_lock(int *f) and fx_unlock(int *f): implement a mutex on the word f (0 is free, 1 is locked with no waiters, 2 is locked with waiters) following Drepper's scheme. Acquire: an atomic compare-and-swap 0→1; on failure, set the word to 2 and sleep with the futex system call with FUTEX_WAIT while the value is 2, in a loop. Release: atomically write 0, and if it was 2, wake one waiter (FUTEX_WAKE, 1). Use syscall(SYS_futex, …) without pthread_mutex.",
+   "hint": "State 2 is needed so that the releaser knows there is someone to wake and does not make an extra system call when there are no waiters. After waking up, the word is set to 2 again: other waiters may remain."
+  },
+  {
+   "id": "u15-signal-events",
+   "title": "A signal as an event: self-pipe and signalfd",
+   "statement": "wait_via_pipe(int signo) → int: the self-pipe trick: create a pipe, install a handler (sigaction) that writes one byte, the signal number, into the pipe, send the signal to yourself (kill(getpid(), signo)), wait for data in the pipe (poll for up to 1000 ms), read the byte, and return the number; timeout → −1; restore the previous action. wait_via_signalfd(int signo) → int: block the signal (sigprocmask), create a signalfd, send the signal to yourself, read a struct signalfd_siginfo, and return ssi_signo; restore the previous mask.",
+   "hint": "In a signal handler a write to a pipe is allowed: it is an async-signal-safe call. With signalfd, the signal is blocked first, otherwise it will fire as usual instead of becoming a readable event."
+  },
+  {
+   "id": "u15-mqueue",
+   "title": "POSIX message queue: priorities",
+   "statement": "mq_priorities(char *order, char *texts, size_t n) → int: create the queue /say_ipc_q (mq_open, O_CREAT | O_RDWR, mode 0600, at most 10 messages of 64 bytes), send three messages: «low» with priority 1, «high» with priority 9, «mid» with priority 5 (in that sending order), then read three messages (mq_receive). Write the priority digits in the order received into order (for example, «951»), and the texts separated by spaces into texts. Close and remove the queue (mq_close, mq_unlink). 0 on success, −1 on error.",
+   "hint": "mq_receive always returns the message with the highest priority among those present (with equal priorities, the oldest). The receive buffer size must be at least the queue's mq_msgsize."
+  }
+ ]
+}

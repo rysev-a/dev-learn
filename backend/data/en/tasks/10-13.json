@@ -1,0 +1,186 @@
+{
+ "book": 10,
+ "chapter": 13,
+ "tasks": [
+  {
+   "id": "r13-class-basic",
+   "title": "Class → struct",
+   "statement": "Python: class Dog with name and a speak() method → «<name>: гав!». Write a struct Dog { name: String }, a function new(name: &str) -> Dog, and a method speak(&self) -> String.",
+   "hint": "format!(\"{}: гав!\", self.name)"
+  },
+  {
+   "id": "r13-property",
+   "title": "property",
+   "statement": "Python: @property celsius / fahrenheit. A struct Temp { celsius: f64 } with a method fahrenheit(&self) -> f64 (c · 9/5 + 32) and set_fahrenheit(&mut self, f: f64) (updates celsius).",
+   "hint": "Formulas: c·9/5+32 and (f−32)·5/9."
+  },
+  {
+   "id": "r13-classmethod",
+   "title": "classmethod",
+   "statement": "Python: Color.from_hex(\"#ff8000\"). A struct Color { r: u8, g: u8, b: u8 } and an associated function from_hex(s: &str) -> Color for a string of the form «#rrggbb» (use u8::from_str_radix(&s[1..3], 16).unwrap()).",
+   "hint": "u8::from_str_radix(&s[1..3], 16).unwrap()"
+  },
+  {
+   "id": "r13-composition",
+   "title": "Composition instead of inheritance",
+   "statement": "Python: class Employee(Person). Structs Person { name: String } and Employee { person: Person, salary: u32 }; Employee has a method describe(&self) -> String: «<name> зарабатывает <salary>».",
+   "hint": "self.person.name is a field of the nested struct."
+  },
+  {
+   "id": "r13-trait-basic",
+   "title": "First trait",
+   "statement": "A trait Animal with a method sound(&self) -> String; structs Dog and Cat implement it: «гав» and «мяу». The function chorus(a: &impl Animal) -> String returns the sound repeated three times separated by spaces.",
+   "hint": "impl Animal for Dog { … } — a separate block for each type."
+  },
+  {
+   "id": "r13-trait-default",
+   "title": "Default method",
+   "statement": "A trait Greeter: the method name(&self) -> String is required, and greet(&self) -> String has a default implementation: «Привет, <name>!». The struct English implements only name; the struct Formal overrides greet: «Здравствуйте, <name>.».",
+   "hint": "The default method calls the required one: self.name()."
+  },
+  {
+   "id": "r13-dyn-shapes",
+   "title": "Vector of shapes",
+   "statement": "A trait Shape with area(&self) -> f64; structs Circle { r } and Rect { w, h } implement it (π ≈ 3.14159). The function total_area(shapes: &[Box<dyn Shape>]) -> f64 is the sum of the areas.",
+   "hint": "shapes.iter().map(|s| s.area()).sum()"
+  },
+  {
+   "id": "r13-display",
+   "title": "Display for a point",
+   "statement": "Implement fmt::Display for the struct Point { x: i32, y: i32 }: output «(x, y)». Then println!(\"{}\", p) and p.to_string() will give «(1, -2)».",
+   "hint": "write!(f, \"({}, {})\", self.x, self.y)"
+  },
+  {
+   "id": "r13-debug-derive",
+   "title": "Debug and PartialEq",
+   "statement": "Add the derive(Debug, PartialEq, Clone) attributes to the struct Pair { a: i32, b: i32 } so that {:?} printing, == comparison, and clone() work.",
+   "hint": "#[derive(Debug, PartialEq, Clone)] above the struct."
+  },
+  {
+   "id": "r13-ord-derive",
+   "title": "Version order",
+   "statement": "The struct Version(u32, u32, u32) with derive(PartialEq, Eq, PartialOrd, Ord, Debug): versions are compared lexicographically. Complete the function newest(v: &[Version]) -> Version, returning the greatest (v is non-empty; Version also needs Clone and Copy).",
+   "hint": "derive(Ord) compares fields in order; iter().max()."
+  },
+  {
+   "id": "r13-vec2-add",
+   "title": "Adding vectors",
+   "statement": "For Vec2 { x: f64, y: f64 } implement the + and − operators (the traits Add and Sub). Derive(Debug, PartialEq, Clone, Copy) is already there.",
+   "hint": "Add component by component."
+  },
+  {
+   "id": "r13-vec2-scalar",
+   "title": "Multiplying by a number",
+   "statement": "For Vec2 implement Mul<f64> (vector × number) and Neg (unary minus).",
+   "hint": "impl Mul<f64> for Vec2 — the right operand type goes in angle brackets."
+  },
+  {
+   "id": "r13-vec2-dot",
+   "title": "Dot product",
+   "statement": "For Vec2 implement Mul<Vec2> with Output = f64 (the dot product): a * b = a.x·b.x + a.y·b.y.",
+   "hint": "Output can be a different type from the operands themselves."
+  },
+  {
+   "id": "r13-add-assign",
+   "title": "+=",
+   "statement": "For Money(i64) (kopecks) implement Add and AddAssign so that a + b and a += b work. Derive(Debug, Clone, Copy, PartialEq) is already there.",
+   "hint": "add_assign takes &mut self and returns nothing."
+  },
+  {
+   "id": "r13-index",
+   "title": "Matrix indexing",
+   "statement": "A struct Matrix { w: usize, data: Vec<i32> } (row by row). Implement Index<(usize, usize)> and IndexMut<(usize, usize)> so that m[(r, c)] works for reading and writing.",
+   "hint": "&self.data[r * self.w + c] and &mut …"
+  },
+  {
+   "id": "r13-fraction",
+   "title": "Fraction",
+   "statement": "A struct Frac { n: i64, d: i64 } with a function new(n, d) -> Frac that reduces the fraction by the GCD and keeps the denominator positive, with the operators Add and Mul, and Display «n/d» (when d = 1 — just «n»).",
+   "hint": "First reduce by the GCD, then normalize the sign of the denominator."
+  },
+  {
+   "id": "r13-iterator",
+   "title": "Custom iterator",
+   "statement": "The struct Countdown { n: u32 } implements Iterator<Item = u32>: next() yields n, n−1, …, 1, then None.",
+   "hint": "The state is stored in self; when n == 0 — None. The other iterator methods come for free."
+  },
+  {
+   "id": "r13-fib-iter",
+   "title": "Fibonacci iterator",
+   "statement": "The struct Fib { a: u64, b: u64 } implements Iterator<Item = u64>: 0, 1, 1, 2, 3, 5, … (infinite). Add a function fib() -> Fib that returns the initial state.",
+   "hint": "An infinite iterator always returns Some; take limits it."
+  },
+  {
+   "id": "r13-drop",
+   "title": "Drop",
+   "statement": "The struct Noisy { name: String } prints «drop <name>» when destroyed. Implement Drop; the driver will show the output order.",
+   "hint": "println!(\"drop {}\", self.name)"
+  },
+  {
+   "id": "r13-default",
+   "title": "Default",
+   "statement": "The struct Settings { volume: u8, name: String, muted: bool } with derive(Debug, Default). Add the derive and write a function quiet() -> Settings: default values, but muted = true (via ..Default::default()).",
+   "hint": "#[derive(Debug, Default)] and ..Default::default()."
+  },
+  {
+   "id": "r13-builder",
+   "title": "Chained builder",
+   "statement": "A struct Pizza { size: u32, cheese: bool, toppings: Vec<String> }. Write Pizza::new(size), the methods with_cheese(mut self) -> Pizza and with_topping(mut self, t: &str) -> Pizza, and describe(&self) -> String of the form «30 см, сыр, начинки: гриб, лук» (without cheese — no «сыр»; without toppings — no «начинки»).",
+   "hint": "Builder methods take self by value and return it."
+  },
+  {
+   "id": "r13-newtype",
+   "title": "Newtype: vector wrapper",
+   "statement": "Implement fmt::Display for the wrapper struct Wrapper(Vec<String>): output «[a, b, c]» (elements separated by a comma and a space).",
+   "hint": "self.0 is the vector inside the wrapper."
+  },
+  {
+   "id": "r13-stack-struct",
+   "title": "Stack as a struct",
+   "statement": "A struct Stack { items: Vec<i32> } with the methods new(), push(&mut self, x), pop(&mut self) -> Option<i32>, peek(&self) -> Option<i32>, len(&self) -> usize, and is_empty(&self) -> bool.",
+   "hint": "The methods delegate to the vector inside."
+  },
+  {
+   "id": "r13-queue-struct",
+   "title": "Queue on two stacks",
+   "statement": "Implement a queue Queue { inbox: Vec<i32>, outbox: Vec<i32> } with push(x), pop() -> Option<i32> (FIFO), and len(). When outbox is empty, move all elements of inbox into it in reverse order.",
+   "hint": "Moving from inbox to outbox reverses the order."
+  },
+  {
+   "id": "r13-trait-plugins",
+   "title": "Plugins",
+   "statement": "A trait Plugin { fn name(&self) -> String; fn run(&self, x: i32) -> i32; }. The structs Doubler and AddN { n: i32 } implement it (names «doubler» and «add»). The function pipeline(ps: &[Box<dyn Plugin>], x: i32) -> i32 applies the plugins in sequence.",
+   "hint": "Loop over &[Box<dyn Plugin>] and call p.run(v)."
+  },
+  {
+   "id": "r13-generic-trait",
+   "title": "Generic function with a trait",
+   "statement": "Write a function largest<T: PartialOrd + Copy>(v: &[T]) -> T that returns the greatest element of a slice (non-empty). It must work for i32, f64, and char alike.",
+   "hint": "The bound T: PartialOrd + Copy lets you compare and copy."
+  },
+  {
+   "id": "r13-from-trait",
+   "title": "From for conversions",
+   "statement": "The structs Celsius(f64) and Fahrenheit(f64). Implement From<Celsius> for Fahrenheit (c · 9/5 + 32); then Fahrenheit::from(c) and c.into() work.",
+   "hint": "Fahrenheit(c.0 * 9.0 / 5.0 + 32.0)"
+  },
+  {
+   "id": "r13-partial-eq-manual",
+   "title": "Custom equality",
+   "statement": "The struct Name(String): two names are equal ignoring case. Implement PartialEq by hand (the eq method).",
+   "hint": "Compare the lowercase versions of the strings."
+  },
+  {
+   "id": "r13-partial-ord-manual",
+   "title": "Custom ordering",
+   "statement": "The struct Prio(u32): the order is reversed — the larger number is “smaller” (comes first). Implement PartialOrd by hand (partial_cmp). PartialEq is derived.",
+   "hint": "Swap the operands: other.0.partial_cmp(&self.0)."
+  },
+  {
+   "id": "r13-trait-zero",
+   "title": "Trait with a static function",
+   "statement": "A trait Zero { fn zero() -> Self; }. Implement it for i32 and f64. The function sum_all<T: Zero + std::ops::Add<Output = T> + Copy>(v: &[T]) -> T adds up the elements, starting from T::zero().",
+   "hint": "T::zero() is called through the type parameter name."
+  }
+ ]
+}

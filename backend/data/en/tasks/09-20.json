@@ -1,0 +1,123 @@
+{
+ "book": 9,
+ "chapter": 20,
+ "tasks": [
+  {
+   "id": "d4-without-rowid",
+   "title": "Clustered table",
+   "statement": "Create a table kv(k TEXT PRIMARY KEY, v TEXT) so that the table itself is a B-tree on the key k (in SQLite — WITHOUT ROWID).",
+   "hint": "After the parentheses with the columns, add WITHOUT ROWID.",
+   "starter": "-- table kv, clustered by k\nCREATE TABLE kv (\n\n)\n"
+  },
+  {
+   "id": "d4-pk-plan",
+   "title": "Primary key lookup in a clustered table",
+   "statement": "Create a table cfg(name TEXT PRIMARY KEY, value TEXT) so that a query by name goes directly through the primary key (the plan shows USING PRIMARY KEY), not through a separate auxiliary index.",
+   "hint": "WITHOUT ROWID makes the primary key the table's structure itself.",
+   "starter": "-- table cfg\nCREATE TABLE cfg (\n\n)\n"
+  },
+  {
+   "id": "d4-pages-sql",
+   "title": "How many pages a table takes",
+   "statement": "A page is 8192 bytes, 192 of them taken by the header; each row also costs 4 bytes for its slot. For each table in tables_info, output name and the number of pages (an integer, rounded up): rows_per_page = (8192 − 192) / (row_bytes + 4) with the fractional part dropped; pages = ceil(rows / rows_per_page). Columns: name, pages; ordered by name.",
+   "hint": "Integer division in SQLite: 8000 / (row_bytes + 4); ceiling: (a + b − 1) / b.",
+   "starter": "-- name and number of pages\nSELECT\n"
+  },
+  {
+   "id": "d4-slotted-page",
+   "title": "Slotted page layout",
+   "statement": "A page of page_size bytes: a header of header bytes, then an array of slots of 4 bytes per row, and the rows are packed one after another from the end of the page (the first row is the very last). Write page_layout(page_size, header, rows): a list of the offsets of the start of each row from the beginning of the page; if the rows together with the slots and the header do not fit, an empty list.",
+   "hint": "Check the sum: header + 4 per slot + row lengths; then walk from the end of the page, subtracting the lengths."
+  },
+  {
+   "id": "d4-rows-per-page",
+   "title": "Pages for a table",
+   "statement": "Write pages_needed(rows, row_bytes, page_size, header): how many pages a table needs. Each row takes row_bytes + 4 bytes (the slot), and page_size − header bytes are available on a page; rows do not span pages; for 0 rows, 0 pages.",
+   "hint": "rows_per_page = (page_size − header) // (row_bytes + 4); ceiling of a division: -(-a // b)."
+  },
+  {
+   "id": "d4-lru",
+   "title": "Buffer pool: LRU",
+   "statement": "A buffer pool of capacity pages evicts the least recently used page (LRU). Write lru_sim(capacity, accesses): a triple [hits, misses, pages in the pool from least to most recently used].",
+   "hint": "Pool list: on a hit, move the page to the end; on a miss with a full pool, remove the first one."
+  },
+  {
+   "id": "d4-wal-redo",
+   "title": "Redo by LSN",
+   "statement": "The pages are a dictionary \"name → [lsn, value]\". The log is a list of records [lsn, page, new_value] in order. Replay applies a record only if its lsn is greater than the page's lsn; then both the page's lsn and its value change. Write redo(pages, log): the pages after replay (do not modify the original dictionary).",
+   "hint": "Replaying twice is harmless precisely because of the comparison lsn > page's lsn."
+  },
+  {
+   "id": "d4-checkpoint",
+   "title": "Which log can be deleted",
+   "statement": "The log stores records with LSN numbers. After a checkpoint at checkpoint_lsn, the log is needed starting from the oldest record that is still needed: that is min(checkpoint_lsn, the smallest first_lsn among active transactions). Write keep_log(lsns, checkpoint_lsn, active_first_lsns): the list of LSNs to keep (in the original order).",
+   "hint": "The oldest needed record is the minimum of the checkpoint and the first records of the active transactions."
+  },
+  {
+   "id": "d4-memtable-flush",
+   "title": "Memtable and flush to disk",
+   "statement": "The operations are [\"put\", key, value] and [\"del\", key]. The memtable is a dictionary; a delete writes a tombstone (the value None). After each operation, if the memtable has at least limit keys, it is flushed into a new SSTable — a list of [key, value] pairs in ascending key order — and cleared. Write lsm_flush(ops, limit): a pair [the list of SSTables in order of creation, the remaining memtable as a sorted list of pairs].",
+   "hint": "A key written again does not increase the memtable size; a delete is a write of None."
+  },
+  {
+   "id": "d4-lsm-get",
+   "title": "Reading from an LSM tree",
+   "statement": "A read looks at the memtable (a dictionary) first, then at the SSTables from newest to oldest (a list of dictionaries); the value None is a tombstone. Write lsm_get(memtable, sstables, key): a pair [value or None, how many structures were checked]. If the key is found (even as a tombstone), the search stops; the structure where the key was found also counts as checked.",
+   "hint": "Go through the structures from newest to oldest; stop at the first found key — even if it is None."
+  },
+  {
+   "id": "d4-compaction",
+   "title": "Compaction: merging two files",
+   "statement": "Two files sorted by key are lists of [key, value] pairs; the value None is a tombstone. Write merge_runs(newer, older, drop_tombstones): the merged sorted list in which, for a common key, the value from newer is taken; if drop_tombstones is true, pairs with the value None are removed.",
+   "hint": "First put the old values into a dictionary, then the new ones on top; remove tombstones only if allowed."
+  },
+  {
+   "id": "d4-bloom",
+   "title": "Bloom filter",
+   "statement": "A Bloom filter of m bits and k hash functions: h_i(s) = (sum of the character codes of s · (i + 1) + i) % m for i = 0..k−1. The items are added to the filter (their bits are set), then for each query in queries the answer is 'maybe' if all k bits are set, otherwise 'no'. Write bloom_check(m, k, items, queries): the list of answers.",
+   "hint": "One hash function with a parameter i; answer 'maybe' only if all k of its values are already set."
+  },
+  {
+   "id": "d4-write-amp",
+   "title": "Write amplification",
+   "statement": "Simplified models. B-tree: to change row_bytes bytes, a page of page_size is written plus a log of row_bytes. LSM with levels: the log and the flush give 2 writes, and each of levels levels rewrites the data ratio times: 2 + levels · ratio. Write write_amplification(kind, a, b): for 'btree' (a is page_size, b is row_bytes) return (a + b) / b, for 'lsm' (a is levels, b is ratio) return 2 + a · b; round the result to two decimal places.",
+   "hint": "Two formulas — one for each kind; do not forget round(…, 2)."
+  },
+  {
+   "id": "d4-lookup-cost",
+   "title": "Cost of a row lookup",
+   "statement": "We count page reads. Heap: an index lookup costs index_height pages plus 1 heap page. Clustered table: a lookup by primary key costs table_height. Clustered, lookup by a secondary index: index_height + table_height. Write lookup_cost(kind, index_height, table_height): kind is 'heap', 'clustered_pk', or 'clustered_secondary'.",
+   "hint": "Three cases — three formulas from the statement."
+  },
+  {
+   "id": "d4-torn-page",
+   "title": "Torn page",
+   "statement": "A page consists of sectors; each one stores the version number of the page write. If after a crash the sector versions do not match, the page is \"torn\". Write is_torn(sector_versions): True if not all the versions are the same; consider an empty page intact.",
+   "hint": "It is enough to check how many distinct versions are in the list."
+  },
+  {
+   "id": "d4-columnar-bytes",
+   "title": "How many bytes a query reads",
+   "statement": "A table of rows rows, with column sizes in bytes given by col_sizes. In a row store a query reads all the columns of every row, in a column store only the needed ones. Write bytes_read(layout, rows, col_sizes, wanted): layout is 'row' or 'column', wanted is the indexes of the needed columns; return the number of bytes.",
+   "hint": "Row storage reads whole rows, column storage just sums the sizes of the chosen columns."
+  },
+  {
+   "id": "d4-rle",
+   "title": "Run-length encoding",
+   "statement": "Write rle(values): a list of [value, how many times in a row it occurred] pairs for consecutive equal values. An empty list gives an empty result.",
+   "hint": "Compare the current value with the last one in the result: if equal, increment the counter, otherwise start a new pair."
+  },
+  {
+   "id": "d4-dict-encode",
+   "title": "Dictionary encoding of a column",
+   "statement": "The strings of a column are replaced with numbers. Write dict_encode(values): a pair [the dictionary — a list of unique values in order of first appearance, the codes — for each value its index in the dictionary].",
+   "hint": "The \"value → index\" dictionary is filled as values appear; the dictionary keeps insertion order."
+  },
+  {
+   "id": "d4-group-commit",
+   "title": "Group commit",
+   "statement": "fsync runs on ticks: at moments 0, interval, 2·interval, … A commit that arrives at moment t waits for the nearest tick that is not earlier than t. Write group_commit(arrivals, interval): a pair [how many distinct ticks (fsyncs) were needed, the longest wait in ms].",
+   "hint": "The nearest tick not earlier than t: ceil(t / interval) * interval; collect the ticks into a set."
+  }
+ ]
+}

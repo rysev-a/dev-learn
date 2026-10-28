@@ -1,0 +1,54 @@
+{
+ "book": 7,
+ "chapter": 4,
+ "tasks": [
+  {
+   "id": "binary-search-count",
+   "title": "Binary search",
+   "statement": "Write a function binary_search(arr, target): the index of target in a list sorted in ascending order, or -1. The checker counts element accesses: on a list of a million elements you may make at most 25 accesses — a linear scan will not pass.",
+   "hint": "lo, hi = 0, len(arr) - 1; mid = (lo + hi) // 2; compare arr[mid] once per step (store it in a variable!) and discard half."
+  },
+  {
+   "id": "lower-bound",
+   "title": "First position not less than x",
+   "statement": "Write a function lower_bound(arr, x): the index of the first element of a sorted list that is greater than or equal to x (len(arr) if there is none). In O(log n): the checker counts accesses (at most 25 on a million).",
+   "hint": "lo, hi = 0, len(arr); while lo < hi: mid = (lo + hi) // 2; if arr[mid] < x: lo = mid + 1, else hi = mid."
+  },
+  {
+   "id": "search-rotated",
+   "title": "Search in a rotated array",
+   "statement": "A sorted list without duplicates was cyclically shifted: [4, 5, 6, 7, 0, 1, 2]. Write a function search_rotated(arr, target): the index of target or -1 in O(log n) (the checker allows at most 60 accesses on a million elements).",
+   "hint": "At each step one of the halves [lo, mid] or [mid, hi] is always sorted: find it and decide whether target lies inside it."
+  },
+  {
+   "id": "merge-sort-impl",
+   "title": "Merge sort",
+   "statement": "Write a function merge_sort(arr): it returns a NEW sorted list (do not modify the original), merge sort in O(n log n), stable. The built-in sorted and sort are not allowed: the checker feeds 100,000 numbers and (number, tag) pairs to verify stability.",
+   "hint": "Split in half, sort the halves recursively, merge with two pointers (on ties take from the LEFT half — that makes the sort stable)."
+  },
+  {
+   "id": "quick-sort-impl",
+   "title": "Quicksort",
+   "statement": "Write a function quick_sort(arr): it sorts the list IN PLACE with quicksort. The checker feeds random data, an already sorted list and 100,000 equal elements — a naive pivot choice (first/last) and partitioning that ignores equal elements give O(n²) and will not finish in time.",
+   "hint": "A random pivot; partition into three parts: less, equal, greater (three-way) — then equal elements cause no degradation."
+  },
+  {
+   "id": "counting-sort-impl",
+   "title": "Counting sort",
+   "statement": "Write a function counting_sort(nums, max_value): it sorts integers from 0 to max_value in O(n + k), where k = max_value + 1. It returns a new list. The checker feeds a million numbers with max_value = 100.",
+   "hint": "counts = [0] * (max_value + 1); count the occurrences; then write out each value v exactly counts[v] times."
+  },
+  {
+   "id": "kth-largest",
+   "title": "k-th largest",
+   "statement": "Write a function kth_largest(nums, k): the k-th largest element of the list (k = 1 is the largest); equal values count as separate elements. 1 <= k <= len(nums). A heap (heapq) or quickselect will do.",
+   "hint": "heapq.nlargest(k, nums)[-1], or a heap of size k: keep the k largest, and the smallest of them is the answer."
+  },
+  {
+   "id": "sort-stable-two-keys",
+   "title": "Stable sort by two keys",
+   "statement": "Write a function sort_students(students): students is a list of [name, grade] pairs. Return them in descending order of grade; for equal grades the order stays as in the input list (stability). Note: there is exactly one key — the grade.",
+   "hint": "sorted(students, key=lambda s: s[1], reverse=True) — stability is preserved with reverse too."
+  }
+ ]
+}

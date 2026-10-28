@@ -1,0 +1,186 @@
+{
+ "book": 10,
+ "chapter": 29,
+ "tasks": [
+  {
+   "id": "r29-clone-manual",
+   "title": "A custom Clone",
+   "statement": "A struct Doc { title: String, version: u32 }. Implement Clone by hand so that the clone gets a version one higher and the same title.",
+   "hint": "Clone the fields separately; add one to version."
+  },
+  {
+   "id": "r29-copy-derive",
+   "title": "Copy and Clone",
+   "statement": "A struct Point { x: i32, y: i32 }: add a derive so that values are copied on assignment (Copy, Clone) and can be printed (Debug).",
+   "hint": "#[derive(Debug, Clone, Copy)]"
+  },
+  {
+   "id": "r29-default-manual",
+   "title": "Default by hand",
+   "statement": "A struct Settings { volume: u8, name: String, ratio: f64 }. Implement Default by hand: volume 50, name «по умолчанию», ratio 1.5.",
+   "hint": "impl Default for Settings: the function default()."
+  },
+  {
+   "id": "r29-partial-eq-cross",
+   "title": "Equality of different types",
+   "statement": "Structs Meters(f64) and Feet(f64). Implement PartialEq<Feet> for Meters: equal if the values match to within 0.001 (1 m = 3.28084 feet).",
+   "hint": "Convert to feet and compare with a tolerance."
+  },
+  {
+   "id": "r29-ord-manual",
+   "title": "Task ordering",
+   "statement": "A struct Task { pri: u32, name: String }. Implement Ord so that a larger priority counts as \"greater\", and on a tie the name that comes earlier alphabetically counts as \"greater\" (reversed name order). Add PartialOrd, Eq, PartialEq.",
+   "hint": "then(other.name.cmp(&self.name)) reverses the name order."
+  },
+  {
+   "id": "r29-hash-manual",
+   "title": "Case-insensitive hash",
+   "statement": "A struct CiKey(String): equal to another ignoring case. Implement PartialEq, Eq and Hash by hand, consistently (hash the lowercase string), so that a HashSet<CiKey> treats \"Rust\" and \"rUST\" as one key.",
+   "hint": "Hash and equality use the same normalized key."
+  },
+  {
+   "id": "r29-from-tuple",
+   "title": "From for a struct",
+   "statement": "A struct Rgb(u8, u8, u8). Implement From<(u8, u8, u8)>, From<[u8; 3]> and From<Rgb> for u32 (0xRRGGBB).",
+   "hint": "Shifts << 16 and << 8."
+  },
+  {
+   "id": "r29-try-from",
+   "title": "TryFrom",
+   "statement": "A struct Percent(u8). Implement TryFrom<i32> for Percent: Ok for 0..=100, otherwise Err(String) with the text «вне диапазона: <n>».",
+   "hint": "(0..=100).contains(&n)"
+  },
+  {
+   "id": "r29-as-ref",
+   "title": "AsRef for a wrapper",
+   "statement": "A struct Name(String). Implement AsRef<str> for Name and write a function shout(x: impl AsRef<str>) -> String (uppercase) that accepts &str, String and Name.",
+   "hint": "&self.0: a String coerces to &str."
+  },
+  {
+   "id": "r29-deref",
+   "title": "Deref for a wrapper",
+   "statement": "A struct Stack(Vec<i32>). Implement Deref<Target = Vec<i32>> and DerefMut so that the vector methods len(), last(), push() work directly on Stack.",
+   "hint": "Return a reference to the inner vector."
+  },
+  {
+   "id": "r29-index",
+   "title": "Index for a grid",
+   "statement": "A struct Grid { w: usize, cells: Vec<char> }. Implement Index<(usize, usize)> and IndexMut<(usize, usize)>: g[(x, y)] is the cell in column x and row y.",
+   "hint": "Index into the flat vector: y * w + x."
+  },
+  {
+   "id": "r29-iterator-impl",
+   "title": "A custom Iterator: a Range with a step",
+   "statement": "A struct Stepper { cur: i32, end: i32, step: i32 } (step > 0). Implement Iterator<Item = i32>: from cur up to end (exclusive) with step step.",
+   "hint": "While cur < end, yield it and advance."
+  },
+  {
+   "id": "r29-into-iterator",
+   "title": "IntoIterator for your own collection",
+   "statement": "A struct Bag { items: Vec<String> }. Implement IntoIterator for Bag (by value) and for &Bag (by reference), so that both for x in bag and for x in &bag work.",
+   "hint": "Delegate to the vector: into_iter() and iter()."
+  },
+  {
+   "id": "r29-from-iterator",
+   "title": "FromIterator",
+   "statement": "A struct Bag { items: Vec<String> }. Implement FromIterator<&str> for Bag so that collect from an iterator of strings works: let b: Bag = words.into_iter().collect();",
+   "hint": "Build a vector of String from an iterator of &str."
+  },
+  {
+   "id": "r29-extend-sum",
+   "title": "Extend and Sum",
+   "statement": "A struct Money(i64). Implement std::iter::Sum for Money (the sum of Money values) and Extend<Money>... to keep it simple, only Sum and Add (Money + Money).",
+   "hint": "fold(Money(0), |a, b| a + b)"
+  },
+  {
+   "id": "r29-fn-param",
+   "title": "Fn, FnMut, FnOnce",
+   "statement": "Write three functions: call_twice(f: impl Fn() -> i32) -> i32 (the sum of two calls), call_mut(mut f: impl FnMut()) — call it 3 times, call_once(f: impl FnOnce() -> String) -> String — call it once.",
+   "hint": "An FnOnce can be called only once: just f(), no repeats."
+  },
+  {
+   "id": "r29-boxed-fns",
+   "title": "A list of closures",
+   "statement": "Write compose_all(fs: Vec<Box<dyn Fn(i32) -> i32>>) -> Box<dyn Fn(i32) -> i32>: a function that applies all of them in order.",
+   "hint": "Box::new(move |x| fs.iter().fold(x, |acc, f| f(acc)))"
+  },
+  {
+   "id": "r29-error-source",
+   "title": "An error with a cause",
+   "statement": "Declared: ConfigError { path: String, cause: std::num::ParseIntError }. Implement Display (\"ошибка в <path>\"), Error, and source() (returns Some(&self.cause)).",
+   "hint": "source() returns Option<&dyn Error>."
+  },
+  {
+   "id": "r29-error-from",
+   "title": "Combining errors",
+   "statement": "Declare an enum AppError { Parse(std::num::ParseIntError), Neg(i64) } with From<ParseIntError>, Display and Error. The function positive(s: &str) -> Result<i64, AppError> parses a number and returns Err(Neg(n)) for negative ones.",
+   "hint": "? turns ParseIntError into AppError via From."
+  },
+  {
+   "id": "r29-send-sync",
+   "title": "Send and Sync",
+   "statement": "Write the functions assert_send<T: Send>() and assert_sync<T: Sync>() (empty, a compile-time check). The driver main checks that String and Vec<i32> are Send, and Arc<Mutex<i32>> is Send and Sync. Your solution is just the function declarations.",
+   "hint": "An empty body: the check happens when the type is substituted."
+  },
+  {
+   "id": "r29-any-downcast",
+   "title": "A dynamic type",
+   "statement": "Write describe(v: &dyn std::any::Any) -> String: \"целое N\" for i32, \"строка S\" for String, \"дробное X\" for f64, otherwise \"неизвестно\" (downcast_ref).",
+   "hint": "downcast_ref::<T>() returns Option<&T>."
+  },
+  {
+   "id": "r29-cow",
+   "title": "Cow",
+   "statement": "Write normalize(s: &str) -> std::borrow::Cow<str>: if the string contains tabs, return Owned with the tabs replaced by spaces, otherwise return Borrowed without copying. The driver checks the variant.",
+   "hint": "Cow::Borrowed(s) copies nothing; Cow::Owned(String)."
+  },
+  {
+   "id": "r29-phantom",
+   "title": "Typed identifiers",
+   "statement": "A struct Id<T> { n: u32, _m: PhantomData<T> }. Implement new(n), get(&self), and Clone/Copy/PartialEq/Debug by hand without bounds on T (derive would require Clone for T). The types User and Order are empty structs. Comparing Id<User> with Id<Order> must not compile (there is nothing to test that with, just use PhantomData).",
+   "hint": "PhantomData is a value with no data: Id { n, _m: PhantomData }."
+  },
+  {
+   "id": "r29-borrow-lookup",
+   "title": "Borrow and lookup",
+   "statement": "Write find_len(m: &std::collections::HashMap<String, usize>, key: &str) -> usize: the value for the key or 0, looking up by &str in a map with String keys (the justification is the Borrow<str> trait).",
+   "hint": "m.get(key) accepts &str because String: Borrow<str>."
+  },
+  {
+   "id": "r29-display-debug",
+   "title": "Display and Debug together",
+   "statement": "A struct Ver(u32, u32, u32). Implement Display as \"1.2.3\" and derive(Debug); the function show(v: &impl std::fmt::Display) -> String returns \"версия <v>\".",
+   "hint": "Display gives you to_string() for free."
+  },
+  {
+   "id": "r29-generic-bound",
+   "title": "Trait bounds",
+   "statement": "Write largest_by_key<T, K: Ord>(items: &[T], key: impl Fn(&T) -> K) -> Option<&T>: the element with the largest key (the first one on a tie).",
+   "hint": "Replace best only when the key is strictly greater."
+  },
+  {
+   "id": "r29-trait-assoc",
+   "title": "An associated type",
+   "statement": "A trait Container { type Item; fn first(&self) -> Option<&Self::Item>; fn size(&self) -> usize; }. Implement it for the struct Words(Vec<String>) (Item = String).",
+   "hint": "type Item = String; delegate the methods to the vector."
+  },
+  {
+   "id": "r29-supertrait",
+   "title": "A supertrait",
+   "statement": "A trait Named: fmt::Display + ... — declare trait Entity: std::fmt::Display { fn id(&self) -> u32; fn label(&self) -> String { format!(\"#{} {}\", self.id(), self) } }. Implement Entity and Display for the struct Item { id: u32, name: String } (Display prints the name).",
+   "hint": "The supertrait guarantees that Display is available inside the default method."
+  },
+  {
+   "id": "r29-blanket",
+   "title": "A blanket implementation",
+   "statement": "A trait Shout { fn shout(&self) -> String; }. Implement it at once for every type that has Display (impl<T: Display> Shout for T): the text in uppercase with a \"!\".",
+   "hint": "A blanket impl applies to any T: Display."
+  },
+  {
+   "id": "r29-unsized",
+   "title": "?Sized",
+   "statement": "Write byte_len<T: ?Sized + AsRef<[u8]>>(x: &T) -> usize: the length in bytes for str, slices and vectors (relaxing Sized lets you accept str and [u8] directly).",
+   "hint": "x.as_ref().len(); T: ?Sized allows str and [u8]."
+  }
+ ]
+}

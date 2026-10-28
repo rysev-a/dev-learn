@@ -1,0 +1,66 @@
+{
+ "book": 10,
+ "chapter": 40,
+ "tasks": [
+  {
+   "id": "r40-wc",
+   "title": "wc: lines, words, bytes",
+   "statement": "Write count_stats<R: std::io::Read>(r: R) -> std::io::Result<(usize, usize, usize)>: the number of lines (the '\\n' characters plus a last line without a newline), words (split on whitespace), and bytes. Read with buffering: the check feeds in 20 MB.",
+   "hint": "read_until(b'\\n', &mut buf) reads a line together with its newline; count bytes by the number read."
+  },
+  {
+   "id": "r40-paths",
+   "title": "Lexical path parsing",
+   "statement": "Without touching the file system, write normalize(path: &str) -> String (as in the OS course: remove '.', repeated '/', handle '..', and the result is absolute; for a relative path, '..' above the start is kept) and ext_of(path: &str) -> Option<String> (the extension without the dot; None for names without a dot or of the form '.bashrc').",
+   "hint": "A stack of components; '..' pops the previous component but not another '..'; in an absolute path you cannot go above the root."
+  },
+  {
+   "id": "r40-list-tree",
+   "title": "Directory tree",
+   "statement": "Write list_tree(root: &Path) -> io::Result<Vec<String>>: the relative paths of all files and directories inside root (directories end with '/'), sorted by the full path as a string.",
+   "hint": "Recursion with a path prefix; the entry type is e.file_type()?.is_dir(); sort() at the end."
+  },
+  {
+   "id": "r40-dir-size",
+   "title": "Directory size",
+   "statement": "Write dir_size(root: &Path) -> io::Result<u64>: the total size of all regular files inside root (recursively). Do not dereference symbolic links (neither enter them nor count them).",
+   "hint": "e.file_type() does not follow links (unlike fs::metadata): is_file and is_dir are false for a link."
+  },
+  {
+   "id": "r40-grep-file",
+   "title": "grep on a file",
+   "statement": "Write grep_file(path: &Path, needle: &str) -> io::Result<Vec<(usize, String)>>: pairs (line number starting from one, line) for lines that contain the substring needle. Read line by line through BufReader.",
+   "hint": "lines() yields Result<String>; enumerate() numbers from zero, so add one."
+  },
+  {
+   "id": "r40-copy-filtered",
+   "title": "Filtered copy",
+   "statement": "Write copy_filtered(src: &Path, dst: &Path, keep: impl Fn(&str) -> bool) -> io::Result<usize>: reads src line by line and writes to dst (through BufWriter, each line ending with '\\n') only the lines for which keep returned true; returns the number of lines written.",
+   "hint": "BufWriter flushes itself when dropped, but an explicit flush() returns the write error, so it is better to call it."
+  },
+  {
+   "id": "r40-run-capture",
+   "title": "Running a program with a report",
+   "statement": "Write run_capture(cmd: &str, args: &[&str]) -> Result<(String, i32), String>: runs the program and returns (stdout without the trailing newline, exit code). If the program does not exist, return Err(\"not found: <cmd>\"); if the process was killed by a signal (no code), the code is −1; other launch errors give Err(the error text).",
+   "hint": "output() returns Err only if the process could not be started; a nonzero code is an Ok with a status."
+  },
+  {
+   "id": "r40-sort-process",
+   "title": "Sorting with an external program",
+   "statement": "Write sort_with_process(lines: &[&str]) -> io::Result<Vec<String>>: send the lines to the standard input of the sort program, close the input, and return the lines of its output.",
+   "hint": "The child's standard input must be closed (drop its owner) before wait_with_output."
+  },
+  {
+   "id": "r40-kv-server",
+   "title": "Key-value server",
+   "statement": "Write handle_kv(stream: TcpStream, store: Arc<Mutex<HashMap<String, String>>>) -> io::Result<()>: reads commands one per line and replies with a line: 'SET k v' (v is the rest of the line and may contain spaces) -> 'OK'; 'GET k' -> the value or 'NIL'; 'DEL k' -> 'OK' or 'NIL' (if the key did not exist); 'INCR k' -> the new number (a missing key counts as 0, a non-number value gives 'ERR'); anything else -> 'ERR'. Finish when the client closes the connection.",
+   "hint": "One Mutex around the whole command handling is simple and correct; the client closes the connection and lines() ends."
+  },
+  {
+   "id": "r40-udp-reverse",
+   "title": "UDP: reply backwards",
+   "statement": "Write udp_reverse_once(sock: &UdpSocket) -> io::Result<usize>: receive one datagram (up to 1024 bytes), send the same bytes in reverse order back to the sender, and return the length. If nothing arrives within 500 ms, return an error of kind TimedOut or WouldBlock (set a read timeout on the socket).",
+   "hint": "recv_from returns the size and the sender's address; send_to goes to that same address."
+  }
+ ]
+}

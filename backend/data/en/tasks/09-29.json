@@ -1,0 +1,216 @@
+{
+ "book": 9,
+ "chapter": 29,
+ "tasks": [
+  {
+   "id": "d13-analyze-stats",
+   "title": "Statistics after ANALYZE",
+   "statement": "Collect statistics with the ANALYZE command. The result is checked against the sqlite_stat1 table: it must contain index statistics rows.",
+   "hint": "The ANALYZE; command is enough: SQLite will write the row count and the average number of rows per index value into sqlite_stat1.",
+   "starter": "-- collect statistics\n"
+  },
+  {
+   "id": "d13-index-filter",
+   "title": "Index for a filter",
+   "statement": "The query SELECT * FROM orders WHERE user_id = 7 scans the table. Create an index so that the plan becomes an index search.",
+   "hint": "CREATE INDEX name ON orders (user_id);",
+   "starter": "-- index for WHERE user_id = ?\nCREATE INDEX\n"
+  },
+  {
+   "id": "d13-index-expression",
+   "title": "Index on an expression",
+   "statement": "The query SELECT * FROM users WHERE lower(email) = 'user5@mail.ru' does not use the index on email. Create an index on the expression lower(email) so that the plan becomes a search.",
+   "hint": "CREATE INDEX … ON users (lower(email));",
+   "starter": "-- index on an expression\nCREATE INDEX\n"
+  },
+  {
+   "id": "d13-covering",
+   "title": "Covering index",
+   "statement": "The query SELECT created, total FROM orders WHERE user_id = 7 reads the table. Create one index that fully covers the query (the plan must contain COVERING INDEX).",
+   "hint": "After user_id, add both needed columns to the index: created and total.",
+   "starter": "-- covering index\nCREATE INDEX\n"
+  },
+  {
+   "id": "d13-composite-order",
+   "title": "Column order in an index",
+   "statement": "The query: WHERE status = 'new' AND user_id = 5. Create a composite index (columns in any order) so that the condition in the plan uses both columns: the plan text must contain `status=? AND user_id=?` or `user_id=? AND status=?`.",
+   "hint": "Index (user_id, status): both conditions are equalities, both columns will take part in the search.",
+   "starter": "-- composite index\nCREATE INDEX\n"
+  },
+  {
+   "id": "d13-join-index",
+   "title": "Index for a join",
+   "statement": "The query SELECT u.email, o.total FROM users u JOIN orders o ON o.user_id = u.id WHERE u.id = 5 joins the tables. Create an index so that access to orders is an index search.",
+   "hint": "Index the join column in the table where the search happens: orders.user_id.",
+   "starter": "-- index on a foreign key\nCREATE INDEX\n"
+  },
+  {
+   "id": "d13-selectivity",
+   "title": "Selectivity of a condition",
+   "statement": "Output the share of orders with status 'new' as a percentage with one decimal place: the column pct (ROUND to 1 digit).",
+   "hint": "SUM(status = 'new') counts the matching rows, COUNT(*) counts all of them.",
+   "starter": "-- share of rows\nSELECT\n"
+  },
+  {
+   "id": "d13-n-distinct",
+   "title": "Number of distinct values",
+   "statement": "For the columns city and status of the users table, output the number of distinct values: the columns cities, statuses.",
+   "hint": "COUNT(DISTINCT …) for each column.",
+   "starter": "-- cardinality\nSELECT\n"
+  },
+  {
+   "id": "d13-mcv",
+   "title": "Most common values",
+   "statement": "Output the most common values of city and the share of each as a percentage (integer): the columns city, pct; by descending share, then by city.",
+   "hint": "GROUP BY city, COUNT(*), and the share of the total row count.",
+   "starter": "-- how ANALYZE collects statistics\nSELECT\n"
+  },
+  {
+   "id": "d13-histogram",
+   "title": "Histogram bucket bounds",
+   "statement": "Split the orders into 4 equal-size buckets by total (NTILE) and output the largest total value in each bucket: the columns bucket, upper; ordered by bucket.",
+   "hint": "NTILE(4) OVER (ORDER BY total), then MAX(total) per bucket."
+  },
+  {
+   "id": "d13-independence",
+   "title": "Estimate and actual",
+   "statement": "The estimate under independence: the share of `city='Москва'` multiplied by the share of status='blocked' and by the number of rows. Output one row: est, the estimated number of rows (ROUND to an integer), and actual, the real number of rows where both conditions hold.",
+   "hint": "est = n_city * n_status / n; actual is COUNT(*) with both conditions.",
+   "starter": "-- estimate vs actual\nSELECT\n"
+  },
+  {
+   "id": "d13-notin-null",
+   "title": "The NOT IN trap",
+   "statement": "Output the ids from a that are not in b, so that a NULL in b does not break the result (NOT EXISTS): the column id; ascending.",
+   "hint": "NOT EXISTS (SELECT 1 FROM b WHERE b.id = a.id)."
+  },
+  {
+   "id": "d13-keyset",
+   "title": "Pages without OFFSET",
+   "statement": "Output the next page of 5 orders after the order with id 100, in ascending id order (without OFFSET): the columns id, total.",
+   "hint": "WHERE id > 100 ORDER BY id LIMIT 5.",
+   "starter": "-- keyset pagination\nSELECT\n"
+  },
+  {
+   "id": "d13-semijoin",
+   "title": "IN instead of a multiplying join",
+   "statement": "Output the users (id, email) who have at least one order with status 'new', without duplicates. Use EXISTS. Ordered by id.",
+   "hint": "EXISTS does not multiply rows, unlike JOIN."
+  },
+  {
+   "id": "d13-join-card",
+   "title": "Join size",
+   "statement": "Output the number of rows in the result of joining users and orders on user_id: the column n.",
+   "hint": "Each order finds its user, so the result equals the number of orders.",
+   "starter": "-- result size\nSELECT\n"
+  },
+  {
+   "id": "d13-cost-seq",
+   "title": "Cost of a scan",
+   "statement": "The cost of a sequential scan = pages · 1.0 + rows · 0.01. Write seq_scan_cost(pages, rows): a number rounded to two decimal places.",
+   "hint": "Plug into the formula and round."
+  },
+  {
+   "id": "d13-cost-index",
+   "title": "Cost of an index lookup",
+   "statement": "Index lookup: for each matching row, a random page read (4.0) plus 0.01 per row, plus the descent through the tree (height · 4.0). Write index_scan_cost(matching_rows, height): a number rounded to two decimal places.",
+   "hint": "height·4 + rows·(4 + 0.01)."
+  },
+  {
+   "id": "d13-choose-access",
+   "title": "Scan or index?",
+   "statement": "A scan costs pages + rows·0.01, an index costs height·4 + matching·4.01. Write choose_access(pages, rows, matching, height): `seq` if the scan is strictly cheaper, otherwise `index`. The function returns the strings 'seq' and 'index'.",
+   "hint": "Compare the two costs; on a tie we choose the index."
+  },
+  {
+   "id": "d13-breakeven",
+   "title": "Break-even point",
+   "statement": "For a scan costing pages + rows·0.01 and an index costing height·4 + m·4.01, find the largest integer number of matching rows m for which the index is still no more expensive than the scan. Write breakeven_rows(pages, rows, height); if even at m = 0 the index is more expensive, return −1.",
+   "hint": "m = (seq − height·4) / 4.01, round down and check the boundary."
+  },
+  {
+   "id": "d13-nested-loop-cost",
+   "title": "Nested loops",
+   "statement": "The outer table returns outer_rows rows. For each one a lookup in the inner table is made: index_probe_cost if there is an index, otherwise a scan of inner_pages. Write nested_loop_cost(outer_rows, inner_pages, has_index, index_probe_cost): outer_rows · (index_probe_cost if has_index, otherwise inner_pages).",
+   "hint": "Multiply the number of outer rows by the price of one lookup."
+  },
+  {
+   "id": "d13-hash-join-cost",
+   "title": "Hash join",
+   "statement": "A hash join reads both tables once and builds a hash table on the smaller one: cost = pages_a + pages_b + 0.02·(rows_a + rows_b). Write hash_join_cost(pages_a, rows_a, pages_b, rows_b): a number rounded to two decimal places.",
+   "hint": "Add the pages and 0.02 of the sum of rows."
+  },
+  {
+   "id": "d13-merge-join-cost",
+   "title": "Merge join",
+   "statement": "A merge needs sorting for each unsorted side: n·log₂(n)·0.01 (round the total to two decimal places; for n ≤ 1 sorting costs 0), then a pass of 0.01·(rows_a + rows_b). Write merge_join_cost(rows_a, sorted_a, rows_b, sorted_b): sorted_* = True means no sort is needed.",
+   "hint": "A per-side sort function + a linear pass."
+  },
+  {
+   "id": "d13-pick-join",
+   "title": "Choosing a join algorithm",
+   "statement": "Write pick_join(outer_rows, inner_has_index, equality, both_sorted): if the join is not on equality, `nested`; otherwise if both sides are sorted, `merge`; otherwise if the inner table has an index and outer_rows ≤ 100, `nested`; otherwise `hash`. The function returns the strings 'nested', 'merge', 'hash'.",
+   "hint": "Check the conditions in the given order."
+  },
+  {
+   "id": "d13-eq-selectivity",
+   "title": "Equality selectivity",
+   "statement": "Column statistics: mcv is a dictionary \"value → fraction\" (the most common ones), n_distinct is the number of distinct values. For a value from mcv the selectivity is its fraction; otherwise the remaining fraction (1 − the sum of the mcv fractions) is divided equally among the other distinct values: (1 − Σ) / (n_distinct − len(mcv)). Write eq_selectivity(mcv, n_distinct, value): a number rounded to 4 decimal places.",
+   "hint": "Two cases: the value is among the common ones, or in the tail."
+  },
+  {
+   "id": "d13-range-selectivity",
+   "title": "Range selectivity",
+   "statement": "The histogram is a list of bucket bounds, bounds (increasing), with an equal number of rows in each bucket. The fraction of rows in the range [lo, hi] is the number of buckets lying entirely inside plus the parts of the edge buckets (linear interpolation), divided by the number of buckets. Write range_selectivity(bounds, lo, hi): a number rounded to 4 decimal places; a range outside the bounds is clipped.",
+   "hint": "For each bucket take the fraction of its length that falls into the range; add them up and divide by the number of buckets."
+  },
+  {
+   "id": "d13-combine-sel",
+   "title": "Row count estimate",
+   "statement": "A table of rows rows, a list of condition selectivities sels, the conditions are independent. Write combined_rows(rows, sels): the estimated number of rows, rows · the product of the fractions, rounded to an integer but not less than 1.",
+   "hint": "Multiply the fractions and multiply by the number of rows; minimum 1."
+  },
+  {
+   "id": "d13-join-card-est",
+   "title": "Join size",
+   "statement": "Estimate of the size of an equality join: |A|·|B| / max(d_a, d_b), where d_* is the number of distinct key values in the table. Write join_cardinality(rows_a, rows_b, d_a, d_b): the estimate rounded to an integer (minimum 0).",
+   "hint": "Put the formula into code; divide by the maximum of the distinct counts."
+  },
+  {
+   "id": "d13-qerror",
+   "title": "Estimation error",
+   "statement": "Q-error is how many times the estimate differs from the actual value: max(est/actual, actual/est), rounded to two decimal places. Write q_error(est, actual); if either value is 0, replace it with 1.",
+   "hint": "Replace zeros with 1, then take the maximum of the two ratios."
+  },
+  {
+   "id": "d13-count-orders",
+   "title": "How many join orders",
+   "statement": "For n tables the number of left-deep join orders is n!, and the number of all orders including tree shapes (bushy) is (2n−2)! / (n−1)!. Write join_orders(n): a pair [left-deep, all]. For n = 1 it is [1, 1].",
+   "hint": "math.factorial; for n = 1 return ones."
+  },
+  {
+   "id": "d13-best-order",
+   "title": "Best join order",
+   "statement": "Given the table sizes sizes and a common join selectivity sel (the same for all pairs): the size of the join of a subset of size k is the product of the sizes · sel^(k−1). A left-deep order costs the sum of the sizes of all intermediate results (after each join). Write best_order_cost(sizes, sel): the minimum cost, rounded to two decimal places (for a single table, 0).",
+   "hint": "Go through the permutations and compute the sum of the intermediate results; take the minimum."
+  },
+  {
+   "id": "d13-plan-self-cost",
+   "title": "The most expensive node",
+   "statement": "A plan is a list of nodes [depth, name, total cost] in output order (a parent comes before its children; the root has depth 0). A node's own cost = its total minus the sum of the total costs of its direct children. Write hottest_node(plan): the name of the node with the largest own cost (on a tie, the first in order).",
+   "hint": "For each node subtract the total costs of its direct children: these are the following nodes with depth one greater, until you return to the same or a smaller depth."
+  },
+  {
+   "id": "d13-slow-queries",
+   "title": "The heaviest queries",
+   "statement": "The statistics are a list of [query, calls, average time in ms]. Total time = calls · average. Write top_total_time(stats, k): a list of the names of the k heaviest queries by total time (descending; on a tie, by name).",
+   "hint": "Sort by descending calls·average and then by name."
+  },
+  {
+   "id": "d13-generic-plan",
+   "title": "Generic or custom plan",
+   "statement": "The costs of the custom plans of the first calls are the list custom. The generic plan costs generic. The rule: use the generic plan if generic ≤ the average of the custom ones · 1.1 and there were at least 5 calls; otherwise a custom one. Write use_generic_plan(custom, generic): True if we choose the generic one.",
+   "hint": "First check the number of calls, then compare with the average."
+  }
+ ]
+}

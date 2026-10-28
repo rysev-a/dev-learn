@@ -1,0 +1,131 @@
+{
+ "book": 9,
+ "chapter": 21,
+ "tasks": [
+  {
+   "id": "d5-json-extract",
+   "title": "JSON in SQL: extract a field",
+   "statement": "In the table events(id, payload), payload is JSON. Output user and amount for events of type 'buy' (columns: user, amount), in ascending id order.",
+   "hint": "The ->> operator extracts a value by path: payload ->> '$.user'; or json_extract(payload, '$.user').",
+   "starter": "-- user and amount of purchases\nSELECT\n"
+  },
+  {
+   "id": "d5-json-each",
+   "title": "JSON array into rows",
+   "statement": "Count how many times each tag occurs across all events (the tags array in payload). Columns: tag, n; most frequent first, ties by alphabet.",
+   "hint": "json_each(payload, '$.tags') expands an array into rows; the value is in the value column.",
+   "starter": "-- tags and their counts\nSELECT\n"
+  },
+  {
+   "id": "d5-json-index",
+   "title": "Index on a JSON field",
+   "statement": "The query WHERE payload ->> '$.user' = 'anna' scans the table. Create an expression index so that it becomes an index search.",
+   "hint": "An expression index: ON events ((payload ->> '$.user')) — the expression in parentheses must match the query.",
+   "starter": "-- index on the user field inside JSON\nCREATE INDEX\n"
+  },
+  {
+   "id": "d5-json-build",
+   "title": "Build documents from tables",
+   "statement": "For each customer build a document: a JSON object with the fields id, name and orders — an array of their order numbers in ascending order. Columns: doc (JSON text); ordered by customer id; customers without orders are needed too (orders is an empty array).",
+   "hint": "json_object(...) builds an object, json_group_array(...) an array; wrap the nested array in json() so it does not become a string.",
+   "starter": "-- one JSON document per customer\nSELECT\n"
+  },
+  {
+   "id": "d5-graph-cte",
+   "title": "Graph in SQL: friends of friends",
+   "statement": "friends(a, b) is friendship in both directions (stored as a pair of rows). Output Anna's friends of friends — those who are not Anna herself and not her direct friends (column name, in alphabetical order).",
+   "hint": "Two self-joins: a friend (f1) and their friend (f2); exclude Anna herself and her direct friends.",
+   "starter": "-- Anna's friends of friends\nSELECT\n"
+  },
+  {
+   "id": "d5-kv-ttl",
+   "title": "Key-value with time to live",
+   "statement": "Operations: [\"set\", t, key, value, ttl] (ttl is a number of seconds or None) and [\"get\", t, key], where t is a point in time. A record lives until t + ttl, exclusive: at the moment t + ttl it is already gone. Write kv_run(ops): a list of the results of all gets in execution order (the value or None).",
+   "hint": "Store the value together with its expiry time; get returns it only if t is less than that time."
+  },
+  {
+   "id": "d5-kv-incr",
+   "title": "Atomic counters",
+   "statement": "Operations on counters: [\"incr\", key, delta] and [\"decr\", key, delta]; a missing key counts as zero. Write counters(ops): a dictionary of the final values.",
+   "hint": "c.get(key, 0) gives zero for a new key; decr is adding a negative delta."
+  },
+  {
+   "id": "d5-key-design",
+   "title": "Composite keys",
+   "statement": "A key is built from parts joined by a colon. So that a colon and a percent sign inside a part do not break parsing, they are escaped: «%» → «%25», «:» → «%3A» (percent first). Write make_key(parts): a list of parts (strings or numbers) is turned into a key; an empty list gives an empty string.",
+   "hint": "Escape each part (first %, then :), then join them with a colon."
+  },
+  {
+   "id": "d5-doc-match",
+   "title": "Conditions on document fields",
+   "statement": "A document is a nested dictionary. A query is a dictionary of \"dotted path → condition\". A condition is a value (equality) or a dictionary with a single operator: {\"$gt\": x}, {\"$lt\": x}, {\"$in\": [..]}. Write doc_match(doc, query): True if the document satisfies all conditions; a missing field fails the condition.",
+   "hint": "Descend along the path parts; for dictionary conditions, one of the three operations; no field means False immediately."
+  },
+  {
+   "id": "d5-doc-find",
+   "title": "Search in a collection",
+   "statement": "A collection is a list of documents with a string field \"id\". A query is a dictionary of \"top-level field → value or {\"$gt\": x}\". Write find_ids(docs, query): a sorted list of ids of matching documents (a document matches if, for every field of the query, the field exists and the condition holds).",
+   "hint": "For each document, check all fields of the query; sort the result."
+  },
+  {
+   "id": "d5-embed",
+   "title": "Denormalization: embed the author",
+   "statement": "Orders are a list of dictionaries with a user_id field, users are a dictionary of \"id (string) → {\"name\": …}\". Write embed_users(orders, users): a new list of orders in which the user_id field is replaced with a user field — a copy of the user's dictionary (None if there is no such user). Keep the other fields of the order.",
+   "hint": "Copy the order fields without user_id and add user from the dictionary by the key str(user_id)."
+  },
+  {
+   "id": "d5-partition",
+   "title": "Partition key → node",
+   "statement": "The node for a key is defined as (sum of the character codes of the key) % nodes. Write partition_keys(keys, nodes): a dictionary of \"node number (string) → sorted list of keys\" only for nodes that have keys.",
+   "hint": "Compute the hash by the rule, group, and sort inside the groups; the dictionary keys are strings."
+  },
+  {
+   "id": "d5-wide-row",
+   "title": "Range on the clustering key",
+   "statement": "Rows are a list of [partition, clustering (a number), value] in arbitrary order. Write slice_rows(rows, partition, start, end): the values of the partition with clustering start ≤ c < end, ordered by c.",
+   "hint": "Select the right partition and range, sort the pairs by clustering."
+  },
+  {
+   "id": "d5-friends-of-friends",
+   "title": "Friends of friends in a graph",
+   "statement": "A graph is a dictionary of \"name → list of friends\" (friendship is symmetric, but you do not need to check that). Write friends_of_friends(graph, person): a sorted list of people who are friends of friends of person, but not person themselves and not their direct friends.",
+   "hint": "Collect the set of friends of friends and subtract the direct friends and the person themselves."
+  },
+  {
+   "id": "d5-graph-path",
+   "title": "Shortest path in a graph",
+   "statement": "Write shortest_path(graph, a, b): the number of edges in the shortest path between a and b using breadth-first search (the graph is a dictionary of \"node → list of neighbors\"); if there is no path, -1; for a == b, 0.",
+   "hint": "Breadth-first traversal by layers: each layer is one step farther; when b is found, return the layer number."
+  },
+  {
+   "id": "d5-inverted-index",
+   "title": "Inverted index",
+   "statement": "Documents are a dictionary of \"id (string) → text\". Words are consecutive letters and digits, case does not matter. Write build_index(docs): a dictionary of \"word → sorted list of ids of documents containing it\" (no repeats).",
+   "hint": "Split the text into words with a regular expression, make a set of the document's words, and add the id to each word's list."
+  },
+  {
+   "id": "d5-search-and",
+   "title": "Search by all words",
+   "statement": "The index is a dictionary of \"word → list of ids\". Write search_all(index, query): a sorted list of ids of documents that contain ALL the words of the query (the query is a string, words are separated by spaces, case does not matter). An empty query gives an empty list.",
+   "hint": "Intersect the sets of ids for each word of the query; a missing word gives an empty set."
+  },
+  {
+   "id": "d5-tf-rank",
+   "title": "Ranking by word frequency",
+   "statement": "Documents are a dictionary of \"id → text\". A document's score is the sum, over the query words, of the number of occurrences of the word in the document (case does not matter). Write rank(docs, query): a list of ids with a positive score, in descending order of score, ties by ascending id.",
+   "hint": "The score is the sum of words.count(word) over the query words; sort by the pair (−score, id)."
+  },
+  {
+   "id": "d5-flatten",
+   "title": "Flat document paths",
+   "statement": "For indexing, a nested document is turned into a flat dictionary of \"dotted path → value\". Write flatten_doc(doc): leaves (non-dictionaries) go into the result, nested dictionaries are expanded recursively; treat lists as leaves.",
+   "hint": "Recursion with an accumulated prefix: the top-level key + '.' + the nested keys."
+  },
+  {
+   "id": "d5-validate",
+   "title": "Validate a document against a schema",
+   "statement": "A schema is a dictionary of \"field → type\" with the types 'str', 'int' or 'bool'; all fields are required. Write validate(doc, schema): a sorted list of errors — \"missing:field\" for a missing field and \"type:field\" for a wrong type (bool does not count as int).",
+   "hint": "For each field of the schema: absent — missing, wrong type — type; bool is a subclass of int, so it must be excluded manually."
+  }
+ ]
+}

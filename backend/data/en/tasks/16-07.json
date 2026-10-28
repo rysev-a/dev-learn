@@ -1,0 +1,186 @@
+{
+ "book": 16,
+ "chapter": 7,
+ "tasks": [
+  {
+   "id": "c7-sq-parens",
+   "title": "Macros without surprises: SQ, CUBE, ABS, MIN, MAX",
+   "statement": "Write the macros SQ(x), CUBE(x), ABS(x), MIN(a, b), MAX(a, b). They must work correctly with any expressions as arguments: SQ(a + 1), 100 / SQ(2), -ABS(5), MAX(1, 2) * 10. Hint: parentheses around every parameter and around the whole body.",
+   "hint": "#define SQ(x) ((x) * (x)) — parameters in parentheses and the whole body in parentheses; for ABS/MIN/MAX the ternary operator is also fully parenthesized."
+  },
+  {
+   "id": "c7-clamp-sign",
+   "title": "CLAMP, SIGN, and IN_RANGE",
+   "statement": "CLAMP(x, lo, hi) — limit a value to the interval [lo, hi]; SIGN(x) → −1, 0, or 1 (for int and double); IN_RANGE(x, lo, hi) → 1 if lo ≤ x ≤ hi, otherwise 0. The arguments are arbitrary expressions without side effects; the macros must nest: CLAMP(CLAMP(x, 0, 5), 2, 3).",
+   "hint": "Every parameter in parentheses. SIGN: ((x) > 0) - ((x) < 0). A nested CLAMP works if all ternary operators are parenthesized."
+  },
+  {
+   "id": "c7-array-macros",
+   "title": "Array macros: ARRAY_SIZE, LAST, FILL, ZERO",
+   "statement": "ARRAY_SIZE(a) — the number of elements in an array; LAST(a) — the last element (assignable: LAST(a) = 5); FILL(a, v) — write v into all elements; ZERO(a) — zero the whole array. The macros must work with arrays of any type, including structs; ZERO — without a loop.",
+   "hint": "ARRAY_SIZE — sizeof(a) / sizeof((a)[0]). Wrap FILL in do { … } while (0) — the driver uses it in if/else."
+  },
+  {
+   "id": "c7-bit-macros",
+   "title": "Bit macros",
+   "statement": "BIT(n) = 1u << n; SET_BIT(x, n), CLEAR_BIT(x, n), TOGGLE_BIT(x, n) — modify the variable x in place; TEST_BIT(x, n) → 0 or 1; LOW_MASK(n) — n low-order ones (0 ≤ n ≤ 31); GET_BITS(x, lo, n) — n bits starting at bit lo (shifted down). x is unsigned. Expression arguments such as i + 1 must work.",
+   "hint": "TEST_BIT: ((x) >> (n)) & 1u. LOW_MASK(n) = BIT(n) − 1. Always put parentheses around n and x."
+  },
+  {
+   "id": "c7-swap-macro",
+   "title": "SWAP for any type",
+   "statement": "SWAP(a, b) — swap two variables of the same type (int, double, pointers, structs) through a temporary variable of type __typeof__(a). The macro must work in if/else without braces and must not break if the calling code has variables with \"ordinary\" names such as t, tmp, or _t.",
+   "hint": "do { __typeof__(a) _swap_tmp_ = (a); (a) = (b); (b) = _swap_tmp_; } while (0) — a unique name for the temporary and a single statement wrapper."
+  },
+  {
+   "id": "c7-eval-once",
+   "title": "An argument is evaluated once: MAX3 and MIN3",
+   "statement": "MAX3(a, b, c) and MIN3(a, b, c) — the largest and smallest of three values. Each argument must be evaluated exactly once (arguments may be function calls with side effects): use the GNU statement expression ({ … }) and __typeof__. The macros must also work with double.",
+   "hint": "Inside ({ … }) declare _a = (a), _b = (b), _c = (c): each expression is evaluated once; the last expression in the parentheses is the result."
+  },
+  {
+   "id": "c7-stringify",
+   "title": "Stringification: STR, XSTR, SHOW, and VERSION",
+   "statement": "STR(x) → a string literal made from the argument's text without expanding macros; XSTR(x) — the same, but it first expands the macro in the argument (two levels); SHOW(e) — prints \"expression_text = value\" (cast the value to int, format \"%d\"); VERSION — the string \"vMAJOR.MINOR\" built from the existing macros MAJOR and MINOR (by concatenating literals, without sprintf).",
+   "hint": "STR(x) #x; XSTR(x) STR(x) — the second level makes the preprocessor expand the macro before stringification. SHOW: printf(#e \" = %d\\n\", (int)(e))."
+  },
+  {
+   "id": "c7-token-paste",
+   "title": "Generating functions by token pasting",
+   "statement": "CAT(a, b) — paste two tokens together (with macro expansion: things like CAT(x, __LINE__) are not needed, two levels are enough). DEFINE_ADDER(n) — defines a function int add_<n>(int x) that returns x + n; DEFINE_CMP(type) — a function int cmp_<type>(const void *, const void *) for qsort in ascending order. Make the calls: DEFINE_ADDER for 1, 5, and 100; DEFINE_CMP for int, long, and double.",
+   "hint": "int CAT(add_, n)(int x) { return x + (n); } — CAT with two levels pastes add_ and the number. Don't forget the DEFINE_… invocations themselves after the macro definitions."
+  },
+  {
+   "id": "c7-x-enum",
+   "title": "X macro: colors in one list",
+   "statement": "From one list COLORS(X) with the items X(RED, \"red\", 0xFF0000), X(GREEN, \"green\", 0x00FF00), X(BLUE, \"blue\", 0x0000FF), X(YELLOW, \"yellow\", 0xFFFF00), X(BLACK, \"black\", 0x000000) build: enum color (items RED… and COLOR_COUNT), color_name(c) → a string, or \"?\" for an invalid value, color_rgb(c) → a number, or −1, color_from_name(s) → the enum value, or −1.",
+   "hint": "One list COLORS(X); different definitions of X: AS_ENUM → id, ; AS_NAME → [id] = name, ; AS_RGB → [id] = rgb, — and each time COLORS(AS_…)."
+  },
+  {
+   "id": "c7-x-struct",
+   "title": "X macro: a struct and printing from a field list",
+   "statement": "The field list FIELDS(X): X(int, id, \"%d\"), X(double, score, \"%.1f\"), X(char, grade, \"%c\"), X(long, big, \"%ld\"). Build from it struct rec, the function rec_print(const struct rec *) (prints \"id=1 score=2.5 grade=A big=7\" on one line, fields separated by spaces, then a newline), and the constant FIELD_COUNT — the number of fields (compute it with a macro, for example as a sum of ones).",
+   "hint": "One list; DECL(type, name, fmt) → type name; PRINT → printf(#name \"=\" fmt, …); ONE → +1 for the counter."
+  },
+  {
+   "id": "c7-loop-macros",
+   "title": "Loop macros: FOR, REPEAT, FOREACH, FOR_RANGE",
+   "statement": "FOR(i, n) — a loop with i from 0 to n−1; REPEAT(n) — repeat the body n times (no visible variable); FOR_RANGE(i, a, b) — i from a to b − 1 inclusive; FOREACH(p, arr) — p runs over pointers to the elements of the array arr (the element count comes from ARRAY_SIZE, the macro is ready). The body is the next statement or block; n is evaluated once.",
+   "hint": "A loop that declares the counter and a \"frozen\" bound: for (int i = 0, _n_##i = (n); i < _n_##i; i++). FOREACH: a pointer from the start to arr + ARRAY_SIZE(arr)."
+  },
+  {
+   "id": "c7-log-macro",
+   "title": "A logging macro with a variable number of arguments",
+   "statement": "LOG(fmt, ...) prints \"[function_name] message\" and a newline (the name is __func__); the message is a format string with any arguments, including none: LOG(\"start\"). LOGL(level, fmt, ...) — the same, but with a level (its text comes from stringification): \"[INFO function_name] message\". The fmt arguments are always string literals.",
+   "hint": "printf(\"[%s] \" fmt \"\\n\", __func__, ##__VA_ARGS__) — ## before __VA_ARGS__ removes the comma when there are no arguments. Level: #level."
+  },
+  {
+   "id": "c7-my-assert",
+   "title": "Your own ASSERT with the condition text",
+   "statement": "Write the check counters (g_passed, g_failed), the macros CHECK(cond) and CHECK_EQ(a, b), and the function report(). On failure CHECK prints \"FAIL: condition_text\", CHECK_EQ prints \"FAIL: a == b (got X, expected Y)\" (values as long long). report() prints \"passed P, failed F\". The macros must not terminate the program and must evaluate their arguments once.",
+   "hint": "#cond gives the condition text. Wrap in do { … } while (0): the driver uses the macros in if/else. In CHECK_EQ save a and b into temporary long long variables."
+  },
+  {
+   "id": "c7-platform",
+   "title": "Conditional compilation: platform, word size, standard",
+   "statement": "Write functions that choose their value with #if/#ifdef/#elif directives (not by computing at run time): os_name() → \"linux\" (if __linux__ is defined), \"windows\" (_WIN32), \"mac\" (__APPLE__), otherwise \"other\"; ptr_bits() → 64 or 32 by __SIZEOF_POINTER__; c_year() → 1999, 2011, 2017, or 2023 by __STDC_VERSION__ (otherwise 1990); compiler() → \"gcc\" (__GNUC__ without __clang__), \"clang\", or \"unknown\". Use at least three conditional compilation directives.",
+   "hint": "#if defined(__linux__) … #elif … #else … #endif right inside the function; each branch has its own return."
+  },
+  {
+   "id": "c7-fix-parens",
+   "title": "Fix it: parentheses in macros",
+   "statement": "The macros SQ, DOUBLE, DIFF, and AVG are defined without the needed parentheses and give wrong results on expressions. Fix the definitions (only parentheses — the meaning of the macros stays the same): SQ(x) — square, DOUBLE(x) — x + x, DIFF(a, b) — a − b, AVG(a, b) — (a + b) / 2.",
+   "hint": "The rule: every parameter in the body in parentheses, and the whole body in parentheses."
+  },
+  {
+   "id": "c7-fix-double-eval",
+   "title": "Fix it: MAX evaluates its argument twice",
+   "statement": "MAX and MIN evaluate each argument twice — function calls with side effects run an extra time. Rewrite them so that each argument is evaluated once (a GNU statement expression or static inline functions for int and double — the driver calls the macros with both int and double).",
+   "hint": "({ __typeof__(a) _a = (a); __typeof__(b) _b = (b); _a > _b ? _a : _b; })"
+  },
+  {
+   "id": "c7-fix-swap-scope",
+   "title": "Fix it: SWAP breaks in if/else",
+   "statement": "SWAP is defined as three separate statements with a variable t: it does not compile in if/else without braces, and if the calling code already has a t, the result is wrong. Fix the macro: a single statement wrapper and a unique name for the temporary variable (type __typeof__(a)).",
+   "hint": "do { … } while (0) and a name like _swap_t. No semicolon is needed inside the macro itself."
+  },
+  {
+   "id": "c7-fix-xstr",
+   "title": "Fix it: version number in a string",
+   "statement": "VERSION_STR must produce a string from the macros VMAJOR and VMINOR (\"3.14\"), but it produces \"VMAJOR.VMINOR\". Fix STR (add a level that expands macros) and the definition of VERSION_STR; BUILD_TAG(x) must produce the string \"build-\" plus the numeric value of the macro BUILD_NO (for example \"build-742\").",
+   "hint": "You need two macros: STR_(x) #x and STR(x) STR_(x) — the outer one expands the argument, the inner one turns it into a string."
+  },
+  {
+   "id": "c7-fix-semicolon",
+   "title": "Fix it: extra semicolon and two statements",
+   "statement": "PRINT_INT and ALLOC_ZERO are defined with errors: PRINT_INT ends with a semicolon (it breaks if/else), ALLOC_ZERO is two statements without a wrapper (the second runs outside the condition). Fix both macros: a call with \";\" outside must work in if/else; ALLOC_ZERO(p, n) allocates n elements of type *p through calloc.",
+   "hint": "PRINT_INT without the trailing \";\"; ALLOC_ZERO — do { … } while (0)."
+  },
+  {
+   "id": "c7-generic-macros",
+   "title": "_Generic: ABS and TYPE_NAME",
+   "statement": "ABS(x) — absolute value for int, long, long long, float, and double (choose the function by type through _Generic: abs, labs, llabs, fabsf, fabs). TYPE_NAME(x) → a string with the type name: \"int\", \"long\", \"double\", \"float\", \"char *\", \"unsigned\", otherwise \"other\". IS_FLOAT(x) → 1 for float and double, otherwise 0.",
+   "hint": "_Generic((x), int: abs, long: labs, …)(x) — a function is selected, then called. For TYPE_NAME — branches with strings and default."
+  },
+  {
+   "id": "c7-container-of",
+   "title": "Your own offsetof and container_of",
+   "statement": "MY_OFFSETOF(type, member) → the offset of a field in bytes (of type size_t; without offsetof from stddef.h — through a null pointer); CONTAINER_OF(ptr, type, member) → a pointer to the struct of type type that contains the field member at address ptr. Use them for a list embedded in structs.",
+   "hint": "(size_t)&((type *)0)->member — the address of a field of a \"null\" struct equals the offset. CONTAINER_OF: (type *)((char *)(ptr) − offset)."
+  },
+  {
+   "id": "c7-count-args",
+   "title": "Counting macro arguments",
+   "statement": "COUNT_ARGS(...) → the number of arguments (from 1 to 8) — a list-shifting trick; FIRST(...) → the first argument; IS_SINGLE(...) → 1 if there is exactly one argument, otherwise 0. Commas inside parentheses of an argument (a call f(1, 2)) do not count as separators.",
+   "hint": "COUNT_N(_1, …, _8, N, …) N: __VA_ARGS__ is inserted before the list of numbers, and N \"slides\" to the argument count."
+  },
+  {
+   "id": "c7-vararg-sum",
+   "title": "SUM, MAXOF, MEAN of an argument list",
+   "statement": "COUNT_ARGS(...) is already done (1…8 arguments). Write the functions sum_ints(const int *a, int n), max_ints(const int *a, int n), mean_ints(const int *a, int n) → double and the macros SUM(...), MAXOF(...), MEAN(...), which pass the argument list to the function through a compound literal (int[]){…} and the number of arguments through COUNT_ARGS.",
+   "hint": "The compound literal (int[]){ __VA_ARGS__ } creates an unnamed array right in the expression."
+  },
+  {
+   "id": "c7-overload",
+   "title": "\"Overloading\" a macro by argument count",
+   "statement": "COUNT_ARGS is ready. Write the macro CAT (with two levels), the macros ADD1, ADD2, ADD3, and a general ADD(...) that picks the right one by argument count: ADD(a) → a, ADD(a, b) → a + b, ADD(a, b, c) → a + b + c. Then POINT(...): struct pt { int x, y, z; } — POINT(x) → {x, 0, 0}, POINT(x, y) → {x, y, 0}, POINT(x, y, z) → {x, y, z} (compound literals).",
+   "hint": "ADD(...) CAT(ADD, COUNT_ARGS(__VA_ARGS__))(__VA_ARGS__) — the macro name is chosen by pasting ADD and the argument count."
+  },
+  {
+   "id": "c7-x-ops",
+   "title": "X macro: operations, function table, and names",
+   "statement": "In one list OPS(X) describe the operations: X(ADD, \"add\", a + b), X(SUB, \"sub\", a - b), X(MUL, \"mul\", a * b), X(DIV, \"div\", b ? a / b : 0), X(MOD, \"mod\", b ? a % b : 0). Build from it enum op (OP_ADD, … and OP_COUNT), the functions op_add…, a table of pointers to them, and a table of names; exec(op, a, b, *ok) — perform the operation (ok = 0 for an invalid code, the result is 0); op_by_name(s) → the code or −1.",
+   "hint": "One list OPS(X): AS_ENUM → OP_##id, ; AS_FUNC → static int op_##id(int a, int b) { return expr; } ; AS_PTR and AS_NAME → table items with [OP_##id] = …"
+  },
+  {
+   "id": "c7-field-dump",
+   "title": "Macros for printing struct fields",
+   "statement": "FIELD(s, f) — prints \"f=value\" (an int field of the struct s, accessed with a dot), FIELDP(p, f) — the same for a pointer (accessed with ->). DUMP2(s, a, b) and DUMP3(s, a, b, c) — print \"{a=1, b=2}\" and \"{a=1, b=2, c=3}\" and a newline; the field names come from the argument text (stringification). The structs have only int fields.",
+   "hint": "#f turns the field name into a string; (s).f — access the field by the name from the argument. DUMP — do { … } while (0)."
+  },
+  {
+   "id": "c7-mini-test",
+   "title": "A mini test framework on macros",
+   "statement": "Write the macros TEST(name) — defines static void test_<name>(void); RUN(name) — prints \"run name\", calls the test, then \"ok name\" or \"FAILED name (N)\", where N is the number of failures in that test; EXPECT(cond) — on failure prints \"  fail: condition_text\" and increments the counter; EXPECT_EQ(a, b) — \"  fail: a == b (X != Y)\" (values as long long, each argument evaluated once); summary() prints \"tests T, failed F\" (F is the number of failed tests).",
+   "hint": "TEST(name) → static void test_##name(void); in RUN use #name and test_##name. The counters are static variables above the macros."
+  },
+  {
+   "id": "c7-genmask",
+   "title": "Register bit fields: GENMASK, FIELD_PREP, FIELD_GET",
+   "statement": "GENMASK(h, l) — a 32-bit mask with ones in bits h down to l inclusive (0 ≤ l ≤ h ≤ 31, unsigned); FIELD_PREP(mask, val) — place val into the field position (val is shifted to the lowest bit of the mask and truncated by the mask); FIELD_GET(mask, reg) — extract the field from reg; FIELD_MAX(mask) — the largest value of the field. Use __builtin_ctz(mask) for the shift.",
+   "hint": "GENMASK: ((~0u) << l) & (~0u >> (31 − h)). FIELD_PREP: (val << ctz(mask)) & mask. FIELD_GET: (reg & mask) >> ctz(mask)."
+  },
+  {
+   "id": "c7-try-macros",
+   "title": "TRY, CHECK, and TRY_GOTO macros for error handling",
+   "statement": "Error codes are negative numbers. TRY(expr): evaluate the expression once and, if the result is < 0, return it from the function immediately. CHECK(cond, err): if the condition is false, return err. RET_IF_NULL(p, err): if p == NULL, return err. TRY_GOTO(expr, label): the result goes into the variable rc (declared in the calling function), and if rc < 0, jump to label. The macros work as ordinary statements (including in if/else).",
+   "hint": "do { int _rc = (expr); if (_rc < 0) return _rc; } while (0) — the expression is evaluated once; TRY_GOTO assigns rc and does goto label."
+  },
+  {
+   "id": "c7-with-scope",
+   "title": "WITH: a begin/end pair around a block",
+   "statement": "WITH(init, fini) — run init, then the next statement (or block) exactly once, then fini; written as a one-pass for loop (no goto, no setjmp). LOCKED(l) — a special case: WITH(acquire(&l), release(&l)). The macros nest; init and fini are evaluated once each; the body runs once.",
+   "hint": "for (int _once = ((init), 1); _once; _once = 0, (fini)) — the body runs once, fini sits in the loop's \"increment\"."
+  }
+ ]
+}

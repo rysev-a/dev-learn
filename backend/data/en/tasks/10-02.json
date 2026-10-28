@@ -1,0 +1,213 @@
+{
+ "book": 10,
+ "chapter": 2,
+ "tasks": [
+  {
+   "id": "r2-first-variable",
+   "title": "First variable",
+   "statement": "Declare two variables: name with the value \"Аня\" and age with the value 30. Print them separated by a space: «Аня 30».\n\nExpected output:\n«Аня 30»",
+   "hint": "let name = \"Аня\"; let age = 30; then println!(\"{} {}\", name, age);",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r2-sum-diff",
+   "title": "Sum and difference",
+   "statement": "Declare a = 17 and b = 5. Print two lines: «Сумма: …» and «Разность: …», substituting the computed values.\n\nExpected output:\n«Сумма: 22\nРазность: 12»",
+   "hint": "The expressions a + b and a - b can be passed straight to println!.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r2-mut-counter",
+   "title": "A counter with mut",
+   "statement": "Declare a mutable counter count = 0. Increase it by 1 three times (count = count + 1), and after each step print its value: 1, 2, 3 — one per line.\n\nExpected output:\n1\n2\n3",
+   "hint": "let mut count = 0; then three times: count = count + 1; and println!.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r2-compound-ops",
+   "title": "Compound assignments",
+   "statement": "Start with n = 10 (mut). Perform in order n += 5, n -= 3, n *= 2, n /= 4, n %= 4, and print n after each operation: five lines.\n\nExpected output:\n15\n12\n24\n6\n2",
+   "hint": "After each operation — println!(\"{}\", n); the results: 15, 12, 24, 6, 2.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r2-fix-immutable",
+   "title": "Fix it: cannot assign twice",
+   "statement": "The program does not build: the variable is immutable, and it is assigned a second time. Fix the declaration so that the program prints 5 and then 10.\n\nExpected output:\n5\n10",
+   "hint": "Add the word mut: let mut x = 5;"
+  },
+  {
+   "id": "r2-fix-total",
+   "title": "Fix it: an accumulator without mut",
+   "statement": "The program should print the total 12, but total is declared immutable. Fix it.\n\nExpected output:\n12",
+   "hint": "An accumulator is always mutable: let mut total = 0;"
+  },
+  {
+   "id": "r2-shadow-steps",
+   "title": "Shadowing step by step",
+   "statement": "Declare x = 5, then shadow it: x = x + 1, then x = x * 2. Print x after each declaration: 5, 6, 12.\n\nExpected output:\n5\n6\n12",
+   "hint": "Each time write a new let x = …; it is not a change but a new variable.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r2-shadow-type",
+   "title": "Shadowing with a new type",
+   "statement": "Declare data = \"12345\" (a string). Shadow it with the string length data.len(). Print «Длина: 5».\n\nExpected output:\n«Длина: 5»",
+   "hint": "let data = data.len(); — the variable is now a number, not a string.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r2-fix-type-change",
+   "title": "Fix it: mut cannot change the type",
+   "statement": "The program wants to turn a string into its length under the same name, but this is impossible through assignment (mismatched types). Fix it with shadowing. The result: «Длина: 6».\n\nExpected output:\n«Длина: 6»",
+   "hint": "Instead of s = … write a new let s = …; note that s.len() is the length in bytes (12), but you need the number of characters: s.chars().count().",
+   "starter": "fn main() {\n    let mut s = \"привет\";\n    s = s.len();\n    println!(\"Длина: {}\", s);\n}\n"
+  },
+  {
+   "id": "r2-const-seconds",
+   "title": "Time constants",
+   "statement": "Declare the constants SECONDS_PER_MINUTE: u32 = 60 and MINUTES_PER_HOUR: u32 = 60. Compute and print how many seconds there are in 3 hours: «10800».\n\nExpected output:\n10800",
+   "hint": "Constants are declared outside fn main — above it; the type is required: const NAME: u32 = 60;",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r2-const-pi",
+   "title": "Circumference",
+   "statement": "Declare the constant PI: f64 = 3.14159. The radius is r = 10.0. Print the circumference 2·PI·r with two decimal places: «62.83».\n\nExpected output:\n62.83",
+   "hint": "println!(\"{:.2}\", 2.0 * PI * r);",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r2-scope-blocks",
+   "title": "Blocks and shadowing",
+   "statement": "Declare x = 1. In a nested block { … } shadow x with the value 100 and print it (100). After the block print x again (1).\n\nExpected output:\n100\n1",
+   "hint": "The inner x lives until the closing brace of the block; after the block the old variable is visible.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r2-block-expression",
+   "title": "A block as an expression",
+   "statement": "A block { … } is also an expression: its value is its last line without a semicolon. Declare y = { let x = 3; x * x + 1 }; and print y (10).\n\nExpected output:\n10",
+   "hint": "The last expression in a block has no semicolon: it becomes the value of the block.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r2-explicit-types",
+   "title": "Explicit types",
+   "statement": "Declare three variables with explicit types: a: i64 = 3_000_000_000, b: u8 = 255, c: f32 = 1.5. Print them one per line.\n\nExpected output:\n3000000000\n255\n1.5",
+   "hint": "The type is written after a colon; underscores inside a number are just for readability.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r2-literal-forms",
+   "title": "Number literal forms",
+   "statement": "Print on one line separated by spaces the values of the literals: 1_000_000, 0xff, 0b1010, 0o17 (the decimal values will be: 1000000 255 10 15).\n\nExpected output:\n1000000 255 10 15",
+   "hint": "0x is a hexadecimal, 0b a binary, 0o an octal literal.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r2-swap-temp",
+   "title": "Swap through a third variable",
+   "statement": "a = 3, b = 8 (mut). Swap the values using a temporary variable tmp. Print «a=8 b=3» after the swap.\n\nExpected output:\na=8 b=3",
+   "hint": "tmp = a; a = b; b = tmp; — the order matters.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r2-swap-tuple",
+   "title": "Swap through a tuple",
+   "statement": "The same as in the previous task, but without a temporary variable: (a, b) = (b, a);. a = 3, b = 8; print «a=8 b=3».\n\nExpected output:\na=8 b=3",
+   "hint": "On the right the tuple (b, a) is built first, then it is unpacked into a and b.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r2-destructure",
+   "title": "Unpacking a tuple",
+   "statement": "Unpack the tuple (1, 2.5, \"три\") into variables x, y, z with a single let. Print «1 2.5 три».\n\nExpected output:\n«1 2.5 три»",
+   "hint": "let (x, y, z) = (…); — three variables at once.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r2-deferred-init",
+   "title": "Assign later",
+   "statement": "Declare let grade; without a value. If score (= 85) is not less than 60, assign «сдано», otherwise «не сдано». Print «Оценка: сдано».\n\nExpected output:\n«Оценка: сдано»",
+   "hint": "if condition { … } else { … } — in Rust the condition has no parentheses; in each branch grade is assigned exactly once.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r2-rectangle",
+   "title": "Rectangle",
+   "statement": "width = 12, height = 5. Print two lines: «Площадь: 60» and «Периметр: 34».\n\nExpected output:\n«Площадь: 60\nПериметр: 34»",
+   "hint": "The area is width * height, the perimeter is 2 * (width + height).",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r2-bank-balance",
+   "title": "Account balance",
+   "statement": "balance = 1000 (mut). Deposit 250, withdraw 400, deposit 75. After each operation print the balance: 1250, 850, 925.\n\nExpected output:\n1250\n850\n925",
+   "hint": "balance += 250; balance -= 400; balance += 75; and println! after each line.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r2-celsius-shadow",
+   "title": "Celsius → Fahrenheit by shadowing",
+   "statement": "temp = 36.6 (degrees Celsius). Shadow it with the value in Fahrenheit (× 9 / 5 + 32) and print it with one decimal place: «97.9».\n\nExpected output:\n97.9",
+   "hint": "Write fractional numbers with a dot: 9.0, 5.0, 32.0.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r2-average",
+   "title": "Average of three numbers",
+   "statement": "a = 4, b = 7, c = 10 (integers). Print the arithmetic mean with three decimal places: «7.000». Convert the sum to a floating-point number with as f64.\n\nExpected output:\n7.000",
+   "hint": "An integer is converted to a float explicitly: sum as f64.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r2-shadow-in-block",
+   "title": "A block result and shadowing",
+   "statement": "Declare n = 10. In a block shadow n = n * 2 + 1 and return the value from the block into the variable r. Print «r=21 n=10».\n\nExpected output:\nr=21 n=10",
+   "hint": "The block returns its last expression (n without a semicolon); the outer n does not change.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r2-countdown",
+   "title": "A manual countdown",
+   "statement": "n = 3 (mut). Print n, decrease it by 1 (n -= 1), print again — do this for 3, 2, 1, then print «Старт!».\n\nExpected output:\n3\n2\n1\n«Старт!»",
+   "hint": "Three pairs of “print, decrease” (the last decrease can be left out) and the final line.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r2-string-mut",
+   "title": "A mutable string",
+   "statement": "Create a mutable string `let mut s = String::from(\"Привет\");`, append the text \", мир!\" to it with the push_str method, and print: «Привет, мир!».\n\nExpected output:\n«Привет, мир!»",
+   "hint": "String::from(\"…\") creates an owned string, and s.push_str(\"…\") appends to the end; this needs mut.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r2-bmi",
+   "title": "Body mass index",
+   "statement": "weight = 70.0 (kg), height = 1.75 (m). BMI = weight / (height * height). Print «ИМТ: 22.9».\n\nExpected output:\n«ИМТ: 22.9»",
+   "hint": "All the numbers are floats — with a dot; format {:.1}.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r2-fix-annotation",
+   "title": "Fix it: the type does not fit the value",
+   "statement": "The program does not build: the number 5.5 cannot be stored in a variable of type i32. Fix the type so that the output is «5.5».\n\nExpected output:\n5.5",
+   "hint": "f64 (or f32) suits fractional numbers."
+  },
+  {
+   "id": "r2-fix-uninit",
+   "title": "Fix it: a variable without a value",
+   "statement": "The program reads a variable that may not have been assigned a value. Fix it so that it prints «большое» when n = 150, and «маленькое» otherwise.\n\nExpected output:\n«большое»",
+   "hint": "Add an else branch: then the value is assigned on all paths.",
+   "starter": "fn main() {\n    let n = 150;\n    let label;\n    if n > 100 {\n        label = \"большое\";\n    }\n    println!(\"{}\", label);\n}\n"
+  },
+  {
+   "id": "r2-final-program",
+   "title": "Final program: salary",
+   "statement": "Salary = 120000. The tax is 13% — subtract it (use integer arithmetic: salary * 13 / 100). Then shadow salary with the amount after tax and print three lines: «Налог: 15600», «На руки: 104400» and «В месяц на аренду: 31320» (30% of what remains, again salary * 30 / 100).\n\nExpected output:\n«Налог: 15600\nНа руки: 104400\nВ месяц на аренду: 31320»",
+   "hint": "tax = salary * 13 / 100; then let salary = salary - tax; rent = salary * 30 / 100.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  }
+ ]
+}

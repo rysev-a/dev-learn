@@ -1,0 +1,194 @@
+{
+ "book": 10,
+ "chapter": 19,
+ "tasks": [
+  {
+   "id": "r19-largest",
+   "title": "Generic function: the largest element",
+   "statement": "Write largest<T: PartialOrd>(v: &[T]) → Option<&T>: a reference to the largest element of the slice (the first one on ties), None for an empty slice. The function must work with integers, floats, and strings.",
+   "hint": "v.first()? gives the first element or returns None right away; compare references: x > best."
+  },
+  {
+   "id": "r19-fix-bound",
+   "title": "Fix it: T has no comparison",
+   "statement": "max_of returns the larger of two values. The code does not compile: the compiler does not know that T can be compared. Fix the signature by adding a trait bound; the body does not need to change.",
+   "hint": "fn max_of<T: PartialOrd>(…): after the colon comes the trait needed for the > sign."
+  },
+  {
+   "id": "r19-pair",
+   "title": "Generic struct Pair<T>",
+   "statement": "Pair<T> holds two values of the same type. new(a, b); swap(self) → Pair<T> with the values swapped; larger(&self) → &T is a reference to the larger one (available only for T: PartialOrd; on a tie, the first).",
+   "hint": "swap takes self by value, so you can just swap the fields without cloning."
+  },
+  {
+   "id": "r19-trait-shape",
+   "title": "Trait Shape and its implementations",
+   "statement": "The trait Shape is already declared: area(&self) → f64 and name(&self) → String. Implement it for Circle (radius), Rect (two sides), and Square (one side): the names are «circle», «rect», «square». total_area(shapes: &[Box<dyn Shape>]) → f64 is the sum of the areas.",
+   "hint": "For Rect: self.0 * self.1. total_area: shapes.iter().map(|s| s.area()).sum().",
+   "starter": "use std::f64::consts::PI;\n\ntrait Shape {\n    fn area(&self) -> f64;\n    fn name(&self) -> String;\n}\n\nstruct Circle(f64);\nstruct Rect(f64, f64);\nstruct Square(f64);\n\nimpl Shape for Circle {\n    fn area(&self) -> f64 {\n        todo!()\n    }\n    fn name(&self) -> String {\n        todo!()\n    }\n}\n\n// implement Shape for Rect and Square\n\nfn total_area(shapes: &[Box<dyn Shape>]) -> f64 {\n    todo!()\n}\n"
+  },
+  {
+   "id": "r19-default-method",
+   "title": "Default method and override",
+   "statement": "The trait Describe has a required method name(&self) → String and a default method describe(&self) → String = «<name>: описание отсутствует» (the words after the colon stay in Russian, exactly like this). Implement it for Cat (use the default method) and for Dog (override describe: «<name> лает», also in Russian).",
+   "hint": "In the trait, describe has a body, and the impl for Cat does not write it; for Dog you write your own describe.",
+   "starter": "trait Describe {\n    fn name(&self) -> String;\n    // add describe with a default implementation\n}\n\nstruct Cat;\nstruct Dog {\n    nick: String,\n}\n\n// impl Describe for Cat / Dog\n"
+  },
+  {
+   "id": "r19-supertrait",
+   "title": "Supertrait: Tagged: Display",
+   "statement": "The trait Tagged requires Display (a supertrait): tag(&self) → String is by default «<VALUE>», the Display result wrapped in angle brackets. Implement Tagged for Point (Display is «(x, y)») and for u32 (Display already exists).",
+   "hint": "Inside the trait you can use Display on self thanks to the supertrait: format!(\"<{}>\", self).",
+   "starter": "use std::fmt;\n\nstruct Point {\n    x: i32,\n    y: i32,\n}\n\n// impl fmt::Display for Point: «(x, y)»\n\ntrait Tagged: fmt::Display {\n    // default tag\n}\n\n// impl Tagged for Point and for u32\n"
+  },
+  {
+   "id": "r19-ops-complex",
+   "title": "Operators: complex numbers",
+   "statement": "For Complex { re, im } (f64, Copy) implement Add, Sub, Mul, Neg, and Display in the form «1+2i» / «1-2i» (numbers via {}, the sign before the imaginary part, then the absolute value of the imaginary part). Multiplication: (a+bi)(c+di) = (ac−bd) + (ad+bc)i.",
+   "hint": "Each operation is a method of its own trait with type Output = Complex; Neg builds a value with the opposite signs."
+  },
+  {
+   "id": "r19-ops-assign-index",
+   "title": "AddAssign, Mul<f64>, and Index",
+   "statement": "Vec2 { x, y } (f64, Copy): implement AddAssign (v += w), Mul<f64> (v * 2.0), and Mul<Vec2> for f64 (2.0 * v). Grid { w, h, data } stores cells row by row: Index<(usize, usize)> and IndexMut<(usize, usize)> by (row, column).",
+   "hint": "Index returns a reference: &self.data[r * self.w + c]; IndexMut returns a mutable reference to the same element."
+  },
+  {
+   "id": "r19-ord-card",
+   "title": "Manual Ord: suit, then rank",
+   "statement": "Card { rank: u8, suit: Suit } with Suit: Clubs < Diamonds < Hearts < Spades. Cards are ordered by suit first, then by rank (the fields are in a different order in the struct, so derive will not do). Implement Ord and PartialOrd by hand (partial_cmp calls cmp); PartialEq and Eq via derive.",
+   "hint": "Compare tuples (suit as a number, rank): tuples compare lexicographically, and Suit as u8 gives the variant number.",
+   "starter": "use std::cmp::Ordering;\n\n#[derive(Debug, Clone, Copy, PartialEq, Eq)]\nenum Suit {\n    Clubs,\n    Diamonds,\n    Hearts,\n    Spades,\n}\n\n#[derive(Debug, Clone, Copy, PartialEq, Eq)]\nstruct Card {\n    rank: u8,\n    suit: Suit,\n}\n\n// impl Ord for Card and PartialOrd for Card\n"
+  },
+  {
+   "id": "r19-partialord-float",
+   "title": "Total order for f64: total_cmp",
+   "statement": "f64 does not implement Ord because of NaN. Wrap the number: Score(f64), and implement PartialEq, Eq, PartialOrd, and Ord via f64::total_cmp (NaN counts as the largest). Then a Vec<Score> can be sorted with the sort method.",
+   "hint": "cmp = self.0.total_cmp(&other.0); the other three traits are expressed through it."
+  },
+  {
+   "id": "r19-mono-name",
+   "title": "Monomorphization: type and size",
+   "statement": "Write describe<T>(_: &T) → String: «<type name> = <size> байт» (the word «байт» stays in Russian, exactly like this) with the type name from std::any::type_name::<T>() and the size from size_of::<T>(). Every call with a new T is a separate copy of the function, made by the compiler at build time.",
+   "hint": "type_name and size_of are std functions; the type is given with a turbofish: type_name::<T>()."
+  },
+  {
+   "id": "r19-dyn-size",
+   "title": "Size of a fat pointer",
+   "statement": "Write sizes() → [usize; 5]: size_of for &i32, &dyn Shape, Box<dyn Shape>, &[i32], and Box<i32>, in that order. Which of them are \"fat\" (two words) and which are ordinary pointers?",
+   "hint": "A slice and a trait object store an extra word: the length or the vtable address."
+  },
+  {
+   "id": "r19-impl-trait-arg",
+   "title": "impl Trait in an argument",
+   "statement": "join_all(items: &[impl Display], sep: &str) → String: the elements joined by the separator. print_each(items: impl IntoIterator<Item = impl Display>) → Vec<String>: each element as the string «[x]».",
+   "hint": "Any Display type has to_string(); IntoIterator accepts a vector, an array, and a range."
+  },
+  {
+   "id": "r19-impl-trait-return",
+   "title": "impl Trait in a result",
+   "statement": "evens(limit) → impl Iterator<Item = u32>: the even numbers below limit; squares(v: &[i32]) → impl Iterator<Item = i32> + '_: the squares of the slice elements. The concrete iterator type is not exposed.",
+   "hint": "In evens, (0..limit).filter(...) is enough: the compiler infers the type; '_ ties the iterator's lifetime to the slice."
+  },
+  {
+   "id": "r19-where-clause",
+   "title": "The where block",
+   "statement": "count_matching<T, F>(v: &[T], pred: F) → usize where F: Fn(&T) → bool. show_pairs<K, V>(items: &[(K, V)]) → String where K: Display, V: Debug: «key=value» (the value via {:?}) joined by «; ». Write the bounds in where.",
+   "hint": "filter(|x| pred(x)): inside filter the element has type &&T while pred expects &T; Rust dereferences automatically on the call pred(x)."
+  },
+  {
+   "id": "r19-plugin-registry",
+   "title": "Plugins: Vec<Box<dyn Plugin>>",
+   "statement": "The trait Plugin: name(&self) → &str and run(&mut self, input: &str) → String. Implement Upper (uppercases), Reverse (reverses the characters), and Counter (returns «#N: input», where N is the call number starting from one). run_all(plugins: &mut [Box<dyn Plugin>], input) → Vec<String> of «name: result».",
+   "hint": "The run method changes the plugin, so you need iter_mut(); take the name beforehand (to_string), otherwise the borrow from name() prevents calling run.",
+   "starter": "trait Plugin {\n    fn name(&self) -> &str;\n    fn run(&mut self, input: &str) -> String;\n}\n\nstruct Upper;\nstruct Reverse;\nstruct Counter {\n    calls: u32,\n}\n\n// impl Plugin for the three types\n\nfn run_all(plugins: &mut [Box<dyn Plugin>], input: &str) -> Vec<String> {\n    todo!()\n}\n"
+  },
+  {
+   "id": "r19-fib-iterator",
+   "title": "Your own iterator: Fibonacci",
+   "statement": "The struct Fib implements Iterator<Item = u64>: 0, 1, 1, 2, 3, 5, … (infinite; on overflow the iterator ends, so use checked_add). Fib::new() creates the start of the sequence. All the adapters (take, filter, sum) come on their own.",
+   "hint": "Return the current a, then shift the pair (a, b) = (b, a + b); checked_add with ? ends the iterator on overflow."
+  },
+  {
+   "id": "r19-steps-double-ended",
+   "title": "An iterator from both ends",
+   "statement": "Steps { cur, end, step } is like a range with a step: next yields cur, cur+step, … while < end; next_back yields the last element (the last step before end). Implement Iterator and DoubleEndedIterator; then .rev() works. Assume step ≥ 1 and end ≥ cur.",
+   "hint": "next_back: the number of steps that fit before end is (end - cur - 1) / step; the last element is cur + n*step, and end moves to it."
+  },
+  {
+   "id": "r19-assoc-const",
+   "title": "A constant in a trait",
+   "statement": "The trait Polygon: const SIDES: u32 and a default method angle_sum() → u32 = (SIDES − 2) × 180. Implement it for Triangle (3), Square (4), and Hexagon (6). total_sides<A: Polygon, B: Polygon>() → u32 is the sum of SIDES of two types (no values: the types are passed as parameters).",
+   "hint": "Inside the trait the constant is called Self::SIDES; for a type without data, size_of is zero.",
+   "starter": "trait Polygon {\n    const SIDES: u32;\n    // angle_sum by default\n}\n\nstruct Triangle;\nstruct Square;\nstruct Hexagon;\n\n// impl Polygon for the three types\n\nfn total_sides<A: Polygon, B: Polygon>() -> u32 {\n    todo!()\n}\n"
+  },
+  {
+   "id": "r19-generic-stack",
+   "title": "Stack<T> and a conditional impl",
+   "statement": "Stack<T> on top of Vec<T>: new, push, pop → Option<T>, peek → Option<&T>, len, is_empty. A separate block impl<T: Display> Stack<T> adds show() → String: the elements from top to bottom joined by « > » (an empty one gives «(пусто)», in Russian, exactly like this).",
+   "hint": "show goes over items.iter().rev(): the top of the stack is at the end of the vector."
+  },
+  {
+   "id": "r19-blanket-impl",
+   "title": "A blanket impl for all T: Display",
+   "statement": "The trait Shout has a method shout(&self) → String. With one blanket impl<T: Display> Shout for T, make the method available on numbers, strings, and your own types: the result is the text in uppercase with «!» at the end. For Money(i64) implement Display («<n> руб.», the suffix stays in Russian, exactly like this).",
+   "hint": "The blanket impl works for any type with Display, including Money once Display is implemented."
+  },
+  {
+   "id": "r19-from-into",
+   "title": "From and Into: temperatures",
+   "statement": "Celsius(f64) and Fahrenheit(f64). Implement From<Celsius> for Fahrenheit (f = c·9/5 + 32) and From<Fahrenheit> for Celsius. to_f(t: impl Into<Fahrenheit>) → f64 accepts either scale. Into comes for free.",
+   "hint": "impl From<A> for B gives A::into() → B with no extra code; to_f just calls t.into().",
+   "starter": "#[derive(Debug, Clone, Copy)]\nstruct Celsius(f64);\n#[derive(Debug, Clone, Copy)]\nstruct Fahrenheit(f64);\n\n// impl From<Celsius> for Fahrenheit and From<Fahrenheit> for Celsius\n\nfn to_f(t: impl Into<Fahrenheit>) -> f64 {\n    todo!()\n}\n"
+  },
+  {
+   "id": "r19-try-from",
+   "title": "TryFrom: a checked value",
+   "statement": "Percent(u8) holds a number from 0 to 100. Implement TryFrom<i32> for Percent with Error = String: «вне диапазона: N» (in Russian, exactly like this) when N < 0 or N > 100. parse_all(v: &[i32]) → Result<Vec<Percent>, String> returns all values or the first error.",
+   "hint": "try_into appears for free; collect into Result<Vec<_>, _> stops at the first error."
+  },
+  {
+   "id": "r19-fromstr",
+   "title": "FromStr: parsing a Point",
+   "statement": "Point { x, y } (i32). Implement FromStr: «3,4» (spaces around the numbers are allowed). The ParsePointError errors: Missing means there is no comma or there are more than two parts; BadNumber(string) means a part is not a number. After that \"3,4\".parse::<Point>() works.",
+   "hint": "Split on ',', check the length, and parse the numbers with a closure using map_err and the ? operator."
+  },
+  {
+   "id": "r19-asref",
+   "title": "AsRef: accept anything string-like",
+   "statement": "total_len<S: AsRef<str>>(items: &[S]) → usize is the sum of lengths in bytes (&str and String fit). checksum<B: AsRef<[u8]>>(b: B) → u32 is the sum of the bytes (Vec<u8>, an array, &str, and String fit).",
+   "hint": "as_ref() gives &str or &[u8]; after that it is ordinary slice work."
+  },
+  {
+   "id": "r19-sum-trait",
+   "title": "impl Sum for your own type",
+   "statement": "Money(i64) (Copy): implement Add and two std::iter::Sum traits, for Money and for &Money, so that v.iter().sum::<Money>() and v.into_iter().sum::<Money>() both work.",
+   "hint": "Sum is a fold starting from Money(0); for &Money, dereference the element."
+  },
+  {
+   "id": "r19-default-generic",
+   "title": "Default in generic code",
+   "statement": "defaults<A: Default, B: Default>() → (A, B) is a pair of default values. or_default<T: Default + PartialEq>(v: T) → Option<T> is None if the value equals the default. Settings (derive Default): retries: u32, name: String, verbose: bool, ratio: f64, tags: Vec<String>.",
+   "hint": "T::default() is available thanks to the bound; for Settings, #[derive(Debug, Default)] is enough."
+  },
+  {
+   "id": "r19-visitor",
+   "title": "Visitor with an associated type",
+   "statement": "Expr is Num(i64), Add(Box<Expr>, Box<Expr>), Mul(Box<Expr>, Box<Expr>). The trait Visitor has type Out and methods num(n), add(a, b), mul(a, b) (the results of the already processed parts). Write walk<V: Visitor>(e: &Expr, v: &mut V) → V::Out and two visitors: Eval (Out = i64) and Show (Out = String: «(a + b)», «(a * b)», or the number).",
+   "hint": "walk first visits the child nodes, and then passes their results to the visitor's method.",
+   "starter": "enum Expr {\n    Num(i64),\n    Add(Box<Expr>, Box<Expr>),\n    Mul(Box<Expr>, Box<Expr>),\n}\n\ntrait Visitor {\n    type Out;\n    fn num(&mut self, n: i64) -> Self::Out;\n    fn add(&mut self, a: Self::Out, b: Self::Out) -> Self::Out;\n    fn mul(&mut self, a: Self::Out, b: Self::Out) -> Self::Out;\n}\n\nfn walk<V: Visitor>(e: &Expr, v: &mut V) -> V::Out {\n    todo!()\n}\n\nstruct Eval;\nstruct Show;\n\n// impl Visitor for Eval and Show\n"
+  },
+  {
+   "id": "r19-type-state",
+   "title": "State in the type: Door<Open> and Door<Closed>",
+   "statement": "Door<S> holds an open counter and a PhantomData<S>. Door<Closed>::new() → a closed door; Door<Closed> has open(self) → Door<Open> (counter +1); Door<Open> has close(self) → Door<Closed> and opened(&self) → u32. The state is part of the type: you cannot call open on an open door, and it costs nothing in memory.",
+   "hint": "The state lives only in the type: PhantomData takes no space, so the size of Door equals the size of the counter."
+  },
+  {
+   "id": "r19-top-n",
+   "title": "A generic top-N via a trait",
+   "statement": "The trait Scored: score(&self) → i64. top_n<T: Scored + Clone>(items: &[T], n: usize) → Vec<T>: the n best by descending score (on equal scores the original order is kept: the sort is stable). best<T: Scored>(items: &[T]) → Option<&T>: the first element with the highest score. Player { name, points } implements Scored.",
+   "hint": "sort_by is stable: for equal scores the order of the original slice is kept; truncate(n) keeps the first n."
+  }
+ ]
+}

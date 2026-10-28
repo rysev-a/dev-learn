@@ -1,0 +1,72 @@
+{
+ "book": 8,
+ "chapter": 2,
+ "tasks": [
+  {
+   "id": "u2-tokenize",
+   "title": "Parsing a shell command line: words and quotes",
+   "statement": "tokenize(char *line, char **argv, size_t max) → number of words (−1 on an unclosed quote or if max is exceeded). Words are separated by spaces and tabs; '…' is literal, \"…\" allows a backslash before \\\" and \\\\, and a backslash outside quotes escapes the next character. The quotes are removed; the line is parsed in place (the words are written back into it), and argv ends with NULL (leave room for max + 1 entries).",
+   "hint": "Write the words into the same buffer (the write pointer never overtakes the read pointer); empty quotes '' give an empty word."
+  },
+  {
+   "id": "u2-expand-vars",
+   "title": "Variable substitution: $VAR and ${VAR}",
+   "statement": "expand(const char *in, const char *const *env, char *out, size_t cap) → length of the result, or −1 if there is not enough room. env is an array of \"NAME=value\" strings terminated by NULL. Substitute $NAME (letters, digits, '_'), ${NAME}, and '$?' as the value of the variable '?'; an unknown variable gives an empty string; a '$' without a name stays as is; '\\$' is a literal dollar (the backslash is removed).",
+   "hint": "A name is the longest chain of letters, digits and '_' after the '$'; in the ${…} form the name is bounded by the braces."
+  },
+  {
+   "id": "u2-glob",
+   "title": "Name patterns: *, ? and [a-z]",
+   "statement": "glob_match(const char *pattern, const char *name) → 1/0: '*' is any number of characters (including zero), '?' is one character, '[abc]' and '[a-z]' are character classes, '[!x]' or '[^x]' is negation, and '\\' escapes a special character. A name starting with '.' does not match a pattern that does not start with '.'. Implement it without fnmatch and without regular expressions; the worst case must not be exponential.",
+   "hint": "The classic algorithm with a star: remember the position of the last '*', and on a mismatch roll back to it, advancing the start of the match by one character."
+  },
+  {
+   "id": "u2-run-capture",
+   "title": "Running a program and capturing its output",
+   "statement": "run_capture(char *const argv[], char *out, size_t cap) → the exit code of the child process (or 128 + signal number; −1 on error): using pipe, fork and execvp, run the program and collect into out everything it prints to stdout (NUL-terminated, the excess is truncated). Redirect the child's standard output with dup2; the parent must close the unneeded ends and wait for the child (waitpid).",
+   "hint": "In the child: close(p[0]); dup2(p[1], 1); execvp; in the parent: close(p[1]), read until end of file (read returns 0), and then waitpid."
+  },
+  {
+   "id": "u2-pipeline",
+   "title": "A pipeline of two programs",
+   "statement": "run_pipe(char *const a[], char *const b[], char *out, size_t cap) → the exit code of the SECOND program: run a and b, connecting the stdout of the first to the stdin of the second through a pipe (like 'a | b'); collect the stdout of the second into out. Start both processes before waiting, and close all extra ends of the pipe in each process, otherwise the second program will never see end of file.",
+   "hint": "Each process closes all four pipe descriptors except the ones it needs; the parent closes the write ends before reading."
+  },
+  {
+   "id": "u2-redirect",
+   "title": "Output redirection: dup2",
+   "statement": "run_to_file(char *const argv[], const char *path) → exit code: run the program as if the shell had 'prog > path' (the file is created or truncated, mode 0644). append_to_file does the same for '>>'. The child performs the redirection before exec using open and dup2.",
+   "hint": "In the child: fd = open(...); dup2(fd, 1); close(fd); then execvp. The parent only waits."
+  },
+  {
+   "id": "u2-exit-status",
+   "title": "The exit status as in $?",
+   "statement": "shell_status(int wstatus) → the number that '$?' will show after the command: normal exit gives the code 0..255; death by a signal gives 128 + signal number; a stop (stopped) gives 128 + the stop signal number; otherwise −1. run_status(const char *cmd) runs 'sh -c cmd' in a child process and returns shell_status of its status (the WIFEXITED and WIFSIGNALED macros from <sys/wait.h>).",
+   "hint": "The status from waitpid is a packed word; extract the exit code and the signal number with macros, not with manual shifts."
+  },
+  {
+   "id": "u2-getopt-lite",
+   "title": "Parsing command-line options",
+   "statement": "struct opts { int verbose; int count; const char *name; int nfiles; const char *files[8]; }. parse_args(int argc, char **argv, struct opts *o) → 0 or −1 (unknown option, missing value): '-v' (verbose++, '-vvv' is allowed), '-n N' and '-nN' (count), '--name=X' or '--name X', '--' (only files after it); the remaining words are files (up to 8). argv[0] is skipped; zero the structure before parsing (count defaults to −1).",
+   "hint": "Walk through argv by index; an option's value is taken either from the same word or from the next one (then i++)."
+  },
+  {
+   "id": "u2-shell-status",
+   "title": "The exit status as in the shell: $?",
+   "statement": "shell_status(int wstatus) → int: turn a status from wait into the value of the variable $?: the exit code for a normal exit, 128 + signal number if the process was killed by a signal; otherwise −1. run_status(const char *path, char *const argv[]) → int: run the program (fork + execv), wait for it and return shell_status; if the program failed to start (exec failed), the child exits with code 127, as in the shell.",
+   "hint": "WIFEXITED/WEXITSTATUS decode a normal exit, WIFSIGNALED/WTERMSIG decode death by a signal. The shell adds 128 and the signal number: that is why a program killed by SIGKILL gives 137."
+  },
+  {
+   "id": "u2-env-exec",
+   "title": "The environment of a child process",
+   "statement": "run_with_env(const char *path, char *const argv[], char *const envp[], char *out, size_t n) → int: run the program (fork + execve with the GIVEN environment envp), read its standard output through a pipe into out (at most n−1 bytes, append '\\0'); wait for it to finish. Return the length read, or −1 if fork/pipe fails. The parent's environment must not change.",
+   "hint": "The environment is just an array of \"NAME=value\" strings ending with NULL; execve passes it to the new program along with the arguments. Variables that are not in this array will not exist for the program at all."
+  },
+  {
+   "id": "u2-builtin-cd",
+   "title": "Why cd is a built-in command",
+   "statement": "cd_in_child(const char *dir) → int: start a child process (fork) that calls chdir(dir) and exits; wait for it. Return 1 if the PARENT's working directory (getcwd) did not change afterwards, otherwise 0, and −1 on error. cd_in_parent(const char *dir) → int: call chdir(dir) in the parent itself and return 1 if getcwd now points to the directory dir (by realpath), otherwise 0; then return to the original directory.",
+   "hint": "The working directory is a property of a process, and a child process changes only its own copy. That is why cd cannot be an external program: the shell must perform chdir in itself."
+  }
+ ]
+}

@@ -1,0 +1,264 @@
+{
+ "book": 9,
+ "chapter": 7,
+ "tasks": [
+  {
+   "id": "s07-01",
+   "title": "Above average",
+   "statement": "Select the title and price of products priced above the average price. Get the average price with the subquery (SELECT AVG(price) FROM products).",
+   "hint": "The subquery in parentheses returns a single number."
+  },
+  {
+   "id": "s07-02",
+   "title": "Below average",
+   "statement": "Select the title of products cheaper than the average; order by title.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s07-03",
+   "title": "The most expensive",
+   "statement": "Select the title of the most expensive product: price = (SELECT MAX(price) FROM products).",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s07-04",
+   "title": "Larger than the average order",
+   "statement": "Select the id and total of orders whose total is greater than the average order total; order by id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s07-05",
+   "title": "Subquery in the column list",
+   "statement": "Select title, price, and the difference from the average price diff = price − (SELECT AVG(price) FROM products), rounded to an integer with ROUND; order by product id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s07-06",
+   "title": "IN: who has orders",
+   "statement": "Select the name of customers who have orders: id IN (SELECT customer_id FROM orders); order by name.",
+   "hint": "The subquery returns a column of values for IN.",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s07-07",
+   "title": "NOT IN: no orders",
+   "statement": "Select the name of customers without orders (NOT IN); order by name.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s07-08",
+   "title": "The NOT IN trap with NULL",
+   "statement": "The brand for category `'Канцелярия'` is unknown (NULL), and NOT IN with such a list returns nothing. Select the title of products whose brand matches none of the known brands of category `'Канцелярия'` (add WHERE brand IS NOT NULL to the subquery); products with an unknown brand are not part of the answer. Order by title.",
+   "hint": "If an IN/NOT IN list contains NULL, the result of NOT IN becomes undefined.",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s07-09",
+   "title": "EXISTS",
+   "statement": "Select the name of customers who have a cancelled order (EXISTS with a subquery on orders.customer_id = c.id and status = `'cancelled'`); order by name.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s07-10",
+   "title": "NOT EXISTS",
+   "statement": "Select the name of customers who have no paid orders (NOT EXISTS); order by name.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s07-11",
+   "title": "Correlated subquery",
+   "statement": "For each customer select the name and the number of their orders n: (SELECT COUNT(*) FROM orders o WHERE o.customer_id = c.id); order by customer id.",
+   "hint": "The subquery refers to the outer row c.",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s07-12",
+   "title": "A customer's largest order",
+   "statement": "For each customer select the name and the largest total of their orders best (NULL if there are no orders); order by id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s07-13",
+   "title": "Subquery in FROM",
+   "statement": "Select the title and value (price * stock) only for products whose value is greater than 100000. First compute value in a subquery in FROM; order by value descending.",
+   "hint": "A subquery in FROM works as a temporary table.",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s07-14",
+   "title": "Filter twice",
+   "statement": "From the subquery \"paid orders\" select the three largest: id and total. The subquery: SELECT id, total FROM orders WHERE status = `'paid'`.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s07-15",
+   "title": "More expensive than any grocery",
+   "statement": "Select the title of products that are more expensive than the most expensive product of category `'Продукты'` (price > MAX); order by title.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s07-16",
+   "title": "Cheaper than any book",
+   "statement": "Select the title of products that are cheaper than the cheapest book (category `'Книги'`); order by title.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s07-17",
+   "title": "Two levels of nesting",
+   "statement": "Select the id of orders that contain `'Ноутбук Air 13'`: order_id IN (SELECT order_id FROM order_items WHERE product_id = (SELECT id FROM products WHERE title = `'Ноутбук Air 13'`)); order by id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s07-18",
+   "title": "Anna's fellow townspeople",
+   "statement": "Select the name of customers from the same city as `'Анна Петрова'`, except her; order by name.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s07-19",
+   "title": "Later than Boris",
+   "statement": "Select the name of customers who registered later than `'Борис Иванов'`; order by registered.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s07-20",
+   "title": "Same-category neighbors",
+   "statement": "Select the title of products in the same category as `'Мышь Click'`, except itself; order by title.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s07-21",
+   "title": "The largest order",
+   "statement": "Select the id and total of the largest order (a subquery with MAX).",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s07-22",
+   "title": "Second-highest price",
+   "statement": "Select the second-highest product price as second: MAX(price) among products whose price is less than the maximum.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s07-23",
+   "title": "Orders with electronics",
+   "statement": "Select the id of orders that contain at least one electronics item (EXISTS and a JOIN in the subquery); order by id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s07-24",
+   "title": "Scalar subqueries",
+   "statement": "In a single row, output the number of customers customers_n and the number of products products_n using two scalar subqueries.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s07-25",
+   "title": "HR: employees of Moscow departments",
+   "statement": "HR database. Select the name of employees of departments located in Moscow (dept_id IN (SELECT id FROM departments WHERE city = `'Москва'`)); order by id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s07-26",
+   "title": "HR: departments without employees",
+   "statement": "HR database. Select the name of departments that have no employees (NOT EXISTS).",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s07-27",
+   "title": "HR: above the department average",
+   "statement": "HR database. Select the name and salary of employees who earn more than the average salary of their department (a correlated subquery on dept_id); order by name.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s07-28",
+   "title": "HR: the best in a department",
+   "statement": "HR database. Select the name, dept_id and salary of employees with the highest salary in their department (ignore employees without a department); order by dept_id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s07-29",
+   "title": "HR: who manages",
+   "statement": "HR database. Select the name of employees who are somebody's manager (id IN (SELECT boss_id …)); order by id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s07-30",
+   "title": "HR: rank and file",
+   "statement": "HR database. Select the name of employees who have no subordinates (NOT EXISTS); order by id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s07-31",
+   "title": "HR: above the company average",
+   "statement": "HR database. Select the name and salary of employees whose salary is above the company average; order by salary descending.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s07-32",
+   "title": "School: enrolled in math",
+   "statement": "School database. Select the name of students who have an enrollment in the course `'Математика'` (id IN a subquery with two levels); order by name.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s07-33",
+   "title": "School: the longest course",
+   "statement": "School database. Select the title of courses with the greatest number of hours; order by title.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s07-34",
+   "title": "School: above average",
+   "statement": "School database. Select the name of students who have a grade above the school average (EXISTS); order by name.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s07-35",
+   "title": "Movies above the average rating",
+   "statement": "Movies database. Select the title and rating of movies with a rating above the average; order by rating descending, then by title.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s07-36",
+   "title": "Directors of recent movies",
+   "statement": "Movies database. Select the name of directors who have a movie released after 2015 (EXISTS); order by name.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s07-37",
+   "title": "Nolan's colleagues",
+   "statement": "Movies database. Select the title of all movies by the director of the movie `'Начало'`, except `'Начало'` itself; order by title.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  }
+ ]
+}

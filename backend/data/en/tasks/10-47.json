@@ -1,0 +1,216 @@
+{
+ "book": 10,
+ "chapter": 47,
+ "tasks": [
+  {
+   "id": "r47-select-one",
+   "title": "First connection",
+   "statement": "Connect to the database (the pool() function is already provided) and print the result of the query SELECT 20 + 22 through query_scalar::<_, i32>, then the line «версия сервера >= 14: true/false» (SHOW server_version_num returns a string containing a number).\n\nExpected output:\n42\n«версия сервера >= 14: true»",
+   "hint": "sqlx::query_scalar::<_, i32>(\"SELECT 20 + 22\").fetch_one(&pool).await.unwrap().",
+   "starter": "use sqlx::postgres::PgPoolOptions;\nuse sqlx::{FromRow, PgPool, Row};\n\n// Ready: PostgreSQL is already running in the sandbox (user postgres without a password, database chat); every check starts with a clean database\nasync fn pool() -> PgPool {\n    PgPoolOptions::new()\n        .max_connections(5)\n        .connect(\"postgres://postgres@127.0.0.1/chat\")\n        .await\n        .unwrap()\n}\n\n#[tokio::main]\nasync fn main() {\n    let pool = pool().await;\n    // your code\n    let _ = pool;\n}\n"
+  },
+  {
+   "id": "r47-users-table",
+   "title": "Table and FromRow",
+   "statement": "Create a table users (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL, bio TEXT), insert «аня» (without bio) and «боря» (bio «привет»), read both rows into a User struct (derive FromRow) in id order, and print them with Debug.\n\nExpected output:\nUser { id: 1, name: \"аня\", bio: None }\nUser { id: 2, name: \"боря\", bio: Some(\"привет\") }",
+   "hint": "query(\"CREATE TABLE ...\").execute(&pool); query_as::<_, User>(\"SELECT * FROM users ORDER BY id\").fetch_all.",
+   "starter": "use sqlx::postgres::PgPoolOptions;\nuse sqlx::{FromRow, PgPool, Row};\n\n// Ready: PostgreSQL is already running in the sandbox (user postgres without a password, database chat); every check starts with a clean database\nasync fn pool() -> PgPool {\n    PgPoolOptions::new()\n        .max_connections(5)\n        .connect(\"postgres://postgres@127.0.0.1/chat\")\n        .await\n        .unwrap()\n}\n\n#[derive(FromRow, Debug)]\nstruct User {\n    id: i64,\n    name: String,\n    bio: Option<String>,\n}\n\n#[tokio::main]\nasync fn main() {\n    let pool = pool().await;\n    // your code\n    let _ = pool;\n}\n"
+  },
+  {
+   "id": "r47-bind-safe",
+   "title": "Parameters instead of substitution",
+   "statement": "Insert the string «x'); DROP TABLE notes;--» into a table notes(text TEXT) through bind, then read it back and print it, followed by the number of rows in the table (the table must survive).\n\nExpected output:\nx'); DROP TABLE notes;--\n«строк: 1»",
+   "hint": "bind passes the value separately from the query text, so it is never executed as SQL.",
+   "starter": "use sqlx::postgres::PgPoolOptions;\nuse sqlx::{FromRow, PgPool, Row};\n\n// Ready: PostgreSQL is already running in the sandbox (user postgres without a password, database chat); every check starts with a clean database\nasync fn pool() -> PgPool {\n    PgPoolOptions::new()\n        .max_connections(5)\n        .connect(\"postgres://postgres@127.0.0.1/chat\")\n        .await\n        .unwrap()\n}\n\n#[tokio::main]\nasync fn main() {\n    let pool = pool().await;\n    // your code\n    let _ = pool;\n}\n"
+  },
+  {
+   "id": "r47-optional",
+   "title": "No row: Option and error",
+   "statement": "The table rooms(id BIGSERIAL, name TEXT) has one row, «общая». Look up the room with id = 1 (fetch_optional gives Some) and with id = 99 (None), and show that fetch_one for id = 99 returns the error sqlx::Error::RowNotFound (print true).\n\nExpected output:\n1: Some(\"общая\")\n99: None\ntrue",
+   "hint": "fetch_optional gives an Option; matches!(err, sqlx::Error::RowNotFound).",
+   "starter": "use sqlx::postgres::PgPoolOptions;\nuse sqlx::{FromRow, PgPool, Row};\n\n// Ready: PostgreSQL is already running in the sandbox (user postgres without a password, database chat); every check starts with a clean database\nasync fn pool() -> PgPool {\n    PgPoolOptions::new()\n        .max_connections(5)\n        .connect(\"postgres://postgres@127.0.0.1/chat\")\n        .await\n        .unwrap()\n}\n\n#[tokio::main]\nasync fn main() {\n    let pool = pool().await;\n    // your code\n    let _ = pool;\n}\n"
+  },
+  {
+   "id": "r47-returning",
+   "title": "INSERT … RETURNING",
+   "statement": "Create rooms(id BIGSERIAL PRIMARY KEY, name TEXT UNIQUE NOT NULL) and a function create_room(&PgPool, &str) -> i64 that inserts a room and returns its id in a single query (RETURNING id). Create three rooms and print their ids.\n\nExpected output:\n1\n2\n3",
+   "hint": "query_scalar(\"INSERT ... RETURNING id\").bind(name).fetch_one(pool).",
+   "starter": "use sqlx::postgres::PgPoolOptions;\nuse sqlx::{FromRow, PgPool, Row};\n\n// Ready: PostgreSQL is already running in the sandbox (user postgres without a password, database chat); every check starts with a clean database\nasync fn pool() -> PgPool {\n    PgPoolOptions::new()\n        .max_connections(5)\n        .connect(\"postgres://postgres@127.0.0.1/chat\")\n        .await\n        .unwrap()\n}\n\nasync fn create_room(pool: &PgPool, name: &str) -> i64 {\n    todo!()\n}\n\n#[tokio::main]\nasync fn main() {\n    let pool = pool().await;\n    sqlx::query(\"CREATE TABLE rooms (id BIGSERIAL PRIMARY KEY, name TEXT UNIQUE NOT NULL)\").execute(&pool).await.unwrap();\n    for n in [\"общая\", \"dev\", \"random\"] {\n        println!(\"{}\", create_room(&pool, n).await);\n    }\n}\n"
+  },
+  {
+   "id": "r47-on-conflict-nothing",
+   "title": "Idempotent creation",
+   "statement": "The table is rooms(name TEXT PRIMARY KEY). The function ensure_room(&PgPool, &str) -> bool inserts a room with ON CONFLICT DO NOTHING and returns true if the room was created just now (rows_affected() == 1). Call it for «a», «b», «a», «b», «c».\n\nExpected output:\na: true\nb: true\na: false\nb: false\nc: true",
+   "hint": "INSERT ... ON CONFLICT (name) DO NOTHING; res.rows_affected() == 1.",
+   "starter": "use sqlx::postgres::PgPoolOptions;\nuse sqlx::{FromRow, PgPool, Row};\n\n// Ready: PostgreSQL is already running in the sandbox (user postgres without a password, database chat); every check starts with a clean database\nasync fn pool() -> PgPool {\n    PgPoolOptions::new()\n        .max_connections(5)\n        .connect(\"postgres://postgres@127.0.0.1/chat\")\n        .await\n        .unwrap()\n}\n\nasync fn ensure_room(pool: &PgPool, name: &str) -> bool {\n    todo!()\n}\n\n#[tokio::main]\nasync fn main() {\n    let pool = pool().await;\n    sqlx::query(\"CREATE TABLE rooms (name TEXT PRIMARY KEY)\").execute(&pool).await.unwrap();\n    for n in [\"a\", \"b\", \"a\", \"b\", \"c\"] {\n        println!(\"{n}: {}\", ensure_room(&pool, n).await);\n    }\n}\n"
+  },
+  {
+   "id": "r47-on-conflict-update",
+   "title": "A counter in one query",
+   "statement": "The table is hits(path TEXT PRIMARY KEY, n BIGINT NOT NULL). The function hit(&PgPool, &str) -> i64 increments the counter for a path in a single query (INSERT … ON CONFLICT DO UPDATE … RETURNING n) and returns the new value. Call hit for /a, /a, /b, /a, /b.\n\nExpected output:\n/a: 1\n/a: 2\n/b: 1\n/a: 3\n/b: 2",
+   "hint": "ON CONFLICT (path) DO UPDATE SET n = hits.n + 1 RETURNING n.",
+   "starter": "use sqlx::postgres::PgPoolOptions;\nuse sqlx::{FromRow, PgPool, Row};\n\n// Ready: PostgreSQL is already running in the sandbox (user postgres without a password, database chat); every check starts with a clean database\nasync fn pool() -> PgPool {\n    PgPoolOptions::new()\n        .max_connections(5)\n        .connect(\"postgres://postgres@127.0.0.1/chat\")\n        .await\n        .unwrap()\n}\n\nasync fn hit(pool: &PgPool, path: &str) -> i64 {\n    todo!()\n}\n\n#[tokio::main]\nasync fn main() {\n    let pool = pool().await;\n    sqlx::query(\"CREATE TABLE hits (path TEXT PRIMARY KEY, n BIGINT NOT NULL)\").execute(&pool).await.unwrap();\n    for p in [\"/a\", \"/a\", \"/b\", \"/a\", \"/b\"] {\n        println!(\"{p}: {}\", hit(&pool, p).await);\n    }\n}\n"
+  },
+  {
+   "id": "r47-null",
+   "title": "NULL and Option",
+   "statement": "The table profiles(user_name TEXT, city TEXT) has the rows («аня», NULL) and («боря», «Тверь»). Read both rows as a tuple (String, Option<String>) with query_as and print «аня: ?» / «боря: Тверь» (an unknown city is shown as «?»).\n\nExpected output:\n«аня: ?»\n«боря: Тверь»",
+   "hint": "query_as::<_, (String, Option<String>)>; unwrap_or(\"?\".into()).",
+   "starter": "use sqlx::postgres::PgPoolOptions;\nuse sqlx::{FromRow, PgPool, Row};\n\n// Ready: PostgreSQL is already running in the sandbox (user postgres without a password, database chat); every check starts with a clean database\nasync fn pool() -> PgPool {\n    PgPoolOptions::new()\n        .max_connections(5)\n        .connect(\"postgres://postgres@127.0.0.1/chat\")\n        .await\n        .unwrap()\n}\n\n#[tokio::main]\nasync fn main() {\n    let pool = pool().await;\n    // your code\n    let _ = pool;\n}\n"
+  },
+  {
+   "id": "r47-timestamptz",
+   "title": "Creation time",
+   "statement": "The table is events(id BIGSERIAL, at TIMESTAMPTZ NOT NULL DEFAULT now()). Insert two events with a 20 ms pause between them, read at as chrono::DateTime<Utc>, and print: «второе позже первого: true», «разница не меньше 20 мс: true», «время не из будущего: true» (compare with Utc::now()).\n\nExpected output:\n«второе позже первого: true»\n«разница не меньше 20 мс: true»\n«время не из будущего: true»",
+   "hint": "A TIMESTAMPTZ column maps to chrono::DateTime<chrono::Utc>.",
+   "starter": "use sqlx::postgres::PgPoolOptions;\nuse sqlx::{FromRow, PgPool, Row};\n\n// Ready: PostgreSQL is already running in the sandbox (user postgres without a password, database chat); every check starts with a clean database\nasync fn pool() -> PgPool {\n    PgPoolOptions::new()\n        .max_connections(5)\n        .connect(\"postgres://postgres@127.0.0.1/chat\")\n        .await\n        .unwrap()\n}\n\n#[tokio::main]\nasync fn main() {\n    let pool = pool().await;\n    // your code\n    let _ = pool;\n}\n"
+  },
+  {
+   "id": "r47-uuid",
+   "title": "UUID as a key",
+   "statement": "The table is tokens(id UUID PRIMARY KEY DEFAULT gen_random_uuid(), owner TEXT). Insert two rows with RETURNING id (type uuid::Uuid). Print: the identifiers differ, the version of each is 4 (get_version_num()), and selecting by id returns the owner.\n\nExpected output:\n«различны: true»\n«версия 4: true»\n«боря»",
+   "hint": "query_scalar::<_, uuid::Uuid>(\"INSERT ... RETURNING id\").",
+   "starter": "use sqlx::postgres::PgPoolOptions;\nuse sqlx::{FromRow, PgPool, Row};\n\n// Ready: PostgreSQL is already running in the sandbox (user postgres without a password, database chat); every check starts with a clean database\nasync fn pool() -> PgPool {\n    PgPoolOptions::new()\n        .max_connections(5)\n        .connect(\"postgres://postgres@127.0.0.1/chat\")\n        .await\n        .unwrap()\n}\n\n#[tokio::main]\nasync fn main() {\n    let pool = pool().await;\n    // your code\n    let _ = pool;\n}\n"
+  },
+  {
+   "id": "r47-jsonb",
+   "title": "A JSONB column",
+   "statement": "The table is settings(user_name TEXT, prefs JSONB). Insert prefs as sqlx::types::Json<Prefs> (the struct Prefs { theme: String, sound: bool } with Serialize/Deserialize), then read back a Json<Prefs> and extract theme directly in SQL with the ->> operator (query_scalar). Print both results.\n\nExpected output:\nPrefs { theme: \"тёмная\", sound: true }\n«тёмная»",
+   "hint": "sqlx::types::Json(prefs) in bind; Json<Prefs> when reading; SELECT prefs->>'theme'.",
+   "starter": "use sqlx::postgres::PgPoolOptions;\nuse sqlx::{FromRow, PgPool, Row};\n\n// Ready: PostgreSQL is already running in the sandbox (user postgres without a password, database chat); every check starts with a clean database\nasync fn pool() -> PgPool {\n    PgPoolOptions::new()\n        .max_connections(5)\n        .connect(\"postgres://postgres@127.0.0.1/chat\")\n        .await\n        .unwrap()\n}\n\nuse serde::{Deserialize, Serialize};\n\n#[derive(Serialize, Deserialize, Debug)]\nstruct Prefs {\n    theme: String,\n    sound: bool,\n}\n\n#[tokio::main]\nasync fn main() {\n    let pool = pool().await;\n    // your code\n    let _ = pool;\n}\n"
+  },
+  {
+   "id": "r47-tx-commit",
+   "title": "Transaction: room and member",
+   "statement": "The tables are rooms(id BIGSERIAL PK, name TEXT) and members(room_id BIGINT, user_name TEXT). The function create_with_owner(&PgPool, room, owner) -> i64 inserts a room (RETURNING id) and its owner as a member in a single transaction, then commits. Create two rooms and print the row counts of both tables.\n\nExpected output:\nrooms: 2\nmembers: 2",
+   "hint": "let mut tx = pool.begin().await?; ... .execute(&mut *tx) ... tx.commit().",
+   "starter": "use sqlx::postgres::PgPoolOptions;\nuse sqlx::{FromRow, PgPool, Row};\n\n// Ready: PostgreSQL is already running in the sandbox (user postgres without a password, database chat); every check starts with a clean database\nasync fn pool() -> PgPool {\n    PgPoolOptions::new()\n        .max_connections(5)\n        .connect(\"postgres://postgres@127.0.0.1/chat\")\n        .await\n        .unwrap()\n}\n\nasync fn create_with_owner(pool: &PgPool, room: &str, owner: &str) -> i64 {\n    todo!()\n}\n\n#[tokio::main]\nasync fn main() {\n    let pool = pool().await;\n    sqlx::query(\"CREATE TABLE rooms (id BIGSERIAL PRIMARY KEY, name TEXT)\").execute(&pool).await.unwrap();\n    sqlx::query(\"CREATE TABLE members (room_id BIGINT, user_name TEXT)\").execute(&pool).await.unwrap();\n    create_with_owner(&pool, \"общая\", \"аня\").await;\n    create_with_owner(&pool, \"dev\", \"боря\").await;\n    let r: i64 = sqlx::query_scalar(\"SELECT COUNT(*) FROM rooms\").fetch_one(&pool).await.unwrap();\n    let m: i64 = sqlx::query_scalar(\"SELECT COUNT(*) FROM members\").fetch_one(&pool).await.unwrap();\n    println!(\"rooms: {r}\\nmembers: {m}\");\n}\n"
+  },
+  {
+   "id": "r47-tx-drop",
+   "title": "Rollback on drop",
+   "statement": "The table is log(msg TEXT). Open a transaction, insert the row «в транзакции», print the number of rows inside the transaction, then drop the transaction without commit and print the number of rows from outside (it must be 0). Then repeat with commit: the outside count is 1.\n\nExpected output:\n«внутри: 1»\n«снаружи после drop: 0»\n«снаружи после commit: 1»",
+   "hint": "tx.commit() makes changes permanent; drop(tx) rolls them back.",
+   "starter": "use sqlx::postgres::PgPoolOptions;\nuse sqlx::{FromRow, PgPool, Row};\n\n// Ready: PostgreSQL is already running in the sandbox (user postgres without a password, database chat); every check starts with a clean database\nasync fn pool() -> PgPool {\n    PgPoolOptions::new()\n        .max_connections(5)\n        .connect(\"postgres://postgres@127.0.0.1/chat\")\n        .await\n        .unwrap()\n}\n\n#[tokio::main]\nasync fn main() {\n    let pool = pool().await;\n    // your code\n    let _ = pool;\n}\n"
+  },
+  {
+   "id": "r47-transfer",
+   "title": "Transfer between accounts",
+   "statement": "The table is accounts(name TEXT PK, balance BIGINT CHECK (balance >= 0)) with the accounts «аня» 100 and «боря» 50. The function transfer(&PgPool, from, to, amount) -> Result<(), sqlx::Error> debits and credits in a transaction. Transfer 30 from Anya to Borya (success), then 500 from Anya to Borya (the CHECK constraint is violated, so the whole transaction rolls back). Print the results and the final balances.\n\nExpected output:\ntrue\nfalse\n[(\"аня\", 70), (\"боря\", 80)]",
+   "hint": "Two UPDATEs in one transaction; an Err on the first returns early via ? and rolls back on drop.",
+   "starter": "use sqlx::postgres::PgPoolOptions;\nuse sqlx::{FromRow, PgPool, Row};\n\n// Ready: PostgreSQL is already running in the sandbox (user postgres without a password, database chat); every check starts with a clean database\nasync fn pool() -> PgPool {\n    PgPoolOptions::new()\n        .max_connections(5)\n        .connect(\"postgres://postgres@127.0.0.1/chat\")\n        .await\n        .unwrap()\n}\n\nasync fn transfer(pool: &PgPool, from: &str, to: &str, amount: i64) -> Result<(), sqlx::Error> {\n    todo!()\n}\n\n#[tokio::main]\nasync fn main() {\n    let pool = pool().await;\n    sqlx::query(\"CREATE TABLE accounts (name TEXT PRIMARY KEY, balance BIGINT CHECK (balance >= 0))\").execute(&pool).await.unwrap();\n    sqlx::query(\"INSERT INTO accounts VALUES ('аня', 100), ('боря', 50)\").execute(&pool).await.unwrap();\n    println!(\"{:?}\", transfer(&pool, \"аня\", \"боря\", 30).await.is_ok());\n    println!(\"{:?}\", transfer(&pool, \"аня\", \"боря\", 500).await.is_ok());\n    let rows: Vec<(String, i64)> = sqlx::query_as(\"SELECT name, balance FROM accounts ORDER BY name\").fetch_all(&pool).await.unwrap();\n    println!(\"{rows:?}\");\n}\n"
+  },
+  {
+   "id": "r47-unique-violation",
+   "title": "Uniqueness violation",
+   "statement": "The table is users(name TEXT UNIQUE). The function add_user(&PgPool, &str) -> Result<(), String> returns Ok on success, Err(\"имя занято\") on a uniqueness violation (SQLSTATE 23505), and Err(error text) on any other error. Add «аня», «боря», «аня» and print the results.\n\nExpected output:\n«аня: Ok(())»\n«боря: Ok(())»\n«аня: Err(\"имя занято\")»",
+   "hint": "e.as_database_error().and_then(|d| d.code()) compared with \"23505\" (or d.is_unique_violation()).",
+   "starter": "use sqlx::postgres::PgPoolOptions;\nuse sqlx::{FromRow, PgPool, Row};\n\n// Ready: PostgreSQL is already running in the sandbox (user postgres without a password, database chat); every check starts with a clean database\nasync fn pool() -> PgPool {\n    PgPoolOptions::new()\n        .max_connections(5)\n        .connect(\"postgres://postgres@127.0.0.1/chat\")\n        .await\n        .unwrap()\n}\n\nasync fn add_user(pool: &PgPool, name: &str) -> Result<(), String> {\n    todo!()\n}\n\n#[tokio::main]\nasync fn main() {\n    let pool = pool().await;\n    sqlx::query(\"CREATE TABLE users (name TEXT UNIQUE)\").execute(&pool).await.unwrap();\n    for n in [\"аня\", \"боря\", \"аня\"] {\n        println!(\"{n}: {:?}\", add_user(&pool, n).await);\n    }\n}\n"
+  },
+  {
+   "id": "r47-fk-violation",
+   "title": "Foreign key violation",
+   "statement": "The tables are rooms(id BIGSERIAL PK, name TEXT) and messages(id BIGSERIAL PK, room_id BIGINT REFERENCES rooms(id), text TEXT). The function post(&PgPool, room_id, text) -> &'static str returns «ок» if the insert succeeded, «нет комнаты» on a foreign key violation (SQLSTATE 23503), and «сбой» otherwise. Post to room 1 (it exists) and to room 2 (it does not).\n\nExpected output:\n«ок»\n«нет комнаты»",
+   "hint": "Code 23503 is foreign_key_violation.",
+   "starter": "use sqlx::postgres::PgPoolOptions;\nuse sqlx::{FromRow, PgPool, Row};\n\n// Ready: PostgreSQL is already running in the sandbox (user postgres without a password, database chat); every check starts with a clean database\nasync fn pool() -> PgPool {\n    PgPoolOptions::new()\n        .max_connections(5)\n        .connect(\"postgres://postgres@127.0.0.1/chat\")\n        .await\n        .unwrap()\n}\n\nasync fn post(pool: &PgPool, room_id: i64, text: &str) -> &'static str {\n    todo!()\n}\n\n#[tokio::main]\nasync fn main() {\n    let pool = pool().await;\n    sqlx::query(\"CREATE TABLE rooms (id BIGSERIAL PRIMARY KEY, name TEXT)\").execute(&pool).await.unwrap();\n    sqlx::query(\"CREATE TABLE messages (id BIGSERIAL PRIMARY KEY, room_id BIGINT REFERENCES rooms(id), text TEXT)\").execute(&pool).await.unwrap();\n    sqlx::query(\"INSERT INTO rooms (name) VALUES ('общая')\").execute(&pool).await.unwrap();\n    println!(\"{}\", post(&pool, 1, \"привет\").await);\n    println!(\"{}\", post(&pool, 2, \"эй\").await);\n}\n"
+  },
+  {
+   "id": "r47-check-violation",
+   "title": "A CHECK constraint",
+   "statement": "The table is messages(text TEXT NOT NULL CHECK (length(trim(text)) > 0)). Print the SQLSTATE code of the error when inserting «   » (spaces) and when inserting NULL, and also «ок» for normal text.\n\nExpected output:\n23514\n23502\n«ок»",
+   "hint": "Empty text is 23514 (check_violation), NULL is 23502 (not_null_violation).",
+   "starter": "use sqlx::postgres::PgPoolOptions;\nuse sqlx::{FromRow, PgPool, Row};\n\n// Ready: PostgreSQL is already running in the sandbox (user postgres without a password, database chat); every check starts with a clean database\nasync fn pool() -> PgPool {\n    PgPoolOptions::new()\n        .max_connections(5)\n        .connect(\"postgres://postgres@127.0.0.1/chat\")\n        .await\n        .unwrap()\n}\n\n#[tokio::main]\nasync fn main() {\n    let pool = pool().await;\n    // your code\n    let _ = pool;\n}\n"
+  },
+  {
+   "id": "r47-rename",
+   "title": "Renaming a column",
+   "statement": "The query SELECT id, name AS room_name FROM rooms must be collected into the struct Room { id: i64, title: String }. Bind the field title to the column room_name with the attribute #[sqlx(rename = ...)]. Print the rooms in id order.\n\nExpected output:\nRoom { id: 1, title: \"общая\" }\nRoom { id: 2, title: \"dev\" }",
+   "hint": "#[sqlx(rename = \"room_name\")] on the field title.",
+   "starter": "use sqlx::postgres::PgPoolOptions;\nuse sqlx::{FromRow, PgPool, Row};\n\n// Ready: PostgreSQL is already running in the sandbox (user postgres without a password, database chat); every check starts with a clean database\nasync fn pool() -> PgPool {\n    PgPoolOptions::new()\n        .max_connections(5)\n        .connect(\"postgres://postgres@127.0.0.1/chat\")\n        .await\n        .unwrap()\n}\n\n#[derive(FromRow, Debug)]\nstruct Room {\n    id: i64,\n    title: String,\n}\n\n#[tokio::main]\nasync fn main() {\n    let pool = pool().await;\n    sqlx::query(\"CREATE TABLE rooms (id BIGSERIAL PRIMARY KEY, name TEXT)\").execute(&pool).await.unwrap();\n    sqlx::query(\"INSERT INTO rooms (name) VALUES ('общая'), ('dev')\").execute(&pool).await.unwrap();\n    let rooms: Vec<Room> = sqlx::query_as(\"SELECT id, name AS room_name FROM rooms ORDER BY id\").fetch_all(&pool).await.unwrap();\n    for r in rooms {\n        println!(\"{r:?}\");\n    }\n}\n"
+  },
+  {
+   "id": "r47-keyset",
+   "title": "Keyset pagination",
+   "statement": "The table messages(id BIGSERIAL PK, text TEXT) holds twelve messages «m1»…«m12». Write a function page(&PgPool, before: Option<i64>, limit: i64) -> Vec<(i64, String)>: messages with id less than before (or all of them if None), from newest to oldest, at most limit. Print the ids of pages of 5 messages until the pages run out.\n\nExpected output:\n[12, 11, 10, 9, 8]\n[7, 6, 5, 4, 3]\n[2, 1]",
+   "hint": "WHERE ($1::bigint IS NULL OR id < $1) ORDER BY id DESC LIMIT $2.",
+   "starter": "use sqlx::postgres::PgPoolOptions;\nuse sqlx::{FromRow, PgPool, Row};\n\n// Ready: PostgreSQL is already running in the sandbox (user postgres without a password, database chat); every check starts with a clean database\nasync fn pool() -> PgPool {\n    PgPoolOptions::new()\n        .max_connections(5)\n        .connect(\"postgres://postgres@127.0.0.1/chat\")\n        .await\n        .unwrap()\n}\n\nasync fn page(pool: &PgPool, before: Option<i64>, limit: i64) -> Vec<(i64, String)> {\n    todo!()\n}\n\n#[tokio::main]\nasync fn main() {\n    let pool = pool().await;\n    sqlx::query(\"CREATE TABLE messages (id BIGSERIAL PRIMARY KEY, text TEXT)\").execute(&pool).await.unwrap();\n    for i in 1..=12 {\n        sqlx::query(\"INSERT INTO messages (text) VALUES ($1)\").bind(format!(\"m{i}\")).execute(&pool).await.unwrap();\n    }\n    let mut before = None;\n    loop {\n        let p = page(&pool, before, 5).await;\n        if p.is_empty() {\n            break;\n        }\n        println!(\"{:?}\", p.iter().map(|(id, _)| *id).collect::<Vec<_>>());\n        before = p.last().map(|(id, _)| *id);\n    }\n}\n"
+  },
+  {
+   "id": "r47-stream",
+   "title": "Streaming read",
+   "statement": "The table is nums(n INT) with the values 1…10. Read it as a stream (fetch and TryStreamExt::try_next) and accumulate a sum, stopping as soon as the sum exceeds 20. Print how many rows were read and the final sum.\n\nExpected output:\n«прочитано 6, сумма 21»",
+   "hint": "use futures::TryStreamExt; let mut s = query_scalar::<_, i32>(..).fetch(&pool); while let Some(n) = s.try_next().await.unwrap() { .. }",
+   "starter": "use sqlx::postgres::PgPoolOptions;\nuse sqlx::{FromRow, PgPool, Row};\n\n// Ready: PostgreSQL is already running in the sandbox (user postgres without a password, database chat); every check starts with a clean database\nasync fn pool() -> PgPool {\n    PgPoolOptions::new()\n        .max_connections(5)\n        .connect(\"postgres://postgres@127.0.0.1/chat\")\n        .await\n        .unwrap()\n}\n\n#[tokio::main]\nasync fn main() {\n    let pool = pool().await;\n    // your code\n    let _ = pool;\n}\n"
+  },
+  {
+   "id": "r47-unnest",
+   "title": "Bulk insert",
+   "statement": "The table is users(name TEXT UNIQUE). The function add_many(&PgPool, &[String]) -> u64 inserts all the names in ONE query using UNNEST($1::text[]) with ON CONFLICT DO NOTHING and returns the number actually added. Call it for [\"a\",\"b\",\"c\"], then for [\"b\",\"c\",\"d\",\"e\"], and print the results and the final row count.\n\nExpected output:\n3\n2\n«итого 5»",
+   "hint": "INSERT INTO users (name) SELECT * FROM UNNEST($1::text[]) ON CONFLICT DO NOTHING; bind(&[String]).",
+   "starter": "use sqlx::postgres::PgPoolOptions;\nuse sqlx::{FromRow, PgPool, Row};\n\n// Ready: PostgreSQL is already running in the sandbox (user postgres without a password, database chat); every check starts with a clean database\nasync fn pool() -> PgPool {\n    PgPoolOptions::new()\n        .max_connections(5)\n        .connect(\"postgres://postgres@127.0.0.1/chat\")\n        .await\n        .unwrap()\n}\n\nasync fn add_many(pool: &PgPool, names: &[String]) -> u64 {\n    todo!()\n}\n\n#[tokio::main]\nasync fn main() {\n    let pool = pool().await;\n    sqlx::query(\"CREATE TABLE users (name TEXT UNIQUE)\").execute(&pool).await.unwrap();\n    let a: Vec<String> = [\"a\", \"b\", \"c\"].iter().map(|s| s.to_string()).collect();\n    let b: Vec<String> = [\"b\", \"c\", \"d\", \"e\"].iter().map(|s| s.to_string()).collect();\n    println!(\"{}\", add_many(&pool, &a).await);\n    println!(\"{}\", add_many(&pool, &b).await);\n    let n: i64 = sqlx::query_scalar(\"SELECT COUNT(*) FROM users\").fetch_one(&pool).await.unwrap();\n    println!(\"итого {n}\");\n}\n"
+  },
+  {
+   "id": "r47-any-array",
+   "title": "Selecting by an array of ids",
+   "statement": "The table users(id BIGSERIAL PK, name TEXT) has six users u1…u6. The function names_of(&PgPool, &[i64]) -> Vec<String> returns the names for the given ids in a single query (WHERE id = ANY($1)), in ascending id order. Check it for [5, 2, 99, 2].\n\nExpected output:\n[\"u2\", \"u5\"]\n[]",
+   "hint": "bind(ids) for &[i64]; id = ANY($1) ORDER BY id.",
+   "starter": "use sqlx::postgres::PgPoolOptions;\nuse sqlx::{FromRow, PgPool, Row};\n\n// Ready: PostgreSQL is already running in the sandbox (user postgres without a password, database chat); every check starts with a clean database\nasync fn pool() -> PgPool {\n    PgPoolOptions::new()\n        .max_connections(5)\n        .connect(\"postgres://postgres@127.0.0.1/chat\")\n        .await\n        .unwrap()\n}\n\nasync fn names_of(pool: &PgPool, ids: &[i64]) -> Vec<String> {\n    todo!()\n}\n\n#[tokio::main]\nasync fn main() {\n    let pool = pool().await;\n    sqlx::query(\"CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT)\").execute(&pool).await.unwrap();\n    for i in 1..=6 {\n        sqlx::query(\"INSERT INTO users (name) VALUES ($1)\").bind(format!(\"u{i}\")).execute(&pool).await.unwrap();\n    }\n    println!(\"{:?}\", names_of(&pool, &[5, 2, 99, 2]).await);\n    println!(\"{:?}\", names_of(&pool, &[]).await);\n}\n"
+  },
+  {
+   "id": "r47-join-group",
+   "title": "One query instead of a loop",
+   "statement": "The tables are rooms(id BIGSERIAL PK, name TEXT) and members(room_id BIGINT, user_name TEXT): the rooms are «a», «b», «c»; a has two members, b has none, c has three. In one query (LEFT JOIN + GROUP BY) get (name, member count) for all rooms, ordered by name.\n\nExpected output:\n[(\"a\", 2), (\"b\", 0), (\"c\", 3)]",
+   "hint": "SELECT r.name, COUNT(m.user_name) FROM rooms r LEFT JOIN members m ON m.room_id = r.id GROUP BY r.name ORDER BY r.name.",
+   "starter": "use sqlx::postgres::PgPoolOptions;\nuse sqlx::{FromRow, PgPool, Row};\n\n// Ready: PostgreSQL is already running in the sandbox (user postgres without a password, database chat); every check starts with a clean database\nasync fn pool() -> PgPool {\n    PgPoolOptions::new()\n        .max_connections(5)\n        .connect(\"postgres://postgres@127.0.0.1/chat\")\n        .await\n        .unwrap()\n}\n\n#[tokio::main]\nasync fn main() {\n    let pool = pool().await;\n    // your code\n    let _ = pool;\n}\n"
+  },
+  {
+   "id": "r47-migrator",
+   "title": "Your own migration runner",
+   "statement": "Write a function migrate(&PgPool, &[(i32, &str)]) -> Vec<i32>: it creates a service table _migrations(version INT PRIMARY KEY), then for each migration in version order applies the SQL (in sqlx 0.9 a query text that is not a literal is wrapped in sqlx::AssertSqlSafe(String); we take responsibility for its safety) in a transaction together with recording the version, skipping those already applied; it returns the versions applied in this call. Call it twice: first with migrations 1 and 2, then with 1, 2, 3, so the second call applies only 3. Print the results and the list of columns of the table users.\n\nExpected output:\n[1, 2]\n[3]\n[]\n[\"id\", \"name\", \"bio\", \"city\"]",
+   "hint": "First SELECT version FROM _migrations; for new ones: begin, execute(sql), INSERT the version, commit.",
+   "starter": "use sqlx::postgres::PgPoolOptions;\nuse sqlx::{FromRow, PgPool, Row};\n\n// Ready: PostgreSQL is already running in the sandbox (user postgres without a password, database chat); every check starts with a clean database\nasync fn pool() -> PgPool {\n    PgPoolOptions::new()\n        .max_connections(5)\n        .connect(\"postgres://postgres@127.0.0.1/chat\")\n        .await\n        .unwrap()\n}\n\nasync fn migrate(pool: &PgPool, migrations: &[(i32, &str)]) -> Vec<i32> {\n    todo!()\n}\n\n#[tokio::main]\nasync fn main() {\n    let pool = pool().await;\n    let m1 = [(1, \"CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT)\"), (2, \"ALTER TABLE users ADD COLUMN bio TEXT\")];\n    println!(\"{:?}\", migrate(&pool, &m1).await);\n    let m2 = [(1, \"CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT)\"), (2, \"ALTER TABLE users ADD COLUMN bio TEXT\"), (3, \"ALTER TABLE users ADD COLUMN city TEXT\")];\n    println!(\"{:?}\", migrate(&pool, &m2).await);\n    println!(\"{:?}\", migrate(&pool, &m2).await);\n    let cols: Vec<String> = sqlx::query_scalar(\"SELECT column_name::text FROM information_schema.columns WHERE table_name = 'users' ORDER BY ordinal_position\").fetch_all(&pool).await.unwrap();\n    println!(\"{cols:?}\");\n}\n"
+  },
+  {
+   "id": "r47-pool-timeout",
+   "title": "Pool exhaustion",
+   "statement": "Create a pool with a single connection and an acquire_timeout of 100 ms (PgPoolOptions::new().max_connections(1).acquire_timeout(...).connect(...)). Acquire a connection and hold it until a second acquire fails with an error: print «пул исчерпан: true» (sqlx::Error::PoolTimedOut). Release the first connection and make sure the query SELECT 1 works again.\n\nExpected output:\n«пул исчерпан: true»\n«после освобождения: 1»",
+   "hint": "matches!(err, sqlx::Error::PoolTimedOut); drop(conn) returns the connection to the pool.",
+   "starter": "use sqlx::postgres::PgPoolOptions;\nuse sqlx::{FromRow, PgPool, Row};\n\n// Ready: PostgreSQL is already running in the sandbox (user postgres without a password, database chat); every check starts with a clean database\nasync fn pool() -> PgPool {\n    PgPoolOptions::new()\n        .max_connections(5)\n        .connect(\"postgres://postgres@127.0.0.1/chat\")\n        .await\n        .unwrap()\n}\n\n#[tokio::main]\nasync fn main() {\n    let pool = pool().await;\n    // your code\n    let _ = pool;\n}\n"
+  },
+  {
+   "id": "r47-parallel",
+   "title": "Parallel inserts",
+   "statement": "The table is counters(id INT PRIMARY KEY, n BIGINT), with one row (id = 1, n = 0). Fifty tasks (tokio::spawn) run UPDATE counters SET n = n + 1 WHERE id = 1 in parallel through a pool of 5 connections. After all of them finish, print the final value of n (it must be 50, because the database serializes updates to a row).\n\nExpected output:\n50",
+   "hint": "Clone the pool into each task; wait for the JoinHandles.",
+   "starter": "use sqlx::postgres::PgPoolOptions;\nuse sqlx::{FromRow, PgPool, Row};\n\n// Ready: PostgreSQL is already running in the sandbox (user postgres without a password, database chat); every check starts with a clean database\nasync fn pool() -> PgPool {\n    PgPoolOptions::new()\n        .max_connections(5)\n        .connect(\"postgres://postgres@127.0.0.1/chat\")\n        .await\n        .unwrap()\n}\n\n#[tokio::main]\nasync fn main() {\n    let pool = pool().await;\n    // your code\n    let _ = pool;\n}\n"
+  },
+  {
+   "id": "r47-skip-locked",
+   "title": "Job queue: SKIP LOCKED",
+   "statement": "The table is jobs(id SERIAL PK, done BOOLEAN DEFAULT false) with six jobs. The function claim(&PgPool) -> Option<i32> picks a free job in a transaction with FOR UPDATE SKIP LOCKED, marks it done, and returns its id; None if there are no free jobs. Four workers (spawn) each call claim twice, and all received ids must be distinct. Print the sorted list of received ids and the number left.\n\nExpected output:\n[1, 2, 3, 4, 5, 6]\n«осталось 0»",
+   "hint": "SELECT id FROM jobs WHERE NOT done ORDER BY id LIMIT 1 FOR UPDATE SKIP LOCKED; then UPDATE; commit.",
+   "starter": "use sqlx::postgres::PgPoolOptions;\nuse sqlx::{FromRow, PgPool, Row};\n\n// Ready: PostgreSQL is already running in the sandbox (user postgres without a password, database chat); every check starts with a clean database\nasync fn pool() -> PgPool {\n    PgPoolOptions::new()\n        .max_connections(5)\n        .connect(\"postgres://postgres@127.0.0.1/chat\")\n        .await\n        .unwrap()\n}\n\nasync fn claim(pool: &PgPool) -> Option<i32> {\n    todo!()\n}\n\n#[tokio::main]\nasync fn main() {\n    let pool = pool().await;\n    sqlx::query(\"CREATE TABLE jobs (id SERIAL PRIMARY KEY, done BOOLEAN NOT NULL DEFAULT false)\").execute(&pool).await.unwrap();\n    sqlx::query(\"INSERT INTO jobs SELECT FROM generate_series(1, 6)\").execute(&pool).await.unwrap();\n    let handles: Vec<_> = (0..4)\n        .map(|_| {\n            let pool = pool.clone();\n            tokio::spawn(async move {\n                let mut got = Vec::new();\n                for _ in 0..2 {\n                    if let Some(id) = claim(&pool).await {\n                        got.push(id);\n                    }\n                }\n                got\n            })\n        })\n        .collect();\n    let mut all = Vec::new();\n    for h in handles {\n        all.extend(h.await.unwrap());\n    }\n    all.sort();\n    println!(\"{all:?}\");\n    let left: i64 = sqlx::query_scalar(\"SELECT COUNT(*) FROM jobs WHERE NOT done\").fetch_one(&pool).await.unwrap();\n    println!(\"осталось {left}\");\n}\n"
+  },
+  {
+   "id": "r47-listen-notify",
+   "title": "LISTEN / NOTIFY",
+   "statement": "Subscribe to the channel «chat» through sqlx::postgres::PgListener (listener.listen(\"chat\")), then from the pool run SELECT pg_notify('chat', $1) with the payload «привет из базы» and another one, «второе». Print the channel and payload of the two notifications received (listener.recv()).\n\nExpected output:\n«chat: привет из базы»\n«chat: второе»",
+   "hint": "PgListener::connect_with(&pool).await?; listener.listen(\"chat\"); n.channel(), n.payload().",
+   "starter": "use sqlx::postgres::PgPoolOptions;\nuse sqlx::{FromRow, PgPool, Row};\n\n// Ready: PostgreSQL is already running in the sandbox (user postgres without a password, database chat); every check starts with a clean database\nasync fn pool() -> PgPool {\n    PgPoolOptions::new()\n        .max_connections(5)\n        .connect(\"postgres://postgres@127.0.0.1/chat\")\n        .await\n        .unwrap()\n}\n\n#[tokio::main]\nasync fn main() {\n    let pool = pool().await;\n    // your code\n    let _ = pool;\n}\n"
+  },
+  {
+   "id": "r47-fix-placeholder",
+   "title": "Fix: placeholders",
+   "statement": "The program fails at run time: the queries use «?» instead of PostgreSQL parameters. Fix the queries ($1, $2) so that the program prints «добавлена аня» and «найдена: аня».\n\nExpected output:\n«добавлена аня»\n«найдена: аня»",
+   "hint": "In PostgreSQL parameters are numbered: $1, $2, …",
+   "starter": "use sqlx::postgres::PgPoolOptions;\nuse sqlx::{FromRow, PgPool, Row};\n\n// Ready: PostgreSQL is already running in the sandbox (user postgres without a password, database chat); every check starts with a clean database\nasync fn pool() -> PgPool {\n    PgPoolOptions::new()\n        .max_connections(5)\n        .connect(\"postgres://postgres@127.0.0.1/chat\")\n        .await\n        .unwrap()\n}\n\n#[tokio::main]\nasync fn main() {\n    let pool = pool().await;\n    sqlx::query(\"CREATE TABLE users (id BIGSERIAL PRIMARY KEY, name TEXT)\").execute(&pool).await.unwrap();\n    sqlx::query(\"INSERT INTO users (name) VALUES (?)\").bind(\"аня\").execute(&pool).await.unwrap();\n    println!(\"добавлена аня\");\n    let n: String = sqlx::query_scalar(\"SELECT name FROM users WHERE id = ?\").bind(1i64).fetch_one(&pool).await.unwrap();\n    println!(\"найдена: {n}\");\n}\n"
+  },
+  {
+   "id": "r47-http-rooms",
+   "title": "Rooms over HTTP from the database",
+   "statement": "The application state is a PgPool (the table rooms(id BIGSERIAL PK, name TEXT UNIQUE NOT NULL) is created in main before any requests). POST /rooms/{name} creates a room and responds with 201 and the JSON {\"id\":N,\"name\":\"..\"} (RETURNING); a repeat gives 409 and the text «имя занято» (uniqueness violation 23505). GET /rooms responds with a JSON array of rooms ordered by id. The starter has an empty app(pool). Print the responses to three POSTs («общая», «dev», «общая») and the GET.\n\nExpected output:\n«(201, \"{\\\"id\\\":1,\\\"name\\\":\\\"общая\\\"}\")»\n(201, \"{\\\"id\\\":2,\\\"name\\\":\\\"dev\\\"}\")\n(409, \"имя занято\")\n«(200, \"[{\\\"id\\\":1,\\\"name\\\":\\\"общая\\\"},{\\\"id\\\":2,\\\"name\\\":\\\"dev\\\"}]\")»",
+   "hint": "A handler with State<PgPool>, Result<(StatusCode, Json<Room>), (StatusCode, &'static str)>; query_as::<_, Room> with #[derive(FromRow, Serialize)].",
+   "starter": "use axum::body::{to_bytes, Body};\nuse axum::http::{Request, StatusCode};\nuse axum::Router;\nuse tower::ServiceExt;\n\n// Готово: отправляет запрос в роутер без сети и возвращает (статус, тело)\nasync fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, String) {\n    let req = Request::builder()\n        .method(method)\n        .uri(uri)\n        .header(\"content-type\", \"application/json\")\n        .body(Body::from(body.to_string()))\n        .unwrap();\n    let res = app.clone().oneshot(req).await.unwrap();\n    let status = res.status();\n    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();\n    (status, String::from_utf8_lossy(&bytes).into_owned())\n}\n\nuse sqlx::postgres::PgPoolOptions;\nuse sqlx::{FromRow, PgPool, Row};\n\n// Ready: PostgreSQL is already running in the sandbox (user postgres without a password, database chat); every check starts with a clean database\nasync fn pool() -> PgPool {\n    PgPoolOptions::new()\n        .max_connections(5)\n        .connect(\"postgres://postgres@127.0.0.1/chat\")\n        .await\n        .unwrap()\n}\n\nuse axum::Router;\n\nfn app(pool: PgPool) -> Router {\n    let _ = pool;\n    Router::new()\n}\n\n#[tokio::main]\nasync fn main() {\n    let pool = pool().await;\n    sqlx::query(\"CREATE TABLE rooms (id BIGSERIAL PRIMARY KEY, name TEXT UNIQUE NOT NULL)\").execute(&pool).await.unwrap();\n    let app = app(pool);\n    for n in [\"общая\", \"dev\", \"общая\"] {\n        println!(\"{:?}\", call(&app, \"POST\", &format!(\"/rooms/{n}\"), \"\").await);\n    }\n    println!(\"{:?}\", call(&app, \"GET\", \"/rooms\", \"\").await);\n}\n"
+  }
+ ]
+}

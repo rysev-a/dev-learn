@@ -1,0 +1,72 @@
+{
+ "book": 8,
+ "chapter": 10,
+ "tasks": [
+  {
+   "id": "u10-append",
+   "title": "O_APPEND: atomic appending",
+   "statement": "concurrent_append(const char *path, int writers, int lines) → the number of lines in the file afterwards: start writers child processes, each appends lines lines of the form «w<номер> line<k>\\n» (w, the writer's number, a space, line, the line number) with a single write call per line to a file opened with O_APPEND (no lseek!), and wait for all of them. The file is created empty anew. The kernel seeks to the end and writes atomically, so no line is lost or glued to another.",
+   "hint": "open(path, O_WRONLY | O_APPEND): the position is set to the end atomically at the moment of each write; write one line per write call."
+  },
+  {
+   "id": "u10-seek-data",
+   "title": "Holes in a file: SEEK_DATA and SEEK_HOLE",
+   "statement": "count_extents(const char *path) → the number of contiguous regions with data: walk lseek(fd, off, SEEK_DATA) → SEEK_HOLE → … until ENXIO. data_bytes(path) → the total size of the regions with data (in bytes, as the file system sees them, a multiple of the block size). For an ordinary dense file there is one region, for an empty one there are none.",
+   "hint": "SEEK_DATA finds the start of the next data region, SEEK_HOLE its end; after the last region lseek returns −1 with ENXIO."
+  },
+  {
+   "id": "u10-atomic-replace",
+   "title": "Atomic file replacement: tmp, fsync, rename",
+   "statement": "atomic_write(const char *path, const char *data) → 0 / −1: write the contents to a temporary file in the same directory (path + «.tmp»), call fsync, close it and rename it over path, so readers see either the old version or the new one in full. The file mode is 0644. On error delete the temporary file. atomic_read(path, buf, cap) → the length (−1 on error).",
+   "hint": "rename within one file system is atomic: an old descriptor keeps seeing the old inode, new opens get the new file."
+  },
+  {
+   "id": "u10-tail",
+   "title": "tail: reading from the end with lseek",
+   "statement": "tail_lines(const char *path, int n, char *out, size_t cap) → the number of lines written to out: the last n lines of the file (the last line may lack «\\n»; in out the lines keep their newlines). Read the file in blocks from the end (lseek SEEK_END, pread backwards) rather than reading it all first: a huge file must be processed instantly. An empty file → 0 lines.",
+   "hint": "Walk backwards from the end of the file in blocks (pread with a decreasing offset) and count «\\n»; the position of the n-th newline from the end is the start of the needed tail."
+  },
+  {
+   "id": "u10-disk-sched",
+   "title": "Disk request scheduling",
+   "statement": "The disk head stands on cylinder head, the queue is the cylinders req[0..n). fcfs_distance is the total distance when serving in arrival order; sstf_distance always serves the nearest one (on a tie, the lower cylinder number); scan_distance is the \"elevator\": first up (toward larger numbers) to the largest request, then down to the smallest (we do not go to the edge of the disk, the turn is at the extreme request).",
+   "hint": "SCAN: the distance to the farthest request in the chosen direction, then back to the farthest one on the other side."
+  },
+  {
+   "id": "u10-page-cache",
+   "title": "Page cache: LRU and readahead",
+   "statement": "cache_hits(const int *blocks, int n, int cap, int readahead) → the number of hits for a sequence of block reads; the cache holds cap blocks with LRU eviction. If the next read is a block one greater than the previous one (sequential), then after a miss readahead more following blocks are loaded (they become the freshest in ascending order, but do not count as hits; the preloaded blocks themselves give a hit when read later).",
+   "hint": "The blocks loaded ahead are added to the same LRU cache; count as a hit only a read that was found in the cache."
+  },
+  {
+   "id": "u10-journal",
+   "title": "File system journal: replaying committed transactions",
+   "statement": "The journal is an array of records struct jrec { int type; int tx; int block; int value; }: type 1 is BEGIN(tx), 2 is WRITE(tx, block, value), 3 is COMMIT(tx). replay(const struct jrec *log, int n, int *disk, int nblocks) → the number of applied transactions: only the WRITE records of transactions that have a COMMIT are applied to disk (in commit order, and within a transaction in record order); unfinished ones are discarded. A record with block out of range means skipping the whole transaction (it is not applied and not counted).",
+   "hint": "A transaction takes effect only if a COMMIT follows its records; for simplicity you can look for WRITE records of the same tx before the commit position."
+  },
+  {
+   "id": "u10-block-bitmap",
+   "title": "Block bitmap: allocating contiguous runs",
+   "statement": "struct bmap { unsigned char bits[32]; } (256 blocks, bit = 1 means in use). bm_init, bm_alloc(b, n) → the number of the first block of an allocated contiguous run of n blocks (first-fit) or −1, bm_free(b, start, n), bm_used(b) → the number of used blocks, bm_longest_free(b) → the length of the longest free run, bm_frag(b) → \"fragmentation\" in percent: 100 − 100 · longest_free / total_free (0 if nothing is free).",
+   "hint": "first-fit: walk the bitmap and count the length of the current free run; once it reaches n, the run is found."
+  },
+  {
+   "id": "u10-raid5",
+   "title": "RAID 5: parity and disk recovery",
+   "statement": "raid5_parity(unsigned char *parity, unsigned char *const blocks[], int n, size_t len): write into parity the bitwise XOR of all n blocks of len bytes. raid5_recover(unsigned char *out, unsigned char *const blocks[], int n, size_t len, int lost, const unsigned char *parity): restore into out the contents of block number lost (do not read blocks[lost]: that disk is lost) from the remaining blocks and the parity; return 0, and for an invalid lost (outside 0..n−1) return −1.",
+   "hint": "XOR is reversible: if P = D0 ^ D1 ^ D2 ^ D3, then the lost D2 equals P ^ D0 ^ D1 ^ D3. That is why the array survives the failure of any one disk, but not two."
+  },
+  {
+   "id": "u10-inotify",
+   "title": "File system notifications: inotify",
+   "statement": "watch_events(const char *dir, char *out, size_t n) → int: create an inotify instance (inotify_init1 with IN_NONBLOCK), and set a watch on directory dir for IN_CREATE | IN_MODIFY | IN_DELETE. Then do the following yourself: create the file dir/a (open with O_CREAT), write 3 bytes into it, close it, delete it (unlink). Read all the accumulated events (poll for up to 200 ms, then read) and write their names into out separated by spaces, in order of arrival, like «create:a modify:a delete:a» (the event names are create, modify, delete). Return the number of events, on error −1.",
+   "hint": "After read, the buffer holds several struct inotify_event structures in a row; each has a len field, the length of the name that follows right after the structure. The next event starts sizeof(struct inotify_event) + len bytes later."
+  },
+  {
+   "id": "u10-flock",
+   "title": "Advisory file locks: flock",
+   "statement": "try_flock(const char *path, int *fd) → int: open (or create, O_CREAT | O_RDWR, 0600) the file path and try to take an exclusive lock with flock(LOCK_EX | LOCK_NB). Return 1 if the lock is taken (*fd holds the open descriptor), 0 if the file is already locked through another open (close the descriptor, *fd = −1), −1 on any other error. release_flock(int fd) → int: release the lock (LOCK_UN) and close the descriptor; 0 or −1.",
+   "hint": "flock belongs to the open file description, not to the process: even within one process a second open of the same file is refused. The lock is advisory: it stops only those who call flock themselves; ordinary read and write are not blocked by it."
+  }
+ ]
+}

@@ -1,0 +1,186 @@
+{
+ "book": 10,
+ "chapter": 25,
+ "tasks": [
+  {
+   "id": "r25-swap-remove",
+   "title": "swap_remove",
+   "statement": "Write remove_all_even(v: &mut Vec<i32>): remove all even numbers in linear time without preserving order, using swap_remove. (The check is by the sum and the count of the remaining elements.)",
+   "hint": "Do not increment i after swap_remove — a new element is already in that place."
+  },
+  {
+   "id": "r25-split-off",
+   "title": "split_off",
+   "statement": "Write split_at_value(v: &mut Vec<i32>, x: i32) -> Vec<i32>: cut off the tail of v starting from the first element equal to x (if x is absent, return an empty vector) and return it.",
+   "hint": "v.split_off(i) leaves the first i elements in v."
+  },
+  {
+   "id": "r25-dedup-by-key",
+   "title": "dedup_by_key",
+   "statement": "Write unique_by_len(words: &mut Vec<String>): keep only the first word of each run of consecutive words with the same length in characters (dedup_by_key).",
+   "hint": "dedup_by_key removes adjacent elements with the same key."
+  },
+  {
+   "id": "r25-drain-filter",
+   "title": "Extract by a condition",
+   "statement": "Write take_evens(v: &mut Vec<i32>) -> Vec<i32>: return all even numbers (in the original order) and remove them from v. Use retain and accumulate into a separate vector.",
+   "hint": "retain calls the closure in order — you can accumulate inside it."
+  },
+  {
+   "id": "r25-rotate",
+   "title": "Rotating a slice",
+   "statement": "Write rotate(v: &mut [i32], k: usize): a cyclic shift right by k positions in place (rotate_right; k may exceed the length).",
+   "hint": "rotate_right panics when k > len, so take k % len."
+  },
+  {
+   "id": "r25-windows-max",
+   "title": "Maximum in a window",
+   "statement": "Write window_max(v: &[i32], k: usize) -> Vec<i32>: the maximum in each window of k consecutive elements (k > 0; if k > len — empty). In linear time (a VecDeque holds the indices of candidates), on 200000 elements.",
+   "hint": "A queue of decreasing values: drop the tail if it is not greater than the new one."
+  },
+  {
+   "id": "r25-josephus-deque",
+   "title": "Counting-out game on a deque",
+   "statement": "Write last_standing(names: &[&str], k: usize) -> String: going around the circle, every k-th person drops out; return the name of the last one. Use VecDeque and rotate_left.",
+   "hint": "q.rotate_left(k - 1), then pop_front."
+  },
+  {
+   "id": "r25-round-robin",
+   "title": "Round-robin scheduler",
+   "statement": "Write round_robin(tasks: &[(&str, u32)], quantum: u32) -> Vec<String>: each task in turn gets quantum units; return the completion order (names) as a list. VecDeque.",
+   "hint": "If it is not finished — to the back of the queue with the remainder."
+  },
+  {
+   "id": "r25-hash-two-sets",
+   "title": "Common elements",
+   "statement": "Write common_sorted(a: &[i32], b: &[i32]) -> Vec<i32>: the intersection of a and b without repeats in ascending order (HashSet).",
+   "hint": "Two sets and intersection."
+  },
+  {
+   "id": "r25-subset",
+   "title": "Subset",
+   "statement": "Write can_make(note: &str, magazine: &str) -> bool: are the letters in magazine enough to cut out note (each letter once; compare as is, ignore spaces). A HashMap of counters.",
+   "hint": "The magazine's letter counters decrease as you cut out."
+  },
+  {
+   "id": "r25-btree-ranks",
+   "title": "Ranks in ascending order",
+   "statement": "Write ranks(v: &[i32]) -> Vec<usize>: for each element, its index (from 0) among the distinct values in ascending order (coordinate compression): [10, 5, 10, 7] → [2, 0, 2, 1]. Use BTreeSet.",
+   "hint": "BTreeSet gives sorted unique values; binary_search gives the index."
+  },
+  {
+   "id": "r25-btree-range",
+   "title": "Nearest values",
+   "statement": "Write nearest(sorted: &BTreeSet<i32>, x: i32) -> (Option<i32>, Option<i32>): the largest value not greater than x and the smallest value not less than x (range methods).",
+   "hint": "range(..=x).next_back() and range(x..).next()"
+  },
+  {
+   "id": "r25-btree-intervals",
+   "title": "Events in order",
+   "statement": "Write timeline(events: &[(u32, &str)]) -> Vec<String>: output the events (time, name) in time order; for equal times, the names joined with «/» in insertion order. Strings like «5: a/b». BTreeMap.",
+   "hint": "entry(t).or_default().push(n); BTreeMap iterates in ascending order."
+  },
+  {
+   "id": "r25-btree-pop",
+   "title": "Priority tasks",
+   "statement": "Write process(tasks: &[(u32, &str)]) -> Vec<String>: tasks (priority, name) run from the smallest priority (number) to the largest; for equal ones — in insertion order. Use BTreeMap<u32, VecDeque<String>> and pop_first.",
+   "hint": "pop_first gives the pair with the smallest key."
+  },
+  {
+   "id": "r25-heap-topk",
+   "title": "Top-k with a heap",
+   "statement": "Write top_k(v: &[i32], k: usize) -> Vec<i32>: the k largest in descending order, using a min-heap of size k (BinaryHeap<Reverse<i32>>) — for 300000 elements and k = 5.",
+   "hint": "If the heap holds more than k, remove the smallest."
+  },
+  {
+   "id": "r25-heap-merge",
+   "title": "Merging k lists",
+   "statement": "Write merge_k(lists: &[Vec<i32>]) -> Vec<i32>: merge sorted lists into one sorted list, using BinaryHeap<Reverse<(i32, usize, usize)>> (value, list number, index).",
+   "hint": "The heap always holds one candidate from each list."
+  },
+  {
+   "id": "r25-heap-median",
+   "title": "Running median",
+   "statement": "Write running_median(v: &[i32]) -> Vec<f64>: after each element, the median of everything read so far (two heaps: the lower one is a max-heap, the upper one a min-heap).",
+   "hint": "The heap sizes differ by at most one."
+  },
+  {
+   "id": "r25-dijkstra",
+   "title": "Dijkstra with a heap",
+   "statement": "Write dijkstra(n: usize, edges: &[(usize, usize, u32)], src: usize) -> Vec<Option<u32>>: shortest distances from src in a directed graph of n vertices; unreachable ones — None. A min-heap; a graph of 20000 vertices.",
+   "hint": "Skip stale entries in the heap: d > dist[u]."
+  },
+  {
+   "id": "r25-deque-palindrome",
+   "title": "Palindrome with a deque",
+   "statement": "Write is_pal(s: &str) -> bool: is the string a palindrome (letters and digits only, case-insensitive), comparing characters from both ends of a VecDeque.",
+   "hint": "Compare pairs from pop_front and pop_back."
+  },
+  {
+   "id": "r25-lru",
+   "title": "Mini LRU",
+   "statement": "The struct Lru { cap: usize, order: VecDeque<String>, map: HashMap<String, i32> }. Implement new(cap), get(&mut self, k: &str) -> Option<i32> (an access makes the key the freshest) and put(&mut self, k: &str, v: i32) (updating a key also makes it the freshest; on overflow the oldest is removed).",
+   "hint": "touch moves the key to the end of the order; the oldest is at the front."
+  },
+  {
+   "id": "r25-hash-pair-sum",
+   "title": "Pairs with a sum",
+   "statement": "Write count_pairs(v: &[i32], target: i32) -> usize: how many index pairs i < j have v[i] + v[j] = target (a HashMap of frequencies, one pass) — on 200000 elements.",
+   "hint": "Before adding x to the map, look up its partner."
+  },
+  {
+   "id": "r25-lcp",
+   "title": "Grouping by first letter",
+   "statement": "Write group_by_first(words: &[&str]) -> BTreeMap<char, Vec<String>>: words grouped by first letter (lowercase); empty strings are skipped; inside groups — in ascending order.",
+   "hint": "entry(letter).or_default().push(…); then sort."
+  },
+  {
+   "id": "r25-histogram-top",
+   "title": "Most frequent",
+   "statement": "Write most_common(v: &[i32]) -> Option<i32>: the most frequent value; on a tie — the smallest. For an empty input — None. A HashMap and one pass over the map.",
+   "hint": "max_by with the same comparison, with the key in reverse order."
+  },
+  {
+   "id": "r25-vec-capacity",
+   "title": "Do not reallocate",
+   "statement": "Write squares(n: usize) -> Vec<u64>: the squares of 0…n−1, reserving memory in advance (with_capacity) — after filling, capacity() must be equal to n.",
+   "hint": "Vec::with_capacity(n)"
+  },
+  {
+   "id": "r25-concat-join",
+   "title": "concat and join",
+   "statement": "Write flatten_join(rows: &[Vec<&str>]) -> String: join the strings of each subgroup with spaces, and separate the groups with « | » (the join method on a slice).",
+   "hint": "Two joins: the inner and the outer."
+  },
+  {
+   "id": "r25-binary-search-by",
+   "title": "binary_search_by",
+   "statement": "Write find_user(users: &[(u32, &str)], id: u32) -> Option<&str>: users is sorted by id; find the name with binary search (binary_search_by_key).",
+   "hint": "binary_search_by_key(&id, |&(i, _)| i)"
+  },
+  {
+   "id": "r25-vec-of-vec-sort",
+   "title": "Sorting matrix rows",
+   "statement": "Write sort_rows(m: &mut Vec<Vec<i32>>): sort each row in ascending order, and then sort the rows among themselves lexicographically.",
+   "hint": "Vec<Vec<i32>> already compares lexicographically."
+  },
+  {
+   "id": "r25-set-visited",
+   "title": "Visited states",
+   "statement": "Write steps_to_cycle(start: u32) -> usize: the sequence x → (x·x + 1) mod 1000; how many steps until the first repeated value (a HashSet of visited values; start counts as visited at time 0).",
+   "hint": "insert returns false when the value was already there."
+  },
+  {
+   "id": "r25-reverse-heap-sorted",
+   "title": "Heap sort",
+   "statement": "Write heap_sort(v: &[i32]) -> Vec<i32>: sort in ascending order through a BinaryHeap (from + into_sorted_vec).",
+   "hint": "into_sorted_vec returns ascending order."
+  },
+  {
+   "id": "r25-linked-list-note",
+   "title": "When a list, when a vector",
+   "statement": "Write move_front(v: &mut Vec<i32>, i: usize): move the element at index i to the front of the vector, keeping the order of the rest (remove + insert, or rotate_right on the slice 0..=i).",
+   "hint": "v[..=i].rotate_right(1) without copying the whole vector."
+  }
+ ]
+}

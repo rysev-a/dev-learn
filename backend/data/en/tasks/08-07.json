@@ -1,0 +1,72 @@
+{
+ "book": 8,
+ "chapter": 7,
+ "tasks": [
+  {
+   "id": "u7-jiffies",
+   "title": "jiffies: comparing with a counter that wraps around",
+   "statement": "The tick counter jiffies (unsigned long) periodically wraps around, so it can't be compared with <. Write macros or functions time_after(a, b) (a is later than b), time_before(a, b), time_after_eq(a, b) using the signed difference (long)(b) − (long)(a). time_in_range(x, lo, hi) → lo ≤ x ≤ hi, taking wraparound into account. msecs_to_jiffies(m) and jiffies_to_msecs(j) for HZ = 250 (1 tick = 4 ms): conversion to ticks rounds up.",
+   "hint": "(long)(b − a) < 0 means \"a is later than b\", even if a has already \"crossed zero\": the comparison is correct as long as the difference is less than half the range."
+  },
+  {
+   "id": "u7-itimer",
+   "title": "Periodic interrupts: setitimer and SIGALRM",
+   "statement": "count_ticks(int period_ms, int total_ms) → int: set up setitimer(ITIMER_REAL) with period period_ms; the SIGALRM handler (sigaction) increments a counter; wait total_ms milliseconds with nanosleep (repeat on EINTR until the required time has passed by CLOCK_MONOTONIC), then stop the timer and return the number of firings. The handler may change only a volatile sig_atomic_t.",
+   "hint": "The ITIMER_REAL timer sends SIGALRM; nanosleep is interrupted by every signal, so the wait goes in a loop up to an absolute moment."
+  },
+  {
+   "id": "u7-sigmask",
+   "title": "Deferred delivery: sigprocmask and pending",
+   "statement": "masked_delivery(int *pending_while_blocked, int *count_while_blocked, int *count_after) → 0 / −1: install a SIGUSR1 handler (a counter), block the signal with sigprocmask, send it to yourself twice, record whether it is visible in sigpending (1/0) and the counter value, then unblock and record the counter afterwards. For ordinary signals, two identical pending ones merge into one: verify this.",
+   "hint": "While a signal is blocked, it is \"pending\"; on unblocking, sigprocmask delivers it before returning. Identical ordinary signals don't accumulate."
+  },
+  {
+   "id": "u7-timer-heap",
+   "title": "A timer queue",
+   "statement": "struct timers is a kernel timer queue (use an array with insertion sort, or a heap). tm_init(t), tm_add(t, id, expires) → 0/−1 (up to 64 timers), tm_cancel(t, id) → 1/0, tm_expire(t, now, out) → number of timers that fired (expires ≤ now) in order (expires, id); their ids are written to out and removed from the queue; tm_next(t) → the nearest expires or −1.",
+   "hint": "Keep the array sorted by (expires, id): then the first k elements always fire, and shifting the tail takes a single loop."
+  },
+  {
+   "id": "u7-softirq",
+   "title": "Top and bottom halves: the softirq budget",
+   "statement": "Model: pending is a bit mask of 4 \"softirqs\" (bit 0 has the highest priority: HI, 1 is TIMER, 2 is NET_RX, 3 is TASKLET), each with a count of accumulated work items work[i]. do_softirq(unsigned *pending, int work[4], int budget, int *order, int *n_order) → whether anything is left (1/0): walk the bits from 0 to 3, handling each set bit with one \"portion\" (work[i]−−, budget−−, the order is recorded in order); if work[i] > 0 after the portion, the bit stays set; when the budget is exhausted, stop and hand the remainder to ksoftirqd (return 1). One pass over the bits per call.",
+   "hint": "In each iteration, check the bit first, then the budget: while there is no budget, return \"work remains\" without changing the masks."
+  },
+  {
+   "id": "u7-clock",
+   "title": "Time: monotonic clocks and sleeping",
+   "statement": "now_ns(void) → CLOCK_MONOTONIC in nanoseconds (clock_gettime). sleep_ms(int ms) → the milliseconds that actually elapsed during nanosleep for ms (retrying on EINTR for the remainder through clock_nanosleep or nanosleep, the second argument being the remainder). monotonic_ok(int n) → 1 if over n consecutive reads the clock never went backwards. wall_vs_mono(void) → 1 if CLOCK_REALTIME advanced by 20…80 ms after a 20 ms sleep, just like CLOCK_MONOTONIC.",
+   "hint": "For intervals use CLOCK_MONOTONIC: the wall clock can be adjusted. When interrupted, nanosleep writes the remainder to the second argument."
+  },
+  {
+   "id": "u7-poll",
+   "title": "Waiting for an event with a timeout: poll",
+   "statement": "wait_readable(int fd, int timeout_ms) → 1: data is ready to read; 0: timeout; −1: error; on EINTR repeat for the remaining time (no more than the total timeout). wait_any(const int *fds, int n, int timeout_ms) → the index of the first ready descriptor (in array order) or −1 / −2: timeout. Use poll(2) and struct pollfd.",
+   "hint": "poll returns the number of ready descriptors: 0 is a timeout, −1 is an error; end of file is flagged with POLLHUP, and a read will return 0."
+  },
+  {
+   "id": "u7-timerfd",
+   "title": "A timer as a file descriptor: timerfd",
+   "statement": "timer_expirations(int interval_ms, int wait_ms) → number of expirations: create timerfd_create(CLOCK_MONOTONIC, 0), enable a periodic timer (timerfd_settime, first expiration after interval_ms), wait wait_ms milliseconds with a plain nanosleep, and read the accumulated expiration count (uint64_t) with a single read of 8 bytes. timer_wait_once(int ms) → 1 if the blocking read of a one-shot timer returned no earlier than ms milliseconds later.",
+   "hint": "read(fd, &n, 8) blocks until the first expiration and returns how many have accumulated since the last read. If there have been no expirations yet and the descriptor is blocking, read will wait."
+  },
+  {
+   "id": "u7-sa-restart",
+   "title": "An interrupted call: EINTR and SA_RESTART",
+   "statement": "read_interrupted(int restart) → int: create a pipe and a child process that writes one byte into the pipe after 150 ms. In the PARENT, install a SIGALRM handler (sigaction; the SA_RESTART flag only if restart ≠ 0), start a setitimer(ITIMER_REAL) timer for 30 ms, and make a blocking read of one byte. If read returned −1, return errno (for an interrupted call that is EINTR = 4), otherwise the number of bytes read (1). Restore the handler and wait for the child.",
+   "hint": "If a signal arrives during a slow system call, the call usually returns with the EINTR error. The SA_RESTART flag asks the kernel to restart the call itself, and the program notices nothing."
+  },
+  {
+   "id": "u7-nanosleep-left",
+   "title": "A sleep interrupted by a signal: how much is left",
+   "statement": "sleep_left_ms() → long: install a SIGALRM handler (empty), start a setitimer(ITIMER_REAL) timer for 50 ms, and call nanosleep for 500 ms with a pointer to the \"remainder\" (rem). nanosleep must return early with the EINTR error; return the remaining time rem in milliseconds (rounded down). If the sleep was not interrupted, return −1. Restore the handler.",
+   "hint": "The second argument of nanosleep is the \"remainder\": if the sleep is interrupted by a signal, the kernel writes there how much sleep was still left. That lets you resume sleeping for the right time."
+  },
+  {
+   "id": "u7-timer-wheel",
+   "title": "A timer wheel",
+   "statement": "Implement a timer wheel with 8 slots (the structures are in the starter). wheel_init(w): zero it, now = 0. wheel_add(w, id, delay) → 0 or −1 (delay < 1 or no room among the 32 slots of t[]): the timer fires after delay ticks: slot = (now + delay) & 7, rounds = (delay − 1) / 8. wheel_tick(w, fired) → number of timers that fired: now++; for each used timer (in order of index in t[]) with slot == (now & 7): if rounds > 0, decrease rounds, otherwise the timer fires (its id goes into fired in order) and the slot is freed.",
+   "hint": "A wheel is an array of slots by firing time. If the delay is longer than one revolution of the wheel, the timer sits in its slot and skips the required number of passes (rounds) before firing."
+  }
+ ]
+}

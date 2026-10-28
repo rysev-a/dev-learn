@@ -1,0 +1,186 @@
+{
+ "book": 10,
+ "chapter": 4,
+ "tasks": [
+  {
+   "id": "r4-add",
+   "title": "Sum of two",
+   "statement": "Write a function add that takes two i32 numbers and returns their sum.",
+   "hint": "The last expression without a semicolon becomes the result: a + b"
+  },
+  {
+   "id": "r4-square",
+   "title": "Square of a number",
+   "statement": "Write a function square(x: i32) -> i32 that returns the square of the number.",
+   "hint": "x * x — without return and without a semicolon."
+  },
+  {
+   "id": "r4-is-even",
+   "title": "Even number",
+   "statement": "Write a function is_even(n: i32) -> bool: true for even numbers, including negative ones and zero.",
+   "hint": "The remainder of division by 2 is zero. For negative n, n % 2 is also -1 or 0, so comparing with 0 works."
+  },
+  {
+   "id": "r4-max-of-two",
+   "title": "The larger of two",
+   "statement": "Write a function max_of_two(a, b) that returns the larger of two i32 values. Use if–else as an expression.",
+   "hint": "if a > b { a } else { b } — a block of expressions without semicolons."
+  },
+  {
+   "id": "r4-abs-diff",
+   "title": "Absolute difference",
+   "statement": "Write a function abs_diff(a, b): the distance |a − b| between two i32 numbers. Do not use the built-in method — only if–else and subtraction.",
+   "hint": "Subtract the smaller from the larger."
+  },
+  {
+   "id": "r4-area-rect",
+   "title": "Area and perimeter",
+   "statement": "Write two functions for a rectangle with integer sides: area(w, h) for the area and perimeter(w, h) for the perimeter.",
+   "hint": "area: w * h; perimeter: 2 * (w + h)."
+  },
+  {
+   "id": "r4-c-to-f",
+   "title": "Celsius to Fahrenheit",
+   "statement": "Write a function c_to_f(c: f64) -> f64: degrees Celsius to Fahrenheit using the formula c · 9 / 5 + 32.",
+   "hint": "The numbers in the formula are float literals: 9.0, 5.0, 32.0."
+  },
+  {
+   "id": "r4-greet",
+   "title": "Greeting",
+   "statement": "Write a function greet(name: &str) -> String that returns the string «Привет, <name>!» (the word «Привет» exactly as written, then the name). Use the format! macro.",
+   "hint": "format!(\"Привет, {}!\", name) returns a String instead of printing."
+  },
+  {
+   "id": "r4-divmod",
+   "title": "Quotient and remainder",
+   "statement": "Write a function divmod(a, b) -> (i32, i32): the quotient and the remainder of dividing a by b (b > 0, a ≥ 0).",
+   "hint": "Return the tuple (a / b, a % b)."
+  },
+  {
+   "id": "r4-min-max3",
+   "title": "Smallest and largest",
+   "statement": "Write a function min_max(a, b, c) -> (i32, i32): the smallest and the largest of three numbers. You may use the methods a.min(b) and a.max(b).",
+   "hint": "a.min(b).min(c) and a.max(b).max(c)"
+  },
+  {
+   "id": "r4-sign",
+   "title": "Sign of a number",
+   "statement": "Write a function sign(n: i32) -> i32: 1 for positive numbers, -1 for negative ones, 0 for zero. Use a single if – else if – else expression.",
+   "hint": "A chain if … else if … else is one expression; all branches are i32."
+  },
+  {
+   "id": "r4-clamp",
+   "title": "Clamp to a range",
+   "statement": "Write a function clamp(x, lo, hi): if x is less than lo, return lo; if greater than hi, return hi; otherwise x. Use early return.",
+   "hint": "Two early returns, then x as the final expression."
+  },
+  {
+   "id": "r4-factorial",
+   "title": "Factorial",
+   "statement": "Write a function fact(n: u64) -> u64: the factorial n! (0! = 1). Solve it with recursion.",
+   "hint": "Base case: n ≤ 1 → 1. Step: n * fact(n - 1)."
+  },
+  {
+   "id": "r4-fib",
+   "title": "Fibonacci numbers",
+   "statement": "Write a function fib(n: u32) -> u64 using recursion: fib(0) = 0, fib(1) = 1, fib(n) = fib(n−1) + fib(n−2).",
+   "hint": "For n < 2 the result equals n itself; convert it to u64 with as."
+  },
+  {
+   "id": "r4-gcd",
+   "title": "GCD by recursion",
+   "statement": "Write a function gcd(a: u32, b: u32) -> u32 — the greatest common divisor by Euclid's algorithm: gcd(a, 0) = a, otherwise gcd(b, a % b).",
+   "hint": "Recursion reduces the pair (a, b) to (b, a % b) until b becomes zero."
+  },
+  {
+   "id": "r4-power",
+   "title": "Raising to a power",
+   "statement": "Write a function power(base: i64, exp: u32) -> i64 using recursion, without pow: power(x, 0) = 1, power(x, n) = x · power(x, n−1).",
+   "hint": "Base case: exp == 0 → 1."
+  },
+  {
+   "id": "r4-sum-to",
+   "title": "Sum up to n",
+   "statement": "Write a function sum_to(n: u32) -> u32 using recursion: 1 + 2 + … + n (sum_to(0) = 0).",
+   "hint": "n + sum_to(n - 1)"
+  },
+  {
+   "id": "r4-leap",
+   "title": "Leap year",
+   "statement": "Write a function is_leap(year: u32) -> bool: a year is a leap year if it is divisible by 4, except years divisible by 100 but not by 400.",
+   "hint": "The whole condition is a single boolean expression with &&, ||."
+  },
+  {
+   "id": "r4-between",
+   "title": "Within a range",
+   "statement": "Write a function in_range(x, lo, hi) -> bool: true if lo ≤ x ≤ hi (the bounds are included).",
+   "hint": "x >= lo && x <= hi"
+  },
+  {
+   "id": "r4-swap",
+   "title": "Swap",
+   "statement": "Write a function swap(p: (i32, i32)) -> (i32, i32) that returns the pair with its elements swapped.",
+   "hint": "Access by index: p.0 and p.1; return a new tuple."
+  },
+  {
+   "id": "r4-stats",
+   "title": "Sum and average",
+   "statement": "Write a function stats(a, b, c) -> (i32, f64): the sum of three numbers and their arithmetic mean (as f64).",
+   "hint": "First sum, then the tuple (sum, sum as f64 / 3.0)."
+  },
+  {
+   "id": "r4-digit-sum",
+   "title": "Sum of digits",
+   "statement": "Write a function digit_sum(n: u32) -> u32 using recursion: the sum of the decimal digits of a number. digit_sum(0) = 0, otherwise n % 10 + digit_sum(n / 10).",
+   "hint": "The last digit is n % 10, the rest is n / 10."
+  },
+  {
+   "id": "r4-count-digits",
+   "title": "Number of digits",
+   "statement": "Write a function count_digits(n: u64) -> u32: how many digits are in the decimal representation of n (for 0 — one digit).",
+   "hint": "If the number is less than 10, it is one digit; otherwise 1 plus the number of digits in n / 10."
+  },
+  {
+   "id": "r4-hypot",
+   "title": "Hypotenuse",
+   "statement": "Write a function hypot(a: f64, b: f64) -> f64: the length of the hypotenuse √(a² + b²).",
+   "hint": "(a * a + b * b).sqrt()"
+  },
+  {
+   "id": "r4-fix-no-return-type",
+   "title": "Fix it: no result type",
+   "statement": "The function double must return the doubled number, but the signature has no result type. Fix the signature — you don't need to change the body.",
+   "hint": "Add -> i32 after the parameter parentheses."
+  },
+  {
+   "id": "r4-fix-semicolon",
+   "title": "Fix it: extra semicolon",
+   "statement": "The function cube returns () instead of i32 because of the semicolon at the end. Fix it.",
+   "hint": "Remove the ; on the last line."
+  },
+  {
+   "id": "r4-fix-types",
+   "title": "Fix it: integer and float",
+   "statement": "The function average must return the mean of two integers as f64, but (a + b) is an integer, and it has to be divided by the float 2.0. Fix the function body: average(3, 4) = 3.5.",
+   "hint": "The sum must be converted to f64: (a + b) as f64 / 2.0"
+  },
+  {
+   "id": "r4-compose",
+   "title": "Functions together",
+   "statement": "The code already has a function add. Write triple(x) that returns 3·x using only add (no * operation).",
+   "hint": "add(add(x, x), x) — a call inside a call."
+  },
+  {
+   "id": "r4-fizz",
+   "title": "FizzBuzz for one number",
+   "statement": "Write a function fizz(n: u32) -> String: «FizzBuzz» if n is divisible by 15, «Fizz» if by 3, «Buzz» if by 5, otherwise the number itself as a string. Use a single if – else if expression.",
+   "hint": "Check divisibility by 15 first. n.to_string() turns a number into a string."
+  },
+  {
+   "id": "r4-bmi-class",
+   "title": "BMI category",
+   "statement": "Write a function category(bmi: f64) -> &'static str: «недостаток» if bmi < 18.5, «норма» if bmi < 25.0, «избыток» if bmi < 30.0, otherwise «ожирение».",
+   "hint": "String literals are &'static str: you can return them straight from the branches."
+  }
+ ]
+}

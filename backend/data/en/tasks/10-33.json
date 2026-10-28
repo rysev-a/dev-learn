@@ -1,0 +1,216 @@
+{
+ "book": 10,
+ "chapter": 33,
+ "tasks": [
+  {
+   "id": "r33-builder-threads",
+   "title": "Runtime via Builder",
+   "statement": "In a plain fn main build a multi-threaded runtime: Builder::new_multi_thread() with 2 worker threads, the thread name «воркер» (thread_name(\"worker\")) and enable_all(). Use block_on to run a spawn task that prints «имя начинается с worker: true» (checking std::thread::current().name()).\n\nExpected output:\n«имя начинается с worker: true»",
+   "hint": "Builder::new_multi_thread().worker_threads(2).thread_name(\"worker\").enable_all().build().",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r33-current-thread",
+   "title": "Single-threaded runtime",
+   "statement": "Use #[tokio::main(flavor = \"current_thread\")]. Start 5 spawn tasks, each returning the thread id (std::thread::current().id()) as a string; check that there is only one thread and that it is the same as the main thread: «потоков: 1».\n\nExpected output:\n«потоков: 1»",
+   "hint": "current_thread: everything runs on one thread.",
+   "starter": "#[tokio::main(flavor = \"current_thread\")]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r33-handle-from-thread",
+   "title": "Handle from a plain thread",
+   "statement": "Inside #[tokio::main] get Handle::current() and pass it to std::thread::spawn; the thread uses handle.spawn to start an async task (sleep 10 ms, returns 99) and sends the result back through std::sync::mpsc. Print «99».\n\nExpected output:\n99",
+   "hint": "A Handle can be passed to another thread and used for spawn and block_on.",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r33-runtime-twice",
+   "title": "block_on twice",
+   "statement": "In a plain main create one Runtime and call block_on twice: first put a value into a shared Arc<Mutex<Vec<u32>>> from a task, then the second block_on reads it. Print «[1, 2]».\n\nExpected output:\n[1, 2]",
+   "hint": "One Runtime can be used for several block_on calls.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r33-join-values",
+   "title": "Values from tasks",
+   "statement": "Start three spawn tasks returning the String «a», the Vec<u32> [1, 2] and the tuple (3, true). Wait for them with tokio::join! and print one line each: «a», «[1, 2]», «(3, true)».\n\nExpected output:\na\n[1, 2]\n(3, true)",
+   "hint": "join! over JoinHandle returns a tuple of Results.",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r33-abort-finished",
+   "title": "abort and is_finished",
+   "statement": "Start a task that sleeps for 1 s; immediately check is_finished() (false), call abort(), await it and print: «false», «cancelled: true», then is_finished() — «true».\n\nExpected output:\nfalse\ncancelled: true",
+   "hint": "abort() interrupts at the nearest .await; awaiting the handle returns a JoinError with is_cancelled.",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r33-panic-payload",
+   "title": "A panic and its message",
+   "statement": "Start a task that panics with panic!(\"бум\"). Extract the message: JoinError::into_panic() gives a Box<dyn Any + Send>; cast it to &str (downcast_ref::<&str>()). Print «паника: бум».\n\nExpected output:\n«паника: бум»",
+   "hint": "into_panic() returns the panic payload.",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r33-joinset-order",
+   "title": "JoinSet and indexes",
+   "statement": "Start 6 tasks in a JoinSet; task i sleeps (6 − i)·5 ms and returns (i, i·i). Collect the results and print them sorted by i: [(0, 0), (1, 1), (2, 4), (3, 9), (4, 16), (5, 25)].\n\nExpected output:\n[(0, 0), (1, 1), (2, 4), (3, 9), (4, 16), (5, 25)]",
+   "hint": "Results arrive in completion order — sort by index.",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r33-joinset-abort-all",
+   "title": "abort_all",
+   "statement": "Start 4 endless tasks (sleep 1 s) in a JoinSet, call abort_all() and wait for all of them with join_next: count the is_cancelled errors. Print «отменено: 4».\n\nExpected output:\n«отменено: 4»",
+   "hint": "After abort_all, join_next returns Err(cancelled) for each task.",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r33-joinset-drop",
+   "title": "Dropping the set cancels tasks",
+   "statement": "A task holds a Guard that increments a shared AtomicUsize in Drop. Start 3 such tasks (sleep 1 s) in a JoinSet, let them start (sleep 10 ms), drop the set and give time for cleanup (sleep 20 ms). Print «очищено: 3».\n\nExpected output:\n«очищено: 3»",
+   "hint": "Drop for JoinSet calls abort_all.",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r33-blocking-parallel",
+   "title": "Blocking tasks run in parallel",
+   "statement": "Start 4 spawn_blocking tasks, each sleeping (std::thread::sleep) for 100 ms. Wait for all of them and check that the total time is under 300 ms: «параллельно: true».\n\nExpected output:\n«параллельно: true»",
+   "hint": "The blocking thread pool runs the tasks at the same time.",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r33-block-in-place",
+   "title": "block_in_place",
+   "statement": "On the multi-threaded runtime, inside a task (spawn), call block_in_place to compute the sum of squares 1..=1000 (u64) and return it: «333833500».\n\nExpected output:\n333833500",
+   "hint": "block_in_place is allowed only on multi_thread.",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r33-local-set",
+   "title": "LocalSet and Rc",
+   "statement": "On current_thread create a LocalSet; inside run_until start 5 spawn_local tasks, each adding its own number (1…5) to an Rc<RefCell<u32>> and doing nothing after yield_now. Wait for all of them and print «15».\n\nExpected output:\n15",
+   "hint": "spawn_local accepts !Send futures inside a LocalSet.",
+   "starter": "#[tokio::main(flavor = \"current_thread\")]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r33-task-local",
+   "title": "task_local!",
+   "statement": "Declare tokio::task_local! { static REQ_ID: u32; }. Start two tasks: one with REQ_ID.scope(1, …), the other with scope(2, …); each calls a shared async fn log() -> String that returns «запрос <id>» from REQ_ID.get(). Print both results: «запрос 1», «запрос 2».\n\nExpected output:\n«запрос 1\nзапрос 2»",
+   "hint": "REQ_ID.scope(value, future) provides the value while the future runs.",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r33-task-id",
+   "title": "Task ids",
+   "statement": "Start 5 tasks, each returning tokio::task::id(). Check that all the ids are different (main is not a task, so it has no id to compare with): print «уникальных: 5».\n\nExpected output:\n«уникальных: 5»",
+   "hint": "tokio::task::id() returns an Id that implements Hash.",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r33-yield-fairness",
+   "title": "Fairness",
+   "statement": "On current_thread start a \"busy\" task: while !flag { yield_now().await }, and a second one that raises the flag (AtomicBool) right away. Wait for both and print «флаг поднят». (Without yield_now the task would hang.)\n\nExpected output:\n«флаг поднят»",
+   "hint": "yield_now hands control to other tasks on the same thread.",
+   "starter": "#[tokio::main(flavor = \"current_thread\")]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r33-detach",
+   "title": "Detaching",
+   "statement": "Drop the JoinHandle right after spawn and make sure the task keeps running: after 10 ms it sends «жива» through a oneshot. Print «жива».\n\nExpected output:\n«жива»",
+   "hint": "Dropping a JoinHandle does not cancel the task.",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r33-runtime-drop",
+   "title": "Dropping the runtime",
+   "statement": "In a plain main create a Runtime and spawn a task with a Guard (Drop increments an AtomicUsize) that sleeps for 10 s. Let it start (block_on sleep 10 ms), then drop(rt). Print the number of Drops that ran: «1».\n\nExpected output:\n1",
+   "hint": "When a runtime is dropped, its tasks are cancelled and their destructors run.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r33-shutdown-timeout",
+   "title": "shutdown_timeout",
+   "statement": "Start a 50 ms spawn_blocking in the runtime (std sleep) and call rt.shutdown_timeout(Duration::from_secs(2)); print «рантайм остановлен» and «быстрее 2 с: true».\n\nExpected output:\n«рантайм остановлен\nбыстрее 2 с: true»",
+   "hint": "shutdown_timeout waits for blocking tasks no longer than the limit.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r33-handle-try-current",
+   "title": "Handle::try_current",
+   "statement": "Show that Handle::try_current() outside a runtime returns Err (print «вне: false») and inside it returns Ok («внутри: true»). First call it in a plain main before creating the runtime, then inside block_on.\n\nExpected output:\n«вне: false\nвнутри: true»",
+   "hint": "try_current does not panic: it returns a Result.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r33-par-map",
+   "title": "Parallel map",
+   "statement": "Write async fn par_map(items: Vec<u32>, f: fn(u32) -> u32) -> Vec<u32>: each item is processed in its own spawn_blocking task; the result is in input order. For f = |x| x * x and items 1..=8 print [1, 4, 9, 16, 25, 36, 49, 64].\n\nExpected output:\n[1, 4, 9, 16, 25, 36, 49, 64]",
+   "hint": "Await the handles in launch order to keep the order.",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r33-many-tasks",
+   "title": "Many tasks",
+   "statement": "Start 20000 spawn tasks, each incrementing a shared AtomicUsize; wait for all of them (JoinSet) and print «20000».\n\nExpected output:\n20000",
+   "hint": "Tokio tasks are very cheap: tens of thousands are no problem.",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r33-fan-out-in",
+   "title": "Fan-out and fan-in",
+   "statement": "Fan-out/fan-in: 4 workers (spawn), each processes its own quarter of the numbers 1..=100 (a sum) and sends the partial sum into an mpsc channel; main adds up the 4 values received: «5050».\n\nExpected output:\n5050",
+   "hint": "You need drop(tx) so that recv returns None after the last sender.",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r33-retry",
+   "title": "Retry with cancellation",
+   "statement": "Write async fn retry<F, Fut>(n: u32, mut f: F) -> Result<u32, String>, where F: FnMut(u32) -> Fut, Fut: Future<Output = Result<u32, String>>: it tries f(attempt) for attempt = 1…n and returns the first Ok or the last error. For an f that succeeds only on the third attempt print «Ok(3)»; for a hopeless one print «Err(\"сбой 3\")».\n\nExpected output:\n«Ok(3)\nErr(\"сбой 3\")»",
+   "hint": "A loop over the attempts; return early on Ok.",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r33-run-all-result",
+   "title": "Result from tasks",
+   "statement": "Write async fn run_all(n: u32) -> Result<Vec<u32>, tokio::task::JoinError>: start n tasks (i·10) and collect the results using ? on the handles; for n = 4 print «Ok([0, 10, 20, 30])».\n\nExpected output:\nOk([0, 10, 20, 30])",
+   "hint": "JoinError implements Error: the ? operator works.",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r33-blocking-abort",
+   "title": "abort on a blocking task",
+   "statement": "Show that abort() does not stop a spawn_blocking task that has already started: the task sets started, sleeps 60 ms and sets done (AtomicBool). Main waits for started (polling with a 1 ms sleep), calls abort(), waits 100 ms and prints «флаг: true».\n\nExpected output:\n«флаг: true»",
+   "hint": "The blocking thread runs to the end: cancellation applies only to tasks that have not started yet.",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r33-worker-pool",
+   "title": "Worker pool",
+   "statement": "A pool of 3 workers reads jobs (the numbers 1…12) from a shared mpsc channel (Arc<tokio::sync::Mutex<Receiver<u32>>>), and each adds the square of its number to a shared AtomicU64. The sender is closed, main waits for the workers (JoinSet) and prints «650».\n\nExpected output:\n650",
+   "hint": "The receiver is shared: wrap it in Arc<Mutex<…>>; None is the signal to finish.",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r33-timeout-spawn",
+   "title": "timeout over a JoinHandle",
+   "statement": "Wrap a task's JoinHandle (sleep 200 ms) in tokio::time::timeout(30 ms): print «таймаут»; the task keeps running meanwhile — check through a oneshot that it did finish after 250 ms: «задача дожила».\n\nExpected output:\n«таймаут\nзадача дожила»",
+   "hint": "timeout drops the wait on the handle, not the task itself.",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r33-multi-thread-count",
+   "title": "How many threads",
+   "statement": "Build a multi-threaded runtime with worker_threads(3) and start 50 spawn tasks, each returning the name of its thread (after a short 1 ms sleep). Print: «потоков не больше 3: true».\n\nExpected output:\n«потоков не больше 3: true»",
+   "hint": "All tasks run on the pool's worker threads.",
+   "starter": "#[tokio::main(flavor = \"multi_thread\", worker_threads = 3)]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r33-spawn-borrowed-fix",
+   "title": "Fix it: spawn and a reference",
+   "statement": "The program does not compile: the task borrows a local vector. Fix it with Arc so that it prints «сумма 10».\n\nExpected output:\n«сумма 10\n4»",
+   "hint": "Arc::clone and move.",
+   "starter": "#[tokio::main]\nasync fn main() {\n    let v = vec![1, 2, 3, 4];\n    let h = tokio::spawn(async { v.iter().sum::<i32>() });\n    println!(\"сумма {}\", h.await.unwrap());\n    println!(\"{}\", v.len());\n}\n"
+  }
+ ]
+}

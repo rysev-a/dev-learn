@@ -1,0 +1,126 @@
+{
+ "book": 7,
+ "chapter": 17,
+ "tasks": [
+  {
+   "id": "dsu-basic",
+   "title": "Disjoint-Set Structure",
+   "statement": "Write a class DSU: DSU(n) creates n elements, each in its own group; find(x) returns the representative of the group; union(a, b) merges the groups and returns True if they were different, otherwise False; connected(a, b) tells whether they are in the same group; size(x) is the size of the group of x; count() is the number of groups. Use path compression and union by size. The checker feeds a chain of union(i, i + 1) over two hundred thousand elements and two hundred thousand connected queries: without the optimizations this is quadratic.",
+   "hint": "p[x] is the parent; find climbs to the root and re-hangs the visited elements onto the root; union hangs the smaller tree under the larger one."
+  },
+  {
+   "id": "dsu-components",
+   "title": "Number of Connected Components",
+   "statement": "Write a function count_components(n, edges): the number of connected components of an undirected graph with n vertices (0…n−1) and a list of edges [a, b]. Each successful union reduces the number of groups by one.",
+   "hint": "Start with n groups; for each edge that merged different groups, subtract one."
+  },
+  {
+   "id": "dsu-cycle",
+   "title": "Is There a Cycle",
+   "statement": "Write a function has_cycle(n, edges): True if the undirected graph has a cycle (parallel edges between the same pair of vertices are also a cycle; a loop [a, a] is a cycle).",
+   "hint": "An edge whose ends are already in one group closes a cycle."
+  },
+  {
+   "id": "dsu-redundant",
+   "title": "Redundant Edge",
+   "statement": "Write a function redundant_edge(n, edges): the first edge in order (as a list [a, b]) that closes a cycle, that is, whose ends are already in one group when it is added. If there are no cycles, return an empty list.",
+   "hint": "Process the edges in order and return the first one for which union returned False."
+  },
+  {
+   "id": "dsu-islands",
+   "title": "Number of Islands",
+   "statement": "Write a function count_islands(grid): grid is a list of equal-length strings of \"1\" (land) and \"0\" (water); an island is a group of land cells adjacent by a side (horizontally or vertically). Return the number of islands. The checker feeds a map where one island winds like a snake over hundreds of thousands of cells: a recursive traversal will hit the depth limit, so use a disjoint-set structure or a traversal with a stack.",
+   "hint": "For each land cell, union it with its right and lower neighbors; at the end count the distinct roots."
+  },
+  {
+   "id": "dsu-kruskal",
+   "title": "Minimum Spanning Tree (Kruskal)",
+   "statement": "Write a function mst_weight(n, edges): the weight of the minimum spanning tree of a connected undirected graph; edges is a list of triples [a, b, weight]. If the graph is disconnected, return -1. Kruskal's algorithm: edges in increasing order of weight, taking those that connect different groups.",
+   "hint": "Sort the edges by weight; add to the sum each edge for which union returned True; a spanning tree has n − 1 edges."
+  },
+  {
+   "id": "dsu-equations",
+   "title": "Equalities and Inequalities",
+   "statement": "Write a function equations_possible(eqs): eqs is a list of strings of the form \"a==b\" or \"a!=b\" (single-letter variables). Return True if values can be assigned to the variables so that all the conditions hold.",
+   "hint": "First merge all the equalities, then check that no inequality landed inside one group."
+  },
+  {
+   "id": "dsu-weighted",
+   "title": "Disjoint Sets with Differences",
+   "statement": "Write a class WeightedDSU: WeightedDSU(n) creates n unknowns; union(a, b, d) states the condition x[a] − x[b] = d and returns False if it contradicts what is already known (otherwise it returns True and remembers it); diff(a, b) returns x[a] − x[b] if this difference follows from the conditions, otherwise None. Store in each element its offset relative to the parent. The checker feeds three hundred thousand conditions over two hundred thousand unknowns.",
+   "hint": "If the roots coincide, compare the offsets; otherwise hang one root under the other, choosing the offset from the condition."
+  },
+  {
+   "id": "dsu-offline",
+   "title": "Removing Edges: Go Backwards",
+   "statement": "Write a function components_after_removals(n, edges, order): edges with indices order[0], order[1], … are removed from the graph one by one (indices into the list edges, without repeats). Return a list res where res[k] is the number of connected components after k + 1 removals. A disjoint-set structure cannot split groups, so process the removals in reverse order as additions. The checker uses two hundred thousand edges and one hundred thousand removals.",
+   "hint": "Build the structure from the edges that are never removed; then walk through order from the end: record the number of components and put the edge back into the graph."
+  },
+  {
+   "id": "dsu-accounts",
+   "title": "Merging Accounts",
+   "statement": "Write a function merge_accounts(accounts): accounts is a list of [name, email1, email2, …]. Two accounts belong to the same person if they share an email (names may coincide for different people). Return the list of merged accounts as [name, emails in increasing order…], sorted as lists.",
+   "hint": "For each email, remember the first account that had it; when you meet it again, union the accounts. Then gather the emails by roots."
+  },
+  {
+   "id": "bt-subsets",
+   "title": "All Subsets",
+   "statement": "Write a function subsets(nums): the list of all subsets of a list of distinct numbers (each one a list, elements in input order; the order of the subsets themselves does not matter). Use the \"choose, explore, undo\" template and remember to copy the current path.",
+   "hint": "Each element has two branches: skip and take; after returning, remove the taken element (pop)."
+  },
+  {
+   "id": "bt-subsets-dups",
+   "title": "Subsets with Duplicates",
+   "statement": "Write a function subsets_unique(nums): all distinct subsets of a list that contains repeated numbers (each subset is a sorted list; the order of the subsets does not matter). Identical subsets must not repeat in the answer. Hint: sort the input and skip a number equal to the previous one on this level.",
+   "hint": "Sort nums; in the loop over start: if i > start and nums[i] == nums[i − 1], skip."
+  },
+  {
+   "id": "bt-permutations",
+   "title": "All Permutations",
+   "statement": "Write a function permutations(nums): all permutations of a list of distinct numbers (a list of lists; order does not matter). Mark used elements with an array used and clear the mark on backtracking. No itertools.",
+   "hint": "At each step loop over the indices: if used[i], skip; otherwise choose, descend, undo."
+  },
+  {
+   "id": "bt-perm-dups",
+   "title": "Permutations with Duplicates",
+   "statement": "Write a function permutations_unique(nums): all distinct permutations of a list with repeated numbers (order does not matter, identical permutations do not repeat). Don't generate extras: the checker feeds a list of nine numbers with repeats, where 9! permutations is too many and far fewer are distinct.",
+   "hint": "Sort and skip an element equal to the previous one if the previous one is not yet used."
+  },
+  {
+   "id": "bt-combinations",
+   "title": "Combinations",
+   "statement": "Write a function combine(n, k): all combinations of k numbers from 1…n (each an increasing list; order does not matter). Prune branches where the remaining numbers are not enough for the required count.",
+   "hint": "go(start): take v from start; if there are fewer numbers from v to n than still needed to reach k, leave the loop early."
+  },
+  {
+   "id": "bt-combination-sum",
+   "title": "Combination Sum with Repeats",
+   "statement": "Write a function combination_sum(candidates, target): all distinct sets of numbers from candidates (distinct positive numbers) that sum to target; one number may be used any number of times. Each set is a non-decreasing list; the order of the sets does not matter. Sort the numbers and break the loop when a number is greater than the remainder.",
+   "hint": "go(i, rest): for j from i: if nums[j] > rest, break; otherwise take the number and call go(j, rest − nums[j])."
+  },
+  {
+   "id": "bt-n-queens",
+   "title": "Placing Queens",
+   "statement": "Write a function n_queens(n): the number of ways to place n queens on an n × n board so that they do not attack each other. Place one queen in each row and check the occupancy of the columns and both diagonals in constant time (sets or bit masks). The checker goes up to n = 11.",
+   "hint": "Diagonals: r − c and r + c are constant along each one; keep the occupied ones in sets and remove them on backtracking."
+  },
+  {
+   "id": "bt-sudoku",
+   "title": "Sudoku",
+   "statement": "Write a function solve_sudoku(rows): rows is nine strings of nine characters, digits \"1\"–\"9\" and \".\" for an empty cell; the solution is unique. Return the nine rows of the solved board, or None if it cannot be solved. The checker includes a puzzle on which trying the cells in order takes minutes: choose the cell with the fewest candidates and keep the used digits in rows, columns and boxes as bit masks.",
+   "hint": "Choose the cell with the fewest candidates (zero means a dead end, backtrack); candidates are ~(row | column | box) & 0b1111111110."
+  },
+  {
+   "id": "bt-word-search",
+   "title": "Word on a Grid",
+   "statement": "Write a function exist(board, word): board is a list of row strings; can the word be formed by moving through side-adjacent cells without using any cell twice? The empty word gives True. Mark a cell as visited before descending and clear the mark on return.",
+   "hint": "go(r, c, i): the cell must match word[i]; mark it, try the four neighbors, clear the mark."
+  },
+  {
+   "id": "bt-meet-in-middle",
+   "title": "Meet in the Middle",
+   "statement": "Write a function count_subsets_sum(nums, target): how many subsets of the list nums have the sum target (by positions, so equal numbers in different places make different subsets; the empty subset counts too). The list has up to 36 numbers: enumerating 2³⁶ subsets will not finish in time. Split the list in half, enumerate the sums of each half (2¹⁸ of them) and join them through a dictionary of counters.",
+   "hint": "Build the sums of a half by doubling: sums += [s + v for s in sums]; then for each sum of the left half look up target − s in the dictionary of the right half."
+  }
+ ]
+}

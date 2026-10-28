@@ -1,0 +1,140 @@
+{
+ "book": 9,
+ "chapter": 18,
+ "tasks": [
+  {
+   "id": "d2-transfer",
+   "title": "A transfer in one transaction",
+   "statement": "Transfer 30 rubles from account 1 to account 2 in a single transaction (BEGIN … COMMIT). The result is checked against the balances.",
+   "hint": "BEGIN; two UPDATEs; COMMIT; — both operations are committed at once.",
+   "starter": "-- transfer 30 from account 1 to account 2\nBEGIN;\n"
+  },
+  {
+   "id": "d2-conditional-debit",
+   "title": "Debit only if there is enough",
+   "statement": "First try to debit 150 from account 1 (it has 100) — the debit must not happen and must not raise a CHECK error: guard the UPDATE with a condition. Then debit 80 from the same account. The result is checked against the balances.",
+   "hint": "The condition bal >= amount in WHERE: an insufficient balance gives 0 affected rows, not an error.",
+   "starter": "-- debit 150 (not enough) and then 80\n"
+  },
+  {
+   "id": "d2-atomic-update",
+   "title": "Atomic update instead of reading",
+   "statement": "Credit account 2 with two bonuses of 10 and 15 rubles using two UPDATEs, each with the arithmetic right in the database (bal = bal + …), without preliminary SELECTs.",
+   "hint": "UPDATE acc SET bal = bal + 10 WHERE id = 2; — reading and writing in one query.",
+   "starter": "-- two credits with arithmetic in the database\n"
+  },
+  {
+   "id": "d2-savepoint",
+   "title": "SAVEPOINT and partial rollback",
+   "statement": "In one transaction: insert the record 'start', set the savepoint s1, insert 'oops', roll back to s1, insert 'finish' and commit. In the end log must contain 'start' and 'finish'.",
+   "hint": "SAVEPOINT s1; … ROLLBACK TO s1; the rollback does not close the transaction — you can continue and COMMIT afterwards."
+  },
+  {
+   "id": "d2-optimistic",
+   "title": "Optimistic version check",
+   "statement": "Two editors read document 7 at ver = 1. The first saves the text `первый`, the second `второй`: both update with the condition ver = 1 and increment ver. Run both UPDATEs one after another: the second must change nothing. The result is checked against the table.",
+   "hint": "In WHERE: id = 7 AND ver = 1; after the first update ver = 2, so the second condition is false.",
+   "starter": "-- two UPDATEs with a version check\n"
+  },
+  {
+   "id": "d2-idempotent",
+   "title": "Idempotent payment processing",
+   "statement": "Payment p-100 for 500 rubles arrived twice (a retry after a timeout). Insert it with two INSERT commands so that the repeat is ignored rather than causing an error: the table must keep one row.",
+   "hint": "A unique key + INSERT OR IGNORE (or ON CONFLICT DO NOTHING) make the repeat harmless.",
+   "starter": "-- payment p-100 twice, but processed once\n"
+  },
+  {
+   "id": "d2-write-skew",
+   "title": "Write skew: doctors on duty",
+   "statement": "The rule: there is always at least one doctor on duty. Take `Анна` off duty, and then `Борис` — each with an UPDATE whose condition checks that someone else will remain after the removal (the check and the change in one query). The second removal must not take effect.",
+   "hint": "The condition (SELECT COUNT(*) … WHERE on_call = 1) > 1 inside the UPDATE itself: the check and the write are indivisible.",
+   "starter": "-- take Anna off duty, then Boris, preserving the invariant\n"
+  },
+  {
+   "id": "d2-queue-claim",
+   "title": "Claiming a task from a queue",
+   "statement": "Two workers take tasks in turn. Each runs one UPDATE: it moves the earliest task with status 'new' to 'taken' and returns its id (RETURNING). Run two such commands one after another; the result is checked against the table.",
+   "hint": "Choosing and claiming is one UPDATE with a MIN(id) subquery: a task will not go to two workers.",
+   "starter": "-- two claims of the earliest new task\n"
+  },
+  {
+   "id": "d2-ledger",
+   "title": "Double entry: the sum is zero",
+   "statement": "Ledger of postings ledger(tx, account, amount): each transaction must sum to 0. Find the numbers of the \"broken\" transactions whose sum is not zero, and the sum itself (columns: tx, total).",
+   "hint": "GROUP BY tx HAVING SUM(amount) <> 0 — the invariant is checked by a query.",
+   "starter": "-- broken transactions: the sum of amount ≠ 0\nSELECT\n"
+  },
+  {
+   "id": "d2-conflict-graph",
+   "title": "Conflict graph of a schedule",
+   "statement": "A schedule is a list of operations [transaction, 'r' or 'w', object] in execution order. Two operations conflict if they are on the same object, from different transactions, and at least one is a write. Write conflict_edges(schedule): a sorted list of unique edges [Ti, Tj] — an edge is added when Ti's conflicting operation comes earlier than Tj's operation.",
+   "hint": "For every pair of operations i < j: different transactions, the same object and at least one write — the edge (Ti, Tj)."
+  },
+  {
+   "id": "d2-serializable",
+   "title": "Is the schedule serializable",
+   "statement": "A schedule is a list [transaction, 'r'/'w', object]. A schedule is conflict-serializable if the conflict graph (edge Ti → Tj when Ti's conflicting operation comes earlier) contains no cycles. Write is_serializable(schedule) → True/False.",
+   "hint": "Build the edges the same way as in the previous task and look for a cycle with a depth-first search (states: unvisited, on the stack, finished)."
+  },
+  {
+   "id": "d2-lock-compat",
+   "title": "Lock compatibility",
+   "statement": "A lock manager for one object. held is the list of locks already granted [transaction, mode], mode 'S' (shared) or 'X' (exclusive). Write can_grant(held, tx, mode): whether a lock can be granted to transaction tx in mode mode. Rules: S is compatible with S; X is compatible with nothing; tx's own locks do not block itself.",
+   "hint": "Check only other transactions' locks: if the requested mode is X or someone else's lock is X — refuse."
+  },
+  {
+   "id": "d2-deadlock",
+   "title": "Finding a deadlock",
+   "statement": "A wait-for graph: a dictionary \"transaction → the transaction it waits for\" (keys are strings, for example {\"1\": \"2\", \"2\": \"1\"}). Write find_deadlock(waits): a sorted list of the transactions that are in a wait cycle, or [] if there is no cycle (each transaction waits for at most one).",
+   "hint": "Follow the chain of waits, remembering the visited ones; if you come back to an already seen transaction, it is a cycle."
+  },
+  {
+   "id": "d2-mvcc-visible",
+   "title": "Row version visibility (MVCC)",
+   "statement": "A row version is [xmin, xmax, value], with xmax = 0 if the version is not deleted. A snapshot: committed is the list of numbers of committed transactions, me is the number of the current one. A version is visible if it was created by a committed transaction or by me itself, and was not deleted by a committed transaction or by me itself. Write visible(versions, committed, me): the list of values of the visible versions in the original order.",
+   "hint": "Two independent conditions: created by a visible transaction and not deleted by a visible transaction."
+  },
+  {
+   "id": "d2-dirty-reads",
+   "title": "Finding dirty reads",
+   "statement": "A history of one object: events [type, transaction]: ['w', t] — write, ['r', t] — read, ['c', t] — commit, ['a', t] — rollback. A dirty read is when a transaction reads an object whose last write was made by another transaction that is neither committed nor rolled back yet. Write dirty_reads(history): a sorted list of unique pairs [reader, writer].",
+   "hint": "Keep the author of the last write and the set of unfinished transactions; reading someone else's unfinished write is a find."
+  },
+  {
+   "id": "d2-lost-update",
+   "title": "Simulating a lost update",
+   "statement": "Two clients do \"read, add, write\". The steps are a list of ['r', client] (read the current value into a local variable) and ['w', client, delta] (write the local value + delta). Write final_balance(start, steps): the value after all the steps. A client reads once before writing.",
+   "hint": "Each client keeps its own read value; a write overwrites the shared value without accounting for others' changes."
+  },
+  {
+   "id": "d2-apply-atomic",
+   "title": "Applying transfers atomically",
+   "statement": "Balances are a dictionary \"account → amount\" (string keys). Transfers are a list [from, to, amount]. Apply all the transfers in order as one transaction: if some transfer would make a balance negative, roll everything back and return the original balances; otherwise return the new ones. Write apply_atomic(balances, transfers).",
+   "hint": "Work with a copy of the dictionary; on the first negative balance return the original dictionary."
+  },
+  {
+   "id": "d2-version-check",
+   "title": "Optimistic updates",
+   "statement": "Rows are a dictionary \"id → [version, value]\" (string keys). Updates are a list [id, expected_version, new_value]. Each update takes effect only if the row's version equals the expected one: then the value is replaced and the version grows by 1. Write optimistic_apply(rows, updates): a pair [final_rows, number_of_conflicts].",
+   "hint": "Compare the version with the expected one; a mismatch (or a missing row) is a conflict, and the row is not changed."
+  },
+  {
+   "id": "d2-backoff",
+   "title": "Delays between retries",
+   "statement": "After a serialization error the transaction is retried with exponential backoff. Write backoff(tries, base, cap): the list of delays for tries retries — base, 2·base, 4·base, … but not more than cap.",
+   "hint": "Delay number i equals base * 2**i, bounded above by cap."
+  },
+  {
+   "id": "d2-isolation-levels",
+   "title": "Anomalies by isolation level",
+   "statement": "For an isolation level (a string) return the sorted list of anomalies it allows according to the SQL standard, from the set: 'dirty', 'non_repeatable', 'phantom'. Levels: 'READ UNCOMMITTED', 'READ COMMITTED', 'REPEATABLE READ', 'SERIALIZABLE'. Write allowed_anomalies(level).",
+   "hint": "The higher the level, the fewer the anomalies: create a dictionary \"level → list\"."
+  },
+  {
+   "id": "d2-lock-order",
+   "title": "A single lock order",
+   "statement": "To avoid deadlocks, all transactions take locks in one order — by ascending row number. Write lock_order(requests): for each request (a list of row numbers to lock) return a sorted list without duplicates; the result is a list of such lists.",
+   "hint": "sorted(set(r)) gives the rows in ascending order without duplicates."
+  }
+ ]
+}

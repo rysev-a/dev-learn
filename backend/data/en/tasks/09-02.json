@@ -1,0 +1,313 @@
+{
+ "book": 9,
+ "chapter": 2,
+ "tasks": [
+  {
+   "id": "s02-01",
+   "title": "One condition",
+   "statement": "Output all customers from Moscow: WHERE city = `'Москва'`. All columns of customers.",
+   "hint": "WHERE city = `'Москва'`"
+  },
+  {
+   "id": "s02-02",
+   "title": "Number equals",
+   "statement": "Output the product with id = 5: all columns of products.",
+   "hint": "",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s02-03",
+   "title": "Expensive products",
+   "statement": "Output title and price of products costing more than 5000.",
+   "hint": "Comparison: >",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s02-04",
+   "title": "Not more expensive",
+   "statement": "Output title and price of products whose price is at most 1500 (<=).",
+   "hint": "",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s02-05",
+   "title": "Strictly less",
+   "statement": "Output title of products with stock less than 20 (stock < 20).",
+   "hint": "",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s02-06",
+   "title": "Not equal",
+   "statement": "Output all orders (id, status) whose status is not `'new'`. Use <> (or !=).",
+   "hint": "<> means \"not equal\".",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s02-07",
+   "title": "Out of stock",
+   "statement": "Output title of products that are out of stock (stock = 0).",
+   "hint": "",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s02-08",
+   "title": "Paid ones",
+   "statement": "Output id and total of paid orders (status = `'paid'`).",
+   "hint": "",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s02-09",
+   "title": "Large orders",
+   "statement": "Output id and total of orders with a total greater than 10000.",
+   "hint": "",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s02-10",
+   "title": "AND",
+   "statement": "Output customers from Moscow who have VIP status (vip = 1): columns name, city. The city is `'Москва'`.",
+   "hint": "AND: both conditions must hold.",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s02-11",
+   "title": "OR",
+   "statement": "Output name and city of customers from Kazan or Tver (`'Казань'` or `'Тверь'`).",
+   "hint": "OR: one condition is enough.",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s02-12",
+   "title": "NOT",
+   "statement": "Output title of products that do not belong to the category `'Продукты'` (NOT).",
+   "hint": "NOT turns the condition into its opposite.",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s02-13",
+   "title": "AND over OR precedence",
+   "statement": "Output title, category, price of products from `'Книги'` or `'Канцелярия'` that are cheaper than 1300. Without parentheses AND is stronger than OR, so place parentheses so that the price condition applies to both categories.",
+   "hint": "(category = ... OR category = ...) AND price < 1300",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s02-14",
+   "title": "Precedence trap",
+   "statement": "Output title of products: category `'Электроника'` AND price greater than 40000, OR category `'Книги'`. The condition reads as (category = `'Электроника'` AND price > 40000) OR category = `'Книги'`.",
+   "hint": "",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s02-15",
+   "title": "IN: a list",
+   "statement": "Using IN, output name of customers from the cities `'Москва'`, `'Омск'` and `'Тверь'`.",
+   "hint": "city IN (`'Москва'`, `'Омск'`, `'Тверь'`)",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s02-16",
+   "title": "NOT IN",
+   "statement": "Output title of products whose category is not in the list (`'Продукты'`, `'Книги'`).",
+   "hint": "",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s02-17",
+   "title": "IN for numbers",
+   "statement": "Output id and status of orders of customers with id 1, 5 and 10.",
+   "hint": "",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s02-18",
+   "title": "BETWEEN",
+   "statement": "Output title and price of products priced from 1000 to 5000 inclusive (BETWEEN).",
+   "hint": "BETWEEN includes both bounds.",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s02-19",
+   "title": "NOT BETWEEN",
+   "statement": "Output title of products whose price does not lie in the range from 1000 to 5000.",
+   "hint": "",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s02-20",
+   "title": "Dates as strings",
+   "statement": "Output id and created of orders placed in May 2024 (between '2024-05-01' and '2024-05-31' inclusive).",
+   "hint": "Dates in the format YYYY-MM-DD are compared as strings.",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s02-21",
+   "title": "After a date",
+   "statement": "Output id of orders created after 2024-07-01 (strictly after).",
+   "hint": "",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s02-22",
+   "title": "LIKE: the start",
+   "statement": "Output title of products that start with the word «Книга» (LIKE `'Книга%'`).",
+   "hint": "% is any sequence of characters.",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s02-23",
+   "title": "LIKE: the end",
+   "statement": "Output email of customers ending in '@mail.ru' (NULL will not match).",
+   "hint": "",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s02-24",
+   "title": "LIKE: inside",
+   "statement": "Output title of products whose name contains the letter «ы» (LIKE `'%ы%'`).",
+   "hint": "",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s02-25",
+   "title": "LIKE: one character",
+   "statement": "The _ sign stands for exactly one arbitrary character. Output title of products that have exactly three characters after the word «Книга » (with a space): LIKE `'Книга ___'`.",
+   "hint": "Three underscores after «Книга ».",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s02-26",
+   "title": "NOT LIKE",
+   "statement": "Output title of products whose names do not contain the word «Книга».",
+   "hint": "",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s02-27",
+   "title": "Several conditions",
+   "statement": "Output title, price of products in the category `'Электроника'` that are cheaper than 50000 and have more than 10 units in stock.",
+   "hint": "",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s02-28",
+   "title": "Comparing columns",
+   "statement": "Output title of products whose stock is greater than their price.",
+   "hint": "You can also compare two columns with each other.",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s02-29",
+   "title": "Arithmetic in a condition",
+   "statement": "Output title of products whose total stock value (price * stock) is greater than 500000.",
+   "hint": "",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s02-30",
+   "title": "Even ids",
+   "statement": "Output id and name of customers with an even id (id % 2 = 0).",
+   "hint": "",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s02-31",
+   "title": "VIP customers",
+   "statement": "Output name of VIP customers (vip = 1) and the registration date registered.",
+   "hint": "",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s02-32",
+   "title": "Spring 2024 customers",
+   "statement": "Output name of customers who registered from March to May 2024 (registered between '2024-03-01' and '2024-05-31').",
+   "hint": "",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s02-33",
+   "title": "A customer's orders",
+   "statement": "Output id, created, total of the orders of the customer with id = 5 (customer_id = 5).",
+   "hint": "",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s02-34",
+   "title": "Paid or shipped",
+   "statement": "Output id and status of orders with the status `'paid'` or `'shipped'` (using IN).",
+   "hint": "",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s02-35",
+   "title": "Large line items",
+   "statement": "The order_items table. Output order_id, product_id, qty for line items where 5 or more units were bought (qty >= 5).",
+   "hint": "",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s02-36",
+   "title": "A compound condition",
+   "statement": "Output id, status, total of orders where (the status is `'new'` or `'paid'`) and the total is at least 5000.",
+   "hint": "",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s02-37",
+   "title": "IT employees",
+   "statement": "HR database. Output name, salary of employees of department 1 with a salary above 150000.",
+   "hint": "",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s02-38",
+   "title": "Hired in 2023",
+   "statement": "HR database. Output name and hired of employees hired in 2023 (hired between '2023-01-01' and '2023-12-31').",
+   "hint": "",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s02-39",
+   "title": "Job levels",
+   "statement": "HR database. Output name and grade of employees of level `'junior'` or `'senior'`.",
+   "hint": "",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s02-40",
+   "title": "Top students",
+   "statement": "School database. Output student_id, course_id, score for grades of 5 in 2024.",
+   "hint": "",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s02-41",
+   "title": "Ninth grades",
+   "statement": "School database. Output name and class of students in the 9th grades (class LIKE `'9%'`).",
+   "hint": "",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s02-42",
+   "title": "Old films",
+   "statement": "Films database. Output title and year of films released before 2010.",
+   "hint": "",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s02-43",
+   "title": "High rating",
+   "statement": "Films database. Output title and rating of films with a rating of at least 8.5.",
+   "hint": "",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s02-44",
+   "title": "Genre and year",
+   "statement": "Films database. Output title of films of the genre `'фантастика'` released after 2012.",
+   "hint": "",
+   "starter": "-- Write the query\n"
+  }
+ ]
+}

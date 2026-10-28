@@ -1,0 +1,188 @@
+{
+ "book": 10,
+ "chapter": 18,
+ "tasks": [
+  {
+   "id": "r18-vec-stats",
+   "title": "Vec: minimum, maximum, average",
+   "statement": "stats(v: &[i32]) returns Option<(i32, i32, f64)>: the minimum, the maximum and the arithmetic mean; for an empty slice, None.",
+   "hint": "min() and max() return Option<&i32>; compute the sum in i64 so that i32 does not overflow."
+  },
+  {
+   "id": "r18-vec-clean",
+   "title": "Vec: retain, sort, dedup",
+   "statement": "clean(v: &mut Vec<i32>) tidies up the vector in place: removes negative numbers, sorts ascending, removes duplicates. You do not need to create a new vector.",
+   "hint": "retain(|&x| x >= 0) keeps the matching elements; dedup removes adjacent duplicates, so sort first."
+  },
+  {
+   "id": "r18-chunks",
+   "title": "Vec slices: chunks and windows",
+   "statement": "chunked(v, n) returns Vec<Vec<i32>>: split into pieces of n elements (the last may be shorter; n ≥ 1). window_sums(v, k) returns Vec<i32>: the sums of all consecutive windows of length k (k ≥ 1; if the window does not fit, an empty vector).",
+   "hint": "chunks(n) and windows(k) are slice methods; each item is also a slice, and to_vec() copies it."
+  },
+  {
+   "id": "r18-vec-reallocs",
+   "title": "How many times the buffer grows",
+   "statement": "reallocs(n, start_cap) returns usize: create a Vec<u64> with with_capacity(start_cap), add n numbers, and return how many times the capacity changed in the process. Compare with reallocs(100, 100): exactly zero, so reserving capacity in advance pays off.",
+   "hint": "Remember the last capacity and count how many times it changed after a push."
+  },
+  {
+   "id": "r18-drain-evens",
+   "title": "Split a vector in place",
+   "statement": "take_evens(v: &mut Vec<i32>) returns Vec<i32>: remove all even numbers from v and return them in their original order; v keeps the odd ones (also in their original order). You must not copy the elements: the numbers simply move.",
+   "hint": "drain(..) hands out the elements with ownership; partition splits them into two vectors by a condition."
+  },
+  {
+   "id": "r18-pascal",
+   "title": "Vec<Vec<>>: Pascal's triangle",
+   "statement": "pascal(n) returns Vec<Vec<u64>>: the first n rows of Pascal's triangle (the first row is a single one). Each row is built from the previous one.",
+   "hint": "An inner element equals the sum of two elements of the previous row: rows[i-1][j-1] + rows[i-1][j]."
+  },
+  {
+   "id": "r18-iter-pipeline",
+   "title": "Iterators instead of loops",
+   "statement": "sum_sq_odd(v) returns i32, the sum of squares of the odd numbers; dot(a, b) returns i32, the dot product (zip); running_max(v) returns Vec<i32>, the maximum on every prefix (scan). You must not use the word for in the code, only iterator adapters.",
+   "hint": "scan(initial, |state, item| …) keeps mutable state between steps and returns Some(next value)."
+  },
+  {
+   "id": "r18-closure-capture",
+   "title": "Closures and capture",
+   "statement": "count_above(v, threshold) returns usize: how many elements are greater than the threshold (the threshold is captured by the closure). running_total(v) returns Vec<i32>: running sums; the closure modifies the captured variable sum. apply_n(f: fn(i32) -> i32, n, x) returns i32: apply the function n times.",
+   "hint": "The closure |&x| sum += x … modifies the outer sum, which must be mut; the function is accepted as fn(i32) -> i32, and an ordinary closure without capture fits."
+  },
+  {
+   "id": "r18-fix-collect",
+   "title": "Fix: collect without a type",
+   "statement": "squares_sum squares the elements, collects them and sums them. The compiler cannot determine which collection to collect into. Fix it with one edit.",
+   "hint": "collect::<Vec<i32>>() or a type on the variable: let squares: Vec<i32> = …."
+  },
+  {
+   "id": "r18-caesar",
+   "title": "String: Caesar cipher",
+   "statement": "caesar(s: &str, k: u8) returns String: shift every Latin letter forward by k in a cycle (0 ≤ k ≤ 25), preserve the case; leave all other characters (including Cyrillic) as they are.",
+   "hint": "c as u8 - b'a' + k gives the position in the alphabet; % 26 wraps around; collect() from an iterator of char into a String."
+  },
+  {
+   "id": "r18-utf8-stats",
+   "title": "Characters and bytes",
+   "statement": "char_stats(s) returns (usize, usize): the number of characters and the number of bytes. is_palindrome(s) returns bool: a palindrome if you ignore case and all characters except letters and digits. reverse_words(s) returns String: the words in reverse order, separated by a single space.",
+   "hint": "Collect a Vec<char> of letters and digits in lowercase and compare it with itself reversed."
+  },
+  {
+   "id": "r18-title-case",
+   "title": "Capitalize the first letter",
+   "statement": "title_case(s) returns String: each word with a capital first letter and the other letters lowercase (works with Cyrillic too); in the result the words are separated by exactly one space.",
+   "hint": "chars() gives the first letter, and the remainder is cs.as_str(); to_uppercase() returns an iterator, collect it into a String."
+  },
+  {
+   "id": "r18-fix-string-add",
+   "title": "Fix: + took the string",
+   "statement": "join3 joins three strings and appends «(из a b c)». The + operator takes its left operand, and a cannot be used after it. Fix it so that the function returns, for example, «xyz (из x y z)».",
+   "hint": "format! does not take its arguments, so the strings remain available after it.",
+   "starter": "fn join3(a: String, b: String, c: String) -> String {\n    let ab = a + &b;\n    let abc = ab + &c;\n    format!(\"{abc} (из {a} {b} {c})\")\n}\n"
+  },
+  {
+   "id": "r18-word-count",
+   "title": "HashMap and entry: word frequencies",
+   "statement": "word_count(text) returns Vec<(String, usize)>: words (sequences of letters; everything else is a separator; case does not matter) with their number of occurrences, sorted by descending count, then alphabetically. Count with entry.",
+   "hint": "split(|c: char| !c.is_alphabetic()) splits on non-letters; *m.entry(word).or_insert(0) += 1 counts; sort with sort_by and then."
+  },
+  {
+   "id": "r18-group-by-len",
+   "title": "Grouping by length",
+   "statement": "group_by_len(words: &[&str]) returns BTreeMap<usize, Vec<String>>: the key is the word length in characters, the value is the words of that length in order of appearance. Use entry(…).or_insert_with(Vec::new).",
+   "hint": "or_insert_with(Vec::new) creates an empty vector only if the key is not there yet; push is called on the returned &mut."
+  },
+  {
+   "id": "r18-two-sum",
+   "title": "Two numbers in one pass: HashMap",
+   "statement": "two_sum(v: &[i64], target) returns Option<(usize, usize)>: indexes i < j with v[i] + v[j] = target; of all the pairs you need the one with the smallest j (for equal j, the smallest i). The inputs are large, so a double loop will not fit the limit: use a HashMap from value to index and a single pass.",
+   "hint": "Walk through the elements; for the current x check whether target - x is in the table, and only then put x into the table."
+  },
+  {
+   "id": "r18-anagrams",
+   "title": "Anagrams: a key of sorted letters",
+   "statement": "anagram_groups(words: &[&str]) returns Vec<Vec<String>>: group the anagram words (case does not matter, but the words are kept as they are). Return only groups of two or more words; words inside a group in order of appearance; groups in ascending order of the key (the word's letters sorted alphabetically).",
+   "hint": "The group key is the word with its letters sorted; BTreeMap orders the groups by key itself."
+  },
+  {
+   "id": "r18-merge-counts",
+   "title": "Merging maps with ownership",
+   "statement": "merge_counts(a, b) returns BTreeMap<String, i32>: merge two counter maps, adding the values for shared keys. Both maps are passed by value: the string keys must move, not be copied.",
+   "hint": "into_iter() on a HashMap hands out (String, i32) pairs with ownership; chain joins two iterators."
+  },
+  {
+   "id": "r18-fix-key-move",
+   "title": "Fix: the key moved into the table",
+   "statement": "index(words) returns (HashMap<String, usize>, usize): a mapping from word to last index, and the total length of all words in bytes. The code does not build: w moves into insert and is then read. Fix it with a minimal edit.",
+   "hint": "Read w.len() before insert: after insert the string belongs to the table. No cloning is needed."
+  },
+  {
+   "id": "r18-parse-age",
+   "title": "Result<u8, String> and kinds of parse errors",
+   "statement": "parse_age(s) returns Result<u8, String>: parse the string as u8 and return a clear message: an empty string gives \"пусто\"; not a number (including a negative one) gives \"не число\"; greater than 255 gives \"слишком велико\"; a number greater than 150 gives \"нереальный возраст\". The kind of error is found with e.kind() and IntErrorKind.",
+   "hint": "A guard in match: Ok(n) if n > 150 => …; for errors, match e.kind() { IntErrorKind::Empty => …, … }."
+  },
+  {
+   "id": "r18-question-mark",
+   "title": "The ? operator: a chain of parses",
+   "statement": "sum_strs(a, b) returns Result<i32, ParseIntError>: parse both strings and add them; average(items: &[&str]) returns Result<f64, ParseIntError>: the mean of the numbers (an empty set gives 0.0). The ? operator is required.",
+   "hint": "let x: i32 = a.trim().parse()?; on error the function returns Err at once."
+  },
+  {
+   "id": "r18-custom-error",
+   "title": "A custom error: enum, Display, From",
+   "statement": "AppError is Empty, Parse(ParseIntError), Negative(i32). Implement Display («пустая строка» / «не число: <причина>» / «отрицательное: N», where the reason is the text of the parse error and N is the number), std::error::Error and From<ParseIntError>, then parse_positive(s) returns Result<u32, AppError>: the string with spaces trimmed; empty gives Empty; not a number gives Parse (via ?); less than zero gives Negative.",
+   "hint": "impl From<ParseIntError> for AppError { fn from(e) -> AppError { AppError::Parse(e) } } — then ? converts the error itself."
+  },
+  {
+   "id": "r18-box-dyn-error",
+   "title": "Box<dyn Error>: any error",
+   "statement": "run(a, b) returns Result<i32, Box<dyn Error>>: parse both arguments as i32 (the parse error is passed up with ?) and divide a by b; when b == 0 return your own error «деление на ноль» (a string can be turned into a Box<dyn Error> with .into()).",
+   "hint": "Err(\"text\".into()) builds a Box<dyn Error> from a string; ? packs ParseIntError by itself."
+  },
+  {
+   "id": "r18-map-err",
+   "title": "map_err: a clear message",
+   "statement": "read_port(s) returns Result<u16, String>: a port from a string. A parse error becomes «bad port '<s>': <причина>» (where the last part is the text of the parse error) through map_err, and the value 0 becomes «port 0 reserved». Valid values are 1..=65535.",
+   "hint": "map_err(|e| format!(…)) changes only the error; after it, ? passes up an already-String error."
+  },
+  {
+   "id": "r18-collect-result",
+   "title": "collect into Result<Vec<_>, _>",
+   "statement": "parse_all(items) returns Result<Vec<i32>, ParseIntError>: parse all the strings; on the first error return it (a single collect). sum_valid(items) returns i32: the sum of only the valid numbers, errors are skipped (filter_map + ok).",
+   "hint": "collect() into Result<Vec<_>, _> takes an iterator of Results and stops at the first error; ok() turns a Result into an Option."
+  },
+  {
+   "id": "r18-ok-or",
+   "title": "ok_or: from Option to Result",
+   "statement": "lookup(m: &HashMap<&str, i32>, key) returns Result<i32, String>: the value by key or the error «нет ключа <key>» (ok_or_else). first_digit(s) returns Result<u32, String>: the value of the first digit in the string or the error «нет цифр» (use chars, find and to_digit).",
+   "hint": "get returns Option<&i32>; copied() gives Option<i32>; ok_or_else(|| …) turns None into Err."
+  },
+  {
+   "id": "r18-fix-question-mark",
+   "title": "Fix: ? in a function without Result",
+   "statement": "double parses a string and doubles the number. The ? operator is used in a function that returns a plain i32, and the compiler answers with an error. Fix the signature (the result is Result<i32, ParseIntError>), with minimal changes to the body.",
+   "hint": "The function type is Result<i32, ParseIntError>, and the last expression is Ok(n * 2)."
+  },
+  {
+   "id": "r18-unwind-drop",
+   "title": "A panic unwinds the stack and calls drop",
+   "statement": "Guard prints «drop g» when it is destroyed. Write risky(): create a Guard and then call panic!(\"boom\"). The driver catches the panic with catch_unwind and shows that the Guard was destroyed anyway: first «drop g» is printed, then «caught».",
+   "hint": "let _g = Guard(\"g\"); — a named binding lives until the end of the function, and on a panic drop is called during unwinding.",
+   "starter": "struct Guard(&'static str);\n\nimpl Drop for Guard {\n    fn drop(&mut self) {\n        println!(\"drop {}\", self.0);\n    }\n}\n\nfn risky() {\n    // create a Guard and call panic!\n}\n"
+  },
+  {
+   "id": "r18-retry",
+   "title": "Retries: an FnMut closure",
+   "statement": "retry(n, f) returns Result<i32, String>: call f(attempt) for attempts 1, 2, …, n until you get Ok; return the first Ok or the last error (n = 0 gives «нет попыток»). f is a closure FnMut(u32) -> Result<i32, String>, which may modify captured variables.",
+   "hint": "Keep the last error in a variable and return it after the loop; return Ok at once with return."
+  },
+  {
+   "id": "r18-config-parser",
+   "title": "Parsing a config with line numbers",
+   "statement": "parse_config(text) returns Result<BTreeMap<String, String>, String>: lines of the form «key = value»; empty lines and lines starting with «#» are skipped; spaces around the key and the value are trimmed. The first error stops parsing and is one of: «line N: нет '='», «line N: пустой ключ» or «line N: дубликат ключа K» (N is the line number counted from one, K is the key).",
+   "hint": "lines().enumerate() gives an index from zero, so add 1; split_once('=') splits at the first equals sign."
+  }
+ ]
+}

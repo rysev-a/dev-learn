@@ -1,0 +1,146 @@
+{
+ "book": 9,
+ "chapter": 27,
+ "tasks": [
+  {
+   "id": "d11-fd-violations",
+   "title": "Dependency violations",
+   "statement": "In the table `flat` the dependency `client → city` must hold: one client has one city. Output the clients for which it is violated: columns `client`, `n` — the number of distinct cities; by client.",
+   "hint": "GROUP BY client and HAVING COUNT(DISTINCT city) > 1.",
+   "starter": "-- clients with several cities\nSELECT\n"
+  },
+  {
+   "id": "d11-fd-product-price",
+   "title": "Is the price determined by the product?",
+   "statement": "Check the dependency `product → price`: output the products that have more than one price value in the table. Columns `product`, `prices` (the number of distinct prices); by product.",
+   "hint": "COUNT(DISTINCT price) per product.",
+   "starter": "-- product → price\nSELECT\n"
+  },
+  {
+   "id": "d11-extract-clients",
+   "title": "Extract the clients",
+   "statement": "Create a table clients(client, city) — one row per client (CREATE TABLE … AS SELECT DISTINCT). The result is checked by its contents.",
+   "hint": "SELECT DISTINCT client, city FROM flat.",
+   "starter": "-- clients table\nCREATE TABLE clients AS\n"
+  },
+  {
+   "id": "d11-extract-products",
+   "title": "Extract the products",
+   "statement": "Create a table products(product, price) — one row per product. The result is checked by its contents.",
+   "hint": "SELECT DISTINCT product, price FROM flat.",
+   "starter": "-- products table\nCREATE TABLE products AS\n"
+  },
+  {
+   "id": "d11-lossless-check",
+   "title": "Is the decomposition lossless?",
+   "statement": "The original table flat was decomposed into orders(order_id, client, product, qty), clients(client, city) and products(product, price) (create them yourself in the query with WITH). Output one row and one column `lost` — the number of rows of flat that are missing from the join of these three tables (0 if the decomposition is lossless).",
+   "hint": "Build the join and subtract it from flat with the EXCEPT operator; compare whole rows.",
+   "starter": "-- check that the join returns the original\nWITH\n"
+  },
+  {
+   "id": "d11-spurious-rows",
+   "title": "Extra rows from a bad decomposition",
+   "statement": "The table r(a, b, c) was decomposed into r1(a, b) and r2(b, c) — the shared column b is not a key. Output the number of rows of the join r1 ⋈ r2 minus the number of rows of r: column `extra`.",
+   "hint": "Join the DISTINCT projections on b and subtract COUNT(*) of r.",
+   "starter": "-- how many extra rows\nSELECT\n"
+  },
+  {
+   "id": "d11-tree-path",
+   "title": "Subtree by path",
+   "statement": "Output all descendants of the category «Напитки» (id 2), but not the category itself: columns `id`, `name`; by id. Use the column `path`.",
+   "hint": "path LIKE '/1/2/%' and exclude the row itself.",
+   "starter": "-- subtree\nSELECT\n"
+  },
+  {
+   "id": "d11-adjacency-recursive",
+   "title": "Ancestors via an adjacency list",
+   "statement": "Output all ancestors of the category «Чай» (id 3), from the nearest to the root: columns `id`, `name`, `depth` (1 — the parent). Order by depth.",
+   "hint": "WITH RECURSIVE: start with the parent of node 3, then climb via parent_id, increasing depth.",
+   "starter": "-- recursive climb\nWITH RECURSIVE\n"
+  },
+  {
+   "id": "d11-closure-build",
+   "title": "Closure table",
+   "statement": "Build a table closure(ancestor, descendant, depth) where every ancestor–descendant pair (including the pair of a node with itself, depth = 0) appears exactly once. The result is checked by closure.",
+   "hint": "Recursion: start pairs (id, id, 0), then descendants of descendants with depth + 1.",
+   "starter": "-- tree closure\nCREATE TABLE closure AS\nWITH RECURSIVE\n"
+  },
+  {
+   "id": "d11-soft-delete",
+   "title": "Soft delete and uniqueness",
+   "statement": "Create a unique index uq_users_email so that the email is unique only among non-deleted users (a partial index on deleted_at IS NULL). Then insert a user with the email 'b@x.ru' (it used to be deleted). The result is checked by the table users.",
+   "hint": "CREATE UNIQUE INDEX … ON users(email) WHERE deleted_at IS NULL; then a regular INSERT.",
+   "starter": "-- partial unique index\nCREATE UNIQUE INDEX uq_users_email\n"
+  },
+  {
+   "id": "d11-check-constraint",
+   "title": "Constraints in the schema",
+   "statement": "Create a table orders(id INTEGER PRIMARY KEY, total INTEGER NOT NULL, status TEXT NOT NULL) with checks: total >= 0 and status only 'new', 'paid' or 'cancelled'. Then insert a valid row (1, 100, 'new'). The result is checked by the table orders and by the sql column in sqlite_master (both conditions must be in it).",
+   "hint": "CHECK (total >= 0) and CHECK (status IN ('new','paid','cancelled')); sqlite_master stores the source text.",
+   "starter": "-- table with CHECK\nCREATE TABLE orders (\n"
+  },
+  {
+   "id": "d11-fk-cascade",
+   "title": "Cascade delete",
+   "statement": "Delete the client «Анна» (id 1). Thanks to the foreign key with ON DELETE CASCADE her orders must disappear by themselves. The result is checked by the table orders.",
+   "hint": "SQLite enables foreign keys with PRAGMA foreign_keys = ON; after that a DELETE of the client is enough.",
+   "starter": "-- delete the client\nDELETE FROM\n"
+  },
+  {
+   "id": "d11-snapshot-price",
+   "title": "Price at the time of purchase",
+   "statement": "Add a column price_at_purchase to order_items, fill it with the current product price (UPDATE), and then raise the price of tea («чай») to 150. The result is checked by a query: the sum of price_at_purchase * qty per order (order_id, total) — it must not change because of the new price.",
+   "hint": "ADD COLUMN, then UPDATE with a price subquery, and only then change the price in products.",
+   "starter": "-- price copy in the line item\nALTER TABLE order_items\n"
+  },
+  {
+   "id": "d11-money-cents",
+   "title": "Money as integers",
+   "statement": "Amounts were stored as fractional numbers. Output the total in cents — an integer: column `cents` = the sum of amount·100, rounded to an integer with ROUND and cast to an integer type (CAST … AS INTEGER). Sum the values rounded per row; do not round the total.",
+   "hint": "Round every row: CAST(ROUND(amount * 100) AS INTEGER), then SUM.",
+   "starter": "-- total in cents\nSELECT\n"
+  },
+  {
+   "id": "d11-attr-closure",
+   "title": "Closure of an attribute set",
+   "statement": "Functional dependencies are a list of pairs [left side, right side] (each is a list of attributes). Write attr_closure(attrs, fds): a sorted list of all attributes functionally determined by the set attrs (including attrs itself). Example: fds = [[[\"a\"],[\"b\"]],[[\"b\"],[\"c\"]]], attrs = [\"a\"] → [\"a\",\"b\",\"c\"].",
+   "hint": "Repeat: if the left side of a dependency is already in the result, add the right side; until nothing is added."
+  },
+  {
+   "id": "d11-candidate-keys",
+   "title": "Candidate keys",
+   "statement": "Given the attributes relation and the functional dependencies fds (as in the previous task). Write candidate_keys(relation, fds): the list of all candidate keys (minimal under inclusion) — each key is a sorted list, and the list of keys is sorted. A key is a set whose closure equals all attributes.",
+   "hint": "Go through the sets in increasing size; skip supersets of keys already found."
+  },
+  {
+   "id": "d11-check-3nf",
+   "title": "Third normal form",
+   "statement": "A relation is a set of attributes; you are given a set of dependencies (one attribute on the right) and the set of prime attributes (those that belong to some candidate key) prime. Write is_3nf(fds, prime, keys): True if for every dependency X → A either A is in X, or X is a superkey (contains some key from keys), or A is a prime attribute (in prime).",
+   "hint": "For each dependency check the three permitting conditions; if none holds, it is not 3NF."
+  },
+  {
+   "id": "d11-lossless-join",
+   "title": "Lossless decomposition",
+   "statement": "A relation with attributes relation was decomposed into two parts r1 and r2 (sets of attributes that together cover relation). The FDs fds are known. Write lossless_binary(relation, fds, r1, r2): True if the shared attributes r1 ∩ r2 functionally determine all of r1 or all of r2 (the closure of the shared attributes contains r1 or r2).",
+   "hint": "The closure of the shared attributes must cover one of the parts."
+  },
+  {
+   "id": "d11-normalize-rows",
+   "title": "Decomposing a flat table",
+   "statement": "A flat table is a list of rows [order, client, city, product, price]. Write split_table(rows): a triple of lists [orders [order, client, product], clients [client, city], products [product, price]] — clients and products without repeats, sorted; orders in the original order. If a client or a product occurs with different city or price values, keep the first one.",
+   "hint": "Dictionaries with setdefault for clients and products; orders in row order."
+  },
+  {
+   "id": "d11-gen-ids",
+   "title": "Ordered identifiers",
+   "statement": "An identifier is a pair [time in milliseconds, counter within the millisecond]. Write ordered_ids(times): for a list of insertion moments (non-strictly increasing) return the identifiers: the counter equals the number of earlier insertions in the same millisecond. The result must then be strictly increasing as pairs.",
+   "hint": "Reset the counter when the millisecond changes."
+  },
+  {
+   "id": "d11-tenant-keys",
+   "title": "Tenant isolation",
+   "statement": "Rows are lists [tenant, id, value]. The primary key is the pair (tenant, id). Write scope_by_tenant(rows, tenant): a dictionary \"id → value\" only for the rows of this tenant; if a pair occurs several times, the last row wins. The dictionary keys are the id as a string.",
+   "hint": "A dictionary over only the rows of the needed tenant; the last entry overwrites the previous one."
+  }
+ ]
+}

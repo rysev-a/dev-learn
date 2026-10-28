@@ -1,0 +1,186 @@
+{
+ "book": 10,
+ "chapter": 24,
+ "tasks": [
+  {
+   "id": "r24-opt-map",
+   "title": "Option::map",
+   "statement": "Write double_opt(x: Option<i32>) -> Option<i32>: double the value inside, leave None as None (without match).",
+   "hint": "x.map(|v| v * 2)"
+  },
+  {
+   "id": "r24-opt-and-then",
+   "title": "and_then",
+   "statement": "Write safe_half(x: Option<i32>) -> Option<i32>: half of the number if it is even, otherwise None; for None — None. Use and_then.",
+   "hint": "and_then takes a function that returns an Option."
+  },
+  {
+   "id": "r24-opt-filter",
+   "title": "filter",
+   "statement": "Write positive(x: Option<i32>) -> Option<i32>: keep the value only if it is > 0.",
+   "hint": "x.filter(|v| *v > 0)"
+  },
+  {
+   "id": "r24-opt-or",
+   "title": "unwrap_or_else",
+   "statement": "Write name_or_default(n: Option<&str>) -> String: the name, or «аноним#» + the length of the word «аноним» (this is how it is computed lazily) — without match and if.",
+   "hint": "map + unwrap_or_else(|| …)"
+  },
+  {
+   "id": "r24-opt-ok-or",
+   "title": "ok_or",
+   "statement": "Write first_or_err(v: &[i32]) -> Result<i32, String>: the first element or Err(\"пусто\") (first, copied, ok_or).",
+   "hint": "v.first().copied().ok_or(…)"
+  },
+  {
+   "id": "r24-opt-zip",
+   "title": "Option::zip",
+   "statement": "Write both(a: Option<i32>, b: Option<i32>) -> Option<(i32, i32)>: a pair if both are Some, otherwise None (the zip method).",
+   "hint": "a.zip(b)"
+  },
+  {
+   "id": "r24-opt-take",
+   "title": "Option::take",
+   "statement": "Write pop_front(slot: &mut Option<String>) -> Option<String>: pull the value out of the slot, leaving None (the take method).",
+   "hint": "take() leaves None."
+  },
+  {
+   "id": "r24-res-map-err",
+   "title": "map_err",
+   "statement": "Write parse_pos(s: &str) -> Result<u32, String>: parse a non-negative number; on an error — Err with the text «плохое число: <s>» (map_err).",
+   "hint": "map_err changes the error type."
+  },
+  {
+   "id": "r24-res-and-then",
+   "title": "Result::and_then",
+   "statement": "Write parse_and_sqrt(s: &str) -> Result<f64, String>: parse an f64 (error «не число») and take the square root (error «отрицательное» when < 0). A chain of and_then.",
+   "hint": "map_err, then and_then."
+  },
+  {
+   "id": "r24-res-ok",
+   "title": "Result → Option",
+   "statement": "Write numbers(items: &[&str]) -> Vec<i32>: parse all the strings as i32 and keep only the successful ones (filter_map with ok()).",
+   "hint": "filter_map(|s| s.parse().ok())"
+  },
+  {
+   "id": "r24-res-collect",
+   "title": "collect into Result",
+   "statement": "Write all_numbers(items: &[&str]) -> Result<Vec<i32>, String>: all strings into numbers or Err(<the first bad string>). Hint: collect can build a Result<Vec<_>, _>.",
+   "hint": "iter().map(…).collect::<Result<Vec<_>, _>>()"
+  },
+  {
+   "id": "r24-res-unwrap-default",
+   "title": "unwrap_or_default",
+   "statement": "Write to_i32(s: &str) -> i32: the number from the string or 0 (parse + unwrap_or_default).",
+   "hint": "unwrap_or_default takes 0 from the type."
+  },
+  {
+   "id": "r24-mem-swap",
+   "title": "mem::swap",
+   "statement": "Write swap_values(a: &mut i32, b: &mut i32): swap the values with the function std::mem::swap.",
+   "hint": "std::mem::swap(a, b) takes two mutable references."
+  },
+  {
+   "id": "r24-vec-swap",
+   "title": "Vec::swap",
+   "statement": "Write swap_items(v: &mut Vec<i32>, a: usize, b: usize): swap the elements with indices a and b (the v.swap method).",
+   "hint": "v.swap(a, b) is a safe exchange of two elements."
+  },
+  {
+   "id": "r24-mem-replace",
+   "title": "mem::replace",
+   "statement": "Write set_name(name: &mut String, new: &str) -> String: replace the value and return the old one (mem::replace).",
+   "hint": "std::mem::replace(name, new.to_string())"
+  },
+  {
+   "id": "r24-mem-take",
+   "title": "mem::take",
+   "statement": "Write drain_all(v: &mut Vec<String>) -> Vec<String>: return all the elements and leave the vector empty (mem::take).",
+   "hint": "std::mem::take(v)"
+  },
+  {
+   "id": "r24-cmp-then",
+   "title": "Comparing by several fields",
+   "statement": "Write sort_people(v: &mut Vec<(String, u32)>): sort the pairs (name, age) by age in descending order, and for equal ages by name in ascending order (cmp and then).",
+   "hint": "b.1.cmp(&a.1).then(a.0.cmp(&b.0))"
+  },
+  {
+   "id": "r24-cmp-reverse",
+   "title": "Reverse",
+   "statement": "Write top_three(v: &[i32]) -> Vec<i32>: the three largest in descending order (sort_by_key with Reverse; if there are fewer than three elements — all of them).",
+   "hint": "sort_by_key(|x| Reverse(*x))"
+  },
+  {
+   "id": "r24-cmp-clamp",
+   "title": "clamp",
+   "statement": "Write normalize(v: &[f64]) -> Vec<f64>: limit every number to the range [0.0, 1.0] (the clamp method).",
+   "hint": "x.clamp(0.0, 1.0)"
+  },
+  {
+   "id": "r24-cmp-total",
+   "title": "Sorting floats",
+   "statement": "Write sort_floats(v: &mut Vec<f64>): in ascending order, with NaN at the end (the total_cmp method).",
+   "hint": "a.total_cmp(b) gives a total order."
+  },
+  {
+   "id": "r24-conv-from",
+   "title": "From and Into",
+   "statement": "The struct Rgb(u8, u8, u8) is declared. Implement From<(u8, u8, u8)> for Rgb and From<u32> for Rgb (the value 0xRRGGBB), so that Rgb::from(…) and .into() work.",
+   "hint": "Shifts >> 16 and >> 8; casting to u8 cuts off the high bits."
+  },
+  {
+   "id": "r24-conv-fromstr",
+   "title": "FromStr",
+   "statement": "Implement FromStr for Point { x: i32, y: i32 }: parse a string like «3,-4» (Err(String) if it is not two numbers separated by a comma). Then \"3,-4\".parse::<Point>() works.",
+   "hint": "split_once(',') and parse; ? for errors."
+  },
+  {
+   "id": "r24-conv-asref",
+   "title": "AsRef<str>",
+   "statement": "Write shout(s: impl AsRef<str>) -> String: the string in uppercase with «!» at the end. The function must accept both &str and String.",
+   "hint": "s.as_ref() — get a &str from any form."
+  },
+  {
+   "id": "r24-conv-tryfrom",
+   "title": "TryFrom",
+   "statement": "Write to_byte(n: i32) -> Option<u8>: n as u8 if it fits (0..=255), otherwise None. Use u8::try_from(n).ok().",
+   "hint": "try_from returns a Result; ok() turns it into an Option."
+  },
+  {
+   "id": "r24-iter-successors",
+   "title": "successors",
+   "statement": "Write powers_of_two(limit: u64) -> Vec<u64>: the powers of two 1, 2, 4, … not greater than limit (iter::successors + take_while).",
+   "hint": "successors(Some(1), |&x| x.checked_mul(2)) — stops on overflow."
+  },
+  {
+   "id": "r24-iter-from-fn",
+   "title": "from_fn",
+   "statement": "Write collatz(n: u64) -> Vec<u64>: the Collatz sequence from n down to 1 inclusive (iter::from_fn with the state in the closure).",
+   "hint": "The state is kept in an Option<u64> inside the closure."
+  },
+  {
+   "id": "r24-iter-chain-zip",
+   "title": "chain and zip",
+   "statement": "Write interleave(a: &[i32], b: &[i32]) -> Vec<i32>: alternate the elements of a and b (a0, b0, a1, b1, …), the tail of the longer one is appended at the end.",
+   "hint": "min of the lengths, a loop over the common part, and the tail."
+  },
+  {
+   "id": "r24-iter-cycle",
+   "title": "cycle",
+   "statement": "Write repeat_to(v: &[i32], n: usize) -> Vec<i32>: the first n elements of the endless repetition of v (cycle + take); for an empty v — an empty vector.",
+   "hint": "cycle() on an empty slice gives an empty iterator."
+  },
+  {
+   "id": "r24-iter-fold",
+   "title": "fold",
+   "statement": "Write digits_to_num(d: &[u8]) -> u64: the number made of digits (d = [1, 2, 3] → 123) via fold.",
+   "hint": "acc * 10 + digit."
+  },
+  {
+   "id": "r24-iter-minmax",
+   "title": "min_by_key and max_by",
+   "statement": "Write shortest_longest(words: &[&str]) -> Option<(String, String)>: the shortest and the longest words (by number of characters; on ties — the first for the shortest and the last for the longest, as min_by_key and max_by_key do). For an empty slice — None.",
+   "hint": "min_by_key and max_by_key."
+  }
+ ]
+}

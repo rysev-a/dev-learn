@@ -1,0 +1,73 @@
+{
+ "book": 8,
+ "chapter": 5,
+ "tasks": [
+  {
+   "id": "u5-round-robin",
+   "title": "Round Robin with a quantum",
+   "statement": "round_robin(const int *burst, int n, int quantum, int *finish) → average waiting time ×100 (an integer, rounded down): n tasks (n ≤ 16) arrive at time 0 in index order; the CPU gives each a quantum in turn, round and round; finish[i] is the completion time of task i. Waiting time = completion time − duration. Switching is free.",
+   "hint": "Loop over tasks with remainders: each gets min(remainder, quantum), time advances; finished tasks are skipped."
+  },
+  {
+   "id": "u5-nice-weight",
+   "title": "Weight from nice and virtual time",
+   "statement": "The table prio_to_weight[40] (nice −20…19) is already in the starter. weight_of(int nice) → the weight (a nice outside the range is clamped). vruntime_delta(unsigned long long delta_ns, int nice) → delta_ns · 1024 / weight (integer division). cpu_share_pct(const int *nice, int n, int i) → the share of task i in percent ×100 (weight / sum of weights, rounded down).",
+   "hint": "A task with nice 5 spends virtual time faster: vruntime grows by delta · 1024 / weight, so the scheduler picks it less often."
+  },
+  {
+   "id": "u5-vruntime-pick",
+   "title": "CFS simulation: \"smallest vruntime\"",
+   "statement": "cfs_simulate(const int *nice, int n, int ticks, long *runtime_ms): n tasks (n ≤ 8), each with vruntime = 0. On every tick (1 ms) the task with the smallest vruntime is chosen (on a tie, the one with the smaller index); it receives 1 ms of time, and its vruntime grows by 1 000 000 · 1024 / weight(nice) nanoseconds. runtime_ms[i] holds how many ticks task i ran. The weight table is in the starter.",
+   "hint": "The vruntime increment is inversely proportional to the weight: a heavy task (with small nice) \"ages\" more slowly and gets more ticks."
+  },
+  {
+   "id": "u5-eevdf",
+   "title": "EEVDF: eligibility and virtual deadline",
+   "statement": "struct ent { int weight; long vruntime; long slice; }. avg_vruntime(const struct ent *e, int n) → the weighted average of vruntime by weights (integer division, rounded down). pick_eevdf(const struct ent *e, int n) → the index of a task: among the eligible ones (vruntime ≤ average) take the one with the smallest virtual deadline = vruntime + slice · 1024 / weight; on a tie, the smaller index; if there are no eligible ones (impossible for n ≥ 1) — 0. Returns −1 when n = 0.",
+   "hint": "Only those who lag behind the average (vruntime ≤ avg) are eligible: a short slice gives an early deadline, but a task that has run ahead cannot be picked."
+  },
+  {
+   "id": "u5-loadavg",
+   "title": "Load average: fixed point",
+   "statement": "The kernel computes the load average like this: load = (load · EXP + active · FIXED_1 · (FIXED_1 − EXP)) / FIXED_1, where FSHIFT = 11, FIXED_1 = 2048, EXP = 1884 (1 min), 2014 (5 min), 2037 (15 min), and active is the number of ready and uninterruptibly sleeping tasks (integer math). load_step(unsigned long load, unsigned long exp, int active) → the new value; load_int(unsigned long load) → the integer part, load_frac(unsigned long load) → two digits after the decimal point ((load & 2047) · 100 / 2048). load_step is called every 5 s.",
+   "hint": "All the arithmetic is in integers: multiply intermediate values in 64 bits, then divide by FIXED_1."
+  },
+  {
+   "id": "u5-timeslice",
+   "title": "Scheduler quanta: period and minimum granularity",
+   "statement": "sched_period(int nr_running) → the period during which each task gets a slice: for n ≤ 8 it is 6000 µs, otherwise n · 750 µs (the minimum granularity). slice_us(int weight, int total_weight, int nr_running) → the task's slice = period · weight / total_weight, but no less than 750 µs. wakeup_preempts(long curr_vruntime, long woken_vruntime, long wakeup_gran) → 1 if the difference curr − woken is greater than wakeup_gran (the waking task preempts the current one).",
+   "hint": "The slice is proportional to the weight within the sum of weights, but the 750 µs \"floor\" keeps tasks from being sliced endlessly thinner."
+  },
+  {
+   "id": "u5-affinity",
+   "title": "CPU affinity: cpu_set_t",
+   "statement": "allowed_cpus(void) → the number of processors in the mask of sched_getaffinity(0); first_allowed(void) → the number of the first allowed processor; pin_to(int cpu) → 0 / −1: leave the process only on this processor (sched_setaffinity), after which sched_getcpu() always returns it. restore_all(const cpu_set_t *saved) → 0 / −1: restore the previous mask. The macros CPU_ZERO, CPU_SET, CPU_COUNT, CPU_ISSET come from <sched.h>.",
+   "hint": "Fill the cpu_set_t with the CPU_ZERO/CPU_SET macros and pass it to sched_setaffinity(0, sizeof set, &set) — 0 means the current process."
+  },
+  {
+   "id": "u5-policies",
+   "title": "Scheduling policies and nice",
+   "statement": "policy_name(int p) → \"SCHED_OTHER\", \"SCHED_FIFO\", \"SCHED_RR\", \"SCHED_BATCH\", \"SCHED_IDLE\", \"SCHED_DEADLINE\" or \"?\" (constants from <sched.h>). current_policy(void) → sched_getscheduler(0). rt_range(int policy, int *lo, int *hi) → 0 / −1: the limits of static priorities sched_get_priority_min/max. current_nice(void) → getpriority(PRIO_PROCESS, 0) and set_nice(int n) → 0 / −1 via setpriority (note: getpriority may return −1 as a legitimate value).",
+   "hint": "getpriority may return −1 as a normal value — tell an error apart by errno, zeroed before the call."
+  },
+  {
+   "id": "u5-nice-real",
+   "title": "nice in practice",
+   "statement": "nice_after(int inc) → int: the child (fork) calls nice(inc) and reports to the parent through a pipe the value of getpriority(PRIO_PROCESS, 0), that is, the actual nice value after the call. Return it. The value is limited to the range −20…19: an attempt to go past the upper bound is clipped. Only a process with the CAP_SYS_NICE privilege can lower nice (a negative inc); the sandbox does not have it, so the value simply will not change. Error → 1000.",
+   "hint": "nice(inc) adds inc to the current value; the result is limited to −20…19. The nice value is a property of the process: a change in the child does not affect the parent. Lowering nice without privilege is impossible: the call returns EPERM and the value stays as it was."
+  },
+  {
+   "id": "u5-class-pick",
+   "title": "Scheduler classes: whom to run",
+   "statement": "pick_next(const struct stask *t, int n) → int: the index of the task the scheduler picks among those ready to run (runnable ≠ 0), or −1. The class order: 0 — deadline (pick the one with the smallest key — the nearest deadline), 1 — real-time FIFO and 2 — real-time RR (pick the one with the LARGEST key — the priority; the two classes are equal to each other), 3 — ordinary (with the smallest vr — the virtual time), 4 — idle (any; the first by index). Any task of an earlier class beats a task of a later one. On a tie, pick the one with the smaller index.",
+   "hint": "Classes are scanned in order: as long as an earlier class has a ready task, the next class is not even considered. Within a class its own rule applies: deadline, priority or virtual time.",
+   "starter": "struct stask {\n    int cls;       /* 0 deadline, 1 FIFO, 2 RR, 3 ordinary, 4 idle */\n    long key;      /* deadline (deadline class) or priority (FIFO/RR) */\n    long vr;       /* virtual time (ordinary) */\n    int runnable;\n};\n\nint pick_next(const struct stask *t, int n) { (void)t; (void)n; return -1; }\n"
+  },
+  {
+   "id": "u5-cpu-vs-wall",
+   "title": "CPU time versus wall-clock time",
+   "statement": "cpu_vs_wall() → int: measure the difference between CPU time (clock_gettime with CLOCK_PROCESS_CPUTIME_ID) and wall-clock time (CLOCK_MONOTONIC) in two cases. Case 1: the process sleeps for 100 ms (nanosleep). Case 2: the process spins in a loop (a while on CLOCK_MONOTONIC) for exactly 100 ms. Return a bit mask: bit 0 (value 1) — if in case 1 the CPU time grew by less than 30 ms; bit 1 (value 2) — if in case 2 the CPU time grew by at least 60 ms. The ideal result is 3.",
+   "hint": "While the process sleeps, it does not use the CPU: wall-clock time passes but CPU time does not. In a loop without sleep it consumes the CPU continuously, and both clocks grow together."
+  }
+ ]
+}

@@ -1,0 +1,186 @@
+{
+ "book": 10,
+ "chapter": 27,
+ "tasks": [
+  {
+   "id": "r27-read-all",
+   "title": "Read it all",
+   "statement": "Write slurp<R: Read>(mut r: R) -> io::Result<String>: read the whole source into a string.",
+   "hint": "&[u8] and Cursor implement Read; a UTF-8 error arrives as an io::Error."
+  },
+  {
+   "id": "r27-count-lines",
+   "title": "Lines and words",
+   "statement": "Write wc<R: BufRead>(r: R) -> io::Result<(usize, usize, usize)>: the number of lines, words (split_whitespace) and bytes (including line terminators) in the stream.",
+   "hint": "read_line returns the number of bytes read; 0 means the end."
+  },
+  {
+   "id": "r27-sum-input",
+   "title": "Sum of numbers from input",
+   "statement": "Write sum_input<R: BufRead>(r: R) -> io::Result<i64>: the sum of integers, one per line; skip empty lines, and report an InvalidData error for invalid ones.",
+   "hint": "io::Error::new(ErrorKind::InvalidData, e)"
+  },
+  {
+   "id": "r27-copy-upper",
+   "title": "Copy with a transformation",
+   "statement": "Write shout<R: BufRead, W: Write>(r: R, w: &mut W) -> io::Result<()>: write each input line to the output in upper case, with a \"!\" at the end and a newline.",
+   "hint": "writeln!(w, …) writes to any Write."
+  },
+  {
+   "id": "r27-tee",
+   "title": "Double write",
+   "statement": "Write tee<R: Read, A: Write, B: Write>(mut r: R, a: &mut A, b: &mut B) -> io::Result<usize>: read from r in blocks of 4 bytes and write each block to both a and b; return the number of bytes.",
+   "hint": "read may return fewer bytes than the buffer size, so write buf[..n]."
+  },
+  {
+   "id": "r27-take",
+   "title": "Limit reading",
+   "statement": "Write head(r: impl Read, n: u64) -> io::Result<String>: the first n bytes (the take method), as a string (lossy).",
+   "hint": "r.take(n).read_to_end(&mut buf)"
+  },
+  {
+   "id": "r27-chain",
+   "title": "Joining streams",
+   "statement": "Write joined(a: &str, b: &str) -> String: read two sources one after another through chain as one, and return the result.",
+   "hint": "Read::chain joins two sources."
+  },
+  {
+   "id": "r27-read-exact",
+   "title": "Fixed-length header",
+   "statement": "Write read_header<R: Read>(mut r: R) -> io::Result<(u16, u32)>: read 6 bytes, two bytes of u16 and four bytes of u32, in little-endian order; if the data is too short, return an UnexpectedEof error (read_exact).",
+   "hint": "from_le_bytes for each field."
+  },
+  {
+   "id": "r27-write-numbers",
+   "title": "Binary write",
+   "statement": "Write write_u32s<W: Write>(w: &mut W, v: &[u32]) -> io::Result<()>: write the numbers in big-endian order one after another (to_be_bytes).",
+   "hint": "x.to_be_bytes() returns [u8; 4]."
+  },
+  {
+   "id": "r27-seek-tail",
+   "title": "File tail",
+   "statement": "Write tail_bytes<R: Read + Seek>(mut r: R, n: u64) -> io::Result<Vec<u8>>: the last n bytes (or everything, if there is less data). Use Seek::seek(SeekFrom::End(…)).",
+   "hint": "seek(End(0)) returns the size."
+  },
+  {
+   "id": "r27-seek-patch",
+   "title": "Patch at an offset",
+   "statement": "Write patch<S: Read + Write + Seek>(mut s: S, pos: u64, data: &[u8]) -> io::Result<Vec<u8>>: write data starting at position pos and return the whole content after the patch.",
+   "hint": "A cursor over a vector implements Read, Write and Seek at once."
+  },
+  {
+   "id": "r27-bufwriter",
+   "title": "BufWriter",
+   "statement": "Write write_squares<W: Write>(w: W, n: u32) -> io::Result<()>: wrapping w in a BufWriter, write the squares of the numbers 1…n, one per line.",
+   "hint": "BufWriter::new(w) and flush() at the end."
+  },
+  {
+   "id": "r27-read-until",
+   "title": "read_until",
+   "statement": "Write records<R: BufRead>(mut r: R) -> io::Result<Vec<String>>: records separated by the character \";\" (read_until); the separator is not part of a record, and empty records are skipped.",
+   "hint": "read_until includes the separator in the buffer, so remove it."
+  },
+  {
+   "id": "r27-parse-grid",
+   "title": "Read a grid",
+   "statement": "Write read_grid<R: BufRead>(r: R) -> io::Result<Vec<Vec<i32>>>: the first line is \"N M\", then N lines of M numbers separated by spaces. If there are not enough lines or numbers, return an InvalidData error.",
+   "hint": "Define a closure bad() to create the error."
+  },
+  {
+   "id": "r27-path-parts",
+   "title": "Parts of a path",
+   "statement": "Write describe(p: &str) -> String: «каталог=…, имя=…, расширение=…» (directory, name, extension; use parent, file_stem, extension; a missing part is \"-\").",
+   "hint": "Path::new(p).parent(), file_stem(), extension() all return Option."
+  },
+  {
+   "id": "r27-path-join",
+   "title": "Joining paths",
+   "statement": "Write build_path(parts: &[&str]) -> String: join the parts into a path with PathBuf::push (an absolute part replaces everything before it); the result is a string. For [\"/a\", \"b\", \"c.txt\"] this is \"/a/b/c.txt\".",
+   "hint": "push with an absolute path replaces what has accumulated."
+  },
+  {
+   "id": "r27-ext-change",
+   "title": "Change the extension",
+   "statement": "Write to_bak(name: &str) -> String: replace the extension with \"bak\" (with_extension), and for a name without an extension, add it.",
+   "hint": "with_extension replaces the last extension."
+  },
+  {
+   "id": "r27-file-roundtrip",
+   "title": "File: write and read",
+   "statement": "Write roundtrip(text: &str) -> io::Result<String>: write text to a temporary file in the std::env::temp_dir() directory (with the process id in the name), read it back, delete the file and return what was read.",
+   "hint": "fs::write, fs::read_to_string, fs::remove_file."
+  },
+  {
+   "id": "r27-file-append",
+   "title": "Appending to a file",
+   "statement": "Write append_lines(lines: &[&str]) -> io::Result<usize>: in a temporary file (std::env::temp_dir(), with the process id in the name) append the lines one by one (OpenOptions append) using two separate opens; return the number of lines in the file; delete the file.",
+   "hint": "OpenOptions::new().append(true).create(true).open(&p)"
+  },
+  {
+   "id": "r27-dir-walk",
+   "title": "Walking a directory",
+   "statement": "Write make_and_list() -> io::Result<Vec<String>>: in a temporary directory (temp_dir plus a name with the process id) create a directory with the (empty) files c.txt, a.txt, b.log, read it with read_dir, return the names in alphabetical order and remove the directory with all its contents (remove_dir_all).",
+   "hint": "read_dir returns an iterator of io::Result<DirEntry>; the order is undefined, so sort."
+  },
+  {
+   "id": "r27-error-kind",
+   "title": "Kind of error",
+   "statement": "Write open_kind(path: &str) -> String: try to open the file; return \"ok\" on success, «нет файла» for NotFound, «нет доступа» for PermissionDenied and «ошибка» for anything else.",
+   "hint": "e.kind() returns an ErrorKind. A directory can be opened for reading, but it cannot be read."
+  },
+  {
+   "id": "r27-custom-error",
+   "title": "Your own error type",
+   "statement": "Declare enum AppError { Io(io::Error), Parse(std::num::ParseIntError) } with derive(Debug) and implement From for both variants. Then the function read_num(r: impl Read) -> Result<i32, AppError> reads a string and parses the number with a single ? at each step.",
+   "hint": "impl From<…> for AppError, with the body AppError::Variant(e)."
+  },
+  {
+   "id": "r27-line-numbers",
+   "title": "Line numbers",
+   "statement": "Write number_lines<R: BufRead, W: Write>(r: R, w: &mut W) -> io::Result<()>: write each line with a number (starting at 1) in the format «   1: текст» (number right-aligned in a field of width 4, then the line itself instead of «текст»).",
+   "hint": "enumerate() over lines()."
+  },
+  {
+   "id": "r27-grep",
+   "title": "grep",
+   "statement": "Write grep<R: BufRead>(r: R, pat: &str, ignore_case: bool) -> io::Result<Vec<(usize, String)>>: the numbers (from 1) and texts of the lines that contain pat (case-insensitive when ignore_case is set).",
+   "hint": "Convert both the pattern and the line to lower case."
+  },
+  {
+   "id": "r27-csv-sum",
+   "title": "CSV column",
+   "statement": "Write column_sum<R: BufRead>(r: R, col: usize) -> io::Result<f64>: the sum of the numbers in column col (from 0) of lines like «a,1.5,b»; the first line is a header and is skipped; empty fields count as zero; a non-numeric field is an InvalidData error.",
+   "hint": "split(',').nth(col) is the field you need."
+  },
+  {
+   "id": "r27-hexdump",
+   "title": "Hex dump",
+   "statement": "Write hexdump(data: &[u8]) -> Vec<String>: lines of 8 bytes each, «offset (4 hex digits): bytes separated by spaces» (the last line may be shorter): «0000: 48 65 6c …».",
+   "hint": "chunks(8) and enumerate; the offset is i * 8."
+  },
+  {
+   "id": "r27-run-command",
+   "title": "Running a program",
+   "statement": "Write echo_via_shell(word: &str) -> String: run the command \"echo\" with the argument word through std::process::Command and return its output without the trailing newline. (The sandbox has /bin/echo.)",
+   "hint": "Command::new(\"echo\").arg(word).output()"
+  },
+  {
+   "id": "r27-stdout-bytes",
+   "title": "How many bytes were printed",
+   "statement": "Write counted(f: impl Fn(&mut dyn Write)) -> usize: call f, passing it a vector of bytes as the Write, and return the number of bytes written.",
+   "hint": "&mut Vec<u8> coerces to &mut dyn Write."
+  },
+  {
+   "id": "r27-reverse-lines",
+   "title": "Lines in reverse order",
+   "statement": "Write reverse_lines<R: BufRead, W: Write>(r: R, w: &mut W) -> io::Result<()>: write the input lines in reverse order (one per line).",
+   "hint": "lines().collect::<Result<Vec<_>, _>>()?"
+  },
+  {
+   "id": "r27-parse-args",
+   "title": "Parsing arguments",
+   "statement": "Write parse_args(args: &[&str]) -> (bool, Option<String>, Vec<String>): the flag \"-v\" (verbose), the option \"-o <file>\" (output) and the remaining words as positional arguments, like simple command-line utilities.",
+   "hint": "Iterate over the arguments: after \"-o\" take the next item."
+  }
+ ]
+}

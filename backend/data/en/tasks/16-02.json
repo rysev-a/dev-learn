@@ -1,0 +1,186 @@
+{
+ "book": 16,
+ "chapter": 2,
+ "tasks": [
+  {
+   "id": "c2-gcd",
+   "title": "GCD and LCM: Euclid's algorithm",
+   "statement": "gcd(unsigned long a, unsigned long b) → the greatest common divisor by Euclid's algorithm (gcd(a, 0) = a, gcd(0, 0) = 0). lcm(a, b) → the least common multiple (0 if either is zero). A loop, no recursion.",
+   "hint": "While b ≠ 0: (a, b) = (b, a % b). For the LCM, divide by the GCD first to avoid overflow."
+  },
+  {
+   "id": "c2-prime",
+   "title": "Prime numbers",
+   "statement": "is_prime(unsigned n) → int: 1 for primes (check divisors up to √n, without sqrt from math.h: use the condition i * i <= n). count_primes(unsigned limit) → unsigned: the number of primes strictly less than limit.",
+   "hint": "Loop over i while i * i <= n; compute the product in a wider type so it doesn't overflow."
+  },
+  {
+   "id": "c2-collatz",
+   "title": "The Collatz sequence",
+   "statement": "collatz_steps(unsigned long n) → the number of steps to reach one (n even: n/2, odd: 3n+1; for 1 it is 0). best_start(unsigned limit) → the starting n < limit with the longest chain (on a tie, the smaller one).",
+   "hint": "Use unsigned long so that 3n + 1 doesn't overflow on long chains."
+  },
+  {
+   "id": "c2-digits",
+   "title": "Digits of a number: the do-while loop",
+   "statement": "digit_sum(unsigned n), reverse_digits(unsigned n) (1200 → 21) and count_digits(unsigned n) (1 digit for 0), all via do-while / division by 10. is_palindrome(unsigned n) tells whether the number reads the same in both directions.",
+   "hint": "The last digit is n % 10, dropping it is n /= 10. For count_digits(0) you need do-while so that the body runs at least once."
+  },
+  {
+   "id": "c2-fib",
+   "title": "Fibonacci without exponential recursion",
+   "statement": "fib(unsigned n) → uint64_t: the n-th Fibonacci number (fib(0)=0, fib(1)=1) for n ≤ 93, using a loop. Naive double recursion won't finish in time for n = 90. fib_mod(unsigned long n, unsigned m) → the Fibonacci number modulo m in O(n) without storing all the values.",
+   "hint": "Two accumulators a and b and a shift of the pair on each step: (a, b) = (b, a + b)."
+  },
+  {
+   "id": "c2-powmod",
+   "title": "Fast modular exponentiation",
+   "statement": "powmod(uint64_t b, uint64_t e, uint64_t m) → uint64_t: b^e mod m (m ≥ 1, m < 2³²) in O(log e): a loop over the bits of e, squaring the base. e can be huge (up to 2⁶⁴ − 1).",
+   "hint": "If the lowest bit of e is one, multiply the result by the current base; then square the base and shift e."
+  },
+  {
+   "id": "c2-isqrt",
+   "title": "Integer square root",
+   "statement": "isqrt(uint64_t n) → uint64_t: the largest r with r·r ≤ n, without floating-point numbers (no sqrt and no double), using binary search; computing r·r must not overflow.",
+   "hint": "The root of any uint64_t does not exceed 2³² − 1; look for the largest mid with mid * mid <= n (mid * mid fits in uint64_t)."
+  },
+  {
+   "id": "c2-calendar",
+   "title": "Calendar: leap years and day of the week",
+   "statement": "is_leap(y); days_in_month(y, m) (m = 1..12); day_of_week(y, m, d) → 0 = Sunday … 6 = Saturday (Gregorian calendar, y ≥ 1583; Zeller's or Sakamoto's formula). Check yourself: January 1, 2000 was a Saturday.",
+   "hint": "A leap year: divisible by 4 and not by 100, or divisible by 400. For the day of the week, use Sakamoto's algorithm with a table of month offsets."
+  },
+  {
+   "id": "c2-calc",
+   "title": "switch: a calculator",
+   "statement": "calc(char op, long a, long b) → long: «+», «-», «*», «/», «%», «&», «|», «^» and «<» (a << b, for 0 ≤ b < 63). For an unknown operation, division by zero, or an invalid shift, return LONG_MIN. Use a single switch.",
+   "hint": "A return in each branch; for / and % check b == 0 before the operation (division by zero is UB)."
+  },
+  {
+   "id": "c2-fix-fallthrough",
+   "title": "Fix: fall-through in a switch",
+   "statement": "day_type(d) for d = 1..7 (Monday…Sunday) must return \"weekday\" or \"weekend\", and \"invalid\" for any other number. Right now, because of the missing breaks, every value gives «invalid». Fix it.",
+   "hint": "After the assignment in each case group put a break; default doesn't need one: it is the last branch."
+  },
+  {
+   "id": "c2-fix-braces",
+   "title": "Fix: if without braces",
+   "statement": "validate(a, b, c) returns 0 if any of the arguments is negative, otherwise 1. The indentation is deceptive: because of the missing curly braces the function always returns 0. Fix it: place the braces the way the author intended.",
+   "hint": "The extra line «return 0;» with no condition always runs: delete it and put braces on each if."
+  },
+  {
+   "id": "c2-fix-size-t",
+   "title": "Fix: an infinite loop over size_t",
+   "statement": "sum_reversed(const int *a, size_t n) returns the sum of a[i] · (n − i) over all i, going through the indices from the last to the first. The loop with size_t i >= 0 never ends (the program will be stopped by a timeout). Rewrite the loop without changing the parameter types.",
+   "hint": "The condition i-- > 0 compares the old value of i with zero and then decrements: on the last iteration i becomes zero inside the body."
+  },
+  {
+   "id": "c2-factorial",
+   "title": "Recursion: factorial and its limits",
+   "statement": "fact(n) → uint64_t recursively (n ≤ 20). fact_iter(n) is the same with a loop. first_overflow(void) → int: the smallest n for which n! does not fit in uint64_t (determine it with a division check, without overflowing).",
+   "hint": "Before multiplying by n, check that f <= UINT64_MAX / n."
+  },
+  {
+   "id": "c2-hanoi",
+   "title": "Towers of Hanoi",
+   "statement": "hanoi_moves(n) → unsigned long: the number of moves (2ⁿ − 1). hanoi(n, from, to, via): print each move as a line «A->C» (don't print the disk number), the pegs are the characters 'A', 'B', 'C'.",
+   "hint": "Move n−1 disks to the spare peg, move the largest one, then move the n−1 again onto the target."
+  },
+  {
+   "id": "c2-ackermann",
+   "title": "The Ackermann function",
+   "statement": "ackermann(m, n): A(0, n) = n + 1; A(m, 0) = A(m − 1, 1); A(m, n) = A(m − 1, A(m, n − 1)). Implement it recursively: it is a good way to get a feel for stack frames. Values up to m = 3, n = 6 fit on the stack.",
+   "hint": "Three cases from the definition; in the second and third there are recursive calls with a smaller m."
+  },
+  {
+   "id": "c2-fix-prototype",
+   "title": "Fix: a function declared after its call",
+   "statement": "is_even and is_odd call each other (mutual recursion). The code doesn't build because is_odd is used before it is declared. Add a prototype without changing the order of the definitions.",
+   "hint": "int is_odd(unsigned n); is a prototype that tells the compiler the signature in advance."
+  },
+  {
+   "id": "c2-static-counter",
+   "title": "static inside a function",
+   "statement": "next_id(void) → int: on each call returns the next number, starting from 1 (stored in a static variable). calls_since_reset(void) → int and reset_ids(void): the number of next_id calls since the last reset, and the reset itself (the next next_id will return 1 again). No global variables are needed apart from statics inside functions (or file-level static).",
+   "hint": "A file-level static variable is shared by several functions and is not visible from other files."
+  },
+  {
+   "id": "c2-varargs-sum",
+   "title": "Functions with a variable number of arguments",
+   "statement": "sum_n(int n, ...) → int: the sum of the next n arguments of type int. avg_n(int n, ...) → double: the average of n arguments of type double (n ≥ 1). max_n(int n, ...) → int: the largest of n arguments of type int. Use stdarg.h.",
+   "hint": "va_arg(ap, double): the type must be given exactly; integer literals instead of double give garbage, so the driver uses 1.0, 2.5… everywhere."
+  },
+  {
+   "id": "c2-varargs-log",
+   "title": "A wrapper over printf: vprintf",
+   "statement": "log_msg(const char *level, const char *fmt, ...): prints «[LEVEL] » (the level in capital letters, as passed), then the message formatted by fmt with the arguments, and a newline. Pass the arguments through a va_list to the vprintf function.",
+   "hint": "vprintf(fmt, ap) is the version of printf that takes a va_list; va_start is called with the last named parameter fmt."
+  },
+  {
+   "id": "c2-print-base",
+   "title": "Recursive printing of a number in a base",
+   "statement": "print_base(unsigned n, unsigned base): print n in the numeral system base (2..36, digits 0-9 and lowercase a-z) with no spaces and no newline, without using arrays or printf with %x: use recursion (the high digits are printed first). For 0 print «0».",
+   "hint": "First the recursive call for n / base (if the number is not yet a single digit), then print the last digit."
+  },
+  {
+   "id": "c2-bit-loops",
+   "title": "Bits with loops: reverse order, zeros",
+   "statement": "reverse_bits(uint32_t x) reverses the order of the 32 bits. leading_zeros(uint32_t x) and trailing_zeros(uint32_t x) give the number of zeros on the high/low side (32 for 0). Loops, no __builtin_*.",
+   "hint": "The loop condition must check the bound on i before reading a bit, so you don't shift by 32."
+  },
+  {
+   "id": "c2-perfect",
+   "title": "Divisors and perfect numbers",
+   "statement": "divisor_sum(unsigned n) → the sum of proper divisors (less than n; 0 for 1), in O(√n). count_perfect(unsigned limit) → how many perfect numbers (n equals the sum of its proper divisors) are less than limit; the first ones: 6, 28, 496, 8128.",
+   "hint": "Divisors come in pairs (i, n / i); when i * i == n, don't add the second divisor."
+  },
+  {
+   "id": "c2-print-shapes",
+   "title": "Nested loops: shapes and a table",
+   "statement": "print_triangle(n): n lines, with i asterisks in the i-th line (no trailing spaces). print_table(n): an n × n multiplication table, each number takes 4 positions right-aligned (%4d), lines end with a newline. Output exactly this format.",
+   "hint": "The outer loop is the rows, the inner one the columns; a newline after the inner loop."
+  },
+  {
+   "id": "c2-pythagorean",
+   "title": "Pythagorean triples: two loops instead of three",
+   "statement": "count_triples(int limit) → the number of triples a < b < c ≤ limit with a² + b² = c² (integers). A triple loop won't finish at limit = 3000: iterate over a and b and check c using an integer square root.",
+   "hint": "c = (long)sqrt((double)s) with corrections for inexactness, then check c * c == s and c <= limit."
+  },
+  {
+   "id": "c2-happy",
+   "title": "Happy numbers and the digital root",
+   "statement": "digital_root(unsigned n) → the single-digit number obtained by repeatedly adding digits (0 for 0). is_happy(unsigned n) → 1 if the sequence of «sum of squares of digits» reaches 1 (otherwise it cycles: use the fact that the cycle always enters 4).",
+   "hint": "The cycle of unhappy numbers always passes through 4, so it is enough to stop at 1 or 4."
+  },
+  {
+   "id": "c2-sum-multiples",
+   "title": "A formula instead of a loop",
+   "statement": "sum_multiples(uint64_t n) → the sum of all natural numbers less than n that are multiples of 3 or 5 (n up to 10¹²). A loop up to 10¹² won't finish: use the formula for the sum of an arithmetic progression and the inclusion-exclusion principle (multiples of 15 are counted twice).",
+   "hint": "There are exactly m = (n − 1) / k multiples of k below n; their sum is k · m · (m + 1) / 2."
+  },
+  {
+   "id": "c2-goto-cleanup",
+   "title": "goto for cleanup: a kernel idiom",
+   "statement": "step(k, fail_at) already exists in the driver: it prints «step k» and returns 1 if k == fail_at (an error), otherwise 0. Write run_steps(int fail_at) → int: run steps 1, 2, 3 in order; if step k fails, roll back in reverse order (printing «undo j» for each successfully completed j < k) and return −k; if all three succeed, return 0. Use goto to cleanup labels, as is customary in systems code.",
+   "hint": "The labels go in reverse order: err3 prints undo 2 and falls through into err2 (undo 1), then into err1, which returns."
+  },
+  {
+   "id": "c2-traffic-light",
+   "title": "A state machine with enum and switch",
+   "statement": "enum light { RED, GREEN, YELLOW }. next(enum light) → the next color (RED→GREEN→YELLOW→RED); duration(enum light) → the duration in seconds (RED 30, GREEN 25, YELLOW 5); color_at(int t) → the color t seconds after the start of red (t ≥ 0, a 60-second cycle).",
+   "hint": "color_at: take t % 60 and subtract the colors' durations, moving to the next one, until t falls inside the current one."
+  },
+  {
+   "id": "c2-lcg",
+   "title": "A pseudorandom number generator",
+   "statement": "A linear congruential generator: state = state · 1103515245 + 12345 (mod 2³²), the result is (state >> 16) & 0x7FFF. seed_rand(unsigned s) sets the state, next_rand(void) → int returns the next value. The state is kept in a static variable. rand_range(int lo, int hi) → a number lo..hi inclusive (via next_rand() % (hi − lo + 1)).",
+   "hint": "Do the state arithmetic in unsigned: overflow is defined there and gives the needed \"modulo 2³²\"."
+  },
+  {
+   "id": "c2-roman",
+   "title": "Roman numerals",
+   "statement": "print_roman(int n): print the Roman notation of the number 1 ≤ n ≤ 3999 (M, CM, D, CD, C, XC, L, XL, X, IX, V, IV, I) and a newline. roman_value(char c) → the value of the symbol (I=1, V=5, X=10, L=50, C=100, D=500, M=1000, otherwise 0).",
+   "hint": "Greedily subtract values from the table in descending order, including the subtractive pairs 900, 400, 90, 40, 9, 4."
+  }
+ ]
+}

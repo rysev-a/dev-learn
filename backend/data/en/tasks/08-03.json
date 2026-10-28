@@ -1,0 +1,78 @@
+{
+ "book": 8,
+ "chapter": 3,
+ "tasks": [
+  {
+   "id": "u3-can-access",
+   "title": "Access check as in the kernel",
+   "statement": "struct inode { unsigned uid, gid; mode_t mode; }; struct cred { unsigned uid, gid; unsigned groups[8]; int ngroups; }. may_access(const struct inode *i, const struct cred *c, int want) → 1/0, where want is a bit mask: 4 (read), 2 (write), 1 (execute). The order: uid = 0 (root) can read and write everything; it can execute only if the file has at least one x bit (or is a directory, S_IFDIR); otherwise exactly ONE class is chosen: the owner if the uid matches; otherwise the group (primary or supplementary); otherwise others. The class is chosen by the first match, so the owner's rights are not \"added\" to the group's.",
+   "hint": "Do not add the classes together: if the uid matches the owner, look only at the owner's bits, even if they are narrower than the group's."
+  },
+  {
+   "id": "u3-umask",
+   "title": "umask when creating a file",
+   "statement": "created_mode(mode_t requested, mode_t umask_) → the resulting permissions of a new file (requested & ~umask_ & 07777). real_created_mode(const char *path, mode_t requested, mode_t um) → the permissions actually obtained: temporarily set umask(um), create the file with open(O_CREAT|O_EXCL, requested), read st_mode & 07777, restore the previous umask and return the result (−1 on error).",
+   "hint": "umask(new) returns the previous value; restore it with umask(old) right after open."
+  },
+  {
+   "id": "u3-chmod-symbolic",
+   "title": "Symbolic chmod: u+x,go-w,a=r",
+   "statement": "apply_chmod(mode_t mode, const char *spec) → the new mode, or (mode_t)-1 on error. spec is a comma-separated list of the form [ugoa]*[+-=][rwxst]*: u/g/o/a are classes (empty = a), '+' adds, '-' removes, '=' assigns for those classes (clearing the class's other bits). s is setuid for u and setgid for g, t is sticky. The file type bits (S_IFMT) are preserved. Example: apply_chmod(0644, \"u+x,go-r\") = 0700.",
+   "hint": "Parse the \"who\", the operation and the permissions one after another; for '=' first clear all bits of the selected classes, then add the new ones."
+  },
+  {
+   "id": "u3-sticky",
+   "title": "Deleting in a directory with the sticky bit",
+   "statement": "may_unlink(const struct dir *d, const struct file *f, unsigned uid) → 1/0: to delete a name from a directory you need write permission on the directory (by class, as in the ordinary check: owner, group, others, without supplementary groups). If the directory has the sticky bit (01000) set, a file can be deleted only by root, the directory's owner or the file's owner.",
+   "hint": "First check write access to the directory by the \"exactly one class\" rule, then apply the extra condition for the sticky bit."
+  },
+  {
+   "id": "u3-suid-scan",
+   "title": "Finding setuid files",
+   "statement": "scan_special(const char *dir, int *suid, int *sgid, int *sticky_dirs, int *world_writable): walk the tree recursively (lstat, do not follow symbolic links) and count regular files with setuid, regular files with setgid, directories with the sticky bit, and any non-links writable by \"others\" (S_IWOTH). Zero the values beforehand.",
+   "hint": "Take the type and permission bits from a single lstat: S_ISREG, S_ISDIR, then test S_ISUID, S_ISGID, S_ISVTX, S_IWOTH."
+  },
+  {
+   "id": "u3-capabilities",
+   "title": "Capability masks",
+   "statement": "A line like \"CapEff:\\t00000000a80425fb\" is a mask from /proc/PID/status. cap_names(unsigned long long mask, char *out, size_t cap) → the number of capabilities found: write the names of the known bits separated by commas (0 chown, 1 dac_override, 2 dac_read_search, 3 fowner, 4 fsetid, 5 kill, 6 setgid, 7 setuid, 8 setpcap, 10 net_bind_service, 12 net_admin, 13 net_raw, 21 sys_admin, 23 sys_nice, 24 sys_resource); skip unknown bits, and an empty mask gives \"none\". parse_cap_line(const char *line, unsigned long long *mask) → 1/0: extract the hexadecimal number after the colon (spaces and tabs are skipped).",
+   "hint": "Test bit i of the mask as (mask >> i) & 1; join the names with snprintf, taking the already written length into account."
+  },
+  {
+   "id": "u3-passwd-parse",
+   "title": "Parsing /etc/passwd and /etc/group",
+   "statement": "struct pw { char name[32]; unsigned uid, gid; char home[64]; char shell[64]; }. parse_passwd_line(const char *line, struct pw *p) → 1/0: the format is \"name:x:uid:gid:gecos:home:shell\" (seven fields, uid/gid are numbers, fields are truncated to fit). in_group(const char *group_line, const char *user) → 1/0: for a line \"name:x:gid:u1,u2,u3\", whether user is in the member list (exact name match).",
+   "hint": "Split on the colon without losing empty fields (gecos may be empty); validate numbers with strtoul, checking the tail."
+  },
+  {
+   "id": "u3-real-chmod",
+   "title": "chmod and stat on a real file",
+   "statement": "set_mode(path, mode) → 0 / −errno via chmod(); get_mode(path) → the permissions st_mode & 07777 (−1 on error); is_world_writable(path) → 1/0; make_private(path) → 0 / −errno: leave access only to the owner (0600 for a file and 0700 for a directory; determine the type with stat).",
+   "hint": "chmod takes bits, not a string; for make_private first determine the type with S_ISDIR(st.st_mode)."
+  },
+  {
+   "id": "u3-run-as",
+   "title": "Running as another user",
+   "statement": "run_as(unsigned uid, const char *path) → int: create a child process that (if uid ≠ 0) switches to user uid and group uid with the setgid and setuid calls (in exactly that order), and then tries to open path for reading; the child passes the parent, through a pipe, the number 0 (open succeeded) or errno. Return that number; an error before the open → −1. The parent stays root.",
+   "hint": "setgid first, then setuid: after the user change the process no longer has the right to change its group. Permissions are checked against the effective IDs at the moment of open."
+  },
+  {
+   "id": "u3-access-vs-open",
+   "title": "access and open: real and effective user",
+   "statement": "ids_diff(char *out, size_t n) → int: in a child process call seteuid(65534) (the effective user changes, the real one stays 0) and test the root-owned file /tmp/<own>/priv (created by the driver before the call: the path is passed in the global string PRIV_PATH): access(path, R_OK) uses the REAL IDs, while open uses the EFFECTIVE ones. Write into out the string \"A=<access result: 0 or −1> O=<0 if open succeeded, otherwise errno>\" and return 0; an error → −1. The path to the file is available to you as extern const char *PRIV_PATH.",
+   "hint": "A privileged program with the setuid bit has different real and effective users. access(2) looks at the real one and open at the effective one, so an access check before open is unsafe (and open itself checks permissions differently)."
+  },
+  {
+   "id": "u3-sudo-rules",
+   "title": "sudo rules: who can do what",
+   "statement": "sudo_allowed(const char *rules, const char *user, const char *cmd) → int: rules is the rule text, one rule per line: \"<subject> <command>[,<command>…]\", where the subject is a user name or \"%group\", and a command is a full path or \"ALL\". The user user belongs to the groups listed in the global table: extern const char *GROUPS[][2] — pairs {user, group}, terminated by {NULL, NULL}. Return 1 if some rule allows the command cmd for this user (directly or through a group), otherwise 0. Skip lines that start with \"#\" and empty lines.",
+   "hint": "A rule applies if its subject is the user themselves, or a group with the \"%\" prefix that the user belongs to; then look in the command list for an exact match or ALL. Skip comments and empty lines."
+  },
+  {
+   "id": "u3-root-powers",
+   "title": "What root can do: capabilities in /proc and chown",
+   "statement": "has_privileges(unsigned uid) → int: a child (fork), when uid ≠ 0, does setgid and setuid to uid, then reads the CapEff field (a hexadecimal mask of effective capabilities) from /proc/self/status; it sends the parent 1 through a pipe if the mask is non-zero, otherwise 0. Return that number (an error → −1). chown_errno(unsigned uid, const char *path) → int: a child likewise drops privileges (if uid ≠ 0) and tries to give the file path to user 1234 (chown(path, 1234, −1)); return 0 on success or errno.",
+   "hint": "The CapEff mask is the set of capabilities in effect right now; for root it is full, and after setuid to an ordinary user it becomes zero. Changing a file's owner requires CAP_CHOWN, so an ordinary user gets EPERM (1)."
+  }
+ ]
+}

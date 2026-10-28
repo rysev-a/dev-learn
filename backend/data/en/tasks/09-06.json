@@ -1,0 +1,271 @@
+{
+ "book": 9,
+ "chapter": 6,
+ "tasks": [
+  {
+   "id": "s06-01",
+   "title": "Order and customer",
+   "statement": "Output the order id and the customer name (JOIN customers on customer_id): columns order_id, name; ordered by order id.",
+   "hint": "ON c.id = o.customer_id"
+  },
+  {
+   "id": "s06-02",
+   "title": "With the amount",
+   "statement": "Output name, order id and total for all orders (JOIN), ordered by order id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s06-03",
+   "title": "Filter after JOIN",
+   "statement": "Output the name of customers and the ids of their paid orders (status = 'paid'), ordered by order id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s06-04",
+   "title": "Lines and products",
+   "statement": "For order no. 1 output the title and qty of each line (order_items JOIN products), ordered by title.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s06-05",
+   "title": "Three tables",
+   "statement": "Output order_id, created and the product title for each line (order_items, orders, products), ordered by order_id, then by title.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s06-06",
+   "title": "Four tables",
+   "statement": "Output the customer name, order id, product title and qty for each line: ordered by order, then by title.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s06-07",
+   "title": "USING",
+   "statement": "The database has a reference table cities(city, country). When a column has the same name in both tables, the join can be written with USING (city). Output the customer name and country; customers without a city do not appear in the result. Ordered by name.",
+   "hint": "JOIN cities ct USING (city) instead of ON c.city = ct.city.",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s06-08",
+   "title": "Customers and orders (LEFT)",
+   "statement": "Output the customer name and order id; customers without orders must also be in the result (LEFT JOIN, order_id will be NULL). Ordered by name, then by order_id.",
+   "hint": "LEFT JOIN keeps all rows of the left table.",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s06-09",
+   "title": "Customers without orders",
+   "statement": "Output the name of customers who have no orders at all: LEFT JOIN and the condition o.id IS NULL. Ordered by name.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s06-10",
+   "title": "Unsold products",
+   "statement": "Output the title of products that were never sold (no rows in order_items), ordered by title.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s06-11",
+   "title": "How many without orders",
+   "statement": "How many customers have made no orders at all? Column n.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s06-12",
+   "title": "Condition in ON",
+   "statement": "Output the customer name and the id of their paid orders; customers without paid orders must remain (order_id NULL). Put the condition status = 'paid' in ON, not in WHERE. Ordered by name, order_id.",
+   "hint": "A condition in WHERE would turn the LEFT JOIN into an inner one.",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s06-13",
+   "title": "No paid orders",
+   "statement": "Output the name of customers who have no paid orders at all; ordered by name.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s06-14",
+   "title": "RIGHT JOIN",
+   "statement": "RIGHT JOIN keeps the rows of the right table. Output the product title and order_id from order_items RIGHT JOIN products; unsold ones will give NULL. Ordered by title, order_id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s06-15",
+   "title": "Employees and departments",
+   "statement": "HR database. Output the employee name and the department name (JOIN departments); employees without a department will not appear in the result. Ordered by employee id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s06-16",
+   "title": "All employees",
+   "statement": "HR database. Output name and the department name for all employees, including those without a department (LEFT JOIN). Ordered by id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s06-17",
+   "title": "Empty departments",
+   "statement": "HR database. Output the names of departments that have no employees.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s06-18",
+   "title": "FULL JOIN",
+   "statement": "HR database. FULL OUTER JOIN keeps the rows of both tables. Output e.name and d.name for all pairs, including employees without a department and departments without employees; ordered by e.name, d.name (NULLs come first).",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s06-19",
+   "title": "Employee and boss",
+   "statement": "HR database. Self-join: output the employee name and the name of their boss (boss) for those who have one; ordered by employee id.",
+   "hint": "The same table is taken twice under different aliases.",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s06-20",
+   "title": "Without a boss too",
+   "statement": "HR database. Output the employee name and the boss; where there is no boss, NULL. Ordered by id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s06-21",
+   "title": "Pairs with equal salary",
+   "statement": "HR database. Find pairs of employees in the same department with equal salary: a.name, b.name, with a.id < b.id so that a pair is not repeated.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s06-22",
+   "title": "Subordinates of Nina",
+   "statement": "HR database. Output the name of the subordinates of `Нина Белова` (boss — by name), ordered by id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s06-23",
+   "title": "CROSS JOIN",
+   "statement": "How many rows does the cross join customers CROSS JOIN products give? Column n.",
+   "hint": "Each row on the left with each row on the right: 12 × 13.",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s06-24",
+   "title": "All combinations",
+   "statement": "Output all combinations of product category and order status without repeats: DISTINCT p.category, o.status from products p CROSS JOIN orders o; ordered by category, status.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s06-25",
+   "title": "Row multiplication",
+   "statement": "How many rows are in the result of orders JOIN order_items? Column n. The join multiplies rows: each order gets one row per line.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s06-26",
+   "title": "Bought electronics",
+   "statement": "Output without repeats the name of customers who bought at least one product of the category `Электроника`; ordered by name.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s06-27",
+   "title": "Bought the SQL book",
+   "statement": "Output the name of customers who bought `Книга SQL`; ordered by name, without repeats.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s06-28",
+   "title": "Line totals",
+   "statement": "Output order_id, title and the line cost qty * price as line_total for order no. 5; ordered by title.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s06-29",
+   "title": "Top 3 orders with customer",
+   "statement": "Output name and total of the three largest orders (the amounts are all different).",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s06-30",
+   "title": "Muscovites' revenue",
+   "statement": "What is the sum of all orders of customers from Moscow? Column revenue.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s06-31",
+   "title": "Join on inequality",
+   "statement": "The tiers table defines price levels (low–high). Output title and the tier name (tiers.name) for each product; join on p.price BETWEEN t.low AND t.high. Ordered by product id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s06-32",
+   "title": "Premium-tier products",
+   "statement": "Output the title of products that fall into the tier `премиум` in the tiers table; ordered by title.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s06-33",
+   "title": "Students and courses",
+   "statement": "School database. Output the student name, course title and score for 2024; ordered by name, title.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s06-34",
+   "title": "Fives in math",
+   "statement": "School database. Output the name of students who got 5 in the course `Математика` (any year); ordered by name, without repeats.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s06-35",
+   "title": "Courses with no enrollments",
+   "statement": "School database. Output the title of courses nobody is enrolled in (no rows in enrollments).",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s06-36",
+   "title": "Movie and director",
+   "statement": "Movies database. Output the movie title and the director name; do not show movies without a director; ordered by title.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s06-37",
+   "title": "Movie without a director",
+   "statement": "Movies database. Output the title and the director name for all movies (LEFT JOIN); where there is no director, NULL; ordered by title.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s06-38",
+   "title": "Directors from the USA and Japan",
+   "statement": "Movies database. Output the title of movies by directors from Japan or the USA; ordered by title.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  }
+ ]
+}

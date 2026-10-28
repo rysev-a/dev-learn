@@ -1,0 +1,271 @@
+{
+ "book": 9,
+ "chapter": 15,
+ "tasks": [
+  {
+   "id": "s15-01",
+   "title": "Numbering rows",
+   "statement": "Number the products by ascending price: title, price, rn (ROW_NUMBER() OVER (ORDER BY price)). Prices are distinct; order by rn.",
+   "hint": "OVER (ORDER BY …) sets the order within the window."
+  },
+  {
+   "id": "s15-02",
+   "title": "Numbering within a group",
+   "statement": "Number the products within each category by descending price: category, title, price, rn (PARTITION BY category). Order by category, rn.",
+   "hint": "PARTITION BY splits the rows into independent groups.",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s15-03",
+   "title": "Most expensive in each category",
+   "statement": "Output the single most expensive product in each category: category, title, price (ROW_NUMBER = 1); order by category.",
+   "hint": "Window functions can't go in WHERE — wrap the query.",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s15-04",
+   "title": "Top 2 in a category",
+   "statement": "Output the two most expensive products of each category: category, title, price; order by category, then price descending.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s15-05",
+   "title": "RANK and ties",
+   "statement": "Output title, stock and the rank rk by descending stock using RANK(); for equal stock the ranks are equal and a gap follows them. Order by rk, title.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s15-06",
+   "title": "DENSE_RANK",
+   "statement": "The same with DENSE_RANK(): after equal values the next rank follows with no gap. Output title, stock, rk; order by rk, title.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s15-07",
+   "title": "Three ways of numbering",
+   "statement": "For products by descending stock, output title, stock, rn (ROW_NUMBER with a secondary key title), rk (RANK), dr (DENSE_RANK); order by rn.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s15-08",
+   "title": "Quartiles",
+   "statement": "Split the products into 4 groups by price with NTILE(4): title, price, q; order by price (prices are distinct).",
+   "hint": "NTILE(n) splits the ordered rows into n nearly equal parts.",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s15-09",
+   "title": "Previous row",
+   "statement": "For the orders of customer 5 (customer_id = 5), output id, created, total and the previous order's amount prev_total (LAG by created, id); order by created, id.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s15-10",
+   "title": "Change from the previous",
+   "statement": "For customer 5, output id and the change of the order amount from the previous one diff = total - LAG(total) (NULL for the first); order by created, id.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s15-11",
+   "title": "LAG with a default value",
+   "statement": "LAG(expression, offset, default). For customer 5, output id, total and prev_total, substituting 0 for NULL on the first order.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s15-12",
+   "title": "Next row",
+   "statement": "For customer 5, output id, created and the date of the next order next_created (LEAD); order by created, id.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s15-13",
+   "title": "Days between orders",
+   "statement": "For customer 5, output id and the number of days since the previous order gap_days (the difference of julianday values, an integer); NULL for the first; order by created, id.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s15-14",
+   "title": "Running total",
+   "statement": "Output the orders by date: id, created, total and the running sum running (SUM(total) OVER (ORDER BY created, id)); order by created, id.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s15-15",
+   "title": "Running total per customer",
+   "statement": "A running sum within each customer: customer_id, id, total, running (PARTITION BY customer_id ORDER BY created, id); order by customer_id, created, id.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s15-16",
+   "title": "Running counter",
+   "statement": "Output the order id and the order's sequence number in the year (COUNT(*) OVER (ORDER BY created, id)) as n; order by n.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s15-17",
+   "title": "Group sum beside the row",
+   "statement": "Output id, customer_id, total and the sum of all of that customer's orders client_sum (SUM OVER PARTITION BY customer_id); order by id.",
+   "hint": "Without ORDER BY in the window, the sum is taken over the whole group.",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s15-18",
+   "title": "Order's share within the customer",
+   "statement": "Output id and the order's share of the customer's order sum share as a percentage (ROUND to an integer): total * 100.0 / SUM(total) OVER (PARTITION BY customer_id); order by id.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s15-19",
+   "title": "Group average",
+   "statement": "Output title, category, price and the category's average price cat_avg (ROUND to an integer, AVG OVER PARTITION BY category); order by id.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s15-20",
+   "title": "Deviation from the average",
+   "statement": "Output title and the difference between the price and the category average diff = price - AVG(price) OVER (PARTITION BY category) (ROUND to an integer); order by id.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s15-21",
+   "title": "Moving average",
+   "statement": "A moving average of the order amount over the last three orders (including the current one): id, total, ma3 (ROUND to an integer, ROWS BETWEEN 2 PRECEDING AND CURRENT ROW); order by created, id.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s15-22",
+   "title": "First value",
+   "statement": "For each order, output id, customer_id and the date of the customer's first order first_order (FIRST_VALUE(created) OVER (PARTITION BY customer_id ORDER BY created, id)); order by id.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s15-23",
+   "title": "Last value",
+   "statement": "Output id and the date of the customer's last order last_order. Hint: LAST_VALUE needs the frame ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING, otherwise the window ends at the current row. Order by id.",
+   "hint": "The default frame runs from the start to the current row.",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s15-24",
+   "title": "Running maximum",
+   "statement": "Output id, total and the maximum amount among the orders up to and including the current one (MAX OVER ORDER BY created, id) as max_so_far; order by created, id.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s15-25",
+   "title": "Percent rank",
+   "statement": "Output title, price and the cumulative share of products cheaper than or equal to the current one cd = ROUND(CUME_DIST() OVER (ORDER BY price), 2); order by price.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s15-26",
+   "title": "Named window",
+   "statement": "A named window: SELECT … WINDOW w AS (PARTITION BY category ORDER BY price). Output title, category and RANK() OVER w as rk; order by category, rk, title.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s15-27",
+   "title": "Remove duplicates",
+   "statement": "In logins a user has several records. Keep one per user (the earliest by day): user_id, day (ROW_NUMBER = 1); order by user_id.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s15-28",
+   "title": "Streaks",
+   "statement": "Find the streaks of consecutive login days of each user: user_id, first_day, last_day, length (day − ROW_NUMBER gives the same value within a streak); order by user_id, first_day.",
+   "hint": "Within a streak the difference day − row number is constant.",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s15-29",
+   "title": "HR: rank in a department",
+   "statement": "HR database. Output name, dept_id, salary and the salary place within the department rk (RANK, descending); skip employees without a department. Order by dept_id, rk, name.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s15-30",
+   "title": "HR: department leaders",
+   "statement": "HR database. Output name and dept_id of the highest-paid employee of each department (salaries are distinct for the leader within a department); order by dept_id.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s15-31",
+   "title": "HR: deviation from the department average",
+   "statement": "HR database. Output name, salary and the difference from the department average diff (ROUND to an integer); skip employees without a department; order by dept_id, name.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s15-32",
+   "title": "HR: share of the payroll",
+   "statement": "HR database. Output name, dept_id and the share of the salary in the department payroll share as a percentage (ROUND to an integer); order by dept_id, name.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s15-33",
+   "title": "HR: hiring order",
+   "statement": "HR database. Output name, hired and the hiring number within the department n (ROW_NUMBER by hired); skip employees without a department; order by dept_id, n.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s15-34",
+   "title": "School: student's place",
+   "statement": "School database. For the year 2024, output course_id, student_id, score and the place within the course rk (DENSE_RANK by descending score; ignore NULL); order by course_id, rk, student_id.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s15-35",
+   "title": "School: student's progress",
+   "statement": "School database. For student 1, output year, course_id, score and the previous grade in the same course prev (LAG by year, PARTITION BY course_id); order by course_id, year.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s15-36",
+   "title": "Movies: rating within a genre",
+   "statement": "Movies database. Output title, genre, rating and the place within the genre rk (RANK by descending rating; ignore movies without a rating); order by genre, rk, title.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s15-37",
+   "title": "Movies: a director's timeline",
+   "statement": "Movies database. For the movies of director Nolan (director_id = 1), output title, year and the year of the previous movie prev_year (LAG by year); order by year.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s15-38",
+   "title": "Movies: cumulative budget",
+   "statement": "Movies database. For movies with a known budget, output title, budget and the cumulative budget by year cum (SUM OVER ORDER BY year, id); order by year, id.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  }
+ ]
+}

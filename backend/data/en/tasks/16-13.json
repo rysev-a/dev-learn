@@ -1,0 +1,188 @@
+{
+ "book": 16,
+ "chapter": 13,
+ "tasks": [
+  {
+   "id": "c13-mini-framework",
+   "title": "Your own minimal unit test framework",
+   "statement": "struct tcase { const char *name; void (*fn)(void); }. Macros (used inside tests): EXPECT_TRUE(c), EXPECT_EQ(a, b) (values as long long, each argument evaluated once), EXPECT_STREQ(a, b) (strings; NULL is allowed and equals only NULL), EXPECT_NEAR(a, b, eps) (double). On failure it prints the line «  FAIL: <expression text> (<details>)» — for EXPECT_TRUE «  FAIL: c», for EXPECT_EQ «  FAIL: a == b (X vs Y)», for EXPECT_STREQ «  FAIL: a == b (\"x\" vs \"y\")» (NULL is printed as NULL), for EXPECT_NEAR «  FAIL: |a - b| <= eps (X vs Y)» — and the error counter of the current test grows; the test is not aborted. run_tests(cases, n) → the number of failed tests; for each test it prints «[ RUN  ] name», then «[  OK  ] name» or «[ FAIL ] name (N)»; at the end «<P> passed, <F> failed». double values use «%g».",
+   "hint": "The cur_failures counter is reset before each test. The macros are do { … } while (0) with temporary variables; in EXPECT_NEAR compare via !(fabs(…) <= eps) so that NaN counts as a failure."
+  },
+  {
+   "id": "c13-table-tests",
+   "title": "Running tests from a table",
+   "statement": "struct row { const char *name; int in; int want; }. run_table(rows, n, f, report, cap) calls f(rows[i].in) for each row and compares with want; for each mismatch it appends to report the line «<name>: f(<in>) = <got>, want <want>\\n» (report is a C string, cap is the buffer size; if there is not enough room, lines are not cut in the middle: the entry is skipped entirely, but the failures are still counted). It returns the number of mismatches. report may be NULL (cap = 0) — then it only counts. Also: first_failure(rows, n, f) → the index of the first mismatch or −1; all_names_unique(rows, n) → 1 if the case names are all different.",
+   "hint": "First build the report line in a temporary buffer, then append it only if it fits entirely (counting the terminating zero)."
+  },
+  {
+   "id": "c13-boundary-values",
+   "title": "Generating boundary values",
+   "statement": "boundaries(lo, hi, out) → write into out (long) the boundary values of the range [lo, hi] (lo ≤ hi, int): lo − 1, lo, lo + 1, the midpoint (lo + hi) / 2 rounded down, hi − 1, hi, hi + 1 — in ascending order, without repeats; returns the number of values (up to 7); values are computed in long (no int overflow). buffer_sizes(len, out) → interesting buffer capacities for a string of length len: 0, 1, len − 1 (if len ≥ 2), len, len + 1, len + 2 — ascending without repeats; returns the count. int_limits_cases(bits, is_signed, out) → values for a type of width bits (1…32): min, min + 1, −1 (for signed), 0, 1, max − 1, max — ascending without repeats, as long long.",
+   "hint": "Collect the candidates in a long long array, sort it, and remove duplicates. Round the midpoint of a negative sum down (toward −∞)."
+  },
+  {
+   "id": "c13-assert-messages",
+   "title": "Failure messages of checks",
+   "statement": "fmt_eq_int(out, cap, expr, got, want) → «<expr>: expected <want>, got <got>»; fmt_eq_str(out, cap, expr, got, want) → «<expr>: expected \"<want>\", got \"<got>\" (differs at index N)» (N is the first difference; NULL is printed as NULL without quotes and without «differs…»; if one string is a prefix of the other, the index is the length of the shorter one); fmt_eq_mem(out, cap, expr, got, want, n) → «<expr>: byte N: 0x<got> != 0x<want>» for the first differing byte (two lowercase hex digits) or «<expr>: equal (n bytes)»; fmt_near(out, cap, expr, got, want, eps) → «<expr>: |<got> - <want>| = <d> > <eps>» (numbers with «%g») or «<expr>: within <eps>». All functions return the length the way snprintf does (including on truncation) and never write beyond cap.",
+   "hint": "Everywhere use snprintf(out, cap, …) and return its result. For strings find the first mismatching index (including the case where one is a prefix of the other)."
+  },
+  {
+   "id": "c13-clock-injection",
+   "title": "Clock injection: a rate limiter and a timer",
+   "statement": "struct clock { long (*now)(void *ctx); void *ctx; } is a time source (ms). struct limiter { long cap, tokens, last, interval; } is a token bucket: capacity cap, initially full, one token is added every interval ms. lim_init(l, clk, cap, interval); lim_allow(l, clk) → 1 and a token is spent if there are tokens, otherwise 0: before the check, refill — add (now − last) / interval whole tokens (not above cap) and advance last by the number of intervals added (the remainder of the time is not lost; if the bucket is full, last = now). struct timer { long deadline; int armed; }: timer_start(t, clk, ms) — deadline = now + ms; timer_expired(t, clk) → 1 if armed and now ≥ deadline; timer_remaining(t, clk) → max(0, deadline − now) or −1 if not armed; timer_stop(t).",
+   "hint": "All access to time goes only through clk->now(clk->ctx). Refill: add = (now − last) / interval; last += add · interval (if the bucket overflowed — last = now)."
+  },
+  {
+   "id": "c13-reader-injection",
+   "title": "Reader injection: parsing a configuration",
+   "statement": "struct reader { int (*next)(void *ctx, char *line, size_t cap); void *ctx; } — next writes the next line (without \\n) into line and returns 1, or 0 at the end. struct cfg { int width; char name[16]; int verbose; }. parse_config(r, c) first sets the defaults (width = 80, name = «default», verbose = 0), then reads lines «key=value»: spaces around the key and the value are discarded, empty lines and lines with «#» as the first non-space character are skipped; width is an integer 1…1000; name is at most 15 characters long and not empty; verbose is 0, 1, true or false. Any error (unknown key, no «=», bad value) increases the error counter, and the line is skipped. Returns the number of errors.",
+   "hint": "For each line: trim → skip empty ones and # → find «=» → trim key/value → validate by key. Set the defaults before reading the lines."
+  },
+  {
+   "id": "c13-alloc-fault",
+   "title": "Allocator fault injection: no leaks on error paths",
+   "statement": "struct alloc { void *(*malloc)(size_t); void (*free)(void *); } is an allocator passed explicitly. person_make(a, name, scores, n, *out) → 0 and an object struct person { char *name; int *scores; size_t n; } (three allocations: the object itself, a copy of the name, a copy of the scores), or −1 if any allocation fails — then everything allocated is freed via a->free and *out is not changed. person_free(a, p) frees all three blocks. join_words(a, w1, w2, sep, *out) → 0 and a new string «w1 sep w2» (two allocations: a temporary copy of w1 + sep and the final one; free the temporary one), or −1 with everything freed. matrix_new(a, rows, cols, *out) → 0 and struct matrix { double **row; size_t rows, cols; } (allocations: the structure itself, the array of pointers, then each row — rows + 2 in total; on failure free everything allocated), matrix_free(a, m). Under AddressSanitizer.",
+   "hint": "Check every allocation, and on failure free in reverse order everything already allocated. A single cleanup block (goto cleanup) is especially convenient for such functions."
+  },
+  {
+   "id": "c13-spy-calls",
+   "title": "Spy: recording and verifying a sequence of calls",
+   "statement": "struct spy { char log[16][32]; int n; } — the spy stores up to 16 entries of the form «name(argument)». spy_init(s); spy_call(s, name, arg) → append «name(arg)» (the argument is an int, «%d»), returns 1, or 0 on overflow; spy_verify(s, expected, ne) → −1 if the recorded sequence is exactly equal to expected (ne strings), otherwise the index of the first mismatch (if one sequence is a prefix of the other, the index is the length of the shorter); spy_count(s, name) → how many times a function with that name was called (any argument); spy_args(s, name, out) → the number of calls and the argument values in call order; spy_called_before(s, a, b) → 1 if the first call of a happened before the first call of b (both must exist); spy_last(s, buf) → the last entry.",
+   "hint": "Recording is snprintf(log[n], 32, \"%s(%d)\", name, arg). When counting by name, compare the prefix up to «(» so that «writ» does not match «write»."
+  },
+  {
+   "id": "c13-mock-expectations",
+   "title": "A mini mock library: expectations and verification",
+   "statement": "An expectation store (up to 16): mock_reset(); mock_expect(name, ret) — one call of the function name is expected, and it will return ret; mock_set_ordered(on) — strict order (off by default). mock_call(name) → ret of the first not yet used expectation with that name (in normal mode); in strict mode the call must match the nearest unused expectation (in order of addition), otherwise it is \"unexpected\". An unexpected call (no matching expectation) returns −1 and counts as an error. mock_verify() → the number of problems: unexpected calls + expectations that received no call. mock_unexpected() and mock_pending() are separate counters. Names are up to 31 characters.",
+   "hint": "A list of expectations with a used flag. In strict mode look only at the first unused expectation; in normal mode — at the first unused one with the same name. At most 16 expectations."
+  },
+  {
+   "id": "c13-coverage-counter",
+   "title": "Your own coverage counter",
+   "statement": "The macro COV(id) marks a \"coverage point\" number id (0…31): cov_hits[id]++ (the counters are a global array). cov_reset(total) sets that there are total points (≤ 32) and zeroes the counters; cov_percent() → the percentage of covered points among total (integer, rounded down; for total = 0 → 100); cov_uncovered(out) → the number of uncovered points and their numbers in ascending order; cov_report(buf, cap) → the string «covered K/N (P%)\\n» and, if there are uncovered points, the line «missing: 2 4 7\\n» (numbers separated by spaces); returns the report length or −1 if it does not fit; cov_hit_count(id); cov_hottest() → the number of the most visited point (on a tie — the smallest number) or −1 if none was visited.",
+   "hint": "COV(id) is simply incrementing a counter. Build the report in a temporary buffer and copy it if it fits together with the terminating zero."
+  },
+  {
+   "id": "c13-mutation-score",
+   "title": "Mutation testing: how many mutants are killed",
+   "statement": "struct tc { int in; int want; } — tests. mutation_score(orig, mutants, nm, tests, nt, *killed_mask) → the number of killed mutants (a mutant is killed if on at least one test the result ≠ want); in *killed_mask bit i is set for a killed mutant i (nm ≤ 31). If the original function does not pass all the tests, the result is −1 (the mask is not changed). survivors(mutants, nm, tests, nt, out) → the indices of surviving mutants in ascending order (the count). equivalent_pair(f, g, lo, hi) → 1 if f(x) == g(x) for all x in [lo, hi]. weakest_test(mutants, nm, tests, nt) → the index of the test that kills the fewest mutants (on a tie — the smallest index; a test that kills 0 mutants is \"useless\"), −1 for nt = 0.",
+   "hint": "A mutant is killed if at least one test gives a result different from the expected one. First make sure that the original passes all the tests."
+  },
+  {
+   "id": "c13-property-runner",
+   "title": "Running property tests with a deterministic generator",
+   "statement": "struct pres { int runs, failures; long first_fail; unsigned first_seed; }. prop_run(gen, prop, seed, runs, *res): for i = 0…runs−1 the generator state is st = seed + i; gen(&st, buf, &len) fills an int array buf (up to 64) and its length; prop(buf, len) → 1 (the property holds) or 0. res: runs = runs, failures is the number of violations, first_fail is the number i of the first violation (−1 if none), first_seed is seed + i of that run. lcg_next(&st) → the next pseudo-random value (st = st · 1664525 + 1013904223, returns st >> 8, uint32_t); gen_small_ints(&st, buf, &len) — length 0…15 (lcg % 16), elements lcg % 21 − 10. replay(gen, seed_i, buf, *len) — reproduce the input of a run from its seed (the same as prop_run does for that run).",
+   "hint": "In prop_run every run starts from the state seed + i. lcg_next changes the state and returns its upper 24 bits (st >> 8)."
+  },
+  {
+   "id": "c13-shrink",
+   "title": "Shrinking a failing input",
+   "statement": "shrink(a, n, fails) → the new length n: the array a is shrunk so that fails(a, n) still returns a nonzero value (initially it is nonzero). Algorithm: repeat until nothing changes: (1) for the chunk size c = n / 2, n / 4, … down to 1 (integer division, c ≥ 1): going left to right, try to delete chunks of c elements (the last chunk may be shorter), keeping the deletion if fails still holds (after a deletion start does not advance); (2) for each i from left to right: try to replace a[i] with 0, then (if that did not work and a[i] ≠ 0) with a[i] / 2 (division toward zero), keeping the replacement if fails still holds. The result is returned; at most 5000 calls of fails.",
+   "hint": "Follow the algorithm literally: first delete chunks (sizes from n/2 down), then simplify values; repeat while anything changes. After a successful deletion, start does not change."
+  },
+  {
+   "id": "c13-fuzz-mutator",
+   "title": "A deterministic mutator for fuzzing",
+   "statement": "rng_next(&st) → st = st · 1664525 + 1013904223; returns st >> 8. mutate(buf, len, cap, *rng) → the new length: op = rng_next % 4: 0 — bit flip: pos = rng_next % (len · 8) (len = 0 — no change), buf[pos / 8] ^= 1 << (pos % 8); 1 — byte replacement: pos = rng_next % len, buf[pos] = rng_next & 255 (len = 0 — no change); 2 — byte insertion (if len < cap): pos = rng_next % (len + 1), value rng_next & 255, the tail is shifted; 3 — deletion (if len > 1): pos = rng_next % len, the tail is shifted left. If the operation is not applicable, the buffer is not changed (the rng_next arguments are still consumed in the stated order before the applicability check: first op, then the other values in the order of writing). fuzz(target, seed_buf, seed_len, iters, rng_seed, *crashes, *first_iter): on each iteration a copy of seed_buf is mutated mutations times = 1 + rng_next % 4 (cap = 64) and passed to target(buf, len); a nonzero result is a \"crash\"; crashes is the number of crashes, first_iter is the number of the first iteration (−1 if none).",
+   "hint": "The order of consuming generator values is as in the statement: first op, then (if applicable) the position and the value. For insertion/deletion shift the tail with memmove."
+  },
+  {
+   "id": "c13-golden-normalize",
+   "title": "Golden outputs: normalization and comparison",
+   "statement": "normalize(text, out, cap) → the length of the result or −1 if it does not fit: line endings \\r\\n and a lone \\r become \\n; spaces and tabs at the end of each line are removed; empty lines at the beginning and at the end of the text are removed; consecutive empty lines collapse into one; a non-empty result ends with exactly one \\n; an empty text gives an empty string. golden_diff(expected, actual) → 0 if the normalized texts are equal, otherwise the 1-based number of the first differing line (if one text is a line-wise prefix of the other, the number = the number of lines of the shorter + 1). line_count(text) — the number of lines of the normalized text.",
+   "hint": "Normalize line by line: strip trailing spaces, skip empty lines at the beginning, and remember an empty line when you meet one and add it before the next non-empty line."
+  },
+  {
+   "id": "c13-tap-output",
+   "title": "The TAP format: a test report",
+   "statement": "struct result { const char *name; int status; const char *message; } — status: 0 passed, 1 failed, 2 skipped. tap_output(r, n, out, cap) builds a report in TAP 13 format: the line «TAP version 13», then «1..n»; for a passed test — «ok <i> - <name>»; for a failed one — «not ok <i> - <name>» and the block «  ---», «  message: <message>» (if message is not NULL), «  ...»; for a skipped one — «ok <i> - <name> # SKIP <message>» (message may be NULL — then just «# SKIP»). i counts from 1; all lines end with \\n. Returns the length or −1 if it does not fit. tap_summary(r, n, out) — «# pass P fail F skip S\\n»; tap_exit_code(r, n) → 0 if there are no failed tests, otherwise the number of failed ones (at most 255).",
+   "hint": "Format each line with snprintf and append it to the report while it fits (with the zero). A skipped test is «ok» with the SKIP directive."
+  },
+  {
+   "id": "c13-reindent",
+   "title": "A mini formatter: indentation by braces",
+   "statement": "reindent(src, out, cap, width) → the length of the result or −1: each line is reprinted with an indent of depth · width spaces, where depth is the number of open «{» at the moment the line starts (a line starting with «}» decreases the depth before printing); the old indents (spaces and tabs at the start) and trailing spaces are discarded; empty lines stay empty (no spaces); preprocessor lines («#» as the first character) are printed without an indent. Braces inside string literals \"…\", character constants '…', and comments // and /* … */ (including multi-line ones) are not counted. The final newline is kept if there was one. The depth never goes below zero.",
+   "hint": "Go line by line: compute the indent from the current depth (if the line starts with «}» — one less), then walk over the characters of the line, tracking the state «in a string / in a character / in a comment», and update the depth."
+  },
+  {
+   "id": "c13-naming-checker",
+   "title": "Checking names against style rules",
+   "statement": "name_ok(kind, name, prefix) → 0 if the name is fine, otherwise a code: 1 — wrong case or invalid characters, 2 — missing required prefix, 3 — reserved name (starts with «_» + an uppercase letter, contains «__», or starts with «_» at top level — for any kind), 4 — too long (> 31 characters). Kinds: K_FUNC, K_VAR, K_TYPE — snake_case (lowercase letters, digits and single «_» between them, starts with a letter, does not end with «_»); K_MACRO, K_CONST — UPPER_SNAKE (the same in uppercase); K_ENUM — UPPER_SNAKE; prefix (may be NULL or «») is required for K_FUNC, K_TYPE, K_MACRO, K_ENUM: the name must start with prefix followed by «_» (for macros and constants the prefix is checked in uppercase, for the others — as written). The order of checks: reserved (3) → length (4) → case and characters (1) → prefix (2). K_VAR and K_CONST need no prefix. suggest(kind, name, out) — converts the name to the form of kind: CamelCase and camelCase → snake_case, for macros — uppercase.",
+   "hint": "Check in the stated order: reserved, length, characters and case, prefix. For snake_case: allow no double underscores and no underscores at the edges."
+  },
+  {
+   "id": "c13-line-lint",
+   "title": "A line linter: length, spaces, tabs, TODO",
+   "statement": "lint_lines(text, msgs, max) → a list of messages of the form «line N: …» in line order (within a line — in rule order): «line N: too long (L > 80)» — the line length without the newline is more than 80 characters (L is the length); «line N: trailing whitespace» — a space or tab at the end; «line N: tab character» — the line contains a tab character (anywhere, even if it is also the trailing one: both messages are issued); «line N: TODO without owner» — «TODO» not in the form TODO(name); «line N: CRLF» — the line ends with \\r. After all the lines: «EOF: no newline at end of file» if the text is non-empty and does not end with \\n; «EOF: extra blank lines» if the text ends with two or more empty lines (\\n\\n\\n and more). The return value is the number of messages (at most max).",
+   "hint": "Go line by line; count the length without \\r and \\n. «TODO(name)» is acceptable if «(» follows TODO immediately, there is at least one character inside the parentheses and there is a «)»."
+  },
+  {
+   "id": "c13-func-metrics",
+   "title": "Function metrics: length and cyclomatic complexity",
+   "statement": "struct fm { char name[32]; int lines; int complexity; }. analyze(src, out, max) finds top-level function definitions (the name before «(» on a line that ends with «)» or «) {»; the opening «{» is on the same or the next line; the depth of curly braces outside the function is 0) and for each records the name, the number of lines from the signature line to the line with the closing «}» inclusive, and the complexity = 1 + the number of tokens if, for, while, case, &&, ||, ? in the body (not counted in the signature; not counted inside strings, characters and comments; «else if» gives one if; «do { } while (…);» gives one while). Returns the number of functions (at most max). Declarations of struct/enum/union and initializers of global data are not functions. worst(out, n) → the index of the most complex function (on a tie — the longest, then the first).",
+   "hint": "First replace comments and strings with spaces (keep the newlines), then walk over the characters tracking the brace depth: «{» at depth 0 after «)» opens a function."
+  },
+  {
+   "id": "c13-comment-checker",
+   "title": "Checking comments: TODO, commented-out code, documentation",
+   "statement": "check_comments(src, msgs, max) → messages «line N: …» in line order: «line N: TODO» — the line contains TODO or FIXME inside a comment (// or /* … */); «line N: commented-out code» — the whole line is a «//» comment, the text after «//» (without spaces at the edges) is non-empty and ends with «;», «{» or «}»; «line N: function without comment» — the line starts with an identifier (at the start of the line, no leading spaces), contains «(» and ends with «)» or «) {», it is a function definition (the next significant line is «{» or the line ends with «{»), and the previous line is not a comment (does not start with «//», «/*» or «*» and does not end with «*/»). The first lines are checked without a previous line (it is assumed there is no comment). The return value is the number of messages (at most max).",
+   "hint": "Split the text into lines; track the state «inside /* … */». For a function definition: the line does not start with a space, contains «(», ends with «)» or «) {», and the «{» is on it or on the next significant line."
+  },
+  {
+   "id": "c13-header-hygiene",
+   "title": "Header file hygiene",
+   "statement": "check_header(text, msgs, max) → messages about a header (in line order, then the summary ones): «line N: definition of 'x' in header» — at top level (outside curly braces) a line of the form «type name;» or «type name = …;» without extern, static, typedef, struct/union/enum declarations without a variable name and without «(» (that is a function declaration); «line N: function body in header» — a function definition (the line ends with «) {» or with «)» and «{» on the next line) without static/inline before it; «line N: include after code» — an #include after the first line that is not a comment, empty, a directive, or an include; at the end: «no include guard» — there is neither «#pragma once» nor an #ifndef/#define pair at the start. At most one message of each kind per line is allowed. The return value is the number of messages (up to max).",
+   "hint": "Go through the lines tracking the brace depth: only the lines at depth 0 matter. A variable is a line without «(», without extern/static/typedef and ending with «;»; a function with a body is a line with «(» and a «{» on it or on the next one."
+  },
+  {
+   "id": "c13-cleanup-goto",
+   "title": "A single cleanup block: goto cleanup",
+   "statement": "struct alloc { void *(*malloc)(size_t); void (*free)(void *); } (as in the allocator fault task). build_report(a, title, vals, n, *out) → 0 and the string «title: v1, v2, …, vn» (for n = 0 — «title: (none)»), or −1 on any allocation failure, with *out unchanged and nothing leaked. There are three allocations: a temporary array of number strings (n strings of 12 bytes), a format buffer for the whole report, and the final string (the report is assembled in a temporary buffer, then copied into a final block of exact size). Write the function with a single cleanup block (goto cleanup) at the end. summary(a, vals, n, *out) → 0 and the string «min=… max=… sum=…» (for n = 0 — «empty»), two allocations (a temporary block for the numbers and the final string), also with a cleanup block.",
+   "hint": "Declare all pointers as NULL at the start; on any error goto cleanup; in cleanup free everything (free(NULL) is safe). When handing the result to the caller, set the local pointer to NULL so it is not freed."
+  },
+  {
+   "id": "c13-fix-const",
+   "title": "Fix: const-correctness",
+   "statement": "The program is built with -Wall -Wextra -Werror -Wcast-qual -Wwrite-strings and fails to compile: the functions count_char, sum and first_word_len take non-const pointers even though they only read the data, find_char casts const away, and greeting returns a string literal as char *. Fix the signatures: parameters that the functions do not change are const; find_char returns const char *; greeting returns const char *. The behavior of the functions does not change.",
+   "hint": "const char * for input strings and const int * for input arrays. The result of a search inside a constant string is also const char *: no cast to char * is needed."
+  },
+  {
+   "id": "c13-fix-warnings",
+   "title": "Fix: a build without warnings (-Werror)",
+   "statement": "The code is compiled with -Wall -Wextra -Wshadow -Wformat=2 -Werror and does not pass: it has unused parameters and variables, a shadowed name, a wrong printf format, a signed/unsigned comparison, a missing return in a branch, and an implicit fall-through in a switch. Fix it so that the build produces no warnings and the results stay the same (they are described in the comments above the functions).",
+   "hint": "An unused parameter — (void)unused; remove the shadowed variable; the loop counter is size_t; the format for long is %ld, for size_t it is %zu; in switch — a break in every branch and a default.",
+   "starter": "#include <stddef.h>\n#include <stdio.h>\n\n/* sum of the numbers up to n inclusive */\nint sum_to(int n, int unused) {\n    int total = 0;\n    int i;\n    for (i = 1; i <= n; i++) {\n        int total = i;\n        (void)total;\n    }\n    for (i = 1; i <= n; i++) total += i;\n    return total;\n}\n\n/* index of the first element > limit or -1 */\nint first_above(const int *a, size_t n, int limit) {\n    for (int i = 0; i < n; i++)\n        if (a[i] > limit) return i;\n}\n\n/* print a number and a size into a buffer */\nvoid describe(char *buf, size_t cap, long value, size_t size) {\n    snprintf(buf, cap, \"v=%d size=%d\", value, size);\n}\n\n/* grade: 0 — A, 1 — B, 2 — C, otherwise F */\nchar grade(int level) {\n    char g = 'F';\n    switch (level) {\n    case 0:\n        g = 'A';\n    case 1:\n        g = 'B';\n        break;\n    case 2:\n        g = 'C';\n        break;\n    }\n    return g;\n}\n"
+  },
+  {
+   "id": "c13-fix-risky",
+   "title": "Fix: risky constructs (assignment in a condition, empty body, fall-through)",
+   "statement": "The code fails to build with -Wall -Wextra -Werror -Wparentheses -Wimplicit-fallthrough -Wswitch-default -Wmisleading-indentation -Wempty-body: assignment instead of comparison in a condition, an empty body after if and while, misleading indentation, an implicit fall-through in a switch. Fix it so that there are no warnings and the functions work as described in the comments; severity: codes 1 and 2 give 3 (2 + 1), code 3 gives 1, the rest 0.",
+   "hint": "Comparison is «==»; a semicolon after if/while turns the body into an empty one — remove it and add braces. In severity the fall-through from case 1/2 into case 3 gave 3: write it explicitly (2 + 1) and add break and default.",
+   "starter": "/* 1 if x equals 5 */\nint is_five(int x) {\n    if (x = 5) return 1;\n    return 0;\n}\n\n/* number of characters up to the first space */\nint word_len(const char *s) {\n    int n = 0;\n    while (s[n] && s[n] != ' ');\n        n++;\n    return n;\n}\n\n/* sum of the even elements */\nint sum_even(const int *a, int n) {\n    int s = 0;\n    for (int i = 0; i < n; i++)\n        if (a[i] % 2 == 0);\n            s += a[i];\n    return s;\n}\n\n/* number of days in a month (non-leap year) */\nint days_in_month(int m) {\n    int d = 0;\n    switch (m) {\n    case 2:\n        d = 28;\n        break;\n    case 4: case 6: case 9: case 11:\n        d = 30;\n        break;\n    case 1: case 3: case 5: case 7: case 8: case 10: case 12:\n        d = 31;\n    }\n    return d;\n}\n\n/* codes 1 and 2 give 3 (2 + 1), code 3 gives 1, the rest 0 */\nint severity(int code) {\n    int level = 0;\n    switch (code) {\n    case 1:\n    case 2:\n        level = 2;\n    case 3:\n        level += 1;\n        break;\n    }\n    return level;\n}\n"
+  },
+  {
+   "id": "c13-safe-strings",
+   "title": "Safe string functions with a size",
+   "statement": "str_copy(dst, size, src) → the length of src (like strlcpy): copies at most size − 1 characters and always puts a zero (when size > 0). str_cat(dst, size, src) → the length that would result without truncation (strlen(dst) + strlen(src)); if dst has no zero within size, it returns size + strlen(src) and writes nothing. str_trim(s) → the new length: removes whitespace characters (isspace) from both ends in place. str_split_n(s, delim, out, max) → the number of fields: splits the string in place by the character delim (empty fields are kept), out receives pointers; when max fields have been collected, the rest of the string (together with the delimiters) stays in the last field. str_starts(s, p), str_ends(s, p) → 1/0; str_repeat(dst, size, s, k) → the length that would result (s repeated k times), the write is truncated to size − 1. Under AddressSanitizer.",
+   "hint": "str_copy always returns the length of src — that is how the caller learns about truncation. str_cat: find the end of dst within size and use str_copy from there."
+  },
+  {
+   "id": "c13-contracts",
+   "title": "Contracts: REQUIRE, ENSURE, INVARIANT with a handler",
+   "statement": "typedef void (*contract_fn)(const char *kind, const char *expr). contract_set_handler(h) (NULL — restore the default handler), contract_violations() — the number of violations, contract_last_kind(), contract_last_expr() — the kind and the text of the last violation (while nothing has been violated — «»), contract_reset(). Macros: REQUIRE(c), ENSURE(c), INVARIANT(c) — on a false condition they call the handler with the kind «require»/«ensure»/«invariant» and the condition text (#c), increase the counter, and execution continues. The default handler only remembers the kind and the text. struct stk { int a[4]; int n; } with the functions: stk_init; stk_push(s, v) → 0, REQUIRE(s->n < 4) — on violation returns −1 without writing; stk_pop(s, *out) → 0, REQUIRE(s->n > 0) — otherwise −1 (*out is not changed); both operations finish with INVARIANT(s->n >= 0 && s->n <= 4) and ENSURE (push: ENSURE(s->a[s->n - 1] == v); pop: ENSURE(*out == the previous top element)).",
+   "hint": "One internal macro CHECK_(kind, c) with do { if (!(c)) fail(kind, #c); } while (0); fail increases the counter, remembers the kind and the text and calls the user handler (if set)."
+  },
+  {
+   "id": "c13-arg-parser",
+   "title": "Parsing command-line arguments",
+   "statement": "struct opts { int verbose, help, count; const char *name; const char *files[8]; int nfiles; }. parse_args(argc, argv, o, err, cap) → 0 or an error code; argv[0] is the program name (skipped). Defaults: count = 1, the rest 0/NULL. Supported: -v/--verbose, -h/--help (boolean short options can be combined: -vh); -n NUMBER, -nNUMBER, --count=NUMBER, --count NUMBER (an integer 1…1000); --name=NAME and --name NAME; «--» — everything after it is positional; everything without a leading «-» (and a lone «-») is positional and goes into files (up to 8). Errors (parsing stops, the text goes into err): −1 «unknown option: <arg>», −2 «missing value for <option>» (the option is last or the next argument that should be the value is missing), −3 «invalid number: <value>», −4 «too many files».",
+   "hint": "One loop over the arguments with an «after --» flag. For options with a value, the value is either after «=» or in the next argument. Parse short boolean flags in one argument character by character; -n takes the rest of the argument or the next one."
+  },
+  {
+   "id": "c13-ci-matrix",
+   "title": "A build configuration matrix for CI",
+   "statement": "make_matrix(compilers, nc, opts, no, sans, ns, out, max) → the number of configurations (rows in out[][96], at most max): for each compiler, for each optimization level, for each sanitizer (in this order) the line «<cc> -O<opt> -g» (if the sanitizer is «none») or «<cc> -O<opt> -g -fsanitize=<san>». These combinations are excluded: the sanitizer «memory» — only for a compiler whose name starts with «clang»; the combination of «address» and «thread» in one configuration (for example «address+thread») is invalid; «thread+undefined» is valid, «address+undefined» is valid; an empty sanitizer name is invalid. excluded_count(…) → how many combinations were excluded; describe_exclusions(…, out) — one line «<cc> -O<opt> <san>: <reason>» for each excluded one (reasons: «memory needs clang», «address+thread conflict», «empty sanitizer»).",
+   "hint": "A separate function reason(cc, san) returns the reason for exclusion or NULL; the three functions use it and walk the triple loop in the same order: compiler, optimization, sanitizer."
+  }
+ ]
+}

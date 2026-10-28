@@ -1,0 +1,211 @@
+{
+ "book": 10,
+ "chapter": 6,
+ "tasks": [
+  {
+   "id": "r6-literal",
+   "title": "Literal and length",
+   "statement": "Declare s = \"Привет, мир!\" and print two lines: the string itself, then «bytes=…» and «chars=…» on one line: «bytes=21 chars=12».\n\nExpected output:\n«Привет, мир!\nbytes=21 chars=12»",
+   "hint": "len() is bytes, chars().count() is characters.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r6-string-new",
+   "title": "Building a String",
+   "statement": "Create an empty mutable String, append push_str(\"Rust\"), push(' '), push_str(\"любит\"), push(' '), push_str(\"тебя\") and print «Rust любит тебя».\n\nExpected output:\n«Rust любит тебя»",
+   "hint": "push takes a character in single quotes, push_str takes a string.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r6-concat-plus",
+   "title": "Concatenating with plus",
+   "statement": "Join the String a = «раз» and the &str «два» with the + operator, then add «три» and print «раздватри». The left operand of plus is a String.\n\nExpected output:\n«раздватри»",
+   "hint": "String on the left, &str on the right.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r6-format",
+   "title": "format!",
+   "statement": "name = \"Аня\", age = 30. Using format!, build in a variable the string «Аня, 30 лет» and print it.\n\nExpected output:\n«Аня, 30 лет»",
+   "hint": "format!(\"{}, {} лет\", name, age)",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r6-join",
+   "title": "join",
+   "statement": "Join the words [\"сыр\", \"хлеб\", \"молоко\"] with the join method and the separator \", \" and print «сыр, хлеб, молоко».\n\nExpected output:\n«сыр, хлеб, молоко»",
+   "hint": "words.join(\", \")",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r6-repeat",
+   "title": "Repeating",
+   "statement": "Using the repeat method, print a line of 20 dashes «--------------------», then «Rust», and 20 dashes again.\n\nExpected output:\n--------------------\nRust\n--------------------",
+   "hint": "\"-\".repeat(20)",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r6-upper-lower",
+   "title": "Letter case",
+   "statement": "s = \"Привет, Мир\". Print s.to_uppercase() and s.to_lowercase() — two lines: «ПРИВЕТ, МИР» and «привет, мир».\n\nExpected output:\n«ПРИВЕТ, МИР\nпривет, мир»",
+   "hint": "The methods return a new string.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r6-trim-replace",
+   "title": "trim and replace",
+   "statement": "s = \"   много   пробелов   \". Print the trimmed string, and then replace(\"много\", \"мало\") on the trimmed string: «много   пробелов» and «мало   пробелов».\n\nExpected output:\n«много   пробелов\nмало   пробелов»",
+   "hint": "trim removes spaces only at the edges.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r6-contains",
+   "title": "Searching for a substring",
+   "statement": "text = \"Rust — язык системного программирования\". Print three lines: contains(\"язык\"), starts_with(\"Rust\"), ends_with(\"Go\") → true, true, false.\n\nExpected output:\ntrue\ntrue\nfalse",
+   "hint": "The result of each method is a bool.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r6-find",
+   "title": "find",
+   "statement": "text = \"hello world\". Print the position of the first occurrence of «o» (find returns an Option, so add unwrap) and the position of «wor»: «4» and «6».\n\nExpected output:\n4\n6",
+   "hint": "find returns Option<usize>; unwrap takes the value out.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r6-chars-loop",
+   "title": "Looping over characters",
+   "statement": "For the string \"раст\" print each character on its own line with a for loop over chars().\n\nExpected output:\n«р\nа\nс\nт»",
+   "hint": "for c in \"раст\".chars() { … }",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r6-count-vowels",
+   "title": "Vowels",
+   "statement": "In the string \"Программирование на Rust\" count the Russian vowels «аеёиоуыэюя» (case does not matter: convert to lowercase first). Print «8».\n\nExpected output:\n8",
+   "hint": "\"…\".contains(c) can search for a character.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r6-reverse",
+   "title": "Reversing a string",
+   "statement": "Reverse the string \"привет\" with chars().rev().collect::<String>() and print «тевирп».\n\nExpected output:\n«тевирп»",
+   "hint": "chars().rev() and collect into a String.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r6-palindrome",
+   "title": "Palindrome",
+   "statement": "Check whether «А роза упала на лапу Азора» is a palindrome, ignoring spaces and case. Print «true».\n\nExpected output:\ntrue",
+   "hint": "Remove the spaces, convert to lowercase, compare with the reversed string.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r6-words-count",
+   "title": "Word count",
+   "statement": "Count the words in the string \"  раз  два   три четыре \" with split_whitespace().count(): «4».\n\nExpected output:\n4",
+   "hint": "split_whitespace ignores extra spaces.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r6-split-parse-sum",
+   "title": "Sum of numbers from a string",
+   "statement": "From the string \"10, 20, 30, 5\" extract the numbers (split on the comma, trim, parse::<i32>) and print the sum «65».\n\nExpected output:\n65",
+   "hint": "part.trim().parse::<i32>().unwrap()",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r6-lines",
+   "title": "Lines of text",
+   "statement": "text = \"раз\\nдва\\nтри\". Print each line with its number in the format «1: раз», «2: два», «3: три» (lines and enumerate).\n\nExpected output:\n«1: раз\n2: два\n3: три»",
+   "hint": "enumerate gives (index, value) pairs; the index starts from zero.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r6-slice",
+   "title": "String slice",
+   "statement": "text = \"Hello, Rust!\". Print the slices &text[0..5], &text[7..11] and &text[7..] — «Hello», «Rust» and «Rust!».\n\nExpected output:\nHello\nRust\nRust!",
+   "hint": "For an ASCII string, bytes and characters coincide.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r6-nth-char",
+   "title": "The n-th character",
+   "statement": "s = \"привет\". Print the third character (index 2, via chars().nth(2)) and the last one (chars().last()). The expected output is «и» and «т». Both are Options, use unwrap.\n\nExpected output:\n«и\nт»",
+   "hint": "nth(n) returns Option<char>.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r6-char-indices",
+   "title": "Character positions",
+   "statement": "For the string \"аб\" print «position character» pairs with char_indices: «0 а» and «2 б» (a Russian letter is 2 bytes).\n\nExpected output:\n«0 а\n2 б»",
+   "hint": "char_indices gives the offset in bytes.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r6-format-width",
+   "title": "Alignment",
+   "statement": "Print three lines: the number 42 right-aligned in a field of width 8 («[      42]»), the word «Rust» left-aligned in a field of 8 («[Rust    ]») and «hi» centered in a field of 8 with the fill character «*» («[***hi***]»).\n\nExpected output:\n[      42]\n[Rust    ]\n[***hi***]",
+   "hint": "{:>8}, {:<8}, {:*^8}",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r6-format-float",
+   "title": "Precision of a float",
+   "statement": "x = 3.14159265. Print x with 0, 2 and 4 digits after the decimal point — «3», «3.14», «3.1416» (one per line).\n\nExpected output:\n3\n3.14\n3.1416",
+   "hint": "{:.0}, {:.2}, {:.4}",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r6-format-zero-pad",
+   "title": "Leading zeros",
+   "statement": "Print the number 7 as «007» (field width 3, zeros on the left: {:03}), and 255 in hexadecimal, zero-padded to a field of 4 with the prefix 0x: «0x00ff» (format {:#06x}).\n\nExpected output:\n007\n0x00ff",
+   "hint": "{:03} and {:#06x}",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r6-debug-format",
+   "title": "Debug format",
+   "statement": "Print the string \"привет\\n\" through {:?} (in quotes and with escaping: «\"привет\\n\"») and the tuple (1, \"a\", 2.5) through {:?}: «(1, \"a\", 2.5)».\n\nExpected output:\n«\"привет\\n\"»\n(1, \"a\", 2.5)",
+   "hint": "{:?} is the debug representation.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r6-compare",
+   "title": "Comparing strings",
+   "statement": "Print: «apple» < «banana» (true), «Zebra» < «apple» (true, capitals come first) and String::from(\"abc\") == \"abc\" (true).\n\nExpected output:\ntrue\ntrue\ntrue",
+   "hint": "Strings are compared by bytes.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r6-fn-shout",
+   "title": "Shout",
+   "statement": "Write a function shout(s: &str) -> String: the string in uppercase with three exclamation marks at the end.",
+   "hint": "format!(\"{}!!!\", s.to_uppercase())"
+  },
+  {
+   "id": "r6-fn-count-char",
+   "title": "How many times it occurs",
+   "statement": "Write a function count_char(s: &str, ch: char) -> usize: how many times the character ch occurs in s.",
+   "hint": "A loop over chars and a counter."
+  },
+  {
+   "id": "r6-fn-first-word",
+   "title": "The first word",
+   "statement": "Write a function first_word(s: &str) -> &str: the first word of the string (up to the first space; if there are no spaces, the whole string).",
+   "hint": "find(' ') returns the position of the space; the slice is &s[..i]."
+  },
+  {
+   "id": "r6-fn-capitalize",
+   "title": "Capitalize the first letter",
+   "statement": "Write a function capitalize(s: &str) -> String: the first letter in uppercase, the rest unchanged (an empty string stays empty).",
+   "hint": "chars().next() gives the first letter, the rest is chars.as_str()."
+  },
+  {
+   "id": "r6-fn-caesar",
+   "title": "Caesar cipher",
+   "statement": "Write a function caesar(s: &str, shift: u8) -> String for the Latin letters a–z: shift each lowercase letter forward by shift, wrapping around (z → a), and leave all other characters unchanged.",
+   "hint": "The letter's number is c as u8 - b'a'; shift modulo 26; add b'a' to go back."
+  }
+ ]
+}

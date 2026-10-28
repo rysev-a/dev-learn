@@ -1,0 +1,79 @@
+{
+ "book": 8,
+ "chapter": 11,
+ "tasks": [
+  {
+   "id": "u11-udp-echo",
+   "title": "UDP on loopback: server and client in one process",
+   "statement": "udp_roundtrip(const char *msg, char *reply, size_t cap) → the reply length or −1: create two UDP sockets (AF_INET, SOCK_DGRAM); bind the server one to 127.0.0.1 and port 0 (the kernel picks one itself), learn the port via getsockname; the client sends msg to the server with sendto, the server receives with recvfrom and replies to the sender with the same text in which the Latin letters are converted to upper case; the client reads the reply. Datagrams preserve message boundaries. Close both sockets.",
+   "hint": "Port 0 in bind means \"pick a free one\"; the real address is read with getsockname. Send the reply to the address that recvfrom returned."
+  },
+  {
+   "id": "u11-tcp-echo",
+   "title": "TCP on loopback: accept, connect, send, recv",
+   "statement": "tcp_echo(const char *msg, char *out, size_t cap) → the reply length or −1: create a listening TCP socket on 127.0.0.1:0 (listen), learn the port; fork: the child accepts one connection (accept) and sends back everything it received until the client closes its writing side; the parent, as the client, does connect, sends msg, closes its writing side (shutdown SHUT_WR) and reads the reply to the end of the stream (recv returns 0), then waits for the child. TCP is a byte stream: read the reply in a loop.",
+   "hint": "shutdown(fd, SHUT_WR) tells the server that the request has ended (it will see recv == 0), but leaves the socket open for reading the reply."
+  },
+  {
+   "id": "u11-socketpair",
+   "title": "socketpair: a two-way channel between processes",
+   "statement": "double_via_socketpair(const int *values, int n, long *out) → the number processed: socketpair(AF_UNIX, SOCK_STREAM) connects the parent and the child; the parent sends the child one int at a time, the child replies with the doubled value; the result is written to out[i]. Read and write exactly sizeof(int) bytes, retrying on a partial transfer. At the end close the sockets and wait for the child.",
+   "hint": "A socket from socketpair is two-way: both ends can be read and written. The child exits when the parent closes its end (read returns 0)."
+  },
+  {
+   "id": "u11-ip-header",
+   "title": "Parsing an IPv4 header from bytes",
+   "statement": "struct ipinfo { int version, ihl, ttl, proto; unsigned total_len; char src[16], dst[16]; int checksum_ok; }. parse_ipv4(const unsigned char *pkt, size_t len, struct ipinfo *o) → 0 / −1 (shorter than 20 bytes, version not 4, IHL < 5 or the header is longer than len). Fields: version is the high 4 bits of the first byte; ihl is the low ones (in 32-bit words); total_len and the addresses are big-endian. checksum_ok = 1 if the sum of the 16-bit words of the header (ihl · 4 bytes) with carry gives 0xFFFF.",
+   "hint": "The header checksum is correct if adding all 16-bit words (including the checksum field itself) with carry gives 0xFFFF."
+  },
+  {
+   "id": "u11-tcp-header",
+   "title": "TCP header: ports, flags, numbers",
+   "statement": "struct tcpinfo { unsigned sport, dport; unsigned long seq, ack; int data_off; char flags[32]; }. parse_tcp(const unsigned char *seg, size_t len, struct tcpinfo *o) → 0 / −1 (shorter than 20 bytes, data offset < 5 or greater than len). flags are the names of the set flags separated by commas in the order «CWR,ECE,URG,ACK,PSH,RST,SYN,FIN» (bits 7…0 of the thirteenth byte), with no flags «none»; data_off is the header length in bytes (the high 4 bits of byte 12 × 4).",
+   "hint": "Assemble sequence numbers into an unsigned long before shifting, otherwise the high byte shifted by 24 will overflow an int."
+  },
+  {
+   "id": "u11-cidr",
+   "title": "CIDR on bits: network, broadcast, hosts",
+   "statement": "parse_cidr(const char *s, uint32_t *ip, int *prefix) → 0 / −1 (format «a.b.c.d/n», octets 0..255, n 0..32). netmask(int n), network(ip, n), broadcast(ip, n), host_count(n) → the number of host addresses (2ⁿ without the network and broadcast ones; for /31 it is 2, for /32 it is 1). in_subnet(ip, net, n) → 1/0. fmt_ip(ip, out) gives «a.b.c.d». No inet_aton and the like.",
+   "hint": "Mask: ~0u << (32 − n) for n > 0 (for n = 0 a shift by 32 is not allowed); store addresses as uint32_t in an order convenient for shifts."
+  },
+  {
+   "id": "u11-nonblock",
+   "title": "Non-blocking accept and poll",
+   "statement": "accept_flow(int *codes) → 0 / −1: create a listening TCP socket on 127.0.0.1:0 with O_NONBLOCK. codes[0] = the result of the first accept (it must be −1 with errno EAGAIN → store errno), codes[1] = poll(listen, POLLIN, 0) (the number ready), then connect with a client (connect is fast on loopback), codes[2] = poll(listen, POLLIN, 1000) (the number ready), codes[3] = 1 if the second accept returned a descriptor ≥ 0, codes[4] = 1 if getsockopt(SO_ERROR) on the client equals 0. Close everything.",
+   "hint": "In non-blocking mode, accept with no incoming connections returns −1 and errno = EAGAIN; poll(POLLIN) on a listening socket signals a ready connection."
+  },
+  {
+   "id": "u11-byteorder",
+   "title": "Network byte order: htons, htonl by hand",
+   "statement": "my_htons(uint16_t), my_htonl(uint32_t), my_ntohs, my_ntohl convert between host order and network order (big-endian) WITHOUT the library htons/htonl/ntohs/ntohl: detect the host order at run time and swap bytes only when necessary. put_be32(uint8_t *b, uint32_t v) and get_be32(const uint8_t *b) write and read big-endian in a buffer. is_big_endian(void) → 1/0.",
+   "hint": "Network order puts the most significant byte first; on a little-endian machine the bytes are swapped, on a big-endian one the conversion is the identity."
+  },
+  {
+   "id": "u11-packet-filter",
+   "title": "A rule chain: the first match wins",
+   "statement": "filter_packet(const struct rule *r, int n, const struct pkt *p, int policy) → int: the verdict for a packet (1 means accept, 0 means drop). Go through the rules in order and apply the FIRST one that matches; if none matches, return policy. A rule matches if: proto is 0 (\"any\") or equals p->proto; src_mask is 0 (any source) or (p->src & src_mask) == (src_net & src_mask); dport_lo = dport_hi = 0 (\"any port\") or dport_lo ≤ p->dport ≤ dport_hi. The structures rule and pkt are given in the starter.",
+   "hint": "The order of rules matters: a more specific rule must come before a general one. A network comparison is done with a mask: (address & mask) == (network & mask). A packet for which no rule was found gets the verdict of the default policy.",
+   "starter": "struct rule {\n    int accept;               /* 1 = accept, 0 = drop */\n    int proto;                /* 0 = any, 6 = TCP, 17 = UDP */\n    unsigned src_net, src_mask;\n    int dport_lo, dport_hi;\n};\n\nstruct pkt {\n    int proto;\n    unsigned src;\n    int dport;\n};\n\nint filter_packet(const struct rule *r, int n, const struct pkt *p, int policy) { (void)r; (void)n; (void)p; return policy; }\n"
+  },
+  {
+   "id": "u11-tcp-states",
+   "title": "The TCP state machine",
+   "statement": "tcp_next(int state, int event) → int: the new TCP state according to the transition table (the constants for states and events are in the starter) or −1 if the transition is not allowed. Allowed transitions: CLOSED: APP_LISTEN→LISTEN, APP_CONNECT→SYN_SENT. LISTEN: RCV_SYN→SYN_RCVD, APP_CONNECT→SYN_SENT, APP_CLOSE→CLOSED. SYN_SENT: RCV_SYNACK→ESTABLISHED, RCV_SYN→SYN_RCVD, APP_CLOSE→CLOSED. SYN_RCVD: RCV_ACK→ESTABLISHED, APP_CLOSE→FIN_WAIT1. ESTABLISHED: APP_CLOSE→FIN_WAIT1, RCV_FIN→CLOSE_WAIT. FIN_WAIT1: RCV_ACK→FIN_WAIT2, RCV_FIN→CLOSING, RCV_FINACK→TIME_WAIT. FIN_WAIT2: RCV_FIN→TIME_WAIT. CLOSE_WAIT: APP_CLOSE→LAST_ACK. CLOSING: RCV_ACK→TIME_WAIT. LAST_ACK: RCV_ACK→CLOSED. TIME_WAIT: TIMEOUT_2MSL→CLOSED.",
+   "hint": "A TCP state is what the connection \"remembers\" about the handshake. The side that closes actively goes through FIN_WAIT1, FIN_WAIT2 and TIME_WAIT; the passive one goes through CLOSE_WAIT and LAST_ACK. TIME_WAIT is needed so that late packets of the old connection don't end up in a new one."
+  },
+  {
+   "id": "u11-inet-checksum",
+   "title": "The Internet checksum (RFC 1071)",
+   "statement": "inet_checksum(const void *data, size_t len) → unsigned: compute the 16-bit checksum: add the data as 16-bit words in \"most significant byte first\" order (regardless of the processor's byte order), pad an odd last byte with a zero low byte; add the carry out of the high bits back into the low ones (end-around carry addition); invert the result bitwise and truncate it to 16 bits. checksum_valid(const void *data, size_t len) → int: 1 if the sum of all words together with the checksum field gives 0xFFFF (that is, inet_checksum of the data, including the field, equals 0).",
+   "hint": "End-around carry addition: if the sum went beyond 16 bits, the high part is added to the low one. The receiver adds all words together with the checksum field and expects 0xFFFF, which in inverted form is zero."
+  },
+  {
+   "id": "u11-rcvbuf",
+   "title": "The socket receive buffer: SO_RCVBUF",
+   "statement": "rcvbuf_after_set(int requested) → int: create a UDP socket, call setsockopt(SOL_SOCKET, SO_RCVBUF, requested) and return the value that getsockopt(SO_RCVBUF) then returns; error → −1. The Linux kernel doubles the requested value (part of the space goes to bookkeeping data) and does not go below a minimum. default_rcvbuf() → int: the default receive buffer size of a new UDP socket (getsockopt without setting anything).",
+   "hint": "The kernel doubles the requested buffer size: it accounts for both the data itself and the bookkeeping memory for each packet. A value that is too small is raised to the minimum, one that is too large is capped by the net.core.rmem_max parameter."
+  }
+ ]
+}

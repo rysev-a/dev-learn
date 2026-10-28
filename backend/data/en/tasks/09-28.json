@@ -1,0 +1,184 @@
+{
+ "book": 9,
+ "chapter": 28,
+ "tasks": [
+  {
+   "id": "d12-cte-top-clients",
+   "title": "Best via CTE",
+   "statement": "Using WITH, find the departments whose average salary is above the overall average: columns `dept`, `avg_sal` (integer, ROUND), ordered by department name.",
+   "hint": "A common expression with the average by department and a subquery with the average over everyone.",
+   "starter": "-- WITH + comparison with the average\nWITH\n"
+  },
+  {
+   "id": "d12-window-share",
+   "title": "Share within the department",
+   "statement": "For each employee output the share of their salary in the department, in percent (rounded to an integer): columns `name`, `dept`, `pct`; order by dept, then by name.",
+   "hint": "SUM(salary) OVER (PARTITION BY dept) as the denominator."
+  },
+  {
+   "id": "d12-row-number-top",
+   "title": "Top 2 in the department",
+   "statement": "For each department output the two highest paid employees; with equal salary the smaller id goes first. Columns `dept`, `name`, `salary`; order by dept, then by salary descending and id.",
+   "hint": "ROW_NUMBER() OVER (PARTITION BY dept ORDER BY salary DESC, id) and the filter rn <= 2 outside.",
+   "starter": "-- ROW_NUMBER per department\nSELECT\n"
+  },
+  {
+   "id": "d12-rank-ties",
+   "title": "RANK and DENSE_RANK",
+   "statement": "Output the employees with their salary rank inside the department, without gaps on ties (DENSE_RANK, by descending salary): columns `name`, `dept`, `r`; order by dept, r, name.",
+   "hint": "DENSE_RANK() OVER (PARTITION BY dept ORDER BY salary DESC)."
+  },
+  {
+   "id": "d12-lag-growth",
+   "title": "Day-over-day growth",
+   "statement": "For region N output the change in revenue compared to the previous day: columns `day`, `amount`, `delta` (NULL on the first day); order by day.",
+   "hint": "LAG(amount) OVER (ORDER BY day); the filter region = 'N' in WHERE."
+  },
+  {
+   "id": "d12-running-total",
+   "title": "Running total by region",
+   "statement": "Output the running revenue by day within each region: columns `region`, `day`, `total`; order by region and day.",
+   "hint": "SUM(amount) OVER (PARTITION BY region ORDER BY day).",
+   "starter": "-- running sum\nSELECT\n"
+  },
+  {
+   "id": "d12-moving-avg",
+   "title": "Moving average",
+   "statement": "For region N output the moving average of the amount over the current and the two previous days (ROUND to an integer): columns `day`, `avg3`; order by day.",
+   "hint": "AVG(amount) OVER (ORDER BY day ROWS BETWEEN 2 PRECEDING AND CURRENT ROW).",
+   "starter": "-- ROWS frame\nSELECT\n"
+  },
+  {
+   "id": "d12-pivot",
+   "title": "Pivot table",
+   "statement": "In one row output the revenue of regions N and S over non-cancelled sales: columns `n_total`, `s_total`. Use conditional aggregation.",
+   "hint": "Two SUM(CASE WHEN … THEN amount ELSE 0 END)."
+  },
+  {
+   "id": "d12-filter",
+   "title": "FILTER",
+   "statement": "For each region output the number of sales (`n`) and the number of cancelled ones (`cancelled`) using COUNT(*) FILTER (WHERE …): columns `region`, `n`, `cancelled`; order by region.",
+   "hint": "COUNT(*) FILTER (WHERE status = 'cancelled')."
+  },
+  {
+   "id": "d12-recursive-subordinates",
+   "title": "All subordinates",
+   "statement": "Output all subordinates of «Сергей» (id 7) at all levels: columns `id`, `name`, `level` (1 — direct reports); order by level, then by id.",
+   "hint": "The anchor is the direct reports of id 7; the step joins those whose boss_id equals an id from the previous step.",
+   "starter": "-- recursion downward\nWITH RECURSIVE\n"
+  },
+  {
+   "id": "d12-recursive-depth",
+   "title": "Tree depth",
+   "statement": "Output the maximum depth of the hierarchy (the director is level 0): column `depth`.",
+   "hint": "The recursion computes the depth; MAX outside.",
+   "starter": "-- depth\nWITH RECURSIVE\n"
+  },
+  {
+   "id": "d12-recursive-dates",
+   "title": "A series of values",
+   "statement": "Generate a series of consecutive numbers from 1 to 7 with a recursive expression and output the sum of their squares: column `s` (it must come out as 140).",
+   "hint": "The anchor SELECT 1, the step i + 1 with the condition i < 7.",
+   "starter": "-- number series\nWITH RECURSIVE\n"
+  },
+  {
+   "id": "d12-not-exists",
+   "title": "Employees without subordinates",
+   "statement": "Output the employees who have no subordinates: columns `id`, `name`; order by id. Use NOT EXISTS.",
+   "hint": "NOT EXISTS (SELECT 1 FROM emp s WHERE s.boss_id = e.id)."
+  },
+  {
+   "id": "d12-except",
+   "title": "Set difference",
+   "statement": "Output the values that are in a but not in b (without repeats): column `x`; in ascending order.",
+   "hint": "EXCEPT removes duplicates by itself."
+  },
+  {
+   "id": "d12-intersect-union",
+   "title": "Intersection and union",
+   "statement": "Output one row: how many values are in the intersection of a and b (`k_int`) and how many distinct values are in the union in total (`k_union`). Columns `k_int`, `k_union`.",
+   "hint": "Two scalar subselects with COUNT(*) over INTERSECT and UNION.",
+   "starter": "-- INTERSECT and UNION\nSELECT\n"
+  },
+  {
+   "id": "d12-json-extract",
+   "title": "Values from JSON",
+   "statement": "Output the cities and the average age of users by events: columns `city`, `avg_age` (ROUND to an integer); order by city. Use json_extract.",
+   "hint": "Paths '$.user.city' and '$.user.age'; group by the first."
+  },
+  {
+   "id": "d12-json-each",
+   "title": "Unnest a JSON array",
+   "statement": "Output the number of events for each tag from the array tags: columns `tag`, `n`; order by n descending, then by tag. Use json_each.",
+   "hint": "json_each(doc, '$.tags') returns rows with value; join it with events using a comma."
+  },
+  {
+   "id": "d12-upsert-returning",
+   "title": "UPSERT with RETURNING",
+   "statement": "Increase the counter 'a' by 2, and the counter 'b' does not exist yet — create it with the value 1. Do it with two INSERT … ON CONFLICT (name) DO UPDATE SET n = n + excluded.n. The result is checked by the table.",
+   "hint": "ON CONFLICT (name) DO UPDATE SET n = n + excluded.n.",
+   "starter": "-- two upserts\nINSERT INTO counters\n"
+  },
+  {
+   "id": "d12-delete-returning",
+   "title": "DELETE RETURNING",
+   "statement": "Delete from q the rows with a negative v and at the same time return them with the query DELETE … RETURNING id, v. The result is checked by the remaining rows of the table q.",
+   "hint": "DELETE FROM q WHERE v < 0 RETURNING id, v;"
+  },
+  {
+   "id": "d12-gaps-islands",
+   "title": "Gaps and islands",
+   "statement": "For each user output the continuous series of days (islands): columns `user_id`, `first_day`, `last_day`, `length`; order by user_id and first_day. Hint: day − ROW_NUMBER() gives a constant value inside a series.",
+   "hint": "Group = day − ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY day); then GROUP BY user_id, grp.",
+   "starter": "-- consecutive series\nSELECT\n"
+  },
+  {
+   "id": "d12-first-value",
+   "title": "A customer's first purchase",
+   "statement": "For each order output the amount of the customer's first purchase (by the minimum day): columns `id`, `first_amount`; order by id. Use FIRST_VALUE.",
+   "hint": "FIRST_VALUE(amount) OVER (PARTITION BY client ORDER BY day)."
+  },
+  {
+   "id": "d12-py-window-rank",
+   "title": "DENSE_RANK by hand",
+   "statement": "Rows are lists [group, value]. Write dense_rank_by_group(rows): a list of ranks in the same order as the rows — by descending value inside the group, equal values get the same rank, ranks go without gaps from 1.",
+   "hint": "For each group sort the distinct values in descending order and number them."
+  },
+  {
+   "id": "d12-py-lag",
+   "title": "LAG by hand",
+   "statement": "Write deltas(values): a list of differences between neighboring values; the first position is None (there is no previous one). For an empty list — an empty list.",
+   "hint": "The first element is None, the others are v[i] − v[i−1]."
+  },
+  {
+   "id": "d12-py-frame",
+   "title": "Moving average",
+   "statement": "Write moving_avg(values, k): for each position the average of the values in a window of the current one and the k−1 previous ones (the window is shorter at the start), rounded to two decimal places.",
+   "hint": "The slice values[max(0, i-k+1):i+1] and its average."
+  },
+  {
+   "id": "d12-py-pivot",
+   "title": "Pivot table",
+   "statement": "Records are lists [row, column, value]. Write pivot_sum(records): a dictionary \"row → dictionary \"column → sum of values\"\". The keys are strings.",
+   "hint": "A nested dictionary: setdefault for the row and get for the column."
+  },
+  {
+   "id": "d12-py-recursive",
+   "title": "Walking a hierarchy",
+   "statement": "The links are a list of pairs [boss, subordinate]. Write descendants(pairs, root): a sorted list of all (direct and indirect) subordinates of root; the data may contain a cycle — each node is counted once, and root itself is not in the answer.",
+   "hint": "Depth-first walk with a set of visited nodes — then a cycle is harmless."
+  },
+  {
+   "id": "d12-py-upsert",
+   "title": "UPSERT by key",
+   "statement": "A table is a dictionary \"key → value\". The changes are a list [key, delta]. Write upsert_all(table, changes): a new dictionary where the value is added to an existing key, and a new key gets the delta (like INSERT … ON CONFLICT DO UPDATE n = n + excluded.n). Do not modify the original.",
+   "hint": "Copy the dictionary and add with get(k, 0)."
+  },
+  {
+   "id": "d12-py-set-ops",
+   "title": "Set operations",
+   "statement": "Given two lists a and b. Write set_ops(a, b): a list of four results [union without repeats, intersection, a minus b, the number of rows of UNION ALL (a single number)]; the first three are sorted lists.",
+   "hint": "Python sets: |, &, −; for UNION ALL just add the lengths."
+  }
+ ]
+}

@@ -1,0 +1,186 @@
+{
+ "book": 10,
+ "chapter": 11,
+ "tasks": [
+  {
+   "id": "r11-char-len",
+   "title": "len in characters",
+   "statement": "Python: len(s). Write char_len(s: &str) -> usize — the number of characters (not bytes).",
+   "hint": "s.chars().count()"
+  },
+  {
+   "id": "r11-first-last",
+   "title": "s[0] and s[-1]",
+   "statement": "Python: s[0] and s[-1]. Write first_last(s: &str) -> Option<(char, char)>: the first and last letters, or None for an empty string.",
+   "hint": "The ? operator returns None if there is no letter."
+  },
+  {
+   "id": "r11-nth-char",
+   "title": "Character by index",
+   "statement": "Python: s[i]. Write char_at(s: &str, i: usize) -> Option<char>.",
+   "hint": "s.chars().nth(i)"
+  },
+  {
+   "id": "r11-substring",
+   "title": "Slice by characters",
+   "statement": "Python: s[a:b] (by characters). Write substr(s: &str, a: usize, b: usize) -> String — the characters with indexes a..b (b is excluded); for bounds outside the string, return whatever exists.",
+   "hint": "skip(a).take(b - a) over chars()."
+  },
+  {
+   "id": "r11-strip",
+   "title": "strip",
+   "statement": "Python: s.strip(). Write clean(s: &str) -> String: trim whitespace at the edges and make all letters lowercase.",
+   "hint": "trim(), then to_lowercase()."
+  },
+  {
+   "id": "r11-find-minus-one",
+   "title": "find without -1",
+   "statement": "Python: s.find(sub) returns -1 if not found. Write find_py(s: &str, sub: &str) -> i32 with the same behavior, but the position is a character index, not a byte index.",
+   "hint": "find gives a byte position; the number of characters before it is s[..i].chars().count()."
+  },
+  {
+   "id": "r11-count-sub",
+   "title": "str.count",
+   "statement": "Python: s.count(sub). Write count_sub(s: &str, sub: &str) -> usize: the number of non-overlapping occurrences (sub is not empty).",
+   "hint": "s.matches(sub).count()"
+  },
+  {
+   "id": "r11-replace-first",
+   "title": "replace with a limit",
+   "statement": "Python: s.replace(a, b, 1). Write replace_first(s: &str, a: &str, b: &str) -> String — replace only the first occurrence.",
+   "hint": "replacen(a, b, n)"
+  },
+  {
+   "id": "r11-split-comma",
+   "title": "split",
+   "statement": "Python: [p.strip() for p in s.split(',')]. Write split_trim(s: &str) -> Vec<String>.",
+   "hint": "split(',') → map(trim, to_string) → collect"
+  },
+  {
+   "id": "r11-split-once",
+   "title": "Key and value",
+   "statement": "Python: k, v = line.split('=', 1). Write kv(line: &str) -> Option<(String, String)> using split_once; the key and value have no whitespace at the edges.",
+   "hint": "split_once returns Option<(&str, &str)>."
+  },
+  {
+   "id": "r11-words",
+   "title": "Words of a text",
+   "statement": "Python: s.split(). Write words(s: &str) -> Vec<&str> using split_whitespace.",
+   "hint": "split_whitespace().collect()"
+  },
+  {
+   "id": "r11-join",
+   "title": "join",
+   "statement": "Python: ', '.join(words). Write join_comma(words: &[&str]) -> String.",
+   "hint": "words.join(\", \")"
+  },
+  {
+   "id": "r11-fstring",
+   "title": "f-string",
+   "statement": "Python: f\"{name}: {score:>5.1f}\". Write line(name: &str, score: f64) -> String: the name, a colon, a space, and the score with one digit after the decimal point, right-aligned in a field of width 5.",
+   "hint": "{:>5.1} — width 5, one digit after the point."
+  },
+  {
+   "id": "r11-title-case",
+   "title": "title()",
+   "statement": "Python: s.title() for words separated by spaces. Write title(s: &str) -> String: each word capitalized, the rest lowercase; words separated by a single space.",
+   "hint": "The first letter to uppercase, the rest to lowercase."
+  },
+  {
+   "id": "r11-startswith",
+   "title": "startswith and endswith",
+   "statement": "Python: s.startswith(('http://', 'https://')). Write is_url(s: &str) -> bool: the string starts with http:// or https://.",
+   "hint": "Two starts_with checks joined by ||."
+  },
+  {
+   "id": "r11-isdigit",
+   "title": "isdigit",
+   "statement": "Python: s.isdigit(). Write all_digits(s: &str) -> bool: the string is non-empty and consists only of ASCII digits.",
+   "hint": "chars().all(|c| c.is_ascii_digit()) and !s.is_empty()"
+  },
+  {
+   "id": "r11-ord-chr",
+   "title": "ord and chr",
+   "statement": "Python: chr(ord(c) + 1). Write next_char(c: char) -> Option<char>: the next character by code (None if there is no such code).",
+   "hint": "char::from_u32 returns None if the number is not a character."
+  },
+  {
+   "id": "r11-caesar-ru",
+   "title": "Caesar cipher for Russian",
+   "statement": "Write caesar_ru(s: &str, k: u32) -> String: shift the lowercase Russian letters «а»–«я» (33 letters, including «ё») forward by k positions, wrapping around; leave other characters unchanged. The alphabet: «абвгдеёжзийклмнопрстуфхцчшщъыьэюя».",
+   "hint": "Find the letter's position in the alphabet vector and shift it modulo its length."
+  },
+  {
+   "id": "r11-reverse-words",
+   "title": "Words in reverse order",
+   "statement": "Python: ' '.join(s.split()[::-1]). Write reverse_words(s: &str) -> String.",
+   "hint": "split_whitespace().rev() and join(\" \")"
+  },
+  {
+   "id": "r11-anagram",
+   "title": "Anagrams",
+   "statement": "Python: sorted(a) == sorted(b). Write is_anagram(a: &str, b: &str) -> bool, ignoring case and spaces.",
+   "hint": "Normalize both strings: no spaces, lowercase, sorted."
+  },
+  {
+   "id": "r11-char-freq",
+   "title": "Character frequencies",
+   "statement": "Python: Counter(s). Write top_char(s: &str) -> Option<(char, usize)>: the most frequent character and its count; on a tie, the one that appeared earlier. For an empty string, None. Use a Vec of (char, usize) pairs, no HashMap.",
+   "hint": "Keep the pairs in a vector; update the one found or add a new one."
+  },
+  {
+   "id": "r11-wrap",
+   "title": "Line wrapping",
+   "statement": "Write wrap(text: &str, width: usize) -> Vec<String>: split the words into lines so that each line (words separated by a space) is at most width characters long (a word longer than width goes on a line of its own).",
+   "hint": "Accumulate the current line in cur and push it to the result when the word does not fit."
+  },
+  {
+   "id": "r11-vowels",
+   "title": "Vowels and consonants",
+   "statement": "Write count_vowels(s: &str) -> (usize, usize): the number of Russian vowels «аеёиоуыэюя» and the number of other letters (case does not matter; non-letters are not counted).",
+   "hint": "First check membership among the vowels, then is_alphabetic."
+  },
+  {
+   "id": "r11-compress",
+   "title": "Run-length compression",
+   "statement": "Write rle(s: &str) -> String: each run of identical characters is replaced by the character and the run length («aaabcc» → «a3b1c2»).",
+   "hint": "peekable() lets you peek at the next character."
+  },
+  {
+   "id": "r11-unrle",
+   "title": "Decompression",
+   "statement": "The inverse task: unrle(s: &str) -> String unpacks the form «a3b1c2» (each letter is followed by the digits of its count) into «aaabcc». Letters are any non-digits.",
+   "hint": "Accumulate the digits in num and reset it at a new letter."
+  },
+  {
+   "id": "r11-bytes-hex",
+   "title": "encode → hex",
+   "statement": "Python: s.encode().hex(). Write to_hex(s: &str) -> String: the UTF-8 bytes, each as two hexadecimal digits, with no spaces.",
+   "hint": "format!(\"{:02x}\", b) for each byte."
+  },
+  {
+   "id": "r11-from-bytes",
+   "title": "decode with an error",
+   "statement": "Python: b.decode() can raise UnicodeDecodeError. Write decode(b: &[u8]) -> Result<String, String>: Ok(string) or Err(\"плохой UTF-8\").",
+   "hint": "String::from_utf8(b.to_vec())"
+  },
+  {
+   "id": "r11-lossy",
+   "title": "from_utf8_lossy",
+   "statement": "Write safe_text(b: &[u8]) -> String: turn the bytes into a string, replacing invalid sequences with the character «�» (use String::from_utf8_lossy and to_string).",
+   "hint": "from_utf8_lossy returns a Cow; to_string makes a String."
+  },
+  {
+   "id": "r11-sort-ci",
+   "title": "Case-insensitive sorting",
+   "statement": "Python: sorted(words, key=str.lower). Write sort_ci(words: &[&str]) -> Vec<String>: the words in alphabetical order ignoring case; on ties, keep the original order (the sort is stable).",
+   "hint": "sort_by_key(|w| w.to_lowercase())"
+  },
+  {
+   "id": "r11-build",
+   "title": "Building a long string",
+   "statement": "Write numbers(n: u32) -> String: the numbers 1…n separated by commas with no spaces («1,2,3»). Use String::with_capacity and push_str. For n = 0, return an empty string.",
+   "hint": "push_str in a loop, with a comma before every number except the first."
+  }
+ ]
+}

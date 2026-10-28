@@ -1,0 +1,54 @@
+{
+ "book": 7,
+ "chapter": 16,
+ "tasks": [
+  {
+   "id": "dijkstra-dist",
+   "title": "Dijkstra's algorithm",
+   "statement": "Write a function dijkstra(graph, start): graph is a dictionary \"vertex → {neighbor: weight}\" (weights are non-negative), vertices are numbers. Return a dictionary \"vertex → shortest distance\" for the reachable vertices. You need a heap (heapq): the checker feeds a graph of 100,000 vertices and 300,000 edges.",
+   "hint": "A heap of (distance, vertex) pairs; when popping, skip a stale entry (d > dist[v]); relaxation: dist[u] = dist[v] + w."
+  },
+  {
+   "id": "shortest-path-route",
+   "title": "The route itself",
+   "statement": "Write a function shortest_route(graph, start, goal): graph is a dictionary \"vertex → {neighbor: weight}\" (string vertices, positive weights). Return a tuple (length, list of vertices of the path from start to goal), or None if there is no path. In the tests the shortest path is unique.",
+   "hint": "In Dijkstra, store prev[u] = v whenever a distance improves; restore the path from goal via prev."
+  },
+  {
+   "id": "bellman-ford-neg",
+   "title": "Bellman-Ford",
+   "statement": "Write a function bellman_ford(n, edges, src): vertices 0..n-1, edges is a list of triples [u, v, weight] (weights may be negative). Return the list of distances from src (None for unreachable vertices), or the string «цикл» if a cycle of negative weight is reachable from src.",
+   "hint": "Relax all edges n - 1 times; one more pass that improves anything means a negative cycle."
+  },
+  {
+   "id": "floyd-warshall-matrix",
+   "title": "All pairs of vertices",
+   "statement": "Write a function all_pairs(n, edges): vertices 0..n-1, edges are triples [u, v, weight] of a directed graph (non-negative weights). Return the n×n matrix of shortest distances (the Floyd-Warshall algorithm); unreachable is None, the distance to itself is 0.",
+   "hint": "dist[i][j] = min(dist[i][j], dist[i][k] + dist[k][j]) for k, i, j in a triple loop; use float('inf') for infinity and replace it with None at the end."
+  },
+  {
+   "id": "kruskal-mst",
+   "title": "Minimum spanning tree: Kruskal",
+   "statement": "Write a function mst_weight(n, edges): vertices 0..n-1, edges are triples (u, v, weight) of an undirected graph. Return the weight of the minimum spanning tree, or None if the graph is disconnected. Kruskal's algorithm: edge sorting and a disjoint-set structure. The checker uses 200,000 edges.",
+   "hint": "Sort the edges by weight; take an edge if its ends are in different sets (union) and add its weight; at the end check that n - 1 edges were taken."
+  },
+  {
+   "id": "prim-mst",
+   "title": "Minimum spanning tree: Prim",
+   "statement": "Write a function prim_weight(graph): graph is a dictionary \"vertex → {neighbor: weight}\" of a connected undirected graph (edges are listed in both directions, vertices are strings). Return the weight of the minimum spanning tree using Prim's algorithm with a heap. An empty graph gives 0.",
+   "hint": "Start from any vertex; the heap holds edges leading out of the tree; pop the minimum, and if its far end is not in the tree yet, add it."
+  },
+  {
+   "id": "network-delay",
+   "title": "Signal propagation time",
+   "statement": "A network of nodes 1..n. times is a list of triples [u, v, w]: the signal goes from u to v in w. The signal is sent from node k. Write a function network_delay(times, n, k): how much time passes until the signal reaches ALL nodes, or -1 if it does not reach all of them.",
+   "hint": "Dijkstra from k; the answer is the maximum distance, if all n nodes were reached."
+  },
+  {
+   "id": "cheapest-flight-k-stops",
+   "title": "Cheapest flight with a limit on stops",
+   "statement": "Write a function cheapest_flight(n, flights, src, dst, k): cities 0..n-1, flights are triples [from, to, price]. Return the minimum price of a flight from src to dst with at most k stops (that is, at most k + 1 flights), or -1. Hint: Bellman-Ford for exactly k + 1 iterations, with a copy of the distances at each step.",
+   "hint": "dist = [inf] * n; dist[src] = 0; k + 1 times: new = dist[:]; for each flight, improve new[v] from dist[u] + price; dist = new."
+  }
+ ]
+}

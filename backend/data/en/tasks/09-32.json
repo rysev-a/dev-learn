@@ -1,0 +1,192 @@
+{
+ "book": 9,
+ "chapter": 32,
+ "tasks": [
+  {
+   "id": "d16-nplus1-join",
+   "title": "Instead of queries in a loop",
+   "statement": "Instead of querying the customer for each order, output the orders together with the customer's name in one query: columns id, name, total; ordered by order id.",
+   "hint": "JOIN orders and clients on client_id.",
+   "starter": "-- one query instead of N+1\nSELECT\n"
+  },
+  {
+   "id": "d16-batch-in",
+   "title": "A batch by a list of identifiers",
+   "statement": "Load the clients with id 1, 3 and 4 in one query: columns id, name; ordered by id.",
+   "hint": "WHERE id IN (…).",
+   "starter": "-- IN instead of three queries\nSELECT\n"
+  },
+  {
+   "id": "d16-detect-nplus1",
+   "title": "Finding queries in a loop",
+   "statement": "Using the log qlog, find the pairs \"request (req) — template\" in which the same template ran 3 or more times: columns req, tpl, n; ordered by req, then tpl.",
+   "hint": "GROUP BY req, tpl HAVING COUNT(*) >= 3.",
+   "starter": "-- N+1 detector\nSELECT\n"
+  },
+  {
+   "id": "d16-time-by-req",
+   "title": "Query time per request",
+   "statement": "For each request (req), output the number of database queries and the total time: columns req, n, total_ms; ordered by req.",
+   "hint": "GROUP BY req with COUNT(*) and SUM(ms).",
+   "starter": "-- load per user request\nSELECT\n"
+  },
+  {
+   "id": "d16-slowest-tpl",
+   "title": "The heaviest templates",
+   "statement": "Output the two templates with the greatest total time: columns tpl, total_ms; ordered by time descending, then by template.",
+   "hint": "GROUP BY tpl, sort by the sum, LIMIT 2.",
+   "starter": "-- top templates\nSELECT\n"
+  },
+  {
+   "id": "d16-select-needed",
+   "title": "Only the needed columns",
+   "statement": "The order list needs only id, status and total, and only for paid orders, largest first (LIMIT 2). Columns id, status, total.",
+   "hint": "List the needed columns; ORDER BY total DESC LIMIT 2.",
+   "starter": "-- not SELECT *\nSELECT\n"
+  },
+  {
+   "id": "d16-keyset",
+   "title": "The next page",
+   "statement": "Output the next page of orders, 2 per page, after the order with id 2 (without OFFSET), ascending by id: columns id, total.",
+   "hint": "WHERE id > 2 ORDER BY id LIMIT 2."
+  },
+  {
+   "id": "d16-bulk-insert",
+   "title": "Batch insert",
+   "statement": "Insert three rows with a single INSERT statement: (1,'view',10), (2,'click',3), (3,'buy',1). The result is checked against the table.",
+   "hint": "INSERT INTO events VALUES (…), (…), (…);",
+   "starter": "-- one command, three rows\nINSERT INTO events\n"
+  },
+  {
+   "id": "d16-bulk-update",
+   "title": "Bulk update",
+   "statement": "With a single UPDATE, mark all new orders of customer 1 as 'paid'. The result is checked against the orders table.",
+   "hint": "UPDATE orders SET status = 'paid' WHERE client_id = 1 AND status = 'new';",
+   "starter": "-- one query instead of a loop\nUPDATE orders\n"
+  },
+  {
+   "id": "d16-optimistic",
+   "title": "Optimistic locking",
+   "statement": "The application read order 1 with ver = 1 and wants to set status = 'paid'. Update so that the change works only with the same version, and increase ver. Then repeat the same command (simulating a competitor who was late): the second time the row must not change. The result is checked against orders.",
+   "hint": "WHERE id = 1 AND ver = 1 and ver = ver + 1; the second run will not find a row with ver = 1."
+  },
+  {
+   "id": "d16-idempotency-key",
+   "title": "Idempotency key",
+   "statement": "Make a payment idempotently: insert ('k-91a', 500, 'ok') with INSERT OR IGNORE, and then run the same command once more (a client retry). One row must remain in the table. The result is checked against the table.",
+   "hint": "On a primary key conflict, INSERT OR IGNORE silently skips the insert.",
+   "starter": "-- a retry is safe\nINSERT OR IGNORE INTO payments\n"
+  },
+  {
+   "id": "d16-outbox",
+   "title": "Outbox",
+   "statement": "In one transaction, create an order (id 1, total 300) and an event in outbox: topic 'order.created', payload is the order id as the string '1'. Use BEGIN … COMMIT. The result is checked against both tables.",
+   "hint": "Two inserts between BEGIN and COMMIT.",
+   "starter": "-- the order and the event together\nBEGIN;\n"
+  },
+  {
+   "id": "d16-queue-claim",
+   "title": "Taking a task from the queue",
+   "statement": "Worker w1 takes one unprocessed task (status = 'new') with the smallest id: with a single UPDATE set status = 'running', worker = 'w1'. The result is checked against the jobs table.",
+   "hint": "A subquery SELECT MIN(id) … WHERE status = 'new' in the UPDATE condition.",
+   "starter": "-- take a task\nUPDATE jobs\n"
+  },
+  {
+   "id": "d16-requeue-stuck",
+   "title": "Returning stuck tasks",
+   "statement": "The current moment is 500. Tasks with status running that started 300 or more seconds ago are considered stuck: return them to new, resetting started and worker. The result is checked against the jobs table.",
+   "hint": "WHERE status = 'running' AND 500 - started >= 300.",
+   "starter": "-- on timeout\nUPDATE jobs\n"
+  },
+  {
+   "id": "d16-upsert-counter",
+   "title": "A counter via upsert",
+   "statement": "Record three visits: '/home' (+1), '/cart' (+1), '/home' (+1) with three commands INSERT … ON CONFLICT (page) DO UPDATE SET n = n + 1. The result is checked against the hits table.",
+   "hint": "ON CONFLICT (page) DO UPDATE SET n = n + 1."
+  },
+  {
+   "id": "d16-percentile",
+   "title": "Slow queries",
+   "statement": "Find the ms value below which at least 90% of queries lie (by sorting by ms and counting: the smallest ms for which the share of records with ms ≤ it is at least 0.9). Column p90.",
+   "hint": "For each value, compute the share of records not greater than it and pick the smallest with a share ≥ 0.9."
+  },
+  {
+   "id": "d16-pool-sim",
+   "title": "Queueing for the pool",
+   "statement": "A pool of size connections. Requests are lists [arrival time, duration] in ascending order of time. A free connection is taken at once, otherwise the request waits for the earliest release (FIFO). Write pool_wait(size, requests): a list of the wait times of each request.",
+   "hint": "A heap of connection release times; start = max(arrival, release)."
+  },
+  {
+   "id": "d16-littles-law",
+   "title": "Little's law",
+   "statement": "Average busy connections = rate (requests/s) × average time (ms) / 1000. Write pool_needed(rps, avg_ms, headroom): an integer number of connections, the product rounded up with the headroom factor (a multiplier), at least 1.",
+   "hint": "math.ceil(rps * avg_ms / 1000 * headroom), not less than 1."
+  },
+  {
+   "id": "d16-nplus1-count",
+   "title": "How many queries",
+   "statement": "A page shows orders orders, each has a customer, and each customer has a country. The strategies: 'lazy' is 1 + orders + orders (customer and country by one query per order), 'join' is 1, 'batch' is 3 (orders, customers as a list, countries as a list). Write query_count(orders, strategy): the number of queries; for orders = 0 with 'lazy', it is 1.",
+   "hint": "Three formulas, by strategy."
+  },
+  {
+   "id": "d16-latency",
+   "title": "Page latency",
+   "statement": "Each query costs rtt (network latency) + exec_ms (execution), and the queries run one after another. Write page_latency(queries, rtt, exec_ms): the total time in ms.",
+   "hint": "queries · (rtt + exec)."
+  },
+  {
+   "id": "d16-retry-backoff",
+   "title": "Retries with delay",
+   "statement": "Exponential delay: base · 2^k for k = 0, 1, …; but no more than cap. Write backoff_schedule(base, cap, attempts): a list of delays for attempts retries.",
+   "hint": "min(cap, base * 2 ** k)."
+  },
+  {
+   "id": "d16-chunks",
+   "title": "Batches",
+   "statement": "Write chunked(items, size): a list of batches of size elements (the last may be shorter). For an empty list, an empty list.",
+   "hint": "Slices with step size."
+  },
+  {
+   "id": "d16-idempotent",
+   "title": "Processing with a key",
+   "statement": "Requests are lists [key, amount]. The first request with a key is executed (the balance decreases by the amount), a repeated one with the same key returns the previous result and does not change the balance. The initial balance is balance. Write process_requests(balance, requests): a pair [final balance, list of results 'ok' / 'duplicate' / 'insufficient'] — insufficient funds give 'insufficient' (the balance does not change, and the key is remembered as executed with this result).",
+   "hint": "A dict of executed keys; a repeat is duplicate with no changes."
+  },
+  {
+   "id": "d16-optimistic-py",
+   "title": "Optimistic versions",
+   "statement": "A record is a dict {'v': value, 'ver': number}. Attempts are lists [expected version, new value]. An attempt succeeds only if the expected version equals the current one; then the value changes and the version grows by 1. Write apply_with_version(rec, attempts): a pair [final record, list of True/False per attempt]. Do not modify the original record.",
+   "hint": "Compare the expected version with the current one; on success increase the version."
+  },
+  {
+   "id": "d16-outbox-py",
+   "title": "Publishing the outbox",
+   "statement": "The outbox table is a list of dicts {'id', 'sent'}. The publisher takes unsent ones in ascending id, at most limit of them, and marks them sent. Publishing can fail on a message whose id is in fail: it stays unsent, and the publisher stops (order is preserved). Write publish_outbox(outbox, limit, fail): the list of ids sent in this pass.",
+   "hint": "Go through the unsent ones in id order; stop at the limit or at an error."
+  },
+  {
+   "id": "d16-replica-route",
+   "title": "Where to read from",
+   "statement": "The user made a write at the moment last_write (None means they have not written). The replica lags by lag seconds. Read from the primary if the user wrote and less than lag + 1 seconds have passed since the write (now − last_write < lag + 1), otherwise from the replica. Write route_read(now, last_write, lag): 'primary' or 'replica'.",
+   "hint": "Two conditions: there was a write and not enough time has passed."
+  },
+  {
+   "id": "d16-normalize-sql",
+   "title": "Query template",
+   "statement": "To group queries in the log, values are replaced with ?. Write normalize_query(sql): a string in which every integer or fractional number and every string literal in single quotes is replaced with '?', and runs of whitespace are collapsed to one space (the ends are trimmed); do not change the case. Do not touch numbers inside identifiers (t1).",
+   "hint": "Two re.sub calls: quoted literals and, separately, standalone numbers; then ' '.join(s.split())."
+  },
+  {
+   "id": "d16-detect-nplus1-py",
+   "title": "N+1 detector",
+   "statement": "The log is a list of [request, template]. Write repeated_templates(log, threshold): a sorted list of pairs [request, template] in which the template repeated at least threshold times.",
+   "hint": "A counter over the pairs (request, template)."
+  },
+  {
+   "id": "d16-unit-of-work",
+   "title": "Unit of work",
+   "statement": "An ORM remembers the original state of objects. The originals are a dict \"id → dict of fields\", and the current ones are the same. Write pending_updates(original, current): a list sorted by id of records [id, dict of changed fields and their new values] only for the objects where something changed (fields are compared by the keys of the current object).",
+   "hint": "For each object, compare the current fields with the original ones."
+  }
+ ]
+}

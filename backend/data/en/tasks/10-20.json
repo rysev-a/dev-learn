@@ -1,0 +1,187 @@
+{
+ "book": 10,
+ "chapter": 20,
+ "tasks": [
+  {
+   "id": "r20-compose",
+   "title": "Function composition",
+   "statement": "compose(f, g) → impl Fn(A) → C: returns the function \"first f, then g\". It works for any types: numbers → strings → lengths. The result is a closure that owns both functions.",
+   "hint": "Return move |x| g(f(x)): move is needed so that the closure takes f and g, otherwise it would outlive them."
+  },
+  {
+   "id": "r20-make-adder",
+   "title": "Closure factories",
+   "statement": "make_adder(n) → impl Fn(i32) → i32 adds n; make_counter() → impl FnMut() → u32 returns 1, 2, 3, … on each call; make_accumulator(start) → impl FnMut(i32) → i32 adds a number to the sum and returns it.",
+   "hint": "A closure keeps the captured variable inside itself: every closure created has its own copy of the counter."
+  },
+  {
+   "id": "r20-apply-n",
+   "title": "Higher-order functions",
+   "statement": "apply_n(f, n, x) applies an Fn(i32) → i32 to x exactly n times. twice(f) → impl Fn(i32) → i32 is \"f twice\". iterate_until(f, x, limit) → Vec<i32> gives the values x, f(x), f(f(x)), … while they are less than limit.",
+   "hint": "apply_n is a fold over the range (0..n): fold(x, |acc, _| f(acc))."
+  },
+  {
+   "id": "r20-fix-move",
+   "title": "Fix it: the closure outlives the function",
+   "statement": "make_greeter returns a closure that greets by name (the greeting text stays in Russian, as in the starter). The compiler answers: the closure may outlive a local variable it refers to. Fix it with one word.",
+   "hint": "The word move before the vertical bars: name moves into the closure.",
+   "starter": "fn make_greeter(name: String) -> impl Fn() -> String {\n    || format!(\"Привет, {name}!\")\n}\n"
+  },
+  {
+   "id": "r20-fix-fnonce",
+   "title": "Fix it: the closure is called once",
+   "statement": "run_once calls the given closure exactly once, but is declared as F: Fn. The closure from the driver consumes a string (FnOnce), and the build fails. Fix the trait bound.",
+   "hint": "FnOnce is the weakest trait: it also fits a closure that hands out a captured value."
+  },
+  {
+   "id": "r20-repeat-call",
+   "title": "FnMut: repeating an action",
+   "statement": "repeat_call(n, f: impl FnMut()) calls f exactly n times. times_table(n, f: impl FnMut(u32, u32)) calls f(i, j) for all 1 ≤ i ≤ j ≤ n in the order (1,1), (1,2), …, (2,2), …. Accumulating the result is done by the caller's closure.",
+   "hint": "The parameter f is declared mut so that it can be called: FnMut changes its state on every call."
+  },
+  {
+   "id": "r20-sort-closures",
+   "title": "Sorting with closures",
+   "statement": "sort_words(v: &mut Vec<String>) sorts by length, then alphabetically on a tie. sort_scores(v: &mut Vec<(String, i32)>) sorts by descending points, then by name on a tie. sort_floats(v: &mut Vec<f64>) sorts ascending via partial_cmp (no NaN).",
+   "hint": "For the secondary order use .then_with(|| …) after the first cmp."
+  },
+  {
+   "id": "r20-keep-if",
+   "title": "A generic filter with a closure",
+   "statement": "keep_if<T>(v: Vec<T>, pred: impl Fn(&T) → bool) → Vec<T> keeps the matching elements (they move, no cloning). split_by<T>(v: Vec<T>, pred: impl Fn(&T) → bool) → (Vec<T>, Vec<T>) gives the matching and the rest.",
+   "hint": "into_iter() takes the elements; filter gets &&T, but pred(x) accepts &T: Rust dereferences automatically."
+  },
+  {
+   "id": "r20-memo",
+   "title": "Computation cache: Memo<F>",
+   "statement": "Memo<F: Fn(u64) → u64> holds a function and a HashMap of results. new(f); get(&mut self, x) → u64 calls f only on the first request for a value; hits() → u32 is how many times the answer came from the cache. The driver counts the calls to f itself.",
+   "hint": "A call to a closure field is written in parentheses: (self.f)(x), otherwise Rust looks for a method f."
+  },
+  {
+   "id": "r20-lazy-calls",
+   "title": "Laziness: counting calls",
+   "statement": "lazy_calls() → (usize, usize): create an iterator (0..100).map(g), where g increments an outer counter and returns the number × 2. Return the number of calls to g when the iterator has only been built (nothing requested), and after take(3).collect().",
+   "hint": "Cell lets you change a value through a shared reference: calls.set(calls.get() + 1) inside the closure."
+  },
+  {
+   "id": "r20-scan-windows",
+   "title": "Running sums and differences",
+   "statement": "prefix_sums(v) → Vec<i32> gives running sums (scan). diffs(v) → Vec<i32> gives differences of neighbors (windows(2)). running_max(v) → Vec<i32> gives the maximum at every prefix. is_sorted_asc(v) → bool works via windows.",
+   "hint": "scan(initial_state, |state, &x| { …; Some(value) }); windows(2) gives slices of two neighboring elements."
+  },
+  {
+   "id": "r20-flat-map",
+   "title": "flat_map: unpacking nested data",
+   "statement": "all_chars(words) → String gives all characters of the words in a row. pairs(n) → Vec<(i32, i32)> gives all pairs (i, j) with 1 ≤ i < j ≤ n in lexicographic order. unique_letters(words) → String gives all distinct letters in alphabetical order.",
+   "hint": "In the inner closure, move |j| (i, j) takes i; without move, i would remain a reference to the outer variable."
+  },
+  {
+   "id": "r20-zip-dot",
+   "title": "zip: dot product and pairs",
+   "statement": "dot(a, b) → i64 is the dot product (up to the length of the shorter one). pairwise_max(a, b) → Vec<i32> is the maximum at each position. unzip_sum(pairs) → (i32, i32) gives the sums of the first and the second elements (unzip).",
+   "hint": "zip stops at the shorter one; compute the product in i64 so that i32 does not overflow."
+  },
+  {
+   "id": "r20-chunks-windows",
+   "title": "chunks and windows",
+   "statement": "chunk_sums(v, k) → Vec<i32> gives sums of consecutive chunks of k (the last may be shorter). moving_average(v, k) → Vec<f64> gives the average of each window of k elements. peaks(v) → Vec<usize> gives the indices of peaks: elements strictly greater than both neighbors.",
+   "hint": "For windows(3), the index of a peak is one more than the window number: .map(|(i, _)| i + 1)."
+  },
+  {
+   "id": "r20-partition-runs",
+   "title": "Partitions and runs",
+   "statement": "partition_parity(v) → (Vec<i32>, Vec<i32>) gives the even and the odd numbers. run_lengths(v) → Vec<(i32, usize)> gives the runs of equal consecutive values. split_runs(v) → Vec<Vec<i32>> gives the same runs as sub-vectors.",
+   "hint": "In fold the accumulator is a vector of pairs; you can change the last pair via last_mut()."
+  },
+  {
+   "id": "r20-find-any",
+   "title": "Search: any, all, find, position",
+   "statement": "all_distinct(v) → bool; first_negative_index(v) → Option<usize>; first_number(words: &[&str]) → Option<i64> is the first word that parses as a number (find_map); position_of_max(v) → Option<usize> is the index of the first maximum.",
+   "hint": "find_map combines a search and a transformation: it returns the first Some."
+  },
+  {
+   "id": "r20-min-max-by",
+   "title": "min_by, max_by_key, partial_cmp",
+   "statement": "longest_word(words) → Option<&str> is the first longest one. closest_to(v: &[f64], target) → Option<f64> is the value closest to target (the first on a tie). youngest(people: &[(&str, u32)]) → Option<&str> is the name of the youngest (the first).",
+   "hint": "On a tie max_by_key returns the LAST element and min_by_key the first: for \"the first longest\" fold is more convenient."
+  },
+  {
+   "id": "r20-fold-counts",
+   "title": "fold: frequencies and a histogram",
+   "statement": "char_counts(s) → BTreeMap<char, usize> counts how many times each character occurs (via fold). length_histogram(words) → Vec<usize> gives the number of words of each length, from length 1 up to the maximum (missing lengths are zeros).",
+   "hint": "fold(initial_container, |mut acc, x| { …; acc }): the accumulator is declared mut and returned at the end."
+  },
+  {
+   "id": "r20-collect-result",
+   "title": "collect into Option and Result",
+   "statement": "parse_list(s) → Result<Vec<i32>, ParseIntError> gives the numbers from «1,2,3» (the first error aborts). all_some(v: &[Option<i32>]) → Option<Vec<i32>> is Some only if all are Some. sum_ok(items: &[&str]) → i32 is the sum of the numbers that parsed; the rest are skipped.",
+   "hint": "collect() can gather into Result<Vec<_>, _> and Option<Vec<_>>: it stops at the first failure."
+  },
+  {
+   "id": "r20-collect-maps",
+   "title": "collect into String and HashMap",
+   "statement": "acronym(s) → String gives the first letters of the words in capitals. index_by_len(words) → BTreeMap<usize, Vec<&str>> groups the words by length (in order of appearance). to_lookup(pairs: &[(&str, i32)]) → HashMap<&str, i32>: on duplicates the last value wins.",
+   "hint": "An iterator of (K, V) pairs collects into a HashMap, and a later pair with the same key overwrites the earlier one."
+  },
+  {
+   "id": "r20-peekable-tokens",
+   "title": "peekable: splitting an expression into tokens",
+   "statement": "Token is Num(i64) or Op(char) (+ - * /; the parentheses '(' and ')' are Op too). tokenize(s) → Result<Vec<Token>, String>: multi-digit numbers, spaces are skipped; an invalid character gives Err(\"bad char X\"). Use peekable to read a number to the end.",
+   "hint": "peek() does not take the character: while the next one is a digit, accumulate the number and call next()."
+  },
+  {
+   "id": "r20-rle",
+   "title": "Run-length encoding (RLE)",
+   "statement": "rle(s) → String: «aaabcc» → «a3b1c2» (a character and the length of its run). unrle(s) → Option<String> is the reverse; None if the format is wrong (no digits after a character). Runs can be longer than 9: «x12».",
+   "hint": "In rle, keep reading after a character while peek() equals the same character; in unrle, read the length in digits."
+  },
+  {
+   "id": "r20-successors",
+   "title": "successors: series by a rule",
+   "statement": "collatz(n) → Vec<u64> is the Collatz sequence from n down to 1 inclusive (even: /2, odd: 3n+1). powers_of_two_below(limit) → Vec<u64> gives 1, 2, 4, … below limit. digits(n: u64) → Vec<u8> gives the digits of the number left to right (via successors and division by 10).",
+   "hint": "successors(Some(start), |&x| rule): when the rule returns None, the series ends."
+  },
+  {
+   "id": "r20-from-fn",
+   "title": "from_fn, repeat, and cycle",
+   "statement": "fibs(n) → Vec<u64> gives the first n Fibonacci numbers (std::iter::from_fn with state). round_robin(items, n) → Vec<String> gives n elements in a circle (cycle().take). every_kth(v, k) → Vec<i32> gives the elements at indices 0, k, 2k, … (step_by).",
+   "hint": "In from_fn the closure holds the state: declare it outside and move it inside with move."
+  },
+  {
+   "id": "r20-between-markers",
+   "title": "skip_while and take_while",
+   "statement": "between(lines: &[&str], start: &str, end: &str) → Vec<&str> gives the lines between the first line start and the end that follows it (the markers themselves are not included; if there is no start, the result is empty; if there is no end, it goes to the end). last_n<T: Clone>(v: &[T], n) → Vec<T> gives the last n elements in the original order (via rev and take).",
+   "hint": "skip_while skips up to the marker but does not skip the marker itself, so you need skip(1) after it."
+  },
+  {
+   "id": "r20-event-bus",
+   "title": "Handlers: Vec<Box<dyn FnMut>>",
+   "statement": "Bus holds handlers Box<dyn FnMut(&str) → String>. on(&mut self, h) adds a handler; emit(&mut self, event: &str) → Vec<String> calls all of them in order and collects their answers. Handlers can have their own mutable state (a counter, an accumulator).",
+   "hint": "Box::new(h) turns a closure into a Box<dyn FnMut>; call through iter_mut(), because the state changes."
+  },
+  {
+   "id": "r20-fn-table",
+   "title": "A function table: fn pointers",
+   "statement": "apply_all(fs: &[fn(f64) → f64], x) → Vec<f64> gives the results of all the functions. op_for(name: &str) → Option<fn(f64, f64) → f64> handles \"add\", \"sub\", \"mul\", \"div\" (ordinary division, a / b), otherwise None. calc(expr: &str) → Option<f64>: \"3 add 4\" → 7 (a number, an operation name, a number); any format error gives None.",
+   "hint": "An fn pointer comes from a function name: Some(add); a closure without captures also coerces to fn."
+  },
+  {
+   "id": "r20-boxed-predicates",
+   "title": "Predicate combinators: Box<dyn Fn>",
+   "statement": "in_range(lo, hi) → Box<dyn Fn(i32) → bool>; not(p) → Box<dyn Fn(i32) → bool>; all_of(ps: Vec<Box<dyn Fn(i32) → bool>>) → Box<dyn Fn(i32) → bool> is true if all predicates are true; any_of if at least one is. The closures own the captured values.",
+   "hint": "Each combinator returns Box::new(move |x| …): move takes the predicates inside the closure."
+  },
+  {
+   "id": "r20-log-summary",
+   "title": "A pipeline without loops: a log summary",
+   "statement": "summarize(log: &str) → Vec<(String, usize)>: lines of the form «LEVEL text»; empty lines and lines without a space are skipped; the result is the levels with their line counts, by descending count, alphabetically on a tie. The word for must not be used in the code, only adapters and consumers.",
+   "hint": "lines().filter_map(...) will drop lines without a space; count with fold into a HashMap, then sort."
+  },
+  {
+   "id": "r20-closure-sizes",
+   "title": "Closure size = size of what it captured",
+   "statement": "closure_sizes() → [usize; 4]: create four closures and return size_of_val of each: (1) captures nothing; (2) move || n + 1 capturing the i32 n; (3) || s.len() without move, which takes a reference to the String s; (4) a move closure that owns a clone of the string s. A closure is a struct with the captured values.",
+   "hint": "size_of_val(&closure); a reference takes 8 bytes, a String 24, an i32 4, an empty closure 0."
+  }
+ ]
+}

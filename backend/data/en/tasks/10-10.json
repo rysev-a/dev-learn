@@ -1,0 +1,186 @@
+{
+ "book": 10,
+ "chapter": 10,
+ "tasks": [
+  {
+   "id": "r10-args-sum",
+   "title": "Python *args → slice",
+   "statement": "Python: def total(*args): return sum(args). Write total(v: &[i64]) -> i64, which accepts any number of values through a slice.",
+   "hint": "v.iter().sum() is the sum of the elements."
+  },
+  {
+   "id": "r10-default-arg",
+   "title": "Default value",
+   "statement": "Python: def hi(name=\"мир\"): return f\"Привет, {name}!\". Write hi(name: Option<&str>) -> String, substituting «мир» for None.",
+   "hint": "unwrap_or(\"мир\") substitutes the default value."
+  },
+  {
+   "id": "r10-floor-divmod",
+   "title": "divmod like in Python",
+   "statement": "Python: divmod(-7, 2) == (-4, 1). Write py_divmod(a: i32, b: i32) -> (i32, i32) with the Python quotient (rounded down) and remainder (sign of the divisor), b ≠ 0.",
+   "hint": "If the remainder is nonzero and its sign differs from the sign of the divisor, shift the quotient down."
+  },
+  {
+   "id": "r10-chain-compare",
+   "title": "Comparison chain",
+   "statement": "Python: lo < x < hi. Write strictly_between(x: i32, lo: i32, hi: i32) -> bool — x strictly between lo and hi.",
+   "hint": "Two checks joined with &&."
+  },
+  {
+   "id": "r10-elif-chain",
+   "title": "elif → else if",
+   "statement": "Python: if/elif for temperature categories. Write category(t: i32) -> &'static str: «мороз» for t < 0, «холодно» for t < 10, «тепло» for t < 25, otherwise «жарко».",
+   "hint": "The if / else if / else chain is a single expression."
+  },
+  {
+   "id": "r10-match-grade",
+   "title": "match instead of an if chain",
+   "statement": "Write grade(score: u32) -> char using match with ranges: 90..=100 → 'A', 80..=89 → 'B', 70..=79 → 'C', 60..=69 → 'D', otherwise 'F'.",
+   "hint": "Range patterns with ..="
+  },
+  {
+   "id": "r10-match-tuple",
+   "title": "FizzBuzz with match",
+   "statement": "Write fizz(n: u32) -> String: «FizzBuzz» / «Fizz» / «Buzz» / the number. Use match on the tuple (n % 3, n % 5).",
+   "hint": "match (a, b) { (0, 0) => …, (0, _) => … }"
+  },
+  {
+   "id": "r10-fn-pointer",
+   "title": "Passing a function",
+   "statement": "Python: def apply(f, x): return f(x). Write apply(f: fn(i32) -> i32, x: i32) -> i32.",
+   "hint": "The parameter f is called like an ordinary function: f(x)."
+  },
+  {
+   "id": "r10-apply-twice",
+   "title": "Apply twice",
+   "statement": "Write apply_twice(f, x): apply the function f to x two times. Declare the parameter f as impl Fn(i32) -> i32.",
+   "hint": "f(f(x)); a closure can capture k."
+  },
+  {
+   "id": "r10-compose",
+   "title": "Function composition",
+   "statement": "Python: lambda x: f(g(x)). Write compose(f, g, x) = f(g(x)) for f, g: impl Fn(i32) -> i32.",
+   "hint": "f(g(x)) — first g, then f."
+  },
+  {
+   "id": "r10-any-neg",
+   "title": "any",
+   "statement": "Python: any(x < 0 for x in v). Write has_negative(v: &[i32]) -> bool using iter().any.",
+   "hint": "v.iter().any(|&x| x < 0)"
+  },
+  {
+   "id": "r10-all-pos",
+   "title": "all",
+   "statement": "Python: all(x > 0 for x in v). Write all_positive(v: &[i32]) -> bool (true for an empty slice).",
+   "hint": "all on an empty sequence gives true."
+  },
+  {
+   "id": "r10-index-of",
+   "title": "list.index without an exception",
+   "statement": "Python: v.index(x) raises ValueError if the element is missing. Write index_of(v: &[i32], x: i32) -> Option<usize> using the position method.",
+   "hint": "iter().position(|&e| e == x)"
+  },
+  {
+   "id": "r10-zip-dot",
+   "title": "zip",
+   "statement": "Python: sum(a * b for a, b in zip(xs, ys)). Write dot(xs: &[i32], ys: &[i32]) -> i32 using zip (the length is that of the shorter slice).",
+   "hint": "xs.iter().zip(ys.iter()).map(|(a, b)| a * b).sum()"
+  },
+  {
+   "id": "r10-comprehension",
+   "title": "List comprehension",
+   "statement": "Python: [x * x for x in v if x % 2 == 0]. Write even_squares(v: &[i32]) -> Vec<i32>.",
+   "hint": "filter → map → collect"
+  },
+  {
+   "id": "r10-lens",
+   "title": "Word lengths",
+   "statement": "Python: [len(w) for w in words]. Write lens(words: &[&str]) -> Vec<usize>: the number of characters (not bytes!) in each word.",
+   "hint": "chars().count() counts characters."
+  },
+  {
+   "id": "r10-longest",
+   "title": "max with a key",
+   "statement": "Python: max(words, key=len). Write longest<'a>(words: &[&'a str]) -> &'a str — the longest word by number of characters (the first one on a tie). The slice is not empty.",
+   "hint": "Compare the number of characters."
+  },
+  {
+   "id": "r10-digits-sum",
+   "title": "sum(map(int, str(n)))",
+   "statement": "Python: sum(int(c) for c in str(n)). Write digit_sum(n: u64) -> u32 using n.to_string() and chars().",
+   "hint": "c.to_digit(10).unwrap()"
+  },
+  {
+   "id": "r10-loop-value",
+   "title": "while True",
+   "statement": "Python: while True: … break. Write first_pow2_above(n: u64) -> u64: the smallest power of two strictly greater than n. Use loop and break with a value.",
+   "hint": "break p; returns a value from loop."
+  },
+  {
+   "id": "r10-for-else",
+   "title": "for–else without else",
+   "statement": "Python: for-else for a primality check. Write is_prime(n: u32) -> bool (true for primes, n ≥ 2). For n < 2 — false. Try divisors up to √n.",
+   "hint": "An early return false inside the loop; true after the loop."
+  },
+  {
+   "id": "r10-step-range",
+   "title": "range with a step",
+   "statement": "Python: list(range(start, stop, step)). Write range_step(start: i32, stop: i32, step: usize) -> Vec<i32> (step > 0, stop is not included).",
+   "hint": "(start..stop).step_by(step).collect()"
+  },
+  {
+   "id": "r10-enumerate-lines",
+   "title": "enumerate from one",
+   "statement": "Python: for i, line in enumerate(lines, 1): print(f\"{i}: {line}\"). Write numbered(lines: &[&str]) -> Vec<String> with strings of the form «1: …».",
+   "hint": "enumerate gives the index from zero — add 1."
+  },
+  {
+   "id": "r10-try-except",
+   "title": "try/except → Result",
+   "statement": "Python: int(s) in try/except. Write parse_age(s: &str) -> Result<u8, String>: Ok(age) for integers in 0..=150, otherwise Err(\"…\"): «не число» if parsing failed, and «вне диапазона» for numbers outside 0..=150.",
+   "hint": "match s.parse() with an early return Err(…)."
+  },
+  {
+   "id": "r10-raise",
+   "title": "raise → Err",
+   "statement": "Python: def sqrt(x): if x < 0: raise ValueError. Write safe_sqrt(x: f64) -> Result<f64, String>: Err(\"отрицательное\") if x < 0, otherwise Ok(√x).",
+   "hint": "Err(String::from(\"…\")) and Ok(x.sqrt())."
+  },
+  {
+   "id": "r10-question-mark",
+   "title": "The ? operator",
+   "statement": "Write sum_two(a: &str, b: &str) -> Result<i32, std::num::ParseIntError>: parse both strings and return the sum. Use the ? operator instead of match.",
+   "hint": "let x: i32 = a.trim().parse()?; on an error the function returns Err immediately."
+  },
+  {
+   "id": "r10-first-even",
+   "title": "Option from a search",
+   "statement": "Python: next((x for x in v if x % 2 == 0), None). Write first_even(v: &[i32]) -> Option<i32>.",
+   "hint": "iter().copied().find(…) returns an Option."
+  },
+  {
+   "id": "r10-password",
+   "title": "Password check",
+   "statement": "Write is_valid(s: &str) -> bool: at least 8 characters long, with at least one digit and at least one uppercase letter. Use early returns.",
+   "hint": "Three checks: length, digit, uppercase letter."
+  },
+  {
+   "id": "r10-clamp-all",
+   "title": "Clamp them all",
+   "statement": "Python: [max(lo, min(hi, x)) for x in v]. Write clamp_all(v: &[i32], lo: i32, hi: i32) -> Vec<i32>.",
+   "hint": "x.max(lo).min(hi)"
+  },
+  {
+   "id": "r10-config-default",
+   "title": "A builder instead of kwargs",
+   "statement": "Python: def window(width=800, height=600, title=\"окно\"). Implement the struct Config { width: u32, height: u32, title: String } with a function default() (800, 600, «окно») and the builder methods with_width(mut self, w: u32) -> Config and with_title(mut self, t: &str) -> Config.",
+   "hint": "The method takes self by value, changes the field and returns self — the chain can go on."
+  },
+  {
+   "id": "r10-gcd-lcm",
+   "title": "GCD and LCM",
+   "statement": "Write gcd(a: u64, b: u64) -> u64 (Euclid) and lcm(a: u64, b: u64) -> u64 (LCM = a / gcd · b); lcm(0, x) = 0.",
+   "hint": "Divide first, multiply after — that way the number will not overflow."
+  }
+ ]
+}

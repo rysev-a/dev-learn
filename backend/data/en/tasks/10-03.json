@@ -1,0 +1,214 @@
+{
+ "book": 10,
+ "chapter": 3,
+ "tasks": [
+  {
+   "id": "r3-i32-default",
+   "title": "Default integer",
+   "statement": "Declare n = 2147483647 (that is i32::MAX) and print n. Then print the value of the constant i32::MIN. Two lines.\n\nExpected output:\n2147483647\n-2147483648",
+   "hint": "i32::MIN is a type constant; it prints like an ordinary number.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r3-u8-range",
+   "title": "Bounds of u8 and i8",
+   "statement": "Print u8::MIN, u8::MAX, i8::MIN, i8::MAX separated by spaces: «0 255 -128 127».\n\nExpected output:\n0 255 -128 127",
+   "hint": "println!(\"{} {} {} {}\", u8::MIN, …);",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r3-i64-big",
+   "title": "A big number",
+   "statement": "Declare big: i64 = 5_000_000_000 and print big * 2 («10000000000»). With the type i32 such a number would not fit.\n\nExpected output:\n10000000000",
+   "hint": "Put an explicit type i64 after the colon.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r3-size-of",
+   "title": "Type sizes",
+   "statement": "Print the sizes in bytes of the types u8, i32, f64, char, bool, one per line: 1, 4, 8, 4, 1. The function is std::mem::size_of::<T>().\n\nExpected output:\n1\n4\n8\n4\n1",
+   "hint": "The type goes in angle brackets: size_of::<u8>().",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r3-int-division",
+   "title": "Integer division and remainder",
+   "statement": "Print three lines: 17 / 5, 17 % 5 and 17.0 / 5.0. Expected: «3», «2» and «3.4».\n\nExpected output:\n3\n2\n3.4",
+   "hint": "Integers give an integer result, floats give a fractional one.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r3-neg-rem",
+   "title": "Remainder with a negative number",
+   "statement": "Print -7 / 2, -7 % 2 and (-7_i32).rem_euclid(2), one per line: «-3», «-1», «1». In Rust the remainder takes the sign of the dividend, while rem_euclid is always non-negative.\n\nExpected output:\n-3\n-1\n1",
+   "hint": "In Python -7 // 2 = -4, but in Rust integer division truncates toward zero.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r3-pow",
+   "title": "Powers",
+   "statement": "Print 2^10 (using the pow method for an integer) and 1.5^3 (using the powi method for a float): «1024» and «3.375».\n\nExpected output:\n1024\n3.375",
+   "hint": "2_i32.pow(10); 1.5_f64.powi(3)",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r3-checked",
+   "title": "checked_add",
+   "statement": "Print the results of 250_u8.checked_add(5) and 250_u8.checked_add(10), one per line. The method returns an Option: «Some(255)» and «None». Use {:?} to print an Option.\n\nExpected output:\nSome(255)\nNone",
+   "hint": "println!(\"{:?}\", …) is debug output.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r3-wrapping",
+   "title": "Wrapping around",
+   "statement": "Print 250_u8.wrapping_add(10) («4»), 250_u8.saturating_add(10) («255») and 5_u8.wrapping_sub(10) («251») — three lines.\n\nExpected output:\n4\n255\n251",
+   "hint": "wrapping goes around the circle, saturating stops at the boundary.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r3-overflowing",
+   "title": "overflowing_add",
+   "statement": "Print 200_u8.overflowing_add(100) and 20_u8.overflowing_add(100). The result is a pair: «(44, true)» and «(120, false)». Use {:?} for the pair.\n\nExpected output:\n(44, true)\n(120, false)",
+   "hint": "A pair (result, whether_overflow_happened).",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r3-fix-overflow",
+   "title": "Fix it: the constant doesn't fit",
+   "statement": "The program does not compile: the number 300 does not fit in u8. Change the type to a suitable one (u16) so that it prints «300».\n\nExpected output:\n300",
+   "hint": "u8 holds up to 255; u16 holds up to 65535."
+  },
+  {
+   "id": "r3-hex-bin",
+   "title": "Number bases",
+   "statement": "Print the number 255 as «ff» (format {:x}), as «11111111» (format {:b}) and as «377» (format {:o}) — three lines.\n\nExpected output:\nff\n11111111\n377",
+   "hint": "{:x} is hexadecimal, {:b} is binary, {:o} is octal notation.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r3-f64-ops",
+   "title": "Floating-point arithmetic",
+   "statement": "Print two lines: 10.0 / 4.0 and 10.0 % 4.0 — «2.5» and «2».\n\nExpected output:\n2.5\n2",
+   "hint": "The remainder is defined for floats too.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r3-float-compare",
+   "title": "Float inexactness",
+   "statement": "Print 0.1 + 0.2 (it will be «0.30000000000000004»), then the result of the comparison 0.1 + 0.2 == 0.3 («false»), then a comparison with a tolerance: ((0.1 + 0.2) - 0.3).abs() < 1e-9 («true»).\n\nExpected output:\n0.30000000000000004\nfalse\ntrue",
+   "hint": "Floats are compared with a tolerance, not with ==.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r3-round-family",
+   "title": "Rounding",
+   "statement": "x = 2.5. Print x.floor(), x.ceil(), x.round(), x.trunc(), one per line: «2», «3», «3», «2» (the results are floats, printed without .0 when output with {}).\n\nExpected output:\n2\n3\n3\n2",
+   "hint": "floor rounds down, ceil rounds up, round goes to the nearest (0.5 goes away from zero), trunc drops the fraction.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r3-sqrt-hypot",
+   "title": "Hypotenuse",
+   "statement": "The legs are 3.0 and 4.0. Print the length of the hypotenuse using sqrt: «5».\n\nExpected output:\n5",
+   "hint": "(a * a + b * b).sqrt() — sqrt is a method of a float.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r3-nan-inf",
+   "title": "inf and NaN",
+   "statement": "Print 1.0 / 0.0, -1.0 / 0.0 and 0.0 / 0.0 (three lines: «inf», «-inf», «NaN»), and then (0.0_f64 / 0.0).is_nan() («true»).\n\nExpected output:\ninf\n-inf\nNaN\ntrue",
+   "hint": "The type f64 is given so that the compiler understands the is_nan method.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r3-as-cast",
+   "title": "Casts with as",
+   "statement": "Print one per line: 3.99_f64 as i32 («3»), 300_i32 as u8 («44»), -1_i32 as u32 («4294967295»), 65_u8 as char («A»).\n\nExpected output:\n3\n44\n4294967295\nA",
+   "hint": "as cuts off bits and the fractional part.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r3-fix-mix",
+   "title": "Fix it: mixed types",
+   "statement": "You cannot add an i32 and an f64 without a conversion. Fix the program so that it prints «7.5».\n\nExpected output:\n7.5",
+   "hint": "a as f64 + b"
+  },
+  {
+   "id": "r3-from",
+   "title": "Lossless From",
+   "statement": "Declare a: u8 = 200 and b: i64 = 5_000_000_000. Print the sum i64::from(a) + b: «5000000200».\n\nExpected output:\n5000000200",
+   "hint": "i64::from(a) safely widens u8 to i64.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r3-try-from",
+   "title": "try_from",
+   "statement": "Print u8::try_from(200_i32).is_ok() and u8::try_from(300_i32).is_ok() — «true» and «false».\n\nExpected output:\ntrue\nfalse",
+   "hint": "try_from returns a Result; .is_ok() tells whether it worked.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r3-parse",
+   "title": "Parsing a number from text",
+   "statement": "Parse the strings «41» and «3.5» into i32 and f64 with the parse method and unwrap. Print the sum n + 1 and the product x * 2.0: «42» and «7».\n\nExpected output:\n42\n7",
+   "hint": "let n: i32 = \"41\".parse().unwrap(); — the type comes from the annotation.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r3-parse-fail",
+   "title": "parse with an error",
+   "statement": "For the strings «12», «abc» and «-5», print whether they could be turned into an i32: «true», «false», «true» (the method parse::<i32>().is_ok()).\n\nExpected output:\ntrue\nfalse\ntrue",
+   "hint": "The type can be given with the turbofish: parse::<i32>().",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r3-bool-ops",
+   "title": "Logic",
+   "statement": "Let a = true, b = false. Print a && b, a || b, !a, a && !b, one per line: «false», «true», «false», «true».\n\nExpected output:\nfalse\ntrue\nfalse\ntrue",
+   "hint": "&& is \"and\", || is \"or\", ! is \"not\".",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r3-compare-chain",
+   "title": "Comparisons",
+   "statement": "x = 15. Print the results of: x > 10, x == 15, x != 15, x >= 20, and the range check x >= 10 && x <= 20 — five lines: true, true, false, false, true.\n\nExpected output:\ntrue\ntrue\nfalse\nfalse\ntrue",
+   "hint": "The result of a comparison is a bool, so you can print it directly.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r3-fix-if-int",
+   "title": "Fix it: the condition is not a bool",
+   "statement": "The if has a number in it, which is an error. Fix the condition so that it prints «не ноль» for n = 5.\n\nExpected output:\n```\nне ноль\n```",
+   "hint": "The condition is an explicit comparison n != 0.",
+   "starter": "fn main() {\n    let n = 5;\n    if n {\n        println!(\"не ноль\");\n    }\n}\n"
+  },
+  {
+   "id": "r3-char-basic",
+   "title": "Characters",
+   "statement": "c = `'ж'`. Print the character itself, then its code via as u32 («1078»), then c.is_alphabetic() («true»), and '7'.is_numeric() («true») — one per line.\n\nExpected output:\n```\nж\n1078\ntrue\ntrue\n```",
+   "hint": "`'ж'` as u32 is the character's Unicode code.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r3-char-case",
+   "title": "Character case",
+   "statement": "For 'q' print c.to_ascii_uppercase() («Q»), for `'Я'` print c.to_lowercase().next().unwrap() («я») and for the digit character '8' print '8'.to_digit(10).unwrap() + 1 («9») — three lines.\n\nExpected output:\n```\nQ\nя\n9\n```",
+   "hint": "to_lowercase returns an iterator, so we take the first character with next().unwrap().",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r3-char-shift",
+   "title": "Shifting along the alphabet",
+   "statement": "Take 'a' and print the character that follows it in the table (via as u8 + 1 as char): «b». Then get 'z' from 'a' + 25 the same way: «z».\n\nExpected output:\nb\nz",
+   "hint": "(c as u8 + 1) as char",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r3-final-types",
+   "title": "Final: summary of types",
+   "statement": "Declare n: i32 = -17, x: f64 = 2.5, ok: bool = true, c: char = `'Я'`. Print one line with spaces in the format «n=-17 x=2.5 ok=true c=Я», then on a separate line n.abs() as f64 * x («42.5»).\n\nExpected output:\n```\nn=-17 x=2.5 ok=true c=Я\n42.5\n```",
+   "hint": "First cast n.abs() to f64 with as, then multiply by x.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  }
+ ]
+}

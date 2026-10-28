@@ -1,0 +1,216 @@
+{
+ "book": 10,
+ "chapter": 36,
+ "tasks": [
+  {
+   "id": "r36-bind-port0",
+   "title": "Port 0",
+   "statement": "Bind a TcpListener to 127.0.0.1:0, take the port from local_addr() and print «порт больше нуля: true».\n\nExpected output:\n«порт больше нуля: true»",
+   "hint": "TcpListener::bind(\"127.0.0.1:0\").await?.local_addr()?.port()",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r36-accept-connect",
+   "title": "The server accepted a client",
+   "statement": "Run a server in a task: it accepts one connection and prints «подключился». The client in main connects (TcpStream::connect). Wait for the server task.\n\nExpected output:\n«подключился»",
+   "hint": "Get the address from listener.local_addr() before spawn.",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r36-write-read",
+   "title": "Send and read",
+   "statement": "The client sends «привет» and closes the connection. The server reads to the end (read_to_end) and prints «получено: привет».\n\nExpected output:\n«получено: привет»",
+   "hint": "Drop the client — the server will get EOF.",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r36-read-zero",
+   "title": "read returned 0",
+   "statement": "The client connects and closes the connection at once. The server calls read once and prints «EOF: n», where n is the number of bytes read.\n\nExpected output:\nEOF: 0",
+   "hint": "A connection closed by the peer: read returns Ok(0).",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r36-echo-once",
+   "title": "Echo for one message",
+   "statement": "The server reads up to 64 bytes (one read) and sends them back. The client sends «ping», reads the reply and prints «echo: ping».\n\nExpected output:\necho: ping",
+   "hint": "Server: let n = s.read(&mut buf).await?; s.write_all(&buf[..n]).await?.",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r36-echo-loop",
+   "title": "Echo server for many",
+   "statement": "Write a server with an accept loop and a spawn per client: the handler reads and writes back until it gets EOF. Three clients connect one after another, send «id N», read the reply and print «эхо N» for N = 0, 1, 2.\n\nExpected output:\n«эхо 0\nэхо 1\nэхо 2»",
+   "hint": "loop { let (s, _) = l.accept().await?; tokio::spawn(handle(s)); } — run the server in a separate task.",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r36-lines",
+   "title": "Reading line by line",
+   "statement": "The server sends the client «a\\nb\\nc\\n» and closes the connection. The client reads with BufReader::lines() and prints each line.\n\nExpected output:\na\nb\nc",
+   "hint": "use tokio::io::{AsyncBufReadExt, BufReader}; BufReader::new(c).lines(); next_line().await.",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r36-read-line",
+   "title": "read_line and counting bytes",
+   "statement": "The client sends «hello\\nworld\\n» and closes the connection. The server calls read_line in a loop and prints «N: line», where N is the number of bytes (with the newline), and «EOF» at the end of the stream.\n\nExpected output:\n6: hello\n6: world\nEOF",
+   "hint": "let n = reader.read_line(&mut s).await?; if n == 0 { break }",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r36-length-prefix",
+   "title": "Length prefix",
+   "statement": "The client sends a frame: 4 bytes of length (big-endian) and then «hello». The server reads the header (read_exact for 4 bytes), then exactly that many bytes of data and prints «длина 5, данные hello».\n\nExpected output:\n«длина 5, данные hello»",
+   "hint": "u32::from_be_bytes(hdr) as usize; (5u32).to_be_bytes().",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r36-read-u32",
+   "title": "read_u32 and write_u32",
+   "statement": "The client sends the number 256 with write_u32 (big-endian). The server reads it with read_u32 and prints it.\n\nExpected output:\n256",
+   "hint": "AsyncWriteExt::write_u32 and AsyncReadExt::read_u32 use network byte order.",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r36-split",
+   "title": "into_split",
+   "statement": "An echo server (reads and writes back). The client splits the socket with into_split(): a writer task sends «split», the main task reads exactly 5 bytes (read_exact) and prints «ответ: split».\n\nExpected output:\n«ответ: split»",
+   "hint": "let (mut r, mut w) = c.into_split(); tokio::spawn(async move { w.write_all(..).await });",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r36-half-close",
+   "title": "shutdown of the write side",
+   "statement": "The client sends «запрос», closes the write side (shutdown), then reads the reply to the end. The server reads to the end of the request, replies «ok» and closes. The client prints «ответ: ok».\n\nExpected output:\n«ответ: ok»",
+   "hint": "c.shutdown().await closes the write side; the server's read_to_end will finish.",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r36-refused",
+   "title": "Connection refused",
+   "statement": "Bind a listener, find out its address and drop the listener. An attempt at TcpStream::connect to this address must end with an error. Print its kind with {:?}: e.kind().\n\nExpected output:\nConnectionRefused",
+   "hint": "match TcpStream::connect(addr).await { Err(e) => println!(\"{:?}\", e.kind()), .. }",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r36-udp-echo",
+   "title": "UDP: echo",
+   "statement": "A server on a UdpSocket (bind 127.0.0.1:0) receives a datagram with recv_from and sends it back to the sender. The client sends «ping» and prints «ответ: ping».\n\nExpected output:\n«ответ: ping»",
+   "hint": "let (n, from) = s.recv_from(&mut buf).await?; s.send_to(&buf[..n], from).await?;",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r36-udp-boundaries",
+   "title": "Datagram boundaries",
+   "statement": "From one UDP socket send «ab» and «cd» to another with two send_to calls. The receiver makes two recv_from calls and prints each datagram on its own line.\n\nExpected output:\nab\ncd",
+   "hint": "One send — one read, no merging.",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r36-read-timeout",
+   "title": "Read timeout",
+   "statement": "The server accepts a connection and stays silent (holds the socket for 300 ms). The client tries to read with a 50 ms timeout and on error prints «таймаут чтения».\n\nExpected output:\n«таймаут чтения»",
+   "hint": "tokio::time::timeout(Duration::from_millis(50), c.read(&mut buf)).await",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r36-accept-shutdown",
+   "title": "Stopping the accept loop",
+   "statement": "An accept loop in a task with select!: either accept a client (count it) or receive a stop signal over oneshot. One client connects, then (after a 50 ms pause) the signal is sent. The task prints «принято: 1» and «остановлен».\n\nExpected output:\n«принято: 1\nостановлен»",
+   "hint": "select! { r = l.accept() => { r.unwrap(); n += 1; }, _ = &mut stop => break }",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r36-count-conns",
+   "title": "Counting connections",
+   "statement": "The server accepts exactly 5 connections in a loop and counts them in an AtomicUsize (each in its own spawn task). Five clients connect. Wait for the server and print «подключений: 5».\n\nExpected output:\n«подключений: 5»",
+   "hint": "for _ in 0..5 { let (s, _) = l.accept().await?; counter.fetch_add(1, SeqCst); spawn(..) }",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r36-io-copy",
+   "title": "io::copy",
+   "statement": "Copy the bytes from a &[u8] slice (b\"hello world\") into a Vec<u8> with tokio::io::copy and print «скопировано: N».\n\nExpected output:\n«скопировано: 11»",
+   "hint": "let mut r: &[u8] = b\"hello world\"; let mut w = Vec::new(); tokio::io::copy(&mut r, &mut w).await?",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r36-duplex",
+   "title": "duplex in memory",
+   "statement": "Create a pair tokio::io::duplex(64). Write «hi» into one half, close it and read everything from the other into a String. Print the string.\n\nExpected output:\nhi",
+   "hint": "let (mut a, mut b) = tokio::io::duplex(64); drop(a) after writing; b.read_to_string(&mut s).",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r36-proxy",
+   "title": "A proxy with copy_bidirectional",
+   "statement": "An echo server, a proxy and a client. The proxy accepts the client's connection, connects to the echo server and pumps data in both directions with tokio::io::copy_bidirectional. The client sends «via proxy», reads the same number of bytes and prints «через прокси: via proxy».\n\nExpected output:\n«через прокси: via proxy»",
+   "hint": "copy_bidirectional(&mut client_side, &mut upstream).await — in a separate task.",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r36-stream-map",
+   "title": "Stream: map and collect",
+   "statement": "From tokio_stream::iter(1..=3) get a stream, multiply each value by 2 (map) and collect into a Vec (collect). Print the vector with {:?}.\n\nExpected output:\n[2, 4, 6]",
+   "hint": "use tokio_stream::{self as stream, StreamExt}; stream::iter(..).map(..).collect::<Vec<_>>().await",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r36-receiver-stream",
+   "title": "ReceiverStream",
+   "statement": "Wrap the receiver of an mpsc channel in a ReceiverStream, send 1, 2, 3 from a task and collect the stream into a vector. Print the vector with {:?}.\n\nExpected output:\n[1, 2, 3]",
+   "hint": "tokio_stream::wrappers::ReceiverStream::new(rx).collect::<Vec<_>>().await",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r36-stream-filter-take",
+   "title": "Stream: filter and take",
+   "statement": "From iter(1..=10) keep the even numbers (filter), take the first three (take) and collect into a Vec. Print the vector with {:?}.\n\nExpected output:\n[2, 4, 6]",
+   "hint": ".filter(|x| x % 2 == 0).take(3).collect::<Vec<_>>().await",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r36-fs",
+   "title": "tokio::fs",
+   "statement": "Write «hello» to the file /tmp/say_r36.txt with tokio::fs::write, read it back with read_to_string, print the contents and delete the file (remove_file).\n\nExpected output:\nhello",
+   "hint": "tokio::fs::write(path, data).await?; tokio::fs::read_to_string(path).await?",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r36-spawn-blocking",
+   "title": "spawn_blocking",
+   "statement": "With tokio::task::spawn_blocking compute the sum of the numbers from 1 to 1_000_000 (u64) and print the result.\n\nExpected output:\n500000500000",
+   "hint": "spawn_blocking(|| (1..=1_000_000u64).sum::<u64>()).await?",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r36-lookup-host",
+   "title": "lookup_host",
+   "statement": "With tokio::net::lookup_host(\"127.0.0.1:80\") get the addresses and print «адресов: N».\n\nExpected output:\n«адресов: 1»",
+   "hint": "lookup_host(..).await?.count()",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r36-peer-addr",
+   "title": "The client's address",
+   "statement": "The server gets the client's address from accept() and prints «клиент с петли: true» if addr.ip().is_loopback().\n\nExpected output:\n«клиент с петли: true»",
+   "hint": "let (_s, peer) = l.accept().await?; peer.ip().is_loopback()",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r36-unix-socket",
+   "title": "Unix socket",
+   "statement": "Bind a UnixListener to /tmp/say_r36.sock, connect with a UnixStream client, send «ping», the server reads and prints «unix: ping». Delete the socket file when done.\n\nExpected output:\nunix: ping",
+   "hint": "use tokio::net::{UnixListener, UnixStream}; delete the old file before bind (let _ = std::fs::remove_file).",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r36-line-protocol",
+   "title": "A text protocol",
+   "statement": "The server reads the line «ADD 2 3», adds the numbers and replies with a line containing the result and a newline. The client sends «ADD 2 3\\n», reads the reply line and prints it without the newline.\n\nExpected output:\n5",
+   "hint": "BufReader::new(socket).read_line(..); split_whitespace(); write_all(format!(\"{}\\n\", sum)).",
+   "starter": "#[tokio::main]\nasync fn main() {\n    // your code\n}\n"
+  }
+ ]
+}

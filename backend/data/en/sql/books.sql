@@ -16,4 +16,9 @@ INSERT INTO books (id, slug, title, ord, slides_dir, icon, audio_prefix) VALUES
     (15, 'net', 'Computer Networks', 6, 'networks', 'network', 'net-ch'),
     (17, 'virt', 'Virtualization', 7, 'virtualization', 'nested', 'virt-ch'),
     (11, 'js', 'Modern Frontend', 10, 'js', 'js', 'js-ch'),
-    (18, 'sd', 'System Design', 11, 'system-design', 'layers', 'sd-ch');
+    (18, 'sd', 'System Design', 11, 'system-design', 'layers', 'sd-ch'),
+    (7, 'algo', 'Algorithms and Data Structures', 2, 'algo', 'tree', 'algx-ch'),
+    (8, 'linux', 'Diving into Unix', 5, 'linux', 'terminal', 'lin-ch'),
+    (9, 'db', 'Databases', 8, 'db', 'database', 'dbx-ch'),
+    (10, 'rust', 'Learning Rust', 9, 'learn-rust', 'rust', 'rust-ch'),
+    (16, 'c', 'From Assembler to C', 4, 'learn-c', 'brackets', 'c-ch');

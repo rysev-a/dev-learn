@@ -1,0 +1,91 @@
+{
+ "book": 7,
+ "chapter": 7,
+ "tasks": [
+  {
+   "id": "longest-unique-window",
+   "title": "Longest substring without repeats",
+   "statement": "Write a function longest_unique(s) that returns the length of the longest substring without repeating characters. Sliding window, O(n): the checker feeds in a string of 500,000 characters.",
+   "hint": "Keep a dictionary \"character → last index\" and the left boundary of the window: on a repeat, move it to last[ch] + 1."
+  },
+  {
+   "id": "max-sum-window",
+   "title": "Fixed-size window",
+   "statement": "Write a function best_window(nums, k) that returns the largest sum of k consecutive elements (k <= len(nums), k >= 1). Do not recompute the window sum from scratch: shift it in O(1). The check uses a million elements and a window of 100,000.",
+   "hint": "The sum of the first window, then window += nums[i] - nums[i - k] and an update of the maximum."
+  },
+  {
+   "id": "find-anagrams",
+   "title": "Anagrams in a string",
+   "statement": "Write a function find_anagrams(s, p) that returns the list of all indices i (in ascending order) where the substring s[i:i+len(p)] is an anagram of the string p. Use a window of width len(p) and character counters; update on a shift in O(1). The checker feeds in s of length 300,000.",
+   "hint": "Keeping two counter dictionaries and comparing them in full on every shift costs O(k) per step. Better to keep matched, the number of letters whose counts currently agree with the pattern, and update it when a letter is added or removed."
+  },
+  {
+   "id": "min-subarray-len",
+   "title": "Shortest subarray with a given sum",
+   "statement": "Write a function min_subarray_len(target, a) that returns the smallest length of a consecutive chunk of the positive integers a whose sum is at least target, or 0 if there is none. A variable-size window. The checker feeds in 500,000 numbers.",
+   "hint": "Expand the right boundary, accumulating the sum. While the sum is >= target, record the length and shrink the left boundary (subtracting its element)."
+  },
+  {
+   "id": "longest-ones-flip-k",
+   "title": "Ones with replacements",
+   "statement": "Given a list of 0s and 1s and a number k, write a function longest_ones(a, k) that returns the length of the longest consecutive chunk that consists only of ones after replacing at most k zeros with ones (that is, the chunk contains at most k zeros). The checker feeds in 500,000 elements.",
+   "hint": "A window with at most k zeros. Expand the right boundary; if there are more than k zeros, shrink the left one until the window is valid. The answer is the maximum window width."
+  },
+  {
+   "id": "fruit-baskets",
+   "title": "Fruit in two baskets",
+   "statement": "Fruits of different kinds (the list f) grow along a row of trees. You walk from left to right and may collect fruits of only two different kinds. Write a function total_fruit(f) that returns the length of the longest consecutive stretch of the row that contains at most two distinct kinds. The checker feeds in 500,000 trees.",
+   "hint": "A window and a dictionary kind → count. When there are more than two kinds, shrink from the left, removing a kind from the dictionary when its count reaches zero."
+  },
+  {
+   "id": "char-replacement",
+   "title": "Character replacement",
+   "statement": "Given a string s of uppercase Latin letters and a number k, write a function char_replacement(s, k) that returns the length of the longest substring that can be turned into a string of identical letters with at most k replacements. Use a window in which \"window length - frequency of the most frequent letter <= k\". The checker feeds in 300,000 characters.",
+   "hint": "It is enough to store the maximum frequency in the window (it may be left undecreased when shrinking, which does not spoil the answer). The window is valid while length - maximum frequency <= k."
+  },
+  {
+   "id": "product-less-than-k",
+   "title": "Subarrays with a small product",
+   "statement": "Given a list of positive integers a and a number k, write a function count_product_less(a, k) that returns the number of consecutive non-empty subarrays whose product of elements is strictly less than k. Use a window: for each right end, count how many left starts are valid. The checker feeds in 300,000 numbers.",
+   "hint": "For the right end r, while the window product is >= k, shrink the left boundary. The number of valid subarrays ending at r is exactly r - l + 1."
+  },
+  {
+   "id": "min-window-substring",
+   "title": "Minimum window",
+   "statement": "Write a function min_window_len(s, t) that returns the length of the shortest substring of s that contains all characters of t (counting multiplicity), or 0 if there is none. A sliding window with two pointers.",
+   "hint": "need = Counter(t); expand the right boundary until the window covers need, then shrink the left one, updating the minimum."
+  },
+  {
+   "id": "max-in-windows",
+   "title": "Maximum in every window",
+   "statement": "Write a function max_sliding(a, k) that returns the list of maxima of all windows of length k (left to right). A monotonic queue of indices (collections.deque) gives O(n). The check: 400,000 elements and a window of 20,000; max(a[i:i+k]) in a loop will not finish in time.",
+   "hint": "The queue holds indices whose values decrease. A new x pops from the end everyone who is <= x. From the head, remove the index that has left the window (dq[0] <= i - k). The answer for the window is a[dq[0]]."
+  },
+  {
+   "id": "hanoi-moves",
+   "title": "Towers of Hanoi",
+   "statement": "Write a function hanoi(n) that returns the list of moves (from, to) for moving n disks from peg 'A' to peg 'C' via 'B' (a smaller disk may be placed on a larger one, not the other way around). Moves are tuples ('A', 'C'). Divide and conquer: n-1 disks to the spare peg, the largest one to the target, n-1 disks onto the target. For n = 0, return an empty list.",
+   "hint": "An inner recursive function go(k, src, via, dst): k - 1 disks src→via, a move src→dst, k - 1 disks via→dst."
+  },
+  {
+   "id": "count-inversions",
+   "title": "Counting inversions",
+   "statement": "Write a function count_inversions(arr) that returns the number of pairs (i, j) with i < j and arr[i] > arr[j]. Divide and conquer (a modification of merge sort), O(n log n): the checker feeds in 100,000 elements in reverse order.",
+   "hint": "During the merge, if we take an element of the RIGHT half, it \"jumps over\" all the remaining ones in the left half: add len(left) - i."
+  },
+  {
+   "id": "max-subarray-divide",
+   "title": "Best subarray: divide and conquer",
+   "statement": "Write a function best_sum(nums) that returns the largest sum of a contiguous non-empty subarray (the list is not empty), but recursively: the best subarray lies entirely on the left, entirely on the right, or crosses the middle (and then it can be found in linear time). The recursion depth must be O(log n).",
+   "hint": "Split in half; the answer = max(best on the left, best on the right, best suffix on the left + best prefix on the right)."
+  },
+  {
+   "id": "segment-tree-class",
+   "title": "Segment tree",
+   "statement": "Implement a class SegmentTree(a): construction from a list of numbers and two methods: query(l, r), the sum of a[l..r] inclusive, and update(i, v), which assigns a[i] = v. Both operations are O(log n). The checker feeds in 100,000 elements and 100,000 queries and updates each: summing a slice on every query will not finish in time.",
+   "hint": "The bottom level of the array t holds the values themselves (positions n…2n−1), the parent of node i is i // 2, and t[i] = t[2i] + t[2i+1]. In query, move l and r upward: an odd left edge is taken and shifted, an odd right edge is stepped back and taken.",
+   "starter": "class SegmentTree:\n    def __init__(self, a):\n        self.n = len(a)\n        self.t = [0] * (2 * self.n)\n        # build the tree\n\n    def update(self, i, v):\n        pass\n\n    def query(self, l, r):\n        pass\n"
+  }
+ ]
+}

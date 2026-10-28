@@ -1,0 +1,186 @@
+{
+ "book": 16,
+ "chapter": 6,
+ "tasks": [
+  {
+   "id": "c6-apply",
+   "title": "Apply a function: apply, twice, apply_n",
+   "statement": "apply(f, x) → f(x). twice(f, x) → f(f(x)). apply_n(f, x, n) → apply f to x n times (for n ≤ 0, just x). f is a pointer to a function int → int.",
+   "hint": "The parameter f is called like an ordinary function: f(x). For apply_n, loop n times."
+  },
+  {
+   "id": "c6-calc-table",
+   "title": "A calculator on a function table",
+   "statement": "typedef int (*binop)(int, int). Write add, sub, mul, divi, mod (division and remainder by a zero divisor give 0) and binop pick(char c): '+' '-' '*' '/' '%' → the corresponding function, otherwise NULL. calc(op, a, b, *ok): *ok = 1 and the result if the operation is known, otherwise *ok = 0 and the result 0. There must be no branching on the character (switch): use a table.",
+   "hint": "static const binop table[256] = { ['+'] = add, … }; pick returns table[(unsigned char)c]."
+  },
+  {
+   "id": "c6-map-filter-reduce",
+   "title": "map, filter, reduce",
+   "statement": "map(a, n, f): replace each element with f(a[i]). filter(a, n, pred, out) → the number of elements for which pred ≠ 0; they are copied into out consecutively (order preserved). reduce(a, n, init, f) → a left fold: acc = init; acc = f(acc, a[i]) for each i.",
+   "hint": "Each of the three functions is a single loop; the result of filter is the number of elements written."
+  },
+  {
+   "id": "c6-each-ctx",
+   "title": "Walk with a context: each, count_if, sum_into",
+   "statement": "each(a, n, fn, ctx): call fn(a[i], ctx) for every element in order. count_if(a, n, pred) → how many elements satisfy pred, via each, with a counter context; sum_into(a, n, *total): add the sum of the elements to *total, also via each. Global variables are not allowed.",
+   "hint": "The context structure holds both pred and the counter: struct { int (*pred)(int); size_t k; }."
+  },
+  {
+   "id": "c6-cmp-int",
+   "title": "Comparisons for qsort: ascending and descending",
+   "statement": "Write cmp_asc, cmp_desc and cmp_abs (by absolute value; for equal absolute values, the smaller value first) with the signature int (*)(const void *, const void *). The comparisons must be correct for INT_MIN and INT_MAX (subtraction won't do) and return −1, 0 or 1.",
+   "hint": "(x > y) - (x < y). For cmp_abs compute the absolute values in long long: −INT_MIN does not fit in an int."
+  },
+  {
+   "id": "c6-qsort-strings",
+   "title": "Sorting strings: alphabetical and by length",
+   "statement": "Write comparisons for an array of char * pointers: by_alpha (strcmp), by_len (shorter first; for equal lengths, alphabetical) and by_alpha_ci (ignoring ASCII case; on a tie, plain by_alpha). The comparison function receives pointers to array elements, that is, char **.",
+   "hint": "char *const *pp = p; then *pp is the string. For case, convert the letters to one form via (unsigned char)."
+  },
+  {
+   "id": "c6-qsort-struct",
+   "title": "Sorting structures by a cascade of fields",
+   "statement": "struct emp { const char *name; int age; double pay; }. Write the comparisons: by_age (age ↑, on a tie name ↑), by_pay_desc (pay ↓, on a tie name ↑) and by_name_len (name length ↑, on a tie age ↓). The comparisons must return −1, 0 or 1 and be consistent.",
+   "hint": "Cascade: if (the fields differ) return the sign; then the next field. strcmp can return any number: normalize it to −1/0/1."
+  },
+  {
+   "id": "c6-bsearch-index",
+   "title": "bsearch: index and search by field",
+   "statement": "index_of(a, n, key) → the index of the key in a sorted int array, or −1; use the standard bsearch and pointer subtraction. struct rec { int id; const char *name; }. name_of(r, n, id) → the name of the record with that id in an array sorted by id, or \"?\" (use bsearch with a numeric key, not a structure).",
+   "hint": "The first argument of the comparison is a pointer to the key (int), the second is a pointer to the element (struct rec)."
+  },
+  {
+   "id": "c6-lower-bound",
+   "title": "Generic lower_bound and upper_bound",
+   "statement": "lower_bound(base, n, size, key, cmp) → a pointer to the first element not less than key (cmp(elem, key) ≥ 0), or base + n·size if there is none. upper_bound → the first element strictly greater than key. The array is sorted; cmp takes pointers (element, key) in that order. Binary search, O(log n).",
+   "hint": "lo = 0, hi = n; while lo < hi: mid; if element < key (for upper, ≤) then lo = mid + 1, otherwise hi = mid. Element address: (char *)base + mid * size."
+  },
+  {
+   "id": "c6-generic-reverse",
+   "title": "Generic swap and reverse",
+   "statement": "swap_mem(a, b, size) — swap size bytes between two places without malloc (in chunks or byte by byte). reverse(base, n, size) — reverse an array of n elements of size size in place. rotate_left(base, n, size, k) — a cyclic left shift by k positions (k may be ≥ n) — via three reverse calls.",
+   "hint": "reverse: two indexes from the ends, swap_mem on (char *)base + i * size. rotate_left: reverse(0..k), reverse(k..n), reverse(all)."
+  },
+  {
+   "id": "c6-stable-isort",
+   "title": "Your own stable insertion sort",
+   "statement": "isort(base, n, size, cmp) — an insertion sort for an array of any type: stable (equal elements keep their order), without malloc (the temporary element lives on the stack, size ≤ 64). The comparison is like qsort's. You must not call qsort.",
+   "hint": "For i = 1..n−1: copy the element into tmp and shift the larger ones (cmp(prev, tmp) > 0 — strictly!) to the right with memcpy."
+  },
+  {
+   "id": "c6-extremes",
+   "title": "max_elem, min_elem and find for any type",
+   "statement": "max_elem(base, n, size, cmp) → a pointer to the largest element (on a tie, the first of them), for n = 0 → NULL. min_elem — the smallest (on a tie, the first). find(base, n, size, key, cmp) → a pointer to the first element equal to the key (cmp(elem, key) == 0), or NULL. count_eq(base, n, size, key, cmp) → how many elements equal the key.",
+   "hint": "Keep a pointer to the best element and compare strictly (> or <): then on a tie the first one stays."
+  },
+  {
+   "id": "c6-gstack",
+   "title": "A generic stack with elements of any size",
+   "statement": "struct gstack { void *data; size_t size, len, cap; }. gs_init(s, size); gs_push(s, elem) → 0/−1 (copies size bytes, capacity doubles, initial 4); gs_pop(s, out) → 1/0 (copies the top into out if out ≠ NULL); gs_top(s) → a pointer to the top or NULL; gs_free(s). The program runs with AddressSanitizer.",
+   "hint": "The address of element i is (char *)data + i * size; copy with memcpy. Put the result of realloc into a temporary variable."
+  },
+  {
+   "id": "c6-gvec-drop",
+   "title": "A vector with an element destructor",
+   "statement": "struct gvec { void *data; size_t size, len, cap; void (*drop)(void *); }. gv_init(v, size, drop) (drop may be NULL); gv_push(v, elem) → 0/−1 — copies the element (ownership passes to the vector); gv_erase(v, i) → 0/−1 — calls drop for element i and shifts the tail; gv_clear(v) — drop for all, len = 0; gv_free(v) — clear and free the buffer. Initial capacity 4, doubling growth. Under AddressSanitizer.",
+   "hint": "drop is called with the element's address (char *)data + i * size. Don't forget drop in gv_erase and in gv_clear."
+  },
+  {
+   "id": "c6-shape-ops",
+   "title": "Shapes via an operations table",
+   "statement": "struct shape_ops { double (*area)(const void *); double (*perimeter)(const void *); const char *(*name)(void); }; struct shape { const struct shape_ops *ops; }. struct circle { struct shape base; double r; }, struct rect { struct shape base; double w, h; }. Write circle_init(c, r), rect_init(r, w, h) (they fill in ops) and total_area(shapes, n) / total_perimeter(shapes, n) over an array of pointers to struct shape. Take pi as 3.14159. Calls like s->ops->area(s) must work without knowing the concrete type.",
+   "hint": "The ops tables are static const in your code; init puts the table's address into base.ops. A pointer to struct circle equals a pointer to its first field base."
+  },
+  {
+   "id": "c6-counter-objects",
+   "title": "Counter objects with a common interface",
+   "statement": "struct counter_ops { void (*inc)(void *); int (*get)(const void *); void (*reset)(void *); }; struct counter { const struct counter_ops *ops; }. Write two kinds: simple (struct simple { struct counter base; int n; } — just counts) and sat (struct sat { struct counter base; int n, max; } — does not grow above max), as well as simple_init(s), sat_init(s, max) and a function bump(c, times) → call inc times times and return get().",
+   "hint": "All methods take void *: inside, cast to struct simple * or struct sat *. The first field base lets you pass &s->base."
+  },
+  {
+   "id": "c6-event-bus",
+   "title": "An event bus: subscribers with a context",
+   "statement": "typedef void (*handler)(int arg, void *ctx). struct bus — up to 16 subscriptions (event, handler, ctx). bus_init(b); bus_on(b, ev, h, ctx) → 0/−1 (−1 if there is no room); bus_off(b, ev, h) → how many subscriptions were removed (the order of the rest is preserved); bus_emit(b, ev, arg) → how many handlers were called (in subscription order).",
+   "hint": "bus_off is in-place array compaction: read i, write j, keep only the ones not removed."
+  },
+  {
+   "id": "c6-fsm-number",
+   "title": "A state machine of functions: recognizing numbers",
+   "statement": "struct state { struct state (*fn)(int); } — a machine state: a function reads a character and returns the next state. Write the states s_start, s_sign, s_int, s_dot, s_frac, s_fail so that accepts(s) returns 1 for strings of the form [+-]?digits(.digits)? as a whole and 0 for all others. The accepting states are s_int and s_frac; the empty string is not accepted. The loop over the string is already in accepts.",
+   "hint": "s_fail returns itself. After digits — s_int; a dot from s_int — s_dot; after the dot at least one digit is needed (s_frac)."
+  },
+  {
+   "id": "c6-table-vm",
+   "title": "A virtual machine with a handler table",
+   "statement": "struct vm { int stack[64]; int sp; const int *code, *pc; int halted; long steps; }; a handler is void (*)(struct vm *), it reads its operand itself from *vm->pc++. Codes: 0 PUSH n, 1 ADD, 2 SUB (second − top), 3 MUL, 4 DUP, 5 SWAP, 6 HALT, 7 JNZ t (pop the top; if ≠ 0 jump to code + t). Write the handlers, the table[] (index — code) and run(code, *steps) → the top of the stack after HALT; steps is the number of executed instructions. You must not use switch.",
+   "hint": "Write table as an array of pointers: { op_push, op_add, … }; in the loop: op = *pc++; table[op](&v). JNZ: read the operand, then pop the value."
+  },
+  {
+   "id": "c6-integrate",
+   "title": "Numerical methods: integral, root, derivative",
+   "statement": "integrate(f, a, b, n) — the trapezoid method with n equal segments. bisect(f, lo, hi, eps) — a root by bisection, if f(lo) and f(hi) have different signs: narrow the segment while hi − lo > eps, return the midpoint. deriv(f, x, h) — the central difference (f(x+h) − f(x−h)) / (2h). The function f takes a double and returns a double.",
+   "hint": "Trapezoids: the half-sum of the ends plus the interior points, all multiplied by h. For bisect, remember the sign of f(lo)."
+  },
+  {
+   "id": "c6-walk-ctx",
+   "title": "List and tree walks with a callback and context",
+   "statement": "struct node { int v; struct node *next; }; struct tnode { int key; struct tnode *l, *r; }. list_each(head, fn, ctx): fn(v, ctx) for every node. tree_inorder(root, fn, ctx) and tree_preorder(root, fn, ctx) — recursive walks (fn(key, ctx)). tree_find_if(root, pred, ctx) → a pointer to the first node in in-order for which pred(key, ctx) ≠ 0, or NULL; after a match the walk stops.",
+   "hint": "In tree_find_if, search the left subtree first; if you found something, return the result up immediately."
+  },
+  {
+   "id": "c6-pipeline",
+   "title": "A pipeline of functions",
+   "statement": "A pipeline is an array of pointers to int → int functions. run_pipeline(fns, n, x) — apply fns[0], then fns[1], … run_until(fns, n, x, stop) — the same, but check stop(value) after each step: as soon as it is ≠ 0, return that value; if it never triggers, the result of all the steps. compose_all(fns, n, x) — apply in reverse order (fns[n−1] first).",
+   "hint": "compose_all goes by indexes from n−1 down to 0. In run_until, check the value right after each application."
+  },
+  {
+   "id": "c6-fix-cmp-overflow",
+   "title": "Fix it: comparison by subtraction",
+   "statement": "sort_asc and sort_desc sort an int array via qsort, but the comparisons are written with subtraction and break on numbers of large magnitude (and under UBSan they abort the program). Fix cmp_asc and cmp_desc; sort_asc and sort_desc need no changes.",
+   "hint": "(x > y) - (x < y) — the result is always −1, 0 or 1, no overflow."
+  },
+  {
+   "id": "c6-fix-declaration",
+   "title": "Fix it: a table of function pointers",
+   "statement": "The operations table is declared incorrectly: int *ops[3](int, int) is an array of functions, not of pointers, and does not compile. Fix the declaration (via a typedef if you like) so that run(i, a, b) calls the i-th operation and table_size() returns the number of operations.",
+   "hint": "int (*ops[3])(int, int) is an array of three pointers; or typedef int (*binop)(int, int); binop ops[3]."
+  },
+  {
+   "id": "c6-fix-qsort-size",
+   "title": "Fix it: element size in qsort",
+   "statement": "sort_ints and sort_words call qsort with a wrong element size: data gets corrupted or the program goes out of the array bounds (under AddressSanitizer — an abort). Fix the calls.",
+   "hint": "The element size is sizeof a[0] (not sizeof a: that is the size of a pointer). For an array of strings the element is char *."
+  },
+  {
+   "id": "c6-fix-cmp-contract",
+   "title": "Fix it: a comparison returns only 0 and 1",
+   "statement": "by_age and by_name return the result of a logical expression (0 or 1) and violate the comparison contract: cmp(a, b) must be < 0 for a < b, 0 for equal, > 0 for a > b. Fix both functions: by_age — by age, on a tie by name; by_name — by name.",
+   "hint": "If the fields differ, return −1 or 1; otherwise move on to the next field. strcmp already returns the right sign."
+  },
+  {
+   "id": "c6-sort-r",
+   "title": "Sorting with a context (like qsort_r)",
+   "statement": "sort_r(base, n, size, cmp, ctx) — a sort for an array of any type, where the comparison takes a third argument, a context: int (*cmp)(const void *, const void *, void *). Implement it yourself (insertion sort or merge sort will do; for n up to 3000 O(n²) is enough), without qsort and without global variables. The sort is stable.",
+   "hint": "The same insertion algorithm, but cmp is called with ctx; move elements with memcpy."
+  },
+  {
+   "id": "c6-pqueue",
+   "title": "A generic priority queue (heap)",
+   "statement": "struct pq { void *data; size_t size, len, cap; int (*cmp)(const void *, const void *); } — a binary heap: on top is the element for which cmp is smallest (with cmp(a,b) < 0, \"a is more important\"). pq_init(q, size, cmp); pq_push(q, elem) → 0/−1 (copies; initial capacity 4, doubling growth); pq_pop(q, out) → 1/0 (removes the smallest); pq_peek(q) → a pointer to the smallest or NULL; pq_free(q). Operations in O(log n); under AddressSanitizer.",
+   "hint": "Sift up on push (parent (i−1)/2) and down on pop (children 2i+1, 2i+2); swap elements bytewise or through a temporary buffer."
+  },
+  {
+   "id": "c6-registry",
+   "title": "A command registry by name",
+   "statement": "struct reg — up to 32 commands (name, an int → int function). reg_init(r); reg_add(r, name, fn) → 0, and if the name already exists or there is no room — −1 (the name is copied with strdup); reg_call(r, name, arg, *res) → 1 and the result if the command exists, otherwise 0; reg_remove(r, name) → 1/0 (the order of the rest is preserved); reg_count(r); reg_free(r) frees the names. Under AddressSanitizer: a leak of names will stop the program.",
+   "hint": "Copy the name with strdup (the caller may change their buffer); on removal, free the name and shift the tail with memmove."
+  },
+  {
+   "id": "c6-sort-unique",
+   "title": "Sorting and removing duplicates for any type",
+   "statement": "sort_unique(base, n, size, cmp) → the new number of elements: sort the array (qsort is fine) and keep one representative among equals (the first of the equals after sorting); the tail beyond the new length does not matter. count_distinct(base, n, size, cmp) → the number of distinct elements without changing the original array (work on a copy: malloc, free the memory).",
+   "hint": "After qsort, equal elements are adjacent: keep a write index k and copy element i there when it differs from the last one written."
+  }
+ ]
+}

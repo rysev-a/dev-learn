@@ -1,0 +1,186 @@
+{
+ "book": 16,
+ "chapter": 4,
+ "tasks": [
+  {
+   "id": "c4-str-basic",
+   "title": "Your own strlen, strcpy, strcat, strcmp",
+   "statement": "Implement my_strlen, my_strcpy (copies including the zero, returns dst), my_strcat (appends src to the end of dst, returns dst) and my_strcmp (negative, zero or positive; compare as unsigned char). You must not use the functions from <string.h>.",
+   "hint": "Copying: while ((*d++ = *src++)); — the assignment stops by itself when the zero has been copied."
+  },
+  {
+   "id": "c4-str-search",
+   "title": "Searching in a string: strchr, strrchr, strstr",
+   "statement": "my_strchr(s, c): a pointer to the first occurrence of the character (including the terminating zero if c == 0) or NULL; my_strrchr: to the last one; my_strstr(hay, needle): to the first occurrence of the substring (an empty one gives hay itself) or NULL.",
+   "hint": "For strchr the loop must stop on the zero too: the zero is also a valid character to look for."
+  },
+  {
+   "id": "c4-str-palindrome",
+   "title": "Reversal and palindromes",
+   "statement": "reverse_str(char *s): reverse the string in place. is_pal(const char *s) → 1 if the string is a palindrome, ignoring case and all characters except Latin letters and digits (ASCII).",
+   "hint": "Two pointers, from the start and from the end: skip non-alphanumeric characters on both sides and compare in lower case."
+  },
+  {
+   "id": "c4-str-case",
+   "title": "Case: upper, lower, capitalize",
+   "statement": "to_upper(char *s) and to_lower(char *s): in place, ASCII Latin letters only. capitalize_words(char *s): the first letter of each word (words are separated by spaces) is upper case, the rest lower case.",
+   "hint": "The difference between 'a' and 'A' is constant (32): s -= 'a' - 'A' turns a lower-case letter into an upper-case one."
+  },
+  {
+   "id": "c4-trim",
+   "title": "Trim whitespace in place",
+   "statement": "trim(char *s) → char *: remove whitespace characters (space, \\t, \\n, \\r) from both ends; return a pointer to the first non-space character inside the same string, and move the terminating zero so that the tail is cut off. Do not allocate memory.",
+   "hint": "First advance the start pointer, then move the end back and write the zero at the new place."
+  },
+  {
+   "id": "c4-count-words",
+   "title": "Words and characters in text",
+   "statement": "count_words(const char *s) → the number of words (words are separated by any number of spaces, tabs and newlines). longest_word_len(const char *s) → the length of the longest word. count_char(const char *s, char c) → how many times c occurs.",
+   "hint": "A word starts where a non-space character follows a space (or the start of the string)."
+  },
+  {
+   "id": "c4-parse-int",
+   "title": "Parsing an integer by hand",
+   "statement": "parse_int(const char *s, int *out) → int: ignore leading spaces; an optional sign; then one or more digits up to the end of the string (a tail is not allowed). Codes: 0 — success (the number is stored), −1 — not a number, −2 — does not fit in an int. Check for overflow before multiplying, without long long and without the standard strtol/atoi.",
+   "hint": "For positive numbers check v > (INT_MAX - d) / 10 before v * 10 + d; accumulate negative numbers downward so that INT_MIN fits."
+  },
+  {
+   "id": "c4-strtol",
+   "title": "strtol: reliable parsing",
+   "statement": "safe_parse(const char *s, long *out) → int: via strtol, base 10. 0 — success; 1 — an empty string or no digits at all; 2 — extra characters after the number; 3 — the number does not fit in a long (errno == ERANGE). Leading spaces are allowed (strtol does that). Reset errno before the call.",
+   "hint": "Order of checks: end == s (nothing parsed) → ERANGE → tail *end != 0."
+  },
+  {
+   "id": "c4-itoa",
+   "title": "Number to string: your own itoa",
+   "statement": "int_to_str(long long v, char *buf, size_t cap) → int: write the decimal representation into buf (with a terminating zero) and return the length of the string; if the string with its zero does not fit in cap, return −1 and write a zero into buf[0] (if cap > 0). Handle LLONG_MIN and 0 correctly. You must not use snprintf and sprintf.",
+   "hint": "Work with unsigned long long: the absolute value of LLONG_MIN does not fit in a signed type. Digits come out least significant first — reverse them."
+  },
+  {
+   "id": "c4-base-conv",
+   "title": "Number bases",
+   "statement": "to_base(unsigned long n, unsigned base, char *buf): write n in base base (2..36, digits 0-9a-z, no leading zeros, «0» for 0). from_base(const char *s, unsigned base) → long: read a number (digits and letters of either case are allowed), −1 for an invalid character or an empty string.",
+   "hint": "Digits are produced from least to most significant — write them into a temporary array and reverse it."
+  },
+  {
+   "id": "c4-split",
+   "title": "Splitting a string in place",
+   "statement": "split(char *s, char sep, char **out, size_t max) → size_t: replace each sep with a zero and store in out pointers to the starts of the fields (empty fields are kept); at most max fields. Return the number of fields. Do not allocate memory.",
+   "hint": "A field starts after each separator; an empty string is one empty field."
+  },
+  {
+   "id": "c4-kv-parse",
+   "title": "Parsing “key=value” into buffers",
+   "statement": "parse_kv(const char *line, char *key, size_t kcap, char *val, size_t vcap) → int: split the line at the first «=» into a key and a value; trim spaces at the edges; the result goes to key and val with a terminating zero. Return 1 if there is a «=» and the key is not empty; 0 otherwise. If the key or value does not fit, it is truncated (the zero is always in place).",
+   "hint": "Find the «=» with strchr; the key is the left part, the value is everything to the right up to the end of the line; copy no more than cap − 1 bytes."
+  },
+  {
+   "id": "c4-rle",
+   "title": "Run-length encoding (RLE)",
+   "statement": "rle_encode(const char *s, char *out, size_t cap) → int: «aaabcc» → «a3b1c2» (a character and the decimal number of repeats; runs are counted for any characters, and the input contains no digits). Return the length of the result, or −1 if the result with its zero does not fit in cap. rle_decode(const char *s, char *out, size_t cap) → int: the inverse transformation; the same return rules.",
+   "hint": "Count the length of a run with an inner loop; the repeat count can be printed with snprintf into a temporary buffer."
+  },
+  {
+   "id": "c4-vigenere",
+   "title": "The Vigenère cipher",
+   "statement": "vigenere(char *s, const char *key, int decrypt): encrypts (decrypt = 0) or decrypts the Latin letters of the string in place; the key is lower-case Latin letters (shifts a=0…z=25), the key is used cyclically, advancing only on letters; other characters are unchanged, case is preserved.",
+   "hint": "The shift when decrypting is 26 − shift; the pointer into the key advances only after a text letter has been processed."
+  },
+  {
+   "id": "c4-join",
+   "title": "Joining strings with snprintf",
+   "statement": "join(char *out, size_t cap, const char *const *parts, size_t n, const char *sep) → size_t: write parts[0] sep parts[1] sep … into out without overflow (the result is always zero-terminated if cap > 0) and return the length of the full string that would result with an unlimited buffer. Each part is added with snprintf.",
+   "hint": "Keep track of how much has already been written: if there is no room, do not call snprintf, but still count the length."
+  },
+  {
+   "id": "c4-fix-strcpy",
+   "title": "Fix: buffer overflow in greet",
+   "statement": "greet(name, out, cap) must write the string «Hello, <name>!» into out without going out of bounds (cap is the size of out; if it does not fit, truncate, the zero at the end is mandatory). The starter code uses strcpy and strcat and corrupts memory (run with AddressSanitizer). Rewrite it with snprintf.",
+   "hint": "snprintf(out, cap, \"Hello, %s!\", name) will not exceed cap by itself and always writes the zero."
+  },
+  {
+   "id": "c4-fix-strncpy",
+   "title": "Fix: strncpy without a terminating zero",
+   "statement": "copy_name(dst, cap, src) must copy src into dst, truncating to the size, and always leave a valid string in dst. Right now, if src does not fit, there is no zero, and printing reads garbage. Fix it without using snprintf.",
+   "hint": "Copy no more than cap − 1 bytes and always set dst[cap − 1] = 0; do nothing when cap == 0."
+  },
+  {
+   "id": "c4-geometry",
+   "title": "Structs by value: points and vectors",
+   "statement": "struct point { double x, y; }. dist2(a, b) → the squared distance; midpoint(a, b) → the midpoint; rotate90(p) → rotation by 90° counterclockwise around the origin; cross(a, b, c) → the cross product (b − a) × (c − a); collinear(a, b, c) → 1 if cross == 0. Everything is taken and returned by value.",
+   "hint": "Rotation by 90°: (x, y) → (−y, x). A struct can be returned from a function by building it from values."
+  },
+  {
+   "id": "c4-rect",
+   "title": "Rectangles: intersection and bounding box",
+   "statement": "struct rect { int x, y, w, h; } (top-left corner and size, w, h ≥ 0). area(r), contains(r, px, py) (borders: left and top inclusive, right and bottom not), intersect(a, b) → the intersection rectangle (w = h = 0 if there is no intersection) and bounding(a, b) → the smallest enclosing rectangle.",
+   "hint": "Intersection: the maximum of the left and top borders, the minimum of the right and bottom borders; if the right border is not greater than the left one, there is no intersection."
+  },
+  {
+   "id": "c4-complex",
+   "title": "Complex numbers",
+   "statement": "typedef struct { double re, im; } cx. cx_add, cx_mul, cx_conj, cx_abs2 (the squared modulus), cx_pow(c, n) → c to the integer power n ≥ 0 by fast exponentiation (cx_pow(c, 0) = 1).",
+   "hint": "(a + bi)(c + di) = (ac − bd) + (ad + bc)i; the power works like powmod, but with complex multiplication."
+  },
+  {
+   "id": "c4-fraction",
+   "title": "Rational numbers",
+   "statement": "struct frac { long n, d; } (d > 0 after normalization). frac_make(n, d) → reduce by the GCD and move the sign to the numerator (d ≠ 0); frac_add, frac_mul; frac_cmp(a, b) → −1/0/1 (without division: by cross multiplication); frac_to_double.",
+   "hint": "Compute the gcd on absolute values; after reduction the sign lives in the numerator and the denominator is positive."
+  },
+  {
+   "id": "c4-date",
+   "title": "Dates as structs",
+   "statement": "struct date { int y, m, d; }. date_valid(d) → 1/0 (Gregorian calendar, y ≥ 1); date_cmp(a, b) → −1/0/1; days_from_civil(d) → the number of days since 1970-01-01 (may be negative); date_add(d, n) → the date n days later (n may be negative); weekday(d) → 0 = Sunday … 6. 1970-01-01 was a Thursday.",
+   "hint": "Use the days_from_civil algorithm: count days from the epoch via 400-year “eras” and shift the year to start in March."
+  },
+  {
+   "id": "c4-students",
+   "title": "Array of structs: a grade book",
+   "statement": "struct student { char name[16]; int score[3]; }. average(const struct student *s) → double; best(const struct student *a, size_t n) → the index of the student with the highest average (the first on a tie, n ≥ 1); rename(struct student *s, const char *name) — store the name, truncated to 15 characters; total_by_subject(const struct student *a, size_t n, int subj) → the sum of scores for a subject.",
+   "hint": "a[i].score[subj] is a field of an array element; in rename_student copy no more than sizeof name − 1 bytes and set the zero."
+  },
+  {
+   "id": "c4-layout",
+   "title": "Struct layout: size and offsets",
+   "statement": "Change the order of the fields so that sizeof(struct small) becomes 8 (fields: char a; int b; char c) and sizeof(struct mixed) becomes 16 (char a; double d; short s; int i). You must not rename the fields; the set stays the same. The driver will print the sizes and the offsets of the first fields.",
+   "hint": "Arrange the fields from large to small: double, then int, short, char."
+  },
+  {
+   "id": "c4-rgb565",
+   "title": "Packing a color into 16 bits",
+   "statement": "pack565(r, g, b) → uint16_t: the top 5 bits of red, 6 bits of green and 5 bits of blue (inputs are 0..255) in the format rrrrrggg gggbbbbb. unpack565(c, *r, *g, *b): restore the 8-bit values, filling the low bits with the high ones (r = (r5 << 3) | (r5 >> 2), and so on).",
+   "hint": "Masks: red (c >> 11) & 31, green (c >> 5) & 63, blue c & 31."
+  },
+  {
+   "id": "c4-float-bits",
+   "title": "Taking apart a float via a union",
+   "statement": "union fbits { float f; uint32_t u; }. float_parts(float f, unsigned *sign, unsigned *exp, unsigned *mant): store the sign (1 bit), the exponent (8 bits) and the mantissa (23 bits). float_from_parts(sign, exp, mant) → float. is_nan_bits(uint32_t u) → 1 if the exponent is 255 and the mantissa ≠ 0.",
+   "hint": "Write to one field of the union, read the other; the exponent is stored with a bias of 127."
+  },
+  {
+   "id": "c4-tagged-value",
+   "title": "Tagged union: a dynamic value",
+   "statement": "struct value { enum { V_INT, V_DBL, V_STR } tag; union { long i; double d; const char *s; } as; }. v_int, v_dbl, v_str are constructors. v_add(a, b): int+int → int, int+double and double+double → double; with a string there is no result string: return v_int(0) (an error). v_repr(v, buf, cap) → write «42», «3.5» (%g) or «\"text\"» with snprintf.",
+   "hint": "Each function looks at the tag and accesses the matching field of the union; with mixed numbers, convert the int to double."
+  },
+  {
+   "id": "c4-flags",
+   "title": "Flags from a string and back",
+   "statement": "enum { F_BOLD = 1, F_ITALIC = 2, F_UNDERLINE = 4, F_STRIKE = 8 }. parse_flags(const char *csv) → unsigned: «bold,italic» → a mask (ignore unknown words, spaces around words are allowed). format_flags(unsigned m, char *out, size_t cap): words separated by commas in bit order, an empty mask gives «none».",
+   "hint": "Compare a word with the names by length and content; bit i corresponds to the i-th name."
+  },
+  {
+   "id": "c4-serialize",
+   "title": "Serialization to big-endian",
+   "statement": "struct header { uint8_t ver; uint16_t len; uint32_t id; } (the struct has padding, but the stream has 7 bytes without it). put16(buf, v), put32(buf, v) write in big-endian, get16, get32 read. header_encode(const struct header *h, uint8_t *out) → 7; header_decode(const uint8_t *in, struct header *h) → 7. Field order: ver, len (BE), id (BE).",
+   "hint": "Most significant byte first: b[0] = v >> 24 and so on; assemble back with shifts and “or”."
+  },
+  {
+   "id": "c4-fix-compare",
+   "title": "Fix: comparing structs with memcmp",
+   "statement": "same_item(a, b) must compare two structs by fields. The starter code uses memcmp and gets it wrong, because the padding between fields holds different garbage. Compare the fields individually.",
+   "hint": "Compare a->tag == b->tag && …; the driver deliberately wrote different values into the padding."
+  }
+ ]
+}

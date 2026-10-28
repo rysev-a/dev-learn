@@ -1,0 +1,187 @@
+{
+ "book": 10,
+ "chapter": 17,
+ "tasks": [
+  {
+   "id": "r17-point-new",
+   "title": "Struct and methods: Point",
+   "statement": "Write the methods of Point: origin() returns the point (0, 0); new(x, y); manhattan(&self, other: &Point) returns |dx| + |dy|; translate(&mut self, dx, dy) shifts the point in place.",
+   "hint": "Field init shorthand: Point { x, y } when the parameter names match the field names."
+  },
+  {
+   "id": "r17-rect-methods",
+   "title": "Rectangle: &self, &mut self",
+   "statement": "Rect { w, h } (u32). Methods: area(&self), perimeter(&self), is_square(&self), can_hold(&self, other: &Rect), which tells whether other fits entirely (both sides less than or equal), and scale(&mut self, k: u32), which multiplies both sides by k.",
+   "hint": "In can_hold, compare both sides: self.w >= other.w && self.h >= other.h."
+  },
+  {
+   "id": "r17-derive-debug",
+   "title": "derive: Debug, Clone, PartialEq, Default",
+   "statement": "The code does not compile: the driver prints User with {:?}, clones it, compares it with ==, and creates a default value. Add one derive attribute above the struct with the four needed names.",
+   "hint": "#[derive(Debug, Clone, PartialEq, Default)]: all the fields already support all of this, so derive will work."
+  },
+  {
+   "id": "r17-display-impl",
+   "title": "Display by hand",
+   "statement": "Implement std::fmt::Display: for Point, «(x, y)»; for Temp, «21.5°C» or «70.7°F» (one digit after the decimal point). Then {} and to_string() work.",
+   "hint": "write!(f, \"({}, {})\", self.x, self.y); for Temp, match self { Temp::C(t) => write!(...), ... }."
+  },
+  {
+   "id": "r17-repr-c",
+   "title": "Alignment: repr(C) and field order",
+   "statement": "Three structs with fields u8, u32, u8. Tight is the default (Rust reorders the fields itself): 8 bytes. Wide has the same fields, but with C layout (#[repr(C)]): 12 bytes. Packed is #[repr(C)], but arrange the fields so that the size becomes 8. The starter gives all three a size of 8: fix Wide and Packed.",
+   "hint": "In repr(C) the fields go in order, and padding is inserted after each: u8, [3 empty], u32, u8, [3 empty] = 12. Put u32 first."
+  },
+  {
+   "id": "r17-enum-shape",
+   "title": "enum Shape: area and perimeter",
+   "statement": "Shape is Circle(r), Rect(w, h) or Tri(a, b, c) (the sides). area(&self) returns f64 (for the triangle, Heron's formula), perimeter(&self) returns f64. Take pi from std::f64::consts::PI.",
+   "hint": "match self gives reference bindings: r, w, h are &f64, and arithmetic with them works."
+  },
+  {
+   "id": "r17-enum-size",
+   "title": "Sizes of enums",
+   "statement": "Write sizes() returning [usize; 6]: size_of for Dir (an enum of four variants with no data), Option<u8>, Option<u32>, Option<Box<i32>>, Option<&str>, Result<u8, u8>, in that order. Think about where a tag is needed and where a niche replaces it.",
+   "hint": "size_of::<Type>() from std::mem; Option<&str> is a slice (16 bytes) with a niche in the pointer."
+  },
+  {
+   "id": "r17-match-coin",
+   "title": "match: coins",
+   "statement": "enum Coin { Penny, Nickel, Dime, Quarter(u32) }: the quarter has a minting year. cents(&Coin) returns u32: 1, 5, 10 and 25; but a quarter before the year 1980 (not including it) counts as a collector's item and is worth 100. total(&[Coin]) returns u32, the sum.",
+   "hint": "The arm with the guard Quarter(year) if *year < 1980 must come before the general Quarter(_)."
+  },
+  {
+   "id": "r17-match-ranges",
+   "title": "match: ranges, |, @ and a guard",
+   "statement": "classify(n: i32) returns String using a single match: negative gives \"negative\"; 0 gives \"zero\"; a digit 1..=9 gives \"digit N\" (with the number itself); 10, 20 or 30 give \"round\"; other even numbers give \"even\"; the rest give \"odd\".",
+   "hint": "The order of arms matters: special cases go above general ones. The pattern d @ 1..=9 binds the number to the name d."
+  },
+  {
+   "id": "r17-match-tuple",
+   "title": "match on a tuple: FizzBuzz without if",
+   "statement": "fizzbuzz(n: u32) returns String using a single match on the pair (n % 3, n % 5): «FizzBuzz», «Fizz», «Buzz» or the number itself. You must not use the word if in the code.",
+   "hint": "The pattern (0, _) means: the remainder by 3 is zero, the remainder by 5 does not matter."
+  },
+  {
+   "id": "r17-match-slice",
+   "title": "Slice patterns",
+   "statement": "describe(v: &[i32]) returns String using a single match with slice patterns: empty gives \"empty\"; one element gives \"one: X\"; two give \"two: A, B\"; more give \"many: FIRST..LAST\" (the first and the last).",
+   "hint": "The pattern [first, .., last] matches a slice of two or more elements; put the two-element pattern earlier."
+  },
+  {
+   "id": "r17-option-div",
+   "title": "Option and the ? operator",
+   "statement": "safe_div(a, b) returns Option<i32> (None when b == 0). parse_pair(s) returns Option<(i32, i32)>: a string like \"3,4\" (no spaces), any error gives None. ratio(s) returns Option<i32>: parse the pair and divide safely; use the ? operator here. Calling unwrap() is forbidden.",
+   "hint": "l.parse::<i32>().ok()? turns a Result into an Option and returns None at once on error; split_once(',') is also an Option."
+  },
+  {
+   "id": "r17-option-combinators",
+   "title": "Option combinators without match",
+   "statement": "first_even_square(v) returns Option<i32>: the square of the first even number. name_len(name: Option<&str>) returns usize: the length of the name, or 0. parse_or(s, default) returns i32: the number from the string, or default. Condition: neither match nor if let, only Option and Result methods (map, and_then, unwrap_or, find...).",
+   "hint": "find returns Option<&i32>; map transforms the value inside. For parsing a string: s.trim().parse().unwrap_or(default)."
+  },
+  {
+   "id": "r17-let-else",
+   "title": "let else and if let",
+   "statement": "parse_kv(line) returns String: a line like \"key=value\"; use let else to split at the first \"=\", otherwise return \"bad\"; the result is «key -> value» (both parts trimmed of spaces). show(o: Option<i32>) returns String: «got N» if there is a number, otherwise «nothing», using if let / else.",
+   "hint": "let Some((k, v)) = … else { return …; }; after this line k and v are ordinary slices."
+  },
+  {
+   "id": "r17-rpn",
+   "title": "Stack and while let: reverse Polish notation",
+   "statement": "eval_rpn(tokens: &[&str]) returns Option<i64>: evaluate an expression in reverse Polish notation: numbers and the operators + - * /. The stack is a Vec<i64>. Return None if there are not enough operands, the divisor is zero, a token is not recognized, or the stack at the end does not hold exactly one number.",
+   "hint": "For an operator take b = pop()?, then a = pop()? (mind the order!). Parse the other tokens as numbers via parse().ok()?."
+  },
+  {
+   "id": "r17-state-machine",
+   "title": "State machine: a door",
+   "statement": "Door is Open, Closed, Locked(code). apply(self, Action) returns Door: Open + Close gives Closed; Closed + Open gives Open; Closed + Lock(c) gives Locked(c); Locked(c) + Unlock(x) gives Closed if x == c, otherwise it stays Locked(c). Any other action leaves the state unchanged. The method takes self by value.",
+   "hint": "A match on the pair (self, action) reads like a transition table; the last arm (state, _) => state returns the previous state."
+  },
+  {
+   "id": "r17-direction",
+   "title": "enum without data: Direction",
+   "statement": "Direction is N, E, S, W (derive Debug, Clone, Copy, PartialEq). turn_right(self), turn_left(self), opposite(self), from_char(c: char) returning Option<Direction> (the letters N E S W in any case) and to_char(self) returning char (uppercase).",
+   "hint": "The type is Copy: self by value can be reused. opposite is two turns to the right."
+  },
+  {
+   "id": "r17-fix-match-ref",
+   "title": "Fix: cannot move out of borrowed content",
+   "statement": "display_name returns the nickname, or the name if there is none. The method receives &Person, and match tries to MOVE the string out of a field behind a reference. Fix it so that Person stays with its owner.",
+   "hint": "match &p.nickname gives a binding n: &String; you have to return an owned value: n.clone()."
+  },
+  {
+   "id": "r17-match-mut",
+   "title": "Changing inside an Option",
+   "statement": "increment_if_some(o: &mut Option<i32>): add 1 if there is a value. take_or(o: &mut Option<String>, default: &str) returns String: take the value out of o (leaving None in o) or return default. append_default(o: &mut Option<Vec<i32>>, x): add x to the vector; if there is no vector yet, create one.",
+   "hint": "if let Some(x) = o gives x: &mut i32 (match ergonomics); o.take() and get_or_insert_with save you extra matches."
+  },
+  {
+   "id": "r17-fix-move-in-match",
+   "title": "Fix: the value moved into match",
+   "statement": "describe first takes msg apart with match, and then prints the same msg with {:?}. match moves the string out of the variant, and msg is unavailable after it. Fix it with a minimal change (the function needs both the text and msg itself).",
+   "hint": "match &msg takes a reference apart: the binding s is a &String, and msg stays whole.",
+   "starter": "fn describe(msg: Option<String>) -> String {\n    let text = match msg {\n        Some(s) => s,\n        None => String::from(\"пусто\"),\n    };\n    format!(\"{text} ({:?})\", msg)\n}\n"
+  },
+  {
+   "id": "r17-expr-eval",
+   "title": "Expression tree: eval",
+   "statement": "Expr is Num(i64), Add, Mul (two Box<Expr> each) and Neg (one). Write eval(e: &Expr) returning i64 with a recursive match. A reference to Box<Expr> is automatically coerced to &Expr, so eval(a) works.",
+   "hint": "Num(n) gives n: &i64, so dereference it: *n. For Neg: -eval(a)."
+  },
+  {
+   "id": "r17-expr-show",
+   "title": "Expression tree: show",
+   "statement": "The same Expr. Write show(e: &Expr) returning String: Num gives the number; Add gives «(A + B)»; Mul gives «(A * B)»; Neg gives «-A».",
+   "hint": "For the nested parts call show(a), show(b) and insert the results into format!."
+  },
+  {
+   "id": "r17-derive-ord",
+   "title": "derive(Ord): field order is comparison order",
+   "statement": "Version { major, minor, patch } derives PartialOrd and Ord, but the fields are written in the wrong order, so versions sort incorrectly. Fix the struct definition, changing nothing else: 1.2.9 < 1.10.0 < 2.0.0.",
+   "hint": "Lexicographic comparison goes in the order of fields in the definition: first major, then minor, then patch."
+  },
+  {
+   "id": "r17-default",
+   "title": "Default by hand and ..Default::default()",
+   "statement": "Settings: retries: u32, timeout_ms: u64, verbose: bool, name: String, proxy: Option<String>. Implement Default: retries 3, timeout_ms 5000, verbose false, name \"app\", proxy None. quiet() returns Settings: all defaults except retries = 0 (use ..Default::default()).",
+   "hint": "The update syntax Settings { retries: 0, ..Default::default() } takes the remaining fields from the default value."
+  },
+  {
+   "id": "r17-builder",
+   "title": "Builder: a chain of methods with self",
+   "statement": "RequestBuilder builds a request. new(url), header(self, k, v) returns Self (adds a header), timeout(self, t: u32) returns Self, build(self) returns Request. Request::describe(&self) returns String: «GET <url> timeout=<t> [k: v, k2: v2]»; with no headers, «[]». The default timeout is 30. The methods take self by value and return it back.",
+   "hint": "Each method modifies self and returns it: self.headers.push(...); self."
+  },
+  {
+   "id": "r17-inventory",
+   "title": "Inventory: &, &mut and Option<&T>",
+   "statement": "Item { name: String, qty: u32, price_cents: u64 }. total_value(items: &[Item]) returns u64, the sum of qty × price. cheapest(items: &[Item]) returns Option<&Item>, the item with the lowest price per unit (the first among equals; an empty list gives None). restock(items: &mut [Item], name: &str, n: u32) returns bool: increase qty of the item with that name, true if found.",
+   "hint": "For restock: for it in items.iter_mut() gives &mut Item; return true right from the loop."
+  },
+  {
+   "id": "r17-matrix",
+   "title": "A matrix in one Vec: row-major",
+   "statement": "Matrix { rows, cols, data: Vec<i32> } stores its elements row by row: index (r, c) maps to r * cols + c (like a two-dimensional array in memory). new(rows, cols) makes zeros; get(&self, r, c) returns Option<i32> (None out of bounds); set(&mut self, r, c, v) returns bool (false out of bounds); transpose(&self) returns Matrix.",
+   "hint": "The index in a one-dimensional Vec: r * cols + c; when transposing, the new matrix has as many rows as the old one has columns."
+  },
+  {
+   "id": "r17-value-tree",
+   "title": "Tagged union: Value",
+   "statement": "Value is Int(i64), Float(f64), Text(String) or List(Vec<Value>). total(&Value) returns f64, the sum of all numbers (including those nested in lists; text does not count). depth(&Value) returns usize: 0 for a non-list, for a list 1 + the greatest depth of its elements (an empty list is 1). texts(&Value) returns Vec<String>, all the strings in traversal order.",
+   "hint": "A list is handled recursively: items.iter().map(total).sum(); max() on an empty iterator gives None, so unwrap_or(0) will do."
+  },
+  {
+   "id": "r17-json",
+   "title": "Rendering JSON from an enum",
+   "statement": "Json is Null, Bool, Num(f64), Str(String), Arr(Vec<Json>), Obj(Vec<(String, Json)>). render(&self) returns String: compact JSON with no spaces: null, true/false, a number as with {}, a string in double quotes (escape \\\" and \\\\), an array [a,b], an object {\"k\":v,...} in vector order.",
+   "hint": "A helper function quote(s) escapes the characters one by one; in format! curly braces are doubled: {{ and }}."
+  },
+  {
+   "id": "r17-event-log",
+   "title": "Event log: struct variants",
+   "statement": "Event is Login { user }, Logout { user }, Purchase { user, cents: u32 } (struct variants). summarize(events: &[Event]) returns (usize, u32, Vec<String>): the number of logins, the sum of purchases in cents, and the names of users who are still logged in (logged in and did not log out), in the order of their last login without a logout.",
+   "hint": "The pattern Event::Purchase { cents, .. } takes the needed field and skips the rest."
+  }
+ ]
+}

@@ -428,8 +428,7 @@ async fn translated_books_are_served_in_english_and_the_rest_in_russian() {
         assert_eq!(book["langs"], json!(["ru", "en"]), "книга {id}");
         assert_eq!(book["title"], title);
     }
-    let c = books.iter().find(|b| b["id"] == 16).unwrap();
-    assert_eq!(c["langs"], json!(["ru"]));
+    assert!(books.iter().all(|b| b["langs"] == json!(["ru", "en"])), "все книги курса переведены");
     let (_, ru_books) = call_lang(&app, "ru", Method::GET, "/api/books", None, None).await;
     assert_eq!(ru_books.as_array().unwrap().iter().find(|b| b["id"] == 12).unwrap()["title"], "Дискретная математика");
 
@@ -455,8 +454,6 @@ async fn translated_books_are_served_in_english_and_the_rest_in_russian() {
     assert_eq!(py_slides["rubric"], "PYTHON AS A FIRST LANGUAGE / DATA AND LOOPS / CHAPTER 5");
     let (_, arch_slides) = call_lang(&app, "en", Method::GET, "/api/slides/14/1", None, None).await;
     assert!(arch_slides["rubric"].as_str().unwrap().starts_with("THE COMPUTER AND THE TRANSISTOR"));
-    let (_, fallback) = call_lang(&app, "en", Method::GET, "/api/slides/16/1", None, None).await;
-    assert!(fallback["rubric"].as_str().unwrap().chars().any(|c| ('а'..='я').contains(&c.to_ascii_lowercase()) || c == 'А'), "книга без перевода отдаётся по-русски");
 
     // квиз: тот же ответ и число вариантов, текст — на языке запроса
     let token = sign_in(&app, "lang@example.com").await;

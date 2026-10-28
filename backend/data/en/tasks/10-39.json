@@ -1,0 +1,66 @@
+{
+ "book": 10,
+ "chapter": 39,
+ "tasks": [
+  {
+   "id": "r39-bit-tricks",
+   "title": "Bit tricks",
+   "statement": "Without the ready-made methods count_ones, is_power_of_two and reverse_bits, write: lowest_set_bit(n: u32) -> u32 (the lowest set bit's value itself, 0 for 0), is_pow2(n: u64) -> bool (0 is not), parity(n: u32) -> bool (the number of one bits is odd) and reverse8(n: u8) -> u8 (the bits in reverse order).",
+   "hint": "n & n.wrapping_neg() isolates the lowest one; n & (n - 1) clears it."
+  },
+  {
+   "id": "r39-header",
+   "title": "Parsing a binary header",
+   "statement": "The header format (8 bytes): magic number 0xCAFE (u16, most significant byte first), version (u8), data length (u32, least significant byte first), flags (u8). Write parse_header(b: &[u8]) -> Option<(u8, u32, u8)> (version, length, flags; None if there are fewer than 8 bytes or the magic does not match) and build_header(version: u8, len: u32, flags: u8) -> [u8; 8].",
+   "hint": "u16::from_be_bytes([b[0], b[1]]), u32::from_le_bytes([...4 bytes...]); build the byte array from to_be_bytes / to_le_bytes."
+  },
+  {
+   "id": "r39-varint",
+   "title": "Varint with error checking",
+   "statement": "Write varint_encode(n: u64) -> Vec<u8> and varint_decode(b: &[u8]) -> Result<(u64, usize), &'static str>: the number and how many bytes were read. Errors: empty input or a cut-off encoding (all bytes have the continuation flag) → \"truncated\"; an encoding longer than 10 bytes or one that does not fit in u64 → \"overflow\".",
+   "hint": "Each byte gives 7 bits shifted by 7·i; the tenth byte can carry only one significant bit."
+  },
+  {
+   "id": "r39-crc32",
+   "title": "CRC-32 by table",
+   "statement": "Write crc32(data: &[u8]) -> u32 (polynomial 0xEDB88320 in reflected form, initial value 0xFFFFFFFF, the result is inverted), like zlib.crc32 in Python. The check feeds in 8 MB of data.",
+   "hint": "Compute the table of 256 values once, before the loop over the data."
+  },
+  {
+   "id": "r39-base64",
+   "title": "Base64",
+   "statement": "Write base64_encode(data: &[u8]) -> String (alphabet A–Z a–z 0–9 + /, padding '=') and base64_decode(s: &str) -> Option<Vec<u8>> (None for an invalid character or a wrong length).",
+   "hint": "Three bytes = 24 bits = four six-bit indices into the alphabet; missing bytes are zeros, and the output gets '=' signs."
+  },
+  {
+   "id": "r39-bitset",
+   "title": "Bit set and the sieve",
+   "statement": "Complete BitSet: new(len), set(i), clear(i), get(i), count() -> u32, ones() -> Vec<usize> (the positions of ones in ascending order), union_with(&mut self, other: &BitSet). Then write primes_below(n: usize) -> Vec<usize>, the sieve of Eratosthenes on a BitSet (the check: n = 20 million).",
+   "hint": "trailing_zeros() + w &= w - 1 iterate over the one bits of a word; for the sieve, mark the multiples of i starting from i·i."
+  },
+  {
+   "id": "r39-cpu",
+   "title": "A processor emulator",
+   "statement": "Implement run(prog: &[Instr], limit: u32) -> Result<Cpu, Trap>. The processor: registers regs: [u8; 4], memory mem: [u8; 16], pc, zero, steps. Instructions: Ldi(r, v), Mov(a, b), Add(a, b), Sub(a, b) (wrapping, update the zero flag from the result), Ld(r, addr), St(r, addr), Jmp(t), Jz(t), Jnz(t), Hlt (halts; it also counts as a step). Traps: memory address ≥ 16 → Trap::BadAddress(addr), pc ≥ the program length without Hlt → Trap::PcOutOfRange(pc), more than limit steps → Trap::Timeout. Each executed instruction increases steps.",
+   "hint": "Check pc before reading an instruction; the ? operator together with ok_or turns going out of an array into a Trap."
+  },
+  {
+   "id": "r39-encode-instr",
+   "title": "Machine code of instructions",
+   "statement": "Encode instructions into two bytes: byte 0 = opcode << 4 | a << 2 | b, byte 1 = number or address (0 if none). Opcodes: Hlt 0, Ldi 1, Mov 2, Add 3, Sub 4, Ld 5, St 6, Jmp 7, Jz 8, Jnz 9. For Ldi(r, v): a = r, byte 1 = v; for Mov/Add/Sub(a, b): a, b; for Ld(r, addr) and St(r, addr): a = r, byte 1 = addr (address ≤ 255); for jumps: byte 1 = the target. Write encode(i: &Instr) -> [u8; 2] and decode(b: [u8; 2]) -> Option<Instr> (None for an unknown opcode).",
+   "hint": "The fields of byte 0 are assembled with shifts: op << 4 | a << 2 | b; parse with reverse shifts and the mask 3."
+  },
+  {
+   "id": "r39-cache",
+   "title": "A cache simulator",
+   "statement": "Write cache_sim(trace: &[u64], lines: usize, line_size: u64) -> (u64, u64): a direct-mapped cache (as in the architecture course): block = address / line_size, line = block % lines, tag = block / lines; return (hits, misses). The check: 5 million accesses.",
+   "hint": "A table of tags Vec<Option<u64>>; compare tags[idx] with Some(tag)."
+  },
+  {
+   "id": "r39-alu-flags",
+   "title": "An ALU with flags",
+   "statement": "Write alu(op: &str, a: u8, b: u8) -> (u8, bool, bool, bool, bool): op is \"ADD\" or \"SUB\"; the result and the flags (zero, negative, carry, overflow). carry is the carry-out for addition or the borrow (a < b) for subtraction; overflow is signed overflow (the operands as two's complement numbers).",
+   "hint": "overflowing_add/sub return (result, flag); for signed overflow, perform the same operation on i8."
+  }
+ ]
+}

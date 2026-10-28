@@ -1,0 +1,118 @@
+{
+ "book": 9,
+ "chapter": 23,
+ "tasks": [
+  {
+   "id": "d7-shard-distribution",
+   "title": "Distribution across shards",
+   "statement": "The users table is sharded by the formula shard = id % 4. Output the number of users in each shard (columns: shard, n), ordered by shard number ascending.",
+   "hint": "GROUP BY id % 4.",
+   "starter": "-- number of users per shard id % 4\nSELECT\n"
+  },
+  {
+   "id": "d7-hot-tenant",
+   "title": "Hot tenant",
+   "statement": "Find the tenant with the largest number of users and output its name and the number of users (columns: tenant, n).",
+   "hint": "GROUP BY tenant, sort by count descending, LIMIT 1.",
+   "starter": "-- the largest tenant\nSELECT\n"
+  },
+  {
+   "id": "d7-cross-shard",
+   "title": "Orders across a shard boundary",
+   "statement": "Users live in shard id % 4, and orders live in shard id % 4 by the order's own number. If an order and its user are on different shards, that is a \"cross-shard\" join. Output the order numbers (column order_id) whose user is on a different shard, ascending.",
+   "hint": "Join orders and users and compare o.id % 4 with u.id % 4.",
+   "starter": "-- orders whose user is on a different shard\nSELECT\n"
+  },
+  {
+   "id": "d7-range-case",
+   "title": "Range sharding in SQL",
+   "statement": "Shards by id range: 1–10 is 'A', 11–25 is 'B', the rest are 'C'. For each shard output the number of users (columns: shard, n), ordered by shard name.",
+   "hint": "CASE WHEN id <= 10 THEN 'A' … END and GROUP BY that expression (an alias works too).",
+   "starter": "-- users per range shard\nSELECT\n"
+  },
+  {
+   "id": "d7-hash-shard",
+   "title": "Shard by hash",
+   "statement": "The key's hash is the sum of its character codes (for numbers, take the string str(key)). Write shard_of(key, n): shard number = hash % n.",
+   "hint": "sum(ord(c) for c in str(key)) % n."
+  },
+  {
+   "id": "d7-range-shard",
+   "title": "Shard by range",
+   "statement": "The bounds are a sorted list of upper limits (exclusive): shard 0 holds keys < b0, shard 1 holds b0 ≤ key < b1, ..., the last shard holds everything else. Write range_shard(bounds, key): the shard number.",
+   "hint": "Go through the bounds in order: the first one the key has not reached determines the shard."
+  },
+  {
+   "id": "d7-resize-moves",
+   "title": "How many keys move under mod N",
+   "statement": "Keys are integers, shard = key % n. Write moved_keys(keys, old_n, new_n): how many keys from the list change shard when old_n changes to new_n.",
+   "hint": "Compare k % old_n and k % new_n for each key."
+  },
+  {
+   "id": "d7-build-ring",
+   "title": "Consistent hashing ring",
+   "statement": "The position of a string on the ring: x = 2166136261; for each character x = ((x XOR character code) · 16777619) mod 2**32; position = x % 1000 (the FNV-1a hash). The virtual nodes of a physical node are the strings `name#i`, with i from 0 to vnodes−1. A key belongs to the virtual node with the nearest position ≥ the key's position, and if there is none, to the one with the smallest position; on equal positions the smaller name wins. Write ring_owner(nodes, vnodes, key): the name of the physical node.",
+   "hint": "Implement the hash by the formula, build and sort the ring of (position, name) pairs, and find the first position not less than the key's position."
+  },
+  {
+   "id": "d7-ring-add",
+   "title": "How many keys move when a node is added",
+   "statement": "Positions and owner are as in the previous task (FNV-1a hash, virtual nodes `name#i`). Write moved_on_add(nodes, new_node, vnodes, keys): how many keys from the list changed owner after new_node was added to the nodes.",
+   "hint": "Compute the owner before and after adding the node; count the keys whose owner changed."
+  },
+  {
+   "id": "d7-topk-merge",
+   "title": "Merging shard results",
+   "statement": "Each shard returned its own list of scores sorted in descending order. Write merge_topk(shard_results, k): the k largest scores across all shards in descending order (if there are fewer than k, all of them).",
+   "hint": "Combine the lists, sort descending, and take a slice."
+  },
+  {
+   "id": "d7-2pc",
+   "title": "Two-phase commit",
+   "statement": "Phase 1: each participant votes 'yes' or 'no' (None means no answer, counted as a refusal). If all are 'yes', the decision is 'commit', otherwise 'abort'. Write two_phase_commit(votes): a pair [decision, list of (zero-based) numbers of participants who did not answer 'yes'].",
+   "hint": "If there is no non-'yes' vote, commit; an empty list of participants also gives commit."
+  },
+  {
+   "id": "d7-saga",
+   "title": "Saga with compensations",
+   "statement": "A saga is a list of steps; step i succeeds if i != fail_at. Run the steps in order; at the first failure, run compensations for all successfully completed steps in reverse order. Write saga_run(steps, fail_at): a list of events of the form 'do:name', 'fail:name' and 'undo:name' in the order they happen. fail_at = None means no failures.",
+   "hint": "On failure, record 'fail:…' and then 'undo:…' for the completed steps in reverse order."
+  },
+  {
+   "id": "d7-hot-salt",
+   "title": "Salt for a hot key",
+   "statement": "A hot key is split into n subkeys: key#0, key#1, ..., key#(n−1); write number c (from zero) goes to the subkey numbered c % n. Write salted_keys(key, n, writes): a pair [list of subkeys for `writes` writes in order, list of all subkeys for reading (ascending by number)].",
+   "hint": "Build the list of all subkeys once; the writes take subkeys in a circle."
+  },
+  {
+   "id": "d7-rebalance",
+   "title": "Rebalancing plan",
+   "statement": "Nodes are a dictionary of name → number of partitions. Write rebalance_plan(nodes): a list of moves [from, to], where one partition at a time is moved from the most loaded node to the least loaded one, while the difference between them is greater than 1. On ties, pick the node with the smaller name.",
+   "hint": "Each step: find the maximum and minimum, move one partition, and record the step."
+  },
+  {
+   "id": "d7-skew",
+   "title": "Load skew",
+   "statement": "The load per shard is a list of request counts. Skew is the ratio of the maximum to the mean, rounded to two decimal places. Write skew(loads): for an empty list or a zero sum, return 0.0.",
+   "hint": "max(loads) / mean; watch out for the empty list and zero."
+  },
+  {
+   "id": "d7-directory",
+   "title": "Shard directory",
+   "statement": "The directory is a dictionary of tenant → shard for large tenants. The rest are placed by hash: (sum of the character codes of the name) % n. Write lookup_shard(directory, tenant, n): the tenant's shard.",
+   "hint": "Directory first; if the tenant is not there, hash the name."
+  },
+  {
+   "id": "d7-split-range",
+   "title": "Splitting a range",
+   "statement": "A partition owns the keys [lo, hi). Write split_range(lo, hi, parts): the list of bounds of the new partitions, `parts` segments of almost equal length: [[lo0, hi0], [lo1, hi1], ...], with the first (hi − lo) % parts segments one longer, so the range is covered without gaps.",
+   "hint": "divmod gives the base size and the remainder: the remainder is handed out to the first segments."
+  },
+  {
+   "id": "d7-global-index",
+   "title": "How many shards a query touches",
+   "statement": "A table is sharded into n shards by the hash of id. A query by the shard key goes to 1 shard. A query by a secondary field with local indexes goes to all n. With a global index sharded by the field value, the search goes to 1 index shard, and then to as many data shards as there are distinct shards among the found rows (the list data_shards). Write shards_touched(kind, n, data_shards): kind is 'by_key', 'local_index' or 'global_index'; return the total number of shard accesses.",
+   "hint": "Three formulas: 1, n, and 1 + the number of distinct data shards."
+  }
+ ]
+}

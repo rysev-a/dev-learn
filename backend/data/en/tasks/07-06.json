@@ -1,0 +1,126 @@
+{
+ "book": 7,
+ "chapter": 6,
+ "tasks": [
+  {
+   "id": "two-sum-sorted-pointers",
+   "title": "Two Pointers on a Sorted List",
+   "statement": "Write a function pair_with_sum(arr, target): in a list sorted in ascending order, find two different elements whose sum is target and return their indices (i, j), i < j, or None. Two pointers, O(n) time and O(1) memory: the checker passes a million elements.",
+   "hint": "i = 0, j = len - 1; sum too small: i += 1, too big: j -= 1; while i < j."
+  },
+  {
+   "id": "pair-with-difference",
+   "title": "Pair with a Given Difference",
+   "statement": "You are given a list a sorted in ascending order and a number k ≥ 0. Write a function has_pair_diff(a, k): True if there are two DIFFERENT indices i ≠ j with a[j] − a[i] == k. The two pointers move in the same direction. The checker passes 300,000 numbers.",
+   "hint": "Move pointer j to the right and pull i up while the difference is greater than k. Do not forget about i == j: a pair made of an element with itself does not count (important when k = 0)."
+  },
+  {
+   "id": "is-palindrome-two-pointers",
+   "title": "Palindrome",
+   "statement": "Write a function is_palindrome(s): True if the string reads the same in both directions, ignoring case and all characters other than letters and digits. Walk with two pointers from the ends.",
+   "hint": "i, j = 0, len(s) - 1; skip characters for which not ch.isalnum(); compare using lower()."
+  },
+  {
+   "id": "valid-palindrome-one-deletion",
+   "title": "Palindrome with One Deletion",
+   "statement": "Write a function valid_palindrome(s): True if the string becomes a palindrome after deleting at most one character. Walk with pointers toward each other; at the first mismatch check two options: skip the left or the right character. The checker passes strings of 200,000 characters.",
+   "hint": "An inner function ok(i, j) checks whether a slice is a palindrome; at the first mismatch the answer is ok(i + 1, j) or ok(i, j − 1)."
+  },
+  {
+   "id": "remove-duplicates-sorted",
+   "title": "Remove Duplicates in Place",
+   "statement": "Write a function dedupe(arr): in a sorted list keep one copy of each value IN PLACE (two pointers: a reader and a writer), without creating a second list. The function returns the new length k, and the first k elements of arr are the unique values.",
+   "hint": "w = 1; for r in 1..n-1: if arr[r] != arr[w - 1]: arr[w] = arr[r]; w += 1. Return w (0 for an empty list)."
+  },
+  {
+   "id": "remove-duplicates-at-most-two",
+   "title": "At Most Two Copies",
+   "statement": "A sorted list a. Write a function remove_dups_two(a): keep each value at most twice, in place, preserving order; return the new length k (the first k elements are the result, the tail does not matter). The checker passes 500,000 elements: shifting with pop and del will be too slow.",
+   "hint": "Write condition: either the result has fewer than two elements, or x differs from a[k − 2], the second to last written element."
+  },
+  {
+   "id": "sorted-squares",
+   "title": "Sorted Squares",
+   "statement": "You are given a list of integers a sorted in ascending order (it has negative numbers). Write a function sorted_squares(a): the squares of the elements in ascending order in O(n): two pointers from the ends, the ones with the larger absolute value go into the result from the end.",
+   "hint": "The largest square is at one of the ends. Compare |a[lo]| and |a[hi]|, write the larger into the result from the end, and move the corresponding pointer."
+  },
+  {
+   "id": "intersect-sorted",
+   "title": "Intersection of Sorted Lists",
+   "statement": "Two lists sorted in ascending order. Write a function intersect(a, b): their intersection with multiplicity (common values as many times as they appear in both lists), in ascending order. The checker passes 500,000 elements each: searching with x in b will be too slow.",
+   "hint": "Two pointers: equal, add to the answer and move both forward; otherwise move the smaller one forward. Loop while i < len(a) and j < len(b)."
+  },
+  {
+   "id": "is-subsequence",
+   "title": "Subsequence",
+   "statement": "Write a function is_subsequence(s, t): True if all characters of s appear in t in the same order (not necessarily consecutively). An empty s is always a subsequence. The checker passes t of length 2,000,000.",
+   "hint": "i is the position in s. Walk over t; if the current character equals s[i], advance i. At the end i == len(s)."
+  },
+  {
+   "id": "interval-intersections",
+   "title": "Interval Intersections",
+   "statement": "You are given two lists of closed intervals [start, end]: within each list the intervals do not overlap and are sorted. Write a function interval_intersection(A, B): the list of all non-empty intersections of intervals (as lists [start, end]) in ascending order. Touching at a single point counts as an intersection.",
+   "hint": "The intersection of two intervals is [max(starts), min(ends)] if max ≤ min. Advance the pointer of the interval that ended earlier."
+  },
+  {
+   "id": "container-most-water",
+   "title": "Most Water",
+   "statement": "You are given a list of heights of vertical lines. Write a function most_water(heights): the largest area of a rectangle between two lines, the width (difference of indices) times the smaller of the heights. Two pointers, O(n): the checker passes 200,000 lines.",
+   "hint": "Go from both ends; always move the pointer at the SHORTER line, since the taller one cannot improve the width."
+  },
+  {
+   "id": "trap-rain-water",
+   "title": "Rain Water",
+   "statement": "You are given the heights of bars h. After rain, water collects between them. Write a function trap(h): the total volume of water (each bar has width 1). Two pointers from the ends and two maxima: move the side with the smaller maximum. The checker passes 500,000 bars.",
+   "hint": "Water above a bar = (the smaller of the maxima on the left and on the right) − the height. If h[lo] < h[hi], the left boundary is the left maximum; count the water at lo and move it."
+  },
+  {
+   "id": "sort-colors",
+   "title": "Sort Colors",
+   "statement": "The list a holds only 0, 1, and 2. Write a function sort_colors(a): sort it in place in one pass and O(1) memory (the Dutch national flag); return nothing. The built-in sort and counting are forbidden in spirit, but the checker only sees the result. The checker passes 1,000,000 elements.",
+   "hint": "lo is the boundary of zeros, hi is the boundary of twos, mid moves forward. Swap a zero with lo (and move lo and mid forward), a two with hi (only hi moves back), skip a one."
+  },
+  {
+   "id": "sort-by-parity",
+   "title": "Evens First",
+   "statement": "Write a function sort_by_parity(a): rearrange the elements of the list in place so that all even numbers come before all odd ones (order within groups does not matter); return nothing. Two pointers toward each other: the left one looks for an odd number, the right one for an even number, and they swap. The checker passes 1,000,000 elements.",
+   "hint": "While i < j: even on the left, step right; odd on the right, step left; otherwise (odd on the left, even on the right) swap and move both."
+  },
+  {
+   "id": "three-sum",
+   "title": "Triples with Zero Sum",
+   "statement": "Write a function three_sum(a): all distinct triples of values (a[i], a[j], a[k]) with i < j < k and zero sum. Each triple is a list in ascending order; the triples are in ascending order. Equal triples do not repeat. Time O(n²): sort and two pointers. The checker passes 2,500 elements: a cube will be too slow.",
+   "hint": "Sort; for each i (except repeated values) use pointers lo = i + 1 and hi = n − 1. After a triple is found, move both and skip repeats of lo."
+  },
+  {
+   "id": "three-sum-closest",
+   "title": "Closest Sum of Three",
+   "statement": "Write a function three_sum_closest(a, target): the sum of three elements (at three different positions) closest to target. Exactly one answer is guaranteed. The checker passes 2,000 elements.",
+   "hint": "Like three_sum, but remember the sum closest to target. If s < target, move lo right; if greater, move hi left."
+  },
+  {
+   "id": "count-pairs-sum-at-most",
+   "title": "Pairs with Sum at Most k",
+   "statement": "Write a function count_pairs_le(a, k): the number of index pairs i < j with a[i] + a[j] ≤ k. The list is unsorted. Sort a copy and count with two pointers. The checker passes 200,000 elements: checking all pairs will be too slow.",
+   "hint": "If b[lo] + b[hi] ≤ k, then b[lo] fits with all elements from lo + 1 to hi: add hi − lo and move lo; otherwise hi − 1."
+  },
+  {
+   "id": "find-duplicate-floyd",
+   "title": "Duplicate Without Changing the Array",
+   "statement": "In a list a of n + 1 numbers the values lie in the range 1…n, and exactly one number is repeated (possibly several times). Write a function find_duplicate(a): the repeated number. You may not modify the list, and extra memory is O(1): look at the list as a linked list (position i leads to position a[i]) and find the cycle entry with Floyd's algorithm. The checker passes 500,001 numbers.",
+   "hint": "Start at index 0 (nothing leads into it). First run: slow = a[slow], fast = a[a[fast]] until they meet. Second: slow from zero, both one step at a time; they meet at the cycle entry."
+  },
+  {
+   "id": "backspace-compare",
+   "title": "Backspace Compare",
+   "statement": "The character '#' means \"delete the previous character\" (nothing happens in an empty string). Write a function backspace_compare(s, t): are the strings equal after applying all the '#'. A solution with O(1) extra memory: walk both strings from right to left with two pointers. The checker passes strings of 1,000,000 characters.",
+   "hint": "A function next_valid(x, i) goes left, counting '#' and skipping that many ordinary characters; it returns the position of the next \"live\" character or −1."
+  },
+  {
+   "id": "boats",
+   "title": "Boats",
+   "statement": "People have weights w, each boat holds at most limit and carries at most two people (each person's weight is at most limit). Write a function num_boats(w, limit): the smallest number of boats. Sort and two pointers: the heaviest person takes a boat, and we add the lightest one to them if they fit together. The checker passes 300,000 people.",
+   "hint": "After sorting, the heaviest always gets a boat (hi − 1); take the lightest with them if the sum is at most limit (lo + 1). Each step is one boat."
+  }
+ ]
+}

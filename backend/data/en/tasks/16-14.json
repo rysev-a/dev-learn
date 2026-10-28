@@ -1,0 +1,187 @@
+{
+ "book": 16,
+ "chapter": 14,
+ "tasks": [
+  {
+   "id": "c14-designated-init",
+   "title": "Designated initializers and tables with gaps",
+   "statement": "struct config { int width, height; const char *title; bool fullscreen; double scale; }. default_config() → a configuration: width 800, height 600, title «untitled», fullscreen false, scale 1.0 (with a single designated initializer, no field assignments); with_size(c, w, h) → a copy of c with new width and height (no compound literal needed — but the fields not named in the initializer must come from c); level_name(n) → «TRACE», «DEBUG», «INFO», «WARN», «ERROR» for 0…4 from a table static const char *const names[] with designated indices (indices 5 and 6 in the table — «FATAL» and «PANIC» — must work too), and «?» for any other n; days(m, leap) → the number of days from a table with designated indices [1] … [12]; the table's zero index is 0.",
+   "hint": "return (struct config){ .width = 800, … }; for the table: static const char *const names[] = { [0] = \"TRACE\", … }. Fields you don't name are zeroed."
+  },
+  {
+   "id": "c14-compound-literals",
+   "title": "Compound literals: temporary values in expressions",
+   "statement": "struct pt { int x, y; }; struct rect { struct pt min, max; }. midpoint(a, b) → the midpoint (integer division toward zero); rect_area(r) (r by value); rect_contains(r, p) → p is inside (borders included); rect_union(a, b) → the smallest rectangle containing both; sum_ints(const int *a, size_t n); max_ints(const int *a, size_t n). Then define the macros: PT(x, y) → a compound literal of struct pt; RECT(x0, y0, x1, y1) → struct rect; INTS(…) → a compound literal of an int array made of the listed values (so you can write sum_ints(INTS(1, 2, 3), 3)); COUNT_INTS(...) → the number of values in INTS (up to 8; via sizeof).",
+   "hint": "A compound literal: ((struct pt){ (x), (y) }); an array: ((const int[]){ __VA_ARGS__ }); the element count is sizeof(literal) / sizeof(int)."
+  },
+  {
+   "id": "c14-flexible-str",
+   "title": "A length-prefixed string on a flexible array member",
+   "statement": "struct str { size_t len; char data[]; } — the length and the characters in one block (data is always NUL-terminated, but len does not include the terminator). str_new(s) → a new string (a copy of s); str_from(buf, n) — from n bytes (including embedded zeros); str_cat(a, b) → a new string a + b; str_slice(s, from, n) → a substring (clamped to the bounds; from > len → empty); str_eq(a, b) → 1/0 (compares by len and contents); str_find(s, ch) → the index of the first occurrence or −1; str_free(s); str_size(s) → the number of bytes in the block (sizeof(struct str) + len + 1). Under AddressSanitizer.",
+   "hint": "malloc(sizeof *s + n + 1): header, data and the terminating zero. sizeof of a struct with a flexible member does not include the tail."
+  },
+  {
+   "id": "c14-packet-flex",
+   "title": "Variable-length packets: serialization and parsing",
+   "statement": "struct packet { uint8_t type; uint16_t len; uint8_t payload[]; } — the wire header is 3 bytes: type, len (big-endian, payload length ≤ 1000), then the payload. pkt_new(type, data, len) → a heap packet (len > 1000 → NULL); pkt_wire_size(p) → 3 + len; pkt_encode(p, out, cap) → the number of bytes, or 0 if it doesn't fit; pkt_decode(buf, n, *consumed) → a packet from the start of the buffer (returns NULL if there is not enough data, len > 1000, or the header is incomplete; *consumed = bytes consumed on success); pkt_stream_count(buf, n) → how many complete packets lie back to back in the buffer (parsing stops at the first incomplete or invalid one); pkt_free(p). Under AddressSanitizer.",
+   "hint": "The allocation size is sizeof *p + len. Read the wire length as (buf[1] << 8) | buf[2]; before copying, check that the buffer holds enough bytes."
+  },
+  {
+   "id": "c14-restrict-overlap",
+   "title": "restrict and overlapping regions",
+   "statement": "scale(out, in, n, k) and vec_add(out, a, b, n) are declared with restrict: the regions do not overlap. regions_overlap(a, na, b, nb) → 1 if the byte regions [a, a + na) and [b, b + nb) overlap (empty regions overlap nothing). safe_copy(dst, src, n) — copies n bytes and works correctly when the regions overlap (you must not call memcpy on overlapping regions); returns 1 if the regions overlapped, otherwise 0. shift_left(a, n, k) — shifts an int array left by k positions (elements on the right are filled with zeros), shift_right(a, n, k) — right; k may be ≥ n. For the shifts there is a single region (restrict is not used).",
+   "hint": "Overlap: x < y + nb && y < x + na for addresses as uintptr_t. For overlapping regions use memmove; the array shifts use memmove too."
+  },
+  {
+   "id": "c14-static-assert-layout",
+   "title": "Structs that satisfy _Static_assert checks",
+   "statement": "The _Static_assert checks for the protocol structs are already written in the starter. Define the structs so that ALL the checks pass (right now the program does not compile): struct hdr (8 bytes: uint8_t ver, uint8_t flags, uint16_t len, uint32_t id; offsets 0, 1, 2, 4), struct sample (16 bytes, alignment 8: first a double value, then uint32_t ts, uint16_t seq, uint8_t quality), struct rec (exactly 12 bytes and alignment 4: char tag[4], int32_t a, uint16_t b, uint8_t c, uint8_t d), union cell (8 bytes: int64_t i, double d, char bytes[8]). Then write hdr_size_ok() → 1.",
+   "hint": "Field order determines padding: hdr — the byte fields, then uint16_t, then uint32_t. sample: double first, then uint32_t, uint16_t, uint8_t (size 16 — the tail pads up to alignment 8). rec: tag[4], int32_t, uint16_t, two bytes.",
+   "starter": "#include <stddef.h>\n#include <stdint.h>\n\n/* define the structs below */\n\n_Static_assert(sizeof(struct hdr) == 8, \"hdr size\");\n_Static_assert(offsetof(struct hdr, flags) == 1, \"hdr.flags offset\");\n_Static_assert(offsetof(struct hdr, len) == 2, \"hdr.len offset\");\n_Static_assert(offsetof(struct hdr, id) == 4, \"hdr.id offset\");\n_Static_assert(sizeof(struct sample) == 16, \"sample size\");\n_Static_assert(_Alignof(struct sample) == 8, \"sample align\");\n_Static_assert(offsetof(struct sample, value) == 0, \"sample.value first\");\n_Static_assert(sizeof(struct rec) == 12, \"rec size\");\n_Static_assert(_Alignof(struct rec) == 4, \"rec align\");\n_Static_assert(offsetof(struct rec, b) == 8, \"rec.b offset\");\n_Static_assert(sizeof(union cell) == 8, \"cell size\");\n\nint hdr_size_ok(void) { return 0; }\n"
+  },
+  {
+   "id": "c14-generic-dispatch",
+   "title": "_Generic: dispatching on type",
+   "statement": "Write the functions max_int, max_long, max_double, max_u32 (the larger of two) and a macro MAX(a, b) that picks the function by the type of the first argument via _Generic (int, long, double, unsigned). FMT(x) → the printf format string for the type of x: «%d» for int, «%ld» long, «%u» unsigned, «%g» double, «%s» for char *, «%c» for char (choose the char type by a variable's value, not a literal), «%p» for void *; «%?» for anything else. SHOW(buf, cap, x) → snprintf(buf, cap, FMT(x), x). TYPE_NAME(x) → «int», «long», «unsigned», «double», «char *», «char», «other». ZERO_OF(x) → the zero value of the same type (0, 0L, 0u, 0.0).",
+   "hint": "_Generic((x), int: \"%d\", long: \"%ld\", …, default: \"%?\"). For MAX, choose the function name and call the result: _Generic(…)(a, b)."
+  },
+  {
+   "id": "c14-anonymous-members",
+   "title": "Anonymous structs and unions",
+   "statement": "struct value { enum { V_INT, V_DBL, V_STR } tag; union { long i; double d; struct { const char *ptr; size_t len; }; }; } — an anonymous union with an anonymous struct inside (access v.i, v.d, v.ptr, v.len with no intermediate names). v_int, v_dbl, v_str(s) (len = strlen) are constructors; v_show(v, buf, cap) → «i:42», «d:2.50», «s:text(4)» (the length in parentheses); v_equal(a, b) (strings compare by content), v_len(v) → len for a string, otherwise 0. struct vec3 { union { struct { float x, y, z; }; float v[3]; }; }: vec3_dot(a, b), vec3_cross(a, b), vec3_get(a, i) (via v[i]), vec3_sum(a) — the sum via a loop over v[].",
+   "hint": "Nested nameless struct and union with no member name: their fields land directly in the outer struct. vec3 is a union of the struct {x, y, z} and the array v[3]."
+  },
+  {
+   "id": "c14-aligned-alloc",
+   "title": "Alignment: _Alignas, _Alignof and your own aligned_alloc",
+   "statement": "is_aligned(p, a) → 1 if the address p is a multiple of a (a is a power of two); align_up(n, a) → n rounded up to a multiple of a; aligned_alloc2(size, align) → a pointer aligned to align (a power of two, ≤ 4096) to size bytes: allocate malloc(size + align + sizeof(void *)), align it, and store the original pointer right before the returned address; aligned_free2(p) frees it (NULL is allowed). alignment_report(out) → the string «char=1 short=2 int=4 long=8 double=8 ptr=8 maxalign=16» (the _Alignof values; ptr is _Alignof(void *); maxalign is _Alignof(max_align_t)). An object with _Alignas(64) char cache[64] is declared in the driver. Under AddressSanitizer.",
+   "hint": "Allocate size + align + sizeof(void *), round the address (raw + sizeof(void *)) up to align, and put raw in the cell before the result: ((void **)p)[-1]."
+  },
+  {
+   "id": "c14-atomic-counter-lock",
+   "title": "An atomic counter and a spinlock on stdatomic",
+   "statement": "struct spin { atomic_flag f; } — a spinlock: spin_init, spin_lock (a loop of atomic_flag_test_and_set_explicit with acquire), spin_trylock → 1/0, spin_unlock (clear with release). struct counter { atomic_long v; }: counter_init(c, x), counter_add(c, d) → the previous value (fetch_add), counter_get(c), counter_max(c, x) — set the maximum (a CAS loop), counter_cas(c, expected, desired) → 1/0 (strong). The driver starts several <threads.h> threads: a plain variable under the spinlock and an atomic counter; the totals must be exact.",
+   "hint": "Spinlock: while (atomic_flag_test_and_set_explicit(&f, memory_order_acquire)); unlock — clear with memory_order_release. counter_max: read old, and while old < x, try a CAS."
+  },
+  {
+   "id": "c14-treiber-stack",
+   "title": "A lock-free stack (CAS)",
+   "statement": "struct lfnode { struct lfnode *next; int value; }; struct lfstack { _Atomic(struct lfnode *) head; }. lf_init(s); lf_push(s, node) — insert a node at the top with a compare_exchange_weak loop (node->next = the current head); lf_pop(s) → the removed node or NULL (a CAS loop on the head; the caller frees nodes after pop); lf_peek(s) → the top or NULL (without removing); lf_size(s) → the number of nodes, by walking the chain (only when other threads are not running). The driver allocates the nodes. Multithreaded check: several threads insert their nodes at the same time, then one thread pops everything.",
+   "hint": "push: old = head; loop: node->next = old; CAS(head: old → node) — on failure old is updated automatically. pop: CAS(head: old → old->next) for a non-empty head."
+  },
+  {
+   "id": "c14-release-acquire",
+   "title": "Passing data between threads: release and acquire",
+   "statement": "struct mailbox { int data[16]; int n; atomic_int ready; }. mb_init(m); mb_publish(m, values, n) — write the data and n (n ≤ 16), then store ready = 1 with memory_order_release; mb_consume(m, out) → the number of values: wait (spin) until ready == 1, having read it with memory_order_acquire, then copy the data to out and return n; mb_reset(m) — ready = 0 (called after reading). mb_try_consume(m, out) → the number of values or −1 if not ready yet (without waiting). The data is not marked atomic: release/acquire provides the correct ordering.",
+   "hint": "Publishing: first the plain data writes, then atomic_store_explicit(&ready, 1, memory_order_release). Reading: atomic_load_explicit(&ready, memory_order_acquire) and only after that read the data."
+  },
+  {
+   "id": "c14-call-once",
+   "title": "One-time initialization: call_once on atomics",
+   "statement": "struct once { atomic_int state; } (0 — not started, 1 — running, 2 — finished). once_init(o); once_call(o, fn, arg): if the state is 0 — CAS it to 1, run fn(arg), store 2 with release; if 1 — wait for completion (spin with acquire); if 2 — return immediately. The function fn runs at most once overall, and every once_call returns only after it has finished. once_done(o) → 1 if the state is 2. once_reset(o) — set back to 0 (only when nobody is working). The driver calls once_call from several threads at once and checks that initialization happened exactly once and the results are visible to everyone.",
+   "hint": "The CAS 0 → 1 picks a single executor. The others wait until the state becomes 2 (acquire). The write of 2 is with release after fn."
+  },
+  {
+   "id": "c14-spsc-ring",
+   "title": "A single-producer single-consumer ring buffer",
+   "statement": "struct spsc { int buf[64]; atomic_size_t head, tail; } — capacity 64; the indices head (read by the consumer) and tail (written by the producer) grow without a modulus, and the cell index is taken modulo 64. spsc_init(r); spsc_push(r, v) → 1 if written, 0 if full (tail − head == 64): write the value, then tail + 1 with release; spsc_pop(r, *v) → 1/0 (empty): read tail with acquire, take the value, then head + 1 with release; spsc_size(r) → tail − head. The driver starts two threads: the producer pushes 100000 numbers in a row (waiting when full), the consumer takes them and checks the order.",
+   "hint": "The producer owns tail, the consumer owns head. Write the data before store(tail, release); read tail (acquire) before reading the data. Full when tail − head == 64."
+  },
+  {
+   "id": "c14-utf32-utf16",
+   "title": "char32_t and char16_t: UTF-8 ↔ UTF-32 ↔ UTF-16",
+   "statement": "utf8_to_utf32(s, out, max) → the number of code points (char32_t) or −1 for invalid UTF-8 (truncated and overlong sequences, surrogates, > 0x10FFFF); if the result does not fit in max — −2. utf32_to_utf8(in, n, out, cap) → the number of bytes without the terminating zero (plus a zero at the end if there is room) or −1 (invalid code point), −2 (does not fit). utf32_to_utf16(in, n, out, max) → the number of char16_t (with surrogate pairs for code points ≥ 0x10000), utf16_to_utf32(in, n, out, max) → the number of code points (a lone or reversed surrogate — −1). utf16_len(s32, n) → how many char16_t are needed.",
+   "hint": "A surrogate pair: c − 0x10000 → the high 10 bits + 0xD800 and the low 10 bits + 0xDC00. Decoding is the reverse; lone and reversed surrogates are errors."
+  },
+  {
+   "id": "c14-cyrillic-case",
+   "title": "Letter case in UTF-8: ASCII and the Russian alphabet",
+   "statement": "Strings are UTF-8. utf8_upper(s, out, cap) and utf8_lower(s, out, cap) → the length of the result in bytes (or −1 if it does not fit with the zero; −2 for invalid UTF-8): Latin a–z ↔ A–Z, Russian lowercase letters (U+0430…U+044F) ↔ uppercase (U+0410…U+042F), the letter yo (U+0451) ↔ its capital (U+0401); other characters are unchanged. The length in bytes of these letters does not change. utf8_equal_fold(a, b) → 1 if the strings are equal ignoring case (under the same rules); utf8_title(s, out, cap) — the first letter of each word (words are separated by spaces) is uppercase, the rest lowercase; count_letters(s, *latin, *cyrillic) — the number of Latin and Russian letters (of either case).",
+   "hint": "Decode a character, convert the code point (shift by 32 for the lowercase/uppercase Russian ranges and for a–z/A–Z; the yo letters separately) and encode it back: the length in bytes of these letters is preserved."
+  },
+  {
+   "id": "c14-c23-syntax",
+   "title": "C23 syntax in practice",
+   "statement": "Write in C23 (compiled with -std=c23): constexpr int MAX_ITEMS = 8; find_first_neg(a, n) → a pointer to the first negative element or nullptr (use nullptr, not NULL); parse_bits(s) → an integer from a string of '0'/'1' characters (up to 32 characters, otherwise −1) — use a binary literal 0b… for checking; big_numbers(out) → write the values 1'000, 0b1010'1010, 0xFF'FF into out[3] (the digit separators must be present in the program text); swap_any(a, b) — a macro via typeof (no GNU extensions); first_or(a, n, dflt) — via auto and bool; sum_limit(a, n) → the sum of the first MAX_ITEMS elements; fallthrough_demo(x) → x == 1: 'A' + 'B', x == 2: 'B', otherwise 0, with [[fallthrough]]. The source text must contain nullptr, constexpr, typeof, auto, bool, [[fallthrough]] and a digit separator.",
+   "hint": "constexpr int MAX_ITEMS = 8; return nullptr; typeof(a) _t = (a); auto x = …; 0b1010'1010; [[fallthrough]]; before the next case."
+  },
+  {
+   "id": "c14-fix-attributes",
+   "title": "Fix it: warnings via attributes and standard means",
+   "statement": "The C23 code is built with -Wall -Wextra -Werror -Wimplicit-fallthrough -Wunused-parameter -Wunused-function -Wsuggest-attribute=noreturn and fails: a switch fallthrough without a marker, an unused callback parameter, an unused static function debug_dump, a function fatal that does not return but is not marked, and a callback parameter that gives the function nothing. Fix it with the standard attributes ([[fallthrough]], [[maybe_unused]], [[noreturn]], [[nodiscard]]) so that the build is clean and the behavior does not change. The function checked_div must be [[nodiscard]] (the driver uses its result).",
+   "hint": "[[fallthrough]]; before a case, [[maybe_unused]] on the parameter and on the static function, [[noreturn]] on fatal, [[nodiscard]] on checked_div. (The program calls fatal at the end, and it exits normally — that is expected.)"
+  },
+  {
+   "id": "c14-ckd-arith",
+   "title": "stdckdint.h: overflow-checked arithmetic",
+   "statement": "Use <stdckdint.h> (C23): ckd_add, ckd_sub, ckd_mul (return true on overflow, write the result through the first pointer). add_u32(a, b, *out) → 0 on success, −1 on uint32_t overflow; sub_size(a, b, *out) for size_t (a − b < 0 is an overflow); sum_checked(a, n, *out) → 0/−1 for int; factorial(n, *out) → n! for uint64_t (−1 on overflow; n ≥ 0), pow_checked(base, exp, *out) for int64_t; alloc_size(count, elem, extra, *out) → count · elem + extra as size_t (−1 on overflow) — for memory allocation; mixed_add(int8_t a, uint8_t b, *out int16_t) → 0/−1 — the result fits in int16_t with mixed types.",
+   "hint": "if (ckd_add(&r, a, b)) return −1; — the type of r determines the result type, not the operands. Write to *out only on success."
+  },
+  {
+   "id": "c14-stdbit-utils",
+   "title": "stdbit.h: C23 bit functions",
+   "statement": "Use <stdbit.h> (C23): stdc_count_ones, stdc_count_zeros, stdc_leading_zeros, stdc_trailing_zeros, stdc_first_leading_one / stdc_first_trailing_one, stdc_bit_width, stdc_bit_floor, stdc_bit_ceil, stdc_has_single_bit. popcount32(x), parity(x) (1 if the number of ones is odd), ctz32(x) (32 for 0), clz32(x) (32 for 0), ilog2(x) (for x > 0, otherwise −1), next_pow2(x) (0 → 1; if it does not fit in 32 bits — 0), prev_pow2(x) (0 → 0), is_pow2(x), bit_width64(x) → how many bits are needed to write x (0 → 0), rotl32(x, r), rotr32(x, r) (r is any non-negative integer) — but the standard has no such rotate functions, so write rotl32 and rotr32 yourself, without UB when r = 0 or r ≥ 32.",
+   "hint": "Each function is a thin wrapper over stdc_*: stdc_count_ones, stdc_trailing_zeros, stdc_leading_zeros, stdc_bit_width, stdc_bit_ceil, stdc_bit_floor, stdc_has_single_bit. For the rotations, write your own code."
+  },
+  {
+   "id": "c14-typed-enum-flags",
+   "title": "An enum with a base type and bit flags",
+   "statement": "enum perm : uint8_t { P_NONE = 0, P_READ = 1, P_WRITE = 2, P_EXEC = 4, P_ALL = 7 } (C23: a fixed base type); enum level : int8_t { L_LOW = -1, L_MID = 0, L_HIGH = 1 }. perm_has(p, flag) → 1/0; perm_add(p, flag), perm_remove(p, flag), perm_toggle(p, flag) → the new value; perm_str(p, out) → «rwx» (missing permissions are «-», for example «r-x»); perm_parse(s) → permissions from a string like «rwx», «r--», «-w-» (an invalid string → −1); perm_count(p) — the number of permissions; level_clamp(int v) → the nearest level in range; sizes(out) → write sizeof(enum perm) and sizeof(enum level) into out (per the statement — 1 and 1).",
+   "hint": "enum perm : uint8_t — the base type is given explicitly, so sizeof is 1. Cast bit operations back to (enum perm), masking with P_ALL."
+  },
+  {
+   "id": "c14-bitint",
+   "title": "_BitInt: integers of arbitrary width",
+   "statement": "Use _BitInt(N) (C23, gcc 14+): adc_add(a, b) — addition of 12-bit unsigned ADC samples (unsigned _BitInt(12)) with wraparound modulo 4096 (parameters and result are uint16_t); adc_to_mv(x) — convert a 12-bit value to millivolts (x · 3300 / 4095, rounded down) via _BitInt(24); sample24_sat_add(a, b) — addition of signed 24-bit audio samples (int32_t in the range −8388608…8388607) with saturation; sample24_mul(a, b, shift) — the product of samples with an arithmetic right shift by shift (up to 24 bits) without overflow (via _BitInt(48)); counter48_inc(c, n) — a 48-bit counter (a uint64_t in the low 48 bits) that wraps through 0; bits_needed(x) — the smallest number of bits (1…64) to write an unsigned x (0 — 1 bit).",
+   "hint": "unsigned _BitInt(12) x = a; x + y automatically wraps modulo 4096 when assigned to a type of the same width. To add 24-bit values without loss, use _BitInt(26) or wider."
+  },
+  {
+   "id": "c14-va-opt-logging",
+   "title": "Logging macros: __VA_OPT__ and C23 conditional compilation",
+   "statement": "With -std=c23 the macro LOG(fmt, ...) must work without extra arguments too: LOG(\"start\") and LOG(\"x=%d\", 5) both print «[LOG] <message>\\n» (use __VA_OPT__). LOGF(level, fmt, ...) — the same with a level: «[<level>] …». COUNT(...) → the number of arguments (0…4) via __VA_OPT__ and helper macros. Conditional compilation: feature_name() → «has-embed» if __has_embed is defined; otherwise «has-include» if __has_include is defined and <stdio.h> exists (__has_include(<stdio.h>)); otherwise «plain». fn_mode() → «debug» if the macro DEBUG is defined; «release» if RELEASE is defined; otherwise «default» (the directives #ifdef / #elifdef / #else). Define #define RELEASE 1 in the source yourself, and do not define DEBUG.",
+   "hint": "printf(\"[LOG] \" fmt \"\\n\" __VA_OPT__(,) __VA_ARGS__): the comma appears only when there are arguments. COUNT: count by shifting the list, with __VA_OPT__ for the empty case."
+  },
+  {
+   "id": "c14-vec-templates",
+   "title": "\"Templates\" with macros and _Generic: a vector for any type",
+   "statement": "The macro VEC_DEFINE(T, name) generates the type struct vec_<name> { T *data; size_t len, cap; } and the functions vec_<name>_init(v), vec_<name>_push(v, x) → 0/−1 (capacity 4, doubling growth), vec_<name>_get(v, i) → the value (the index must be < len), vec_<name>_pop(v, *out) → 1/0, vec_<name>_free(v). Make definitions for int (name int), double (name double) and char (name char). The macro VEC_PUSH(v, x) picks the right function by the vector's type via _Generic: vec_int_push for struct vec_int *, and so on; VEC_LEN(v) — the length (for any vector); VEC_FOR(i, v) — a loop over indices. sum_ints(v) → the sum of an int vector, mean_doubles(v) → the mean of a double vector (0.0 for an empty one), to_string(v, out) → a char vector as a string. Under AddressSanitizer.",
+   "hint": "The generator is one macro with ##name calls; VEC_PUSH is _Generic on the vector pointer type, selecting a function and calling it with (v, x). In VEC_FOR use v->len."
+  },
+  {
+   "id": "c14-thread-local",
+   "title": "_Thread_local and <threads.h> threads",
+   "statement": "_Thread_local int tl_counter — every thread has its own copy. tl_inc() → increment the current thread's copy and return the new value; tl_get(); tl_reset(). run_threads(n, iters, results) — start n threads (n ≤ 8), each calls tl_inc() iters times and returns the total of its copy (the result goes into results[i]); afterwards the main thread checks that its own copy did not change; returns 0 on success, −1 if thread creation fails. shared_sum(n, iters) → the sum of the threads' results, where each thread adds its values to a shared atomic_long (via atomic_fetch_add) — check that the total is exact: n · iters. thread_ids_distinct(n) → 1 if the thrd_current() values of n threads are pairwise different (compare with thrd_equal).",
+   "hint": "static _Thread_local int tl_counter; each thread resets and counts its own copy; the main thread does not touch its own. The shared counter is an atomic_long with atomic_fetch_add."
+  },
+  {
+   "id": "c14-flexible-matrix",
+   "title": "A matrix on a flexible array member",
+   "statement": "struct mat { int rows, cols; double d[]; } — the elements are stored row by row in the tail. mat_new(r, c) → a matrix filled with zeros (r, c ≥ 1; otherwise NULL); mat_get(m, i, j), mat_set(m, i, j, v); mat_identity(n); mat_mul(a, b) → a·b (NULL if the sizes don't match); mat_transpose(m); mat_trace(m) (for a square matrix, otherwise 0); mat_equal(a, b, eps) → 1/0; mat_clone(m); mat_free(m); mat_pow(m, k) → m^k for a square matrix (k ≥ 0, k = 0 — the identity) by fast exponentiation. Under AddressSanitizer.",
+   "hint": "One block: calloc(1, sizeof *m + r·c·sizeof(double)). To clone, copy the whole block (memcpy accounting for the tail), not just the struct."
+  },
+  {
+   "id": "c14-typeof-macros",
+   "title": "typeof in standard C23: safe macros",
+   "statement": "Only standard C23 means (typeof, auto, constexpr; no GNU statement expressions — they are forbidden in the program text: «({»): SWAP(a, b) — swap two variables of the same type (do { … } while (0), a temporary of type typeof(a)); ARRAY_LEN(a) → the number of array elements (size_t); CLAMP(x, lo, hi) (each argument is a variable or a constant without side effects; the result type is the type of x); IS_SAME_TYPE(a, b) → 1 if typeof(a) and typeof(b) are the same type (via _Generic on __typeof__ or typeof); SIGN(x) → −1, 0, 1 for any arithmetic type; ABS(x) — the absolute value for int/long/double via _Generic. clamp_array(a, n, lo, hi) — limit all elements of an int array.",
+   "hint": "SWAP: do { typeof(a) _t = (a); (a) = (b); (b) = _t; } while (0). Comparing types: _Generic((typeof(a) *)0, typeof(b) *: 1, default: 0)."
+  },
+  {
+   "id": "c14-feature-table",
+   "title": "Which feature came in which edition: a table and a check",
+   "statement": "Editions are given by the value of __STDC_VERSION__: C89 → 0 (the macro is not defined), C95 → 199409, C99 → 199901, C11 → 201112, C17 → 201710, C23 → 202311. std_name(ver) → «C89», «C95», «C99», «C11», «C17», «C23» for an exact value, otherwise by the nearest lower edition with the prefix «>=» (for example, 201500 → «>=C99»); ver < 199409 (but not 0) → «<C95». supports(feature, ver) → 1 if the feature exists in edition ver, 0 if not, −1 if the feature is unknown. The table (minimum version): «inline» 199901, «restrict» 199901, «bool» 199901 (a macro in stdbool; the keyword is «bool_keyword» 202311), «long_long» 199901, «vla» 199901 (optional since 201112 but supported — count it as is), «designated_init» 199901, «compound_literal» 199901, «static_assert» 201112, «generic» 201112, «atomics» 201112, «threads» 201112, «alignas» 201112, «noreturn» 201112, «typeof» 202311, «nullptr» 202311, «constexpr» 202311, «binary_literal» 202311, «attributes» 202311, «embed» 202311, «ckd» 202311, «stdbit» 202311. min_std(feature) → a string naming the first edition («C99», «C11», «C23») or «?»; features_added(ver, out) → the list of features added exactly in edition ver (in table order) and their count.",
+   "hint": "A table of structs {name, minimum version}; supports = ver >= min; min_std is the reverse mapping from a number to an edition name; for intermediate values std_name takes the nearest lower one."
+  },
+  {
+   "id": "c14-fix-lifetime-literal",
+   "title": "Fix it: lifetime of compound literals and flexible arrays",
+   "statement": "make_origin() returns a pointer to a function-block compound literal; make_point(x, y) — to a local struct; copy_msg(m) copies a struct with a flexible member by assignment (the tail is not copied); get_scores() returns a pointer to an array from a compound literal. Fix it: make_origin and make_point must return the struct by value (struct pt make_origin(void), struct pt make_point(int, int)); get_scores — a pointer to a static array; copy_msg — a copy of the whole block (malloc + memcpy accounting for the tail of length m->len + 1). Under AddressSanitizer (use-after-scope / return-local / overflow).",
+   "hint": "Return structs by value; for the array — static const; copy a struct with a flexible member with memcpy over the whole block: sizeof *m + m->len + 1."
+  },
+  {
+   "id": "c14-generic-print",
+   "title": "_Generic: universal printing and conversion",
+   "statement": "The macro TYPE_NAME(x) → a string naming the type of the expression: «int», «unsigned», «long», «double», «float», «char», «char*», «const char*», «bool» (for _Bool), «other» for the rest (via _Generic). fmt_value(x, out) — write the value of the expression into out as text: int → «%d», unsigned → «%u», long → «%ld», double → «%g», char → the character in apostrophes («'a'»), const char*/char* → in quotes; the macro PRINT_VAL(x, out) calls the right function (fmt_int, fmt_uint, fmt_long, fmt_double, fmt_char, fmt_str — declare them all yourself) by type. to_double(x) — convert any arithmetic value to double; max_of(a, b) — the maximum for int/long/double (the result type chosen by _Generic over both arguments).",
+   "hint": "_Generic((x), int: \"int\", unsigned: \"unsigned\", ..., default: \"other\"). For PRINT_VAL, pick the function name and call it right away: (…)((x), (out)). For max_of, choose by the type of a + b."
+  }
+ ]
+}

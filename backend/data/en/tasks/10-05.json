@@ -1,0 +1,215 @@
+{
+ "book": 10,
+ "chapter": 5,
+ "tasks": [
+  {
+   "id": "r5-if-sign",
+   "title": "Sign of a number",
+   "statement": "n = -7. Print «минус» if n < 0, «ноль» if n == 0, otherwise «плюс». Use if – else if – else.\n\nExpected output:\n```\nминус\n```",
+   "hint": "Three branches: if n < 0, else if n == 0, else.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r5-if-grade",
+   "title": "Grade by score",
+   "statement": "score = 78. Print the grade: «A» if score ≥ 90, «B» if ≥ 75, «C» if ≥ 60, otherwise «D». Expected: «B».\n\nExpected output:\nB",
+   "hint": "Check from the highest threshold to the lowest.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r5-if-expr",
+   "title": "if as an expression",
+   "statement": "Declare x = 12. Store in let parity the result of an if expression: «чётное» if x % 2 == 0, otherwise «нечётное». Print parity.\n\nExpected output:\n```\nчётное\n```",
+   "hint": "let parity = if … { \"чётное\" } else { \"нечётное\" };",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r5-max-of-three",
+   "title": "Maximum of three",
+   "statement": "Given a = 17, b = 42, c = 29. Find the largest using if and print «42».\n\nExpected output:\n42",
+   "hint": "If a is not less than both, it is a; otherwise compare b and c.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r5-for-count",
+   "title": "Counting from 1 to 5",
+   "statement": "Print the numbers from 1 to 5 inclusive, one per line, using a for loop.\n\nExpected output:\n1\n2\n3\n4\n5",
+   "hint": "for i in 1..=5 { … } — a range with the right bound.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r5-for-exclusive",
+   "title": "A range without the right bound",
+   "statement": "Print the numbers 0, 1, 2, 3, 4 on one line separated by spaces (use print! for a line without a line break). At the end add a line break with println!().\n\nExpected output:\n0 1 2 3 4",
+   "hint": "A space after each number is fine: the output is compared without trailing spaces on lines.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r5-sum-1-100",
+   "title": "Sum from 1 to 100",
+   "statement": "Compute and print the sum of the numbers from 1 to 100 inclusive using a for loop: «5050».\n\nExpected output:\n5050",
+   "hint": "An accumulator sum = 0, and in the loop sum += i.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r5-sum-even",
+   "title": "Sum of evens",
+   "statement": "Compute the sum of the even numbers from 1 to 100 inclusive: «2550».\n\nExpected output:\n2550",
+   "hint": "Inside the loop — if i % 2 == 0.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r5-factorial-loop",
+   "title": "Factorial with a loop",
+   "statement": "Compute 10! = 1·2·…·10 with a loop (u64) and print «3628800». Then 20!: «2432902008176640000».\n\nExpected output:\n3628800\n2432902008176640000",
+   "hint": "The product accumulator starts at 1; 20! needs u64.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r5-multiplication-table",
+   "title": "Multiplication table",
+   "statement": "Print the multiplication table for 7 from 1 to 10: ten lines «7 x 1 = 7», «7 x 2 = 14», … «7 x 10 = 70».\n\nExpected output:\n7 x 1 = 7\n7 x 2 = 14\n7 x 3 = 21\n7 x 4 = 28\n7 x 5 = 35\n7 x 6 = 42\n7 x 7 = 49\n7 x 8 = 56\n7 x 9 = 63\n7 x 10 = 70",
+   "hint": "println!(\"7 x {} = {}\", i, 7 * i);",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r5-countdown",
+   "title": "Countdown",
+   "statement": "Print the numbers from 5 to 1, one per line, then «Пуск!». Use rev() on the range.\n\nExpected output:\n```\n5\n4\n3\n2\n1\nПуск!\n```",
+   "hint": "for i in (1..=5).rev() { … }",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r5-step-by",
+   "title": "Step of three",
+   "statement": "Print the numbers 0, 3, 6, …, 30 separated by spaces (the step_by(3) method on the range 0..=30) and a line break.\n\nExpected output:\n0 3 6 9 12 15 18 21 24 27 30",
+   "hint": "(0..=30).step_by(3)",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r5-while-doubling",
+   "title": "How many doublings",
+   "statement": "Start with x = 1. While x < 1000, double x and increase the counter steps. Print «steps=10 x=1024».\n\nExpected output:\nsteps=10 x=1024",
+   "hint": "while x < 1000 { x *= 2; steps += 1; }",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r5-loop-break",
+   "title": "loop and break",
+   "statement": "Using loop, find the smallest n for which n * n > 200, and print «n=15 square=225».\n\nExpected output:\nn=15 square=225",
+   "hint": "Increase n and exit with break as soon as the condition holds.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r5-loop-value",
+   "title": "break with a value",
+   "statement": "Using loop, find the first number greater than 100 that is divisible by both 7 and 11, and save it through break into the variable r. Print «154».\n\nExpected output:\n154",
+   "hint": "let r = loop { … break n; };",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r5-continue-odd",
+   "title": "Odd numbers only",
+   "statement": "Print the odd numbers from 1 to 15, one per line, using continue to skip the even ones.\n\nExpected output:\n1\n3\n5\n7\n9\n11\n13\n15",
+   "hint": "if i % 2 == 0 { continue; }",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r5-fizzbuzz",
+   "title": "FizzBuzz up to 15",
+   "statement": "For the numbers 1…15 print one line each: «FizzBuzz» for multiples of 15, «Fizz» for multiples of 3, «Buzz» for multiples of 5, otherwise the number itself.\n\nExpected output:\n1\n2\nFizz\n4\nBuzz\nFizz\n7\n8\nFizz\nBuzz\n11\nFizz\n13\n14\nFizzBuzz",
+   "hint": "Check divisibility by 15 first.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r5-count-divisors",
+   "title": "Divisors of a number",
+   "statement": "Count how many divisors the number 360 has, and print «24».\n\nExpected output:\n24",
+   "hint": "Check the remainder n % d for d from 1 to n.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r5-is-prime",
+   "title": "Is 97 prime",
+   "statement": "Check whether 97 is prime (divisible only by 1 and itself): go through d from 2 to n−1 and look for a divisor. Print «простое» (prime) or «составное» (composite).\n\nExpected output:\n```\nпростое\n```",
+   "hint": "A flag prime = true; when you find a divisor, set it to false and exit with break.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r5-primes-30",
+   "title": "Primes up to 30",
+   "statement": "Print all the primes from 2 to 30 separated by spaces: «2 3 5 7 11 13 17 19 23 29». Inside the outer loop, check divisibility with a nested loop.\n\nExpected output:\n2 3 5 7 11 13 17 19 23 29",
+   "hint": "Inside the loop over n, start a loop over d.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r5-gcd-loop",
+   "title": "GCD with a loop",
+   "statement": "a = 84, b = 36. Find the greatest common divisor using Euclid's algorithm (while b != 0: the pair (a, b) becomes (b, a % b)) and print «12».\n\nExpected output:\n12",
+   "hint": "Three steps: t = a % b; a = b; b = t.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r5-collatz",
+   "title": "The Collatz conjecture",
+   "statement": "Start with n = 27. While n != 1: if n is even, halve it, otherwise n = 3n + 1. Count the number of steps in steps and print «111». (Type u64.)\n\nExpected output:\n111",
+   "hint": "Increase the counter on every step inside the while.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r5-digit-sum-loop",
+   "title": "Sum of digits with a loop",
+   "statement": "n = 987654321. Compute the sum of its digits with a while loop (the last digit is n % 10, the rest is n / 10) and print «45».\n\nExpected output:\n45",
+   "hint": "While n > 0: sum += n % 10; n /= 10;",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r5-triangle",
+   "title": "A triangle of stars",
+   "statement": "Print a triangle of five lines: one «*» in the first, two in the second, … five in the fifth. To repeat a character, use an inner loop or the method \"*\".repeat(n).\n\nExpected output:\n*\n**\n***\n****\n*****",
+   "hint": "\"*\".repeat(i) repeats the string i times.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r5-nested-table",
+   "title": "5×5 multiplication table",
+   "statement": "Print the multiplication table from 1 to 5: five lines, each with five numbers separated by spaces (the products i·j). Use nested for loops.\n\nExpected output:\n1 2 3 4 5\n2 4 6 8 10\n3 6 9 12 15\n4 8 12 16 20\n5 10 15 20 25",
+   "hint": "The outer loop is the rows, the inner one is the numbers in a row; after the inner loop — println!().",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r5-labeled-break",
+   "title": "Leaving nested loops",
+   "statement": "Find the first pair (a, b), a < b, from the range 1..=20 for which a * b = 91, and print «7 13». Leave both loops with the label 'outer.\n\nExpected output:\n7 13",
+   "hint": "'outer: for … and break 'outer;",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r5-match-number",
+   "title": "match on a number",
+   "statement": "For n = 3, use match to print: «один» for 1, «два» for 2, «три» for 3, otherwise «много».\n\nExpected output:\n```\nтри\n```",
+   "hint": "match n { 1 => \"один\", …, _ => \"много\" }",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r5-match-range",
+   "title": "match and ranges",
+   "statement": "For age = 34, use match to print the category: 0..=12 — «ребёнок», 13..=17 — «подросток», 18..=64 — «взрослый», otherwise «пожилой».\n\nExpected output:\n```\nвзрослый\n```",
+   "hint": "A range pattern: 0..=12 =>",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r5-fix-off-by-one",
+   "title": "Fix it: the last number got lost",
+   "statement": "The program should print the sum 1 + 2 + … + 10 = 55, but it prints 45. Fix the range.\n\nExpected output:\n55",
+   "hint": "Include the right bound: 1..=10."
+  },
+  {
+   "id": "r5-fix-condition",
+   "title": "Fix it: the condition is not a bool",
+   "statement": "The program does not compile: the if has an assignment instead of a comparison. Fix it so that it prints «пять» (five).\n\nExpected output:\n```\nпять\n```",
+   "hint": "A comparison uses two equals signs: x == 5.",
+   "starter": "fn main() {\n    let x = 5;\n    if x = 5 {\n        println!(\"пять\");\n    }\n}\n"
+  }
+ ]
+}

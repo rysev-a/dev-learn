@@ -1,0 +1,90 @@
+{
+ "book": 7,
+ "chapter": 11,
+ "tasks": [
+  {
+   "id": "bst-search",
+   "title": "Search in a search tree",
+   "statement": "You are given a class TreeNode and a search tree (smaller on the left, larger on the right, keys are distinct). Write a function search(root, val): True if the key is present. Iteratively: the checker feeds in a chain of 100,000 nodes.",
+   "hint": "While root is not empty: equal means True; smaller, go left; larger, go right. No recursion is needed."
+  },
+  {
+   "id": "tree-valid-bst",
+   "title": "Is this a binary search tree?",
+   "statement": "You are given a class TreeNode. Write a function is_bst(root): True if the tree is a valid binary search tree: for every node ALL values on the left are strictly smaller and on the right strictly larger. Comparing a node with its children alone is not enough: pass the allowed bounds down.",
+   "hint": "check(node, low, high): None → True; low < val < high; the left child gets (low, val), the right child gets (val, high)."
+  },
+  {
+   "id": "bst-insert",
+   "title": "Insert into a search tree",
+   "statement": "You are given a class TreeNode. Write a function insert(root, val): inserts the value into a binary search tree (smaller go left, the rest go right) and returns the root. For an empty tree, create a node. Iteratively: the tree can be deep.",
+   "hint": "cur = root; in a loop go left when val < cur.val, otherwise right, until you find an empty spot."
+  },
+  {
+   "id": "bst-min-max",
+   "title": "Smallest and largest",
+   "statement": "Write a function min_max(root): a tuple (smallest key, largest key) of a search tree, or None for an empty tree. Two descents are enough: left to the end and right to the end.",
+   "hint": "The minimum is the leftmost node, the maximum is the rightmost."
+  },
+  {
+   "id": "bst-successor",
+   "title": "Next larger",
+   "statement": "Write a function successor(root, val): the smallest key of the search tree that is strictly greater than val (val may be absent from the tree), or None. One descent from the root: when turning left, remember the node as a candidate.",
+   "hint": "best = None; while there is a node: if val < node.val, it is a candidate, go left; otherwise go right."
+  },
+  {
+   "id": "bst-kth",
+   "title": "k-th smallest",
+   "statement": "Write a function kth_smallest(root, k): the k-th smallest key of a search tree (k counts from 1; it is guaranteed that 1 ≤ k ≤ the number of nodes). An iterative inorder traversal that stops at the k-th node.",
+   "hint": "An inorder traversal with a stack; decrease k at every popped node, and when k becomes 0 that is the answer."
+  },
+  {
+   "id": "bst-floor-ceiling",
+   "title": "Floor and ceiling",
+   "statement": "Write a function floor_ceiling(root, x): a tuple (floor, ceil), where floor is the largest key ≤ x and ceil is the smallest key ≥ x; if there is none, put None in its place. One descent from the root.",
+   "hint": "If the node's key < x, it is a candidate for floor, go right; if > x, it is a candidate for ceil, go left; if equal, both equal x."
+  },
+  {
+   "id": "bst-range-sum",
+   "title": "Sum in a range",
+   "statement": "Write a function range_sum(root, lo, hi): the sum of the keys of a search tree that fall in the interval [lo, hi]. Cut off the subtrees that are certainly outside the range: the checker counts key accesses and allows at most a few hundred on a tree of 100,000 nodes.",
+   "hint": "The left subtree matters only if the node's key > lo, the right one only if the key < hi. Skip everything else entirely."
+  },
+  {
+   "id": "bst-lca",
+   "title": "Common ancestor in a search tree",
+   "statement": "Write a function lca_bst(root, p, q): the key of the lowest common ancestor of the nodes with keys p and q in a search tree (both keys are in the tree; a node is an ancestor of itself). A full traversal is not needed: descend while p and q are on the same side of the node.",
+   "hint": "If both keys are smaller than the node, go left; both larger, go right. Otherwise the node separates them (or equals one of them), and that is the answer."
+  },
+  {
+   "id": "sorted-to-bst",
+   "title": "Balanced tree from an array",
+   "statement": "Write a function sorted_to_bst(a): from a sorted list of distinct numbers build a search tree of minimal height and return the root. Take the middle element as the root, and build the left and right subtrees from the halves. The checker feeds in 200,000 numbers and looks at the height.",
+   "hint": "A recursive function go(lo, hi): if lo > hi, return None; otherwise m = (lo + hi) // 2, root a[m], left subtree go(lo, m − 1), right subtree go(m + 1, hi)."
+  },
+  {
+   "id": "bst-trim",
+   "title": "Trim a search tree",
+   "statement": "Write a function trim(root, lo, hi): keep in the search tree only the keys from the interval [lo, hi], preserving the relative structure of the remaining nodes, and return the new root. If a node is smaller than lo, take only its right subtree; if larger than hi, only the left one.",
+   "hint": "Recursion: a node outside the range is replaced by the result for the proper subtree; a node inside is kept and both its children are trimmed."
+  },
+  {
+   "id": "bst-iterator",
+   "title": "Tree iterator",
+   "statement": "Implement a class BSTIterator(root): methods next(), the next key in ascending order, and has_next(), whether there are more. Memory is O(height): keep a stack of the path, as in an iterative inorder traversal. next() is called only when has_next() is true.",
+   "hint": "In the constructor descend from the root to the left, pushing nodes onto the stack. next(): pop a node, descend left from its right child, return the value."
+  },
+  {
+   "id": "bst-two-sum",
+   "title": "Pair with a sum in a tree",
+   "statement": "Write a function find_target(root, k): whether a search tree has two DIFFERENT nodes whose keys add up to k. Solve it with two iterators moving toward each other (ascending and descending), as in the two-pointer problem; memory is O(height). The checker feeds in 100,000 nodes.",
+   "hint": "Two stack iterators: the left one goes in ascending order, the right one in descending. If the sum is too small, advance the left one; too large, the right one; stop when they meet at the same node."
+  },
+  {
+   "id": "bst-class",
+   "title": "Your own search tree",
+   "statement": "Implement a class BST: insert(x) (a repeat is ignored), contains(x), delete(x) → True/False (all three cases: leaf, one child, two children via the successor), inorder() is the list of keys, height() is the height (an empty tree gives 0), len(t). All operations except inorder must be iterative. The checker inserts and deletes 100,000 keys each.",
+   "hint": "In delete, descend to the node, remembering the parent. Two children: find the successor (the minimum of the right subtree) with its parent, copy the key, and delete the successor as a node with at most one child."
+  }
+ ]
+}

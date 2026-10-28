@@ -1,0 +1,186 @@
+{
+ "book": 16,
+ "chapter": 9,
+ "tasks": [
+  {
+   "id": "c9-endian",
+   "title": "Byte order: detection and swapping",
+   "statement": "is_little_endian() → 1/0 (check by reading the first byte of a number); bswap16, bswap32, bswap64 swap bytes with shifts and masks (no __builtin and no pointer casts); read_be32(p), read_le32(p) read a 32-bit number from bytes in the given order (p may be unaligned); write_be32(p, v), write_le32(p, v) write it.",
+   "hint": "bswap32: four bytes with shifts: x >> 24 | (x >> 8 & 0xFF00) | (x << 8 & 0xFF0000) | x << 24. Read and write one byte at a time with explicit shifts."
+  },
+  {
+   "id": "c9-int-limits",
+   "title": "Integer type limits without limits.h",
+   "statement": "max_signed(bits), min_signed(bits) → the limits of a signed type of bits bits (1 ≤ bits ≤ 64) as long long; max_unsigned(bits) → the limit of an unsigned type (unsigned long long). fits_signed(v, bits), fits_unsigned(v, bits) → 1 if the value v fits in a type of that width. Compute them with shifts and two's complement, without limits.h and without undefined shifts (width 64 is allowed).",
+   "hint": "max_unsigned(bits) = (1ULL << bits) − 1, but for bits = 64 such a shift is undefined, so it is a special case. The signed maximum equals the unsigned maximum for bits − 1."
+  },
+  {
+   "id": "c9-checked-arith",
+   "title": "Overflow checks without undefined behavior",
+   "statement": "add_ok(a, b, *out), sub_ok(a, b, *out), mul_ok(a, b, *out) for int → 1 and the result if the computation does not overflow, otherwise 0 (*out is unchanged); the check must happen BEFORE the operation, since signed int overflow is undefined. mul_size(a, b, *out) for size_t → 1/0 (the check before malloc(a * b)); neg_ok(a, *out) is negation (INT_MIN is not allowed), abs_ok(a, *out).",
+   "hint": "add: check a > INT_MAX − b (for b > 0) and a < INT_MIN − b (for b < 0) before adding. Multiplication is easy to compute in long long. For size_t: b > SIZE_MAX / a."
+  },
+  {
+   "id": "c9-saturating",
+   "title": "Saturating arithmetic",
+   "statement": "sat_add_i8, sat_sub_i8 (int8_t), sat_add_u8, sat_sub_u8 (uint8_t), sat_add_i32 (int32_t), sat_mul_i32 (int32_t): instead of overflowing, the result clamps to the type's limit (−128…127, 0…255, INT32_MIN…INT32_MAX). Intermediate computations must not cause undefined behavior.",
+   "hint": "Compute in a wider type (int for 8-bit, long long for 32-bit) and clamp the result."
+  },
+  {
+   "id": "c9-bit-tricks",
+   "title": "Bit tricks by hand",
+   "statement": "Without the __builtin_* functions: popcount32(x); parity32(x) → 1 if the number of ones is odd; ctz32(x), clz32(x) (32 for x = 0); ilog2(x) (for x > 0; x = 0 → −1); is_pow2(x), next_pow2(x) (x = 0 → 1; for x > 2³¹ → 0); lowest_bit(x) is the lowest set bit as a number; rotl32(x, r), rotr32(x, r) (r is any value from 0 to 63); reverse32(x) reverses the bits.",
+   "hint": "Shifts by 32 are undefined: handle rotl with r = 0 separately (or r &= 31 and a branch). x & (x − 1) clears the lowest one."
+  },
+  {
+   "id": "c9-bitset",
+   "title": "Bit set",
+   "statement": "struct bitset { uint64_t *w; size_t nbits; }. bs_new(nbits) → a pointer (all zeros) or NULL; bs_set, bs_clear, bs_flip, bs_test (out of range → 0, set/clear are ignored); bs_count(b) is the number of ones; bs_next(b, from) → the index of the nearest set bit ≥ from, or nbits if there is none; bs_or(a, b), bs_and(a, b) put the result in a (sizes are equal); bs_free. Runs under AddressSanitizer.",
+   "hint": "Word i / 64, bit i % 64; check the bounds when setting and clearing. To count ones in a word, use x &= x − 1."
+  },
+  {
+   "id": "c9-dos-date",
+   "title": "Packing a date and time into 16 bits",
+   "statement": "MS-DOS format: the date is a uint16: year − 1980 (7 bits, high), month 1–12 (4 bits), day 1–31 (5 bits, low); the time is a uint16: hours (5 bits), minutes (6 bits), seconds / 2 (5 bits). pack_date(y, m, d), pack_time(h, mi, s) → uint16_t; unpack_date(v, *y, *m, *d), unpack_time(v, *h, *mi, *s); valid_date(v) → 1 if the month and day are valid (taking month lengths and leap years into account); date_cmp(a, b) compares two packed dates (comparing the numbers is enough).",
+   "hint": "Fields are combined with shifts: (year − 1980) << 9 | month << 5 | day. Seconds are stored in steps of 2, so 59 → 58."
+  },
+  {
+   "id": "c9-float-parts",
+   "title": "Anatomy of a float: sign, exponent, mantissa",
+   "statement": "float_parts(f, *sign, *exp, *mant) takes a float apart by bits (via memcpy): sign 0/1, exp is the exponent field 0…255 (not unbiased), mant is 23 bits. make_float(sign, exp, mant) puts it back together. float_class(f) → a string: \"zero\", \"denormal\", \"normal\", \"inf\", \"nan\". unbiased_exp(f) → the power of two of a normalized number (exp − 127), or −127 for denormals and zero, 128 for inf/nan. The classification functions from math.h must not be used.",
+   "hint": "uint32_t u; memcpy(&u, &f, 4); sign = u >> 31; exp = u >> 23 & 0xFF; mant = u & 0x7FFFFF. The class follows from exp and mant."
+  },
+  {
+   "id": "c9-ulp",
+   "title": "Distance in ulps and neighboring numbers",
+   "statement": "float_key(f) → uint32_t, increasing monotonically with the float value (negative numbers below positive ones; −0.0 and +0.0 are adjacent, so there is no need for them to get equal keys; use the standard trick: invert all bits for negative numbers, flip the top bit for positive ones). ulp_distance(a, b) → the number of representable floats between a and b (|key(a) − key(b)|, as uint32_t); next_up(f), next_down(f) are the next larger and next smaller number (for NaN, the same number; next_up(+inf) = +inf; next_up(−0.0) = the smallest positive denormal). No nextafterf.",
+   "hint": "The key: if the sign bit is set, ~bits, otherwise bits | 0x80000000. Then comparing keys as unsigned numbers matches comparing the floats."
+  },
+  {
+   "id": "c9-near-equal",
+   "title": "Comparing floating-point numbers with a tolerance",
+   "statement": "nearly_equal(a, b, abs_eps, rel_eps) → 1 if |a − b| ≤ abs_eps or |a − b| ≤ rel_eps · max(|a|, |b|); infinities are equal only if they are the same; NaN equals nothing (including NaN); approx_zero(x, eps) → |x| ≤ eps; clamp_unit(x) clamps to [0, 1] (NaN → 0); sum_close(a, n, expected, eps): the sum of the array is close to expected with relative tolerance eps. Functions from math.h (fabs, isnan, isinf, fmax) are allowed.",
+   "hint": "Special values first (NaN, infinities), then d = |a − b| and two checks: the absolute one and the relative one."
+  },
+  {
+   "id": "c9-kahan",
+   "title": "Summation: naive, Kahan and pairwise",
+   "statement": "sum_naive(a, n) is the ordinary left-to-right sum; sum_kahan(a, n) is Kahan compensated summation (the result: the running sum with the correction c = (t − sum) − y); sum_pairwise(a, n) is recursive pairwise summation: the sum of the halves (direct for n ≤ 2); dot_kahan(x, y, n) is a dot product with compensation. Do not use long double or fast-math options.",
+   "hint": "Kahan: y = a[i] − c; t = sum + y; c = (t − sum) − y; sum = t. Pairwise: split the array in half and add the results."
+  },
+  {
+   "id": "c9-fixed-point",
+   "title": "Q16.16 fixed-point numbers",
+   "statement": "typedef int32_t fx is a Q16.16 number (value = raw / 65536). fx_from_int(n), fx_from_double(d) (rounding to nearest), fx_to_double(x), fx_to_int(x) (drops the fractional part, toward zero), fx_add, fx_sub, fx_mul (via int64_t, rounding to nearest; nothing overflows inside), fx_div (division by 0 → INT32_MAX or INT32_MIN by the sign of the dividend, 0/0 → 0), fx_mul_sat is multiplication saturating to the int32 limits.",
+   "hint": "Q16.16: raw = value · 65536. Compute the product of two raw values in int64_t and shift by 16 with rounding; for division, multiply the numerator by 65536 first."
+  },
+  {
+   "id": "c9-half-float",
+   "title": "IEEE 754 half precision (binary16)",
+   "statement": "float_to_half(f) → uint16_t and half_to_float(h) → float. Format: 1 sign bit, 5 exponent bits (bias 15), 10 mantissa bits. float_to_half rounds to nearest even; values too large → infinity (0x7C00 with the sign), too small → zero or a denormal; NaN → 0x7E00; infinity → 0x7C00/0xFC00. half_to_float must restore the value exactly, including denormals and infinities (NaN → NaN).",
+   "hint": "Normalized: the exponent e = exp − 127 + 15, the mantissa is shifted by 13 with round-to-even based on the remainder. Denormals: add the implicit one and shift further."
+  },
+  {
+   "id": "c9-int-division",
+   "title": "Division and remainder: C versus math",
+   "statement": "In C, division rounds toward zero, and the remainder has the sign of the dividend. Write: floor_div(a, b) and floor_mod(a, b) (rounding toward −∞, remainder with the sign of the divisor), euclid_mod(a, b) (always ≥ 0), ceil_div(a, b), round_div(a, b) (to nearest, halves away from zero); wrap_index(i, n), the index into a ring buffer of length n for any integer i (including a negative one). The divisor is always nonzero; values do not overflow (INT_MIN / −1 is not checked).",
+   "hint": "The C remainder has the sign of the dividend. For floor, adjust the result when the remainder is nonzero and the remainder and the divisor have different signs."
+  },
+  {
+   "id": "c9-utf8-codec",
+   "title": "UTF-8 encoding and decoding",
+   "statement": "utf8_encode(cp, out) → the length 1…4 and the bytes in out[0..3], or 0 if the code point is invalid (> 0x10FFFF or a surrogate 0xD800…0xDFFF). utf8_decode(s, n, *cp) → the number of bytes read (1…4) and the code point, or 0 if the sequence is invalid: empty, truncated, a wrong continuation byte, an overlong form, a surrogate, > 0x10FFFF.",
+   "hint": "Encoding: the leading byte 110xxxxx / 1110xxxx / 11110xxx and continuation bytes 10xxxxxx with 6 bits each. When decoding, check the length, the continuation bytes and the minimum value for that length (otherwise it is an overlong form)."
+  },
+  {
+   "id": "c9-utf8-string",
+   "title": "UTF-8 strings: length, validation, reversal",
+   "statement": "utf8_len(s) → the number of code points (count the bytes that are not continuations 10xxxxxx; the string is assumed valid); utf8_valid(s) → 1 if the whole string is valid UTF-8 (by the rules: no overlong forms, surrogates or values > 0x10FFFF); utf8_offset(s, k) → the byte offset of the k-th code point (k = utf8_len → the length in bytes; beyond that, −1); utf8_reverse(s) reverses the string by code points in place (for a valid string).",
+   "hint": "Reversal: first reverse the bytes of the whole string, then reverse each multi-byte sequence back (it ended up backwards)."
+  },
+  {
+   "id": "c9-varint",
+   "title": "Variable-length integers (varint) and zigzag",
+   "statement": "varint_encode(v, out) → the number of bytes (1…10): 7 bits per byte, low groups first, the high bit 0x80 means \"more follows\". varint_decode(in, n, *v) → the number of bytes read, or 0 if the data is truncated or the number is longer than 10 bytes or does not fit in 64 bits. zigzag_encode(int64_t) → uint64_t (0, −1, 1, −2, … → 0, 1, 2, 3, …), zigzag_decode. encoded_size(v) → how many bytes v takes.",
+   "hint": "While v ≥ 128: write the low 7 bits with the 0x80 flag and shift v by 7. Zigzag: (x << 1) ^ (x >> 63), an arithmetic shift of the signed value; do all left shifts on the unsigned value."
+  },
+  {
+   "id": "c9-hex-base64",
+   "title": "Hex and base64",
+   "statement": "hex_encode(data, n, out) writes 2n lowercase hexadecimal digits and a terminating zero; hex_decode(s, out, max) → the number of bytes or −1 (odd length, invalid character, does not fit in max); digits of either case are accepted. b64_encode(data, n, out): the standard alphabet with \"=\" padding, a terminating zero, returns the length; b64_decode(s, out, max) → the number of bytes or −1 (length not a multiple of 4, invalid characters, \"=\" not at the end, does not fit).",
+   "hint": "base64: three bytes → 24 bits → four groups of 6 bits; \"=\" padding is needed if the last block has fewer than three bytes. Decode strictly: check the characters and the position of \"=\"."
+  },
+  {
+   "id": "c9-crc-checksums",
+   "title": "Checksums: CRC-32, Adler-32, Fletcher-16",
+   "statement": "crc32_update(crc, data, n) continues a CRC-32 computation (polynomial 0xEDB88320, reflected; the initial value 0xFFFFFFFF and the final inversion are done in crc32(data, n) = crc32_update(0, data, n): that is, crc32_update takes and returns the \"finished\" value and inverts inside). For the string \"123456789\" the result is 0xCBF43926. adler32(data, n) (modulus 65521, initial a = 1, b = 0), fletcher16(data, n) (modulus 255).",
+   "hint": "Bitwise CRC: crc ^= byte; eight times: if the low bit is set, crc = crc >> 1 ^ 0xEDB88320, otherwise crc >>= 1. Inverting before and after makes the \"finished\" value resumable."
+  },
+  {
+   "id": "c9-hamming74",
+   "title": "Hamming (7,4) code: correcting one error",
+   "statement": "hamming_encode(nibble) → a 7-bit codeword (in the low 7 bits): positions 1…7, where positions 1, 2, 4 are check bits (parity) and 3, 5, 6, 7 are data d1, d2, d3, d4 (d1 is the lowest bit of the nibble). The bit at position p is bit (p − 1) of the word. hamming_decode(word, *nibble) → 0 if there are no errors; k (1…7) if an error at position k was corrected (*nibble is the corrected data); for a word wider than 7 bits, the high bits are ignored.",
+   "hint": "Check bits: p1 covers positions 1,3,5,7; p2 covers 2,3,6,7; p4 covers 4,5,6,7. The syndrome (s4 s2 s1) points to the error position; 0 means no error."
+  },
+  {
+   "id": "c9-struct-layout",
+   "title": "Struct layout: offsets and size",
+   "statement": "Field types are given as a string of characters: 'c' is char (1/1), 's' is short (2/2), 'i' is int (4/4), 'l' is long (8/8), 'd' is double (8/8), 'p' is a pointer (8/8); size/alignment. layout(types, offsets, *align) → the struct size with padding (including tail padding), fills offsets[i] and *align (the largest alignment); an empty string → 0, align = 1. best_order(types, out) writes the same types reordered for minimum size (by decreasing alignment; ties by order in the string) and returns the size. padding(types) → the number of padding bytes.",
+   "hint": "Each field's offset is rounded up to a multiple of its alignment; the total size is rounded up to a multiple of the largest alignment. For best_order, sort by decreasing alignment (stably)."
+  },
+  {
+   "id": "c9-msg-pack",
+   "title": "Serializing a message in network order",
+   "statement": "struct msg { uint8_t type; uint16_t len; uint32_t id; int16_t delta; int32_t value; }. Format: 13 bytes, fields back to back in big-endian order (type 1, len 2, id 4, delta 2 in two's complement, value 4 in two's complement). msg_pack(m, out, cap) → 13, or 0 if cap < 13; msg_unpack(in, n, *m) → 13, or 0 if n < 13 (the struct is unchanged). Signed fields are restored with the correct sign. Writing the struct directly and casting pointers are forbidden.",
+   "hint": "Write bytes with shifts from the most significant to the least; first convert signed fields to the unsigned type of the same width. When reading, assemble the unsigned value and convert it back to the signed type."
+  },
+  {
+   "id": "c9-gray-gosper",
+   "title": "Gray code and mask enumeration: Gosper's hack",
+   "statement": "gray(n) → the Gray code (n ^ (n >> 1)); ungray(g) is the inverse transform; hamming_dist(a, b) → the number of differing bits; next_same_popcount(x) → the next larger number with the same number of set bits (Gosper's hack: c = x & −x; r = x + c; (((r ^ x) >> 2) / c) | r), or 0 if there is none within 32 bits; count_masks(n, k) → the number of n-bit masks with exactly k ones, enumerating them with Gosper's hack (n ≤ 20).",
+   "hint": "Gosper: c = x & −x; r = x + c; next = (((r ^ x) >> 2) / c) | r. Watch for overflow in x + c."
+  },
+  {
+   "id": "c9-subsets",
+   "title": "Subsets by masks: sums and XOR",
+   "statement": "n ≤ 20 array elements are enumerated with bit masks. count_subset_sum(a, n, target) → the number of nonempty subsets with sum target; best_subset_sum(a, n, limit) → the largest subset sum not exceeding limit (the empty subset gives 0); max_subset_xor(a, n) → the largest XOR over all subsets (≥ 0, the empty one gives 0) by enumeration; subset_mask_of(a, n, target) → the mask of the first subset (the one with the smallest mask) with sum target, or −1 (ignore the empty subset).",
+   "hint": "The outer loop m from 1 to 2ⁿ − 1; the inner loop goes over the bits of the mask. Accumulate the sum in long long."
+  },
+  {
+   "id": "c9-bit-matrix",
+   "title": "An 8×8 bit matrix in one uint64_t",
+   "statement": "An 8×8 matrix is stored in a uint64_t: bit (r, c) is bit number r·8 + c (r is the row, c is the column, 0…7). bm_get(m, r, c), bm_set(m, r, c, v) → a new matrix; bm_transpose(m) transposes; bm_row(m, r) → the byte of a row; bm_col(m, c) → the byte of a column (bit r is row r); bm_rotate90(m) rotates clockwise; bm_flip_h(m) mirrors horizontally (each row right to left). Loops over all 64 cells are acceptable, but correctness matters more.",
+   "hint": "The bit number of (r, c) = r·8 + c. Transposition swaps r and c; a 90° clockwise rotation: the new cell (c, 7 − r) receives the old (r, c)."
+  },
+  {
+   "id": "c9-fix-shift",
+   "title": "Fix it: undefined shifts",
+   "statement": "mask_low(n) (n from 0 to 32 low set bits), sign_extend(v, bits) (sign-extend a number of bits bits, 1 ≤ bits ≤ 32) and rotl(x, r) (r from 0 to 64, a rotate of uint32_t) are written with undefined shifts (a shift by the type width and of a negative value). The program runs under UBSan and stops. Fix the functions so there is no UB for any valid arguments.",
+   "hint": "Handle mask_low(32) separately; sign_extend: with a mask and a sign-bit test, without shifting negative values; rotl: r %= 32 and the case r == 0."
+  },
+  {
+   "id": "c9-fix-endian-read",
+   "title": "Fix it: reading numbers from a buffer",
+   "statement": "read_u16_le, read_u32_le and read_u32_be read numbers from a byte buffer by casting pointers. This is wrong on the opposite byte order, violates alignment and strict aliasing (under UBSan it stops on a misaligned address). Rewrite the functions to read byte by byte with shifts; the result must not depend on the platform.",
+   "hint": "p[0] | p[1] << 8 | …: convert the bytes to uint32_t before shifting, otherwise p[3] << 24 spills into signed int."
+  },
+  {
+   "id": "c9-fix-signed-compare",
+   "title": "Fix it: signed and unsigned in comparisons",
+   "statement": "in_range(x, lo, hi), has_more_than(s, n) (the string length is greater than n; n may be negative), last_n_sum(a, len, n) (the sum of the last n elements; n may exceed len; for n ≤ 0 the result is 0) and prev_index(i) (the index i − 1, and −1 for 0) are written with mixed signed and unsigned types and give wrong results at the boundaries. Fix them (the parameter types must not be changed).",
+   "hint": "Handle negative values first, then convert to size_t/unsigned explicitly; i − 1 for a size_t at i = 0 gives a huge number."
+  },
+  {
+   "id": "c9-float-bits-string",
+   "title": "Binary form of float and double as a string",
+   "statement": "float_bits_str(f, buf) writes into buf (at least 36 bytes) the string \"s eeeeeeee mmmmmmmmmmmmmmmmmmmmmmm\" (the sign, a space, 8 exponent bits, a space, 23 mantissa bits; 34 characters in all) and a terminating zero; double_bits_str(d, buf) writes \"s eeeeeeeeeee mmmm…\" (1, 11 and 52 bits). from_bits_str(buf) → the float for such a string (spaces are ignored; the string is valid). Use memcpy, not pointer casts.",
+   "hint": "Print the bits from most significant to least; insert a space after the sign bit and after the exponent field. For the reverse conversion, assemble 32 bits in a uint32_t and copy with memcpy."
+  },
+  {
+   "id": "c9-tagged-union",
+   "title": "Tagged union of values",
+   "statement": "struct value { enum { V_INT, V_DBL, V_STR } tag; union { long i; double d; const char *s; } u; }. Constructors v_int, v_dbl, v_str; v_add(a, b): int + int → int; if at least one operand is a double, the result is a double; if either operand is a string, the result is v_int(−1) (an error). v_equal(a, b): values are equal if the tags match and the contents are equal (strings by content), or one is an int and the other a double and the numbers are equal. v_format(v, buf, size) writes \"i:42\", \"d:2.50\" (two decimal places) or \"s:text\"; it returns the length like snprintf.",
+   "hint": "The union holds one of the values; the tag says which. For v_format use snprintf by tag; return the length of the full result."
+  }
+ ]
+}

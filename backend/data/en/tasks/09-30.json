@@ -1,0 +1,194 @@
+{
+ "book": 9,
+ "chapter": 30,
+ "tasks": [
+  {
+   "id": "d14-add-column",
+   "title": "Add a column",
+   "statement": "Add a column active INTEGER NOT NULL DEFAULT 1 to users. The result is checked against the table contents.",
+   "hint": "ALTER TABLE users ADD COLUMN active INTEGER NOT NULL DEFAULT 1;",
+   "starter": "-- migration: a new column\nALTER TABLE users\n"
+  },
+  {
+   "id": "d14-rename-column",
+   "title": "Rename a column",
+   "statement": "Rename the column name to full_name (RENAME COLUMN). The result is checked by a query on the new name.",
+   "hint": "ALTER TABLE users RENAME COLUMN name TO full_name;",
+   "starter": "-- rename\nALTER TABLE users\n"
+  },
+  {
+   "id": "d14-expand-backfill",
+   "title": "Expand and backfill",
+   "statement": "Expand the schema: add a column email_norm TEXT and fill it with the email in lower case (NULL stays NULL). The result is checked by a query of id, email_norm.",
+   "hint": "First ADD COLUMN, then UPDATE … SET email_norm = lower(email)."
+  },
+  {
+   "id": "d14-batch-update",
+   "title": "Update one batch",
+   "statement": "Move the data in batches: set migrated = 1 only for the rows with id from 1 to 4 inclusive (the first batch by key). The result is checked against the table.",
+   "hint": "UPDATE … WHERE id BETWEEN 1 AND 4.",
+   "starter": "-- first batch\nUPDATE t\n"
+  },
+  {
+   "id": "d14-resume-batch",
+   "title": "Resume from where it stopped",
+   "statement": "The move stopped: the rows up to id 4 are already migrated. Migrate the next batch of 3 rows without touching the ones already done (without hard-coding the bounds, using a subquery on MIN(id) among the unmigrated ones). The result is checked against the table.",
+   "hint": "Select ids from the unmigrated rows with ORDER BY id LIMIT 3 and update with IN.",
+   "starter": "-- continue from the last key\nUPDATE t\n"
+  },
+  {
+   "id": "d14-dedupe-before-unique",
+   "title": "Duplicates before a unique index",
+   "statement": "Before creating a unique index on email, delete the duplicate emails, keeping the row with the smallest id (do not touch NULL emails). Then create the index uq_users_email. The result is checked against the table.",
+   "hint": "DELETE the rows whose id is not the minimum in the group by email; then CREATE UNIQUE INDEX.",
+   "starter": "-- clean duplicates and create the index\nDELETE FROM users\n"
+  },
+  {
+   "id": "d14-find-duplicates",
+   "title": "Find duplicates",
+   "statement": "Output the emails that occur more than once, and the number of repeats: the columns email, n; ordered by email.",
+   "hint": "GROUP BY email HAVING COUNT(*) > 1; exclude NULL.",
+   "starter": "-- duplicates\nSELECT\n"
+  },
+  {
+   "id": "d14-rebuild-table",
+   "title": "Rebuild a table",
+   "statement": "In SQLite a column type is changed by rebuilding the table. Create items_new(id INTEGER PRIMARY KEY, title TEXT NOT NULL, price INTEGER NOT NULL), move the data with CAST, drop items, and rename items_new to items. The result is checked against items and the column types.",
+   "hint": "Create the new one, INSERT … SELECT with CAST, DROP the old one, RENAME the new one.",
+   "starter": "-- the table is rebuilt\nCREATE TABLE items_new\n"
+  },
+  {
+   "id": "d14-migrations-table",
+   "title": "Migration version table",
+   "statement": "Create a service table schema_migrations(version TEXT PRIMARY KEY, applied_at TEXT NOT NULL) and write two applied versions into it: '001' (applied_at '2026-01-10') and '002' (applied_at '2026-02-01'). The result is checked against the table.",
+   "hint": "CREATE TABLE with a primary key on version and an INSERT of two rows.",
+   "starter": "-- service table\nCREATE TABLE schema_migrations\n"
+  },
+  {
+   "id": "d14-pending",
+   "title": "Which migrations are left to apply",
+   "statement": "Output the versions and names of the migrations from available that are not yet in schema_migrations: the columns version, name; ordered by version.",
+   "hint": "LEFT JOIN with the filter m.version IS NULL, or NOT EXISTS.",
+   "starter": "-- pending migrations\nSELECT\n"
+  },
+  {
+   "id": "d14-consistency-check",
+   "title": "Check after the move",
+   "statement": "Compare old_t and new_t by id: output the discrepancies, the columns id, issue, where issue is 'missing' (in old_t, not in new_t), 'extra' (in new_t, not in old_t), or 'diff' (the values v differ); ordered by id.",
+   "hint": "Three selects with UNION ALL: left anti-join, right anti-join, and value difference.",
+   "starter": "-- table comparison\nSELECT\n"
+  },
+  {
+   "id": "d14-checksum",
+   "title": "Table checksum",
+   "statement": "Output a \"checksum\" of the table: n is the number of rows and s is the sum of id·v (the columns n, s).",
+   "hint": "COUNT(*) and SUM(id * v).",
+   "starter": "-- checksum\nSELECT\n"
+  },
+  {
+   "id": "d14-dump-inserts",
+   "title": "Logical backup",
+   "statement": "Build a dump: output one row INSERT INTO t VALUES (id, 'name'); for each row (the column stmt, ordered by id). Escape strings with the quote() function; NULL must be output as NULL.",
+   "hint": "quote(name) adds the quotes and escapes apostrophes itself; for NULL it gives the word NULL.",
+   "starter": "-- INSERTs from the data\nSELECT\n"
+  },
+  {
+   "id": "d14-soft-archive",
+   "title": "Archive before deleting",
+   "statement": "Move the orders with created older than 250 (created below 250) into orders_archive and delete them from orders. The result is checked against both tables.",
+   "hint": "INSERT … SELECT with the condition, then DELETE with the same condition.",
+   "starter": "-- archiving\nINSERT INTO orders_archive\n"
+  },
+  {
+   "id": "d14-add-not-null",
+   "title": "NOT NULL in two steps",
+   "statement": "The column city in users still allows NULL. First fill the gaps with the value 'unknown' (UPDATE), then check the result: the result is checked by a query of city by id. (In SQLite, NOT NULL is added after the fact by rebuilding the table; here the first step is enough.)",
+   "hint": "UPDATE users SET city = 'unknown' WHERE city IS NULL;",
+   "starter": "-- step 1: fill the gaps\nUPDATE users\n"
+  },
+  {
+   "id": "d14-runner",
+   "title": "What to apply",
+   "statement": "The available migrations are a list of versions (strings) in arbitrary order, the applied ones are a list of versions. Write pending_migrations(available, applied): a sorted list of the versions that are not yet applied. If the applied ones include a version that is not in available, return the string 'error: unknown <version>' (the smallest such version).",
+   "hint": "Set difference; a check for unknown applied versions."
+  },
+  {
+   "id": "d14-checksum-edit",
+   "title": "Editing an applied migration",
+   "statement": "applied is a dictionary \"version → checksum at the time of applying\", files is a dictionary \"version → current checksum of the file\". Write edited_migrations(applied, files): a sorted list of the versions whose checksum changed (the file was edited after being applied), as well as the versions whose file has disappeared.",
+   "hint": "Compare files.get(version) with the checksum at apply time."
+  },
+  {
+   "id": "d14-topo-migrations",
+   "title": "Migration order by dependencies",
+   "statement": "Migrations are a dictionary \"name → list of names it depends on\". Write order_migrations(deps): the order of applying (dependencies first), choosing alphabetically among the ready ones. If there is a cycle, return None.",
+   "hint": "Topological sort: take the ready ones (with no dependencies) alphabetically; if none are ready, there is a cycle."
+  },
+  {
+   "id": "d14-lint-migration",
+   "title": "Linter for dangerous operations",
+   "statement": "A migration is a list of SQL strings. Write lint_migration(statements): a sorted list of warnings without repeats: 'drop-column' for ALTER … DROP COLUMN, 'create-index-blocking' for CREATE INDEX without the word CONCURRENTLY, 'update-no-where' for UPDATE without WHERE, 'drop-table' for DROP TABLE. Case does not matter.",
+   "hint": "Convert the string to upper case and look for the keywords."
+  },
+  {
+   "id": "d14-backfill-batches",
+   "title": "Batch ranges",
+   "statement": "You need to process the identifiers from first to last inclusive in batches of size. Write batch_ranges(first, last, size): a list of pairs [start, end] inclusive; the last batch may be shorter; if first > last, an empty list.",
+   "hint": "A loop: the end of a batch = min(start + size − 1, last)."
+  },
+  {
+   "id": "d14-resume",
+   "title": "Where to continue from",
+   "statement": "The batch log is a list of [start, end, status], where status is 'ok' or 'fail'. Write resume_point(log, first): the identifier to continue from, the end of the last successful batch in a row from the start plus 1; if the first batch is not successful or the log is empty, first. The batches go in order without gaps.",
+   "hint": "Walk through the log while the status is ok and remember end + 1."
+  },
+  {
+   "id": "d14-expand-contract",
+   "title": "Step compatibility",
+   "statement": "A release is a dictionary {'writes': the set of columns the code writes to, 'reads': the set of columns it reads from}. The schema is the set of existing columns. A release is compatible with the schema if all written and read columns exist. Write expand_contract_ok(schema, releases): a list of True/False for each release in order (the keys 'writes' and 'reads' are lists).",
+   "hint": "Subset: set(writes) <= schema and set(reads) <= schema."
+  },
+  {
+   "id": "d14-pitr",
+   "title": "Point-in-time recovery",
+   "statement": "The database is a dictionary \"key → value\". The backup snapshot was taken at moment 0. The log is a list of records [time, operation, key, value] in increasing time, the operation is 'set' or 'del'. Write restore_to(snapshot, wal, t): the state at moment t (records with time ≤ t are applied). Do not modify the original snapshot.",
+   "hint": "Copy the dictionary and apply the log records while time ≤ t."
+  },
+  {
+   "id": "d14-find-bad-moment",
+   "title": "The moment before the error",
+   "statement": "The log is a list of [time, command text]. Write last_good_time(wal, bad): the time of the last record strictly before the first command whose text contains the substring bad (case matters); if there is no bad command, the time of the last log record; if the log is empty, 0; if the bad command is the first, 0.",
+   "hint": "Walk through the log, remembering the time of the previous record."
+  },
+  {
+   "id": "d14-rpo-loss",
+   "title": "How much data we lose",
+   "statement": "The server crashes at moment crash. The log is archived every interval seconds (the archive goes to storage at moments that are multiples of interval: 0, interval, 2·interval, …). Everything written after the last archive is lost. Write data_loss_seconds(crash, interval): how many seconds of data are lost (crash % interval).",
+   "hint": "The remainder of the division."
+  },
+  {
+   "id": "d14-rto",
+   "title": "Recovery time",
+   "statement": "Recovery = loading the backup (size_gb / read_speed_gbps seconds) + replaying the log (wal_gb / replay_speed_gbps seconds). Write restore_time(size_gb, read_speed_gbps, wal_gb, replay_speed_gbps): seconds, rounded to an integer (everything is positive).",
+   "hint": "Two fractions and a sum."
+  },
+  {
+   "id": "d14-retention",
+   "title": "Retention policy",
+   "statement": "The backups are a list of day numbers (integers, 0 is today, 1 is yesterday, …). The policy: keep all backups of the last 7 days (days 0–6), and of the older ones keep one per week (a day that is a multiple of 7, and not younger than 7) up to and including 28 days, and delete the rest. Write keep_backups(days): a sorted list of the days that remain.",
+   "hint": "Condition: d < 7 or (d ≤ 28 and d is a multiple of 7)."
+  },
+  {
+   "id": "d14-lock-wait",
+   "title": "Requests queued on a lock",
+   "statement": "A migration takes an exclusive lock on the interval [start, end) (in seconds). Requests arrive at the moments arrivals. A request that arrives inside the interval waits until the end of the lock; if the wait is longer than timeout, the request gets an error. Write blocked_requests(start, end, arrivals, timeout): a pair [number that waited, number that failed by timeout]. The ones that failed also count as having waited.",
+   "hint": "For the ones arriving inside the interval, the wait = end − t; compare with timeout."
+  },
+  {
+   "id": "d14-verify-restore",
+   "title": "Verifying a restored backup",
+   "statement": "The reference is a dictionary of metrics {'rows': n, 'sum': s}. The restored backup gives the same dictionary, or None if the database did not start. Write restore_ok(expected, restored, seconds, rto): True if restored is not None, both values match, and seconds ≤ rto.",
+   "hint": "Three conditions together."
+  }
+ ]
+}

@@ -1,0 +1,186 @@
+{
+ "book": 10,
+ "chapter": 31,
+ "tasks": [
+  {
+   "id": "r31-ready",
+   "title": "Ready<T>",
+   "statement": "Write a future struct Ready<T>(Option<T>) implementing Future<Output = T>: the first poll returns the value.",
+   "hint": "self.0.take() takes the value out of the Option."
+  },
+  {
+   "id": "r31-yield-once",
+   "title": "YieldOnce",
+   "statement": "Write YieldOnce { done: bool }: the first poll calls cx.waker().wake_by_ref() and returns Pending, the second returns Ready(()).",
+   "hint": "The done state changes on the first poll."
+  },
+  {
+   "id": "r31-countdown",
+   "title": "CountDown",
+   "statement": "Write CountDown(u32): while the counter is above zero, each poll decrements it and returns Pending (with wake_by_ref); when it reaches zero, return Ready(\"поехали\").",
+   "hint": "Do not forget wake_by_ref before Pending."
+  },
+  {
+   "id": "r31-poll-counter",
+   "title": "Poll counter",
+   "statement": "Write a wrapper Counted<F> { inner: Pin<Box<F>>, polls: u32 }: each poll increments polls and polls inner; a method polls(&self) -> u32. The driver wraps CountDown and reports the number of polls.",
+   "hint": "inner: Pin<Box<F>> can be polled via as_mut().poll(cx); the struct is Unpin (Pin<Box<…>> is always Unpin), so its fields are reachable through self.get_mut()."
+  },
+  {
+   "id": "r31-map",
+   "title": "Map",
+   "statement": "Write a combinator Map<F, G> { inner: Pin<Box<F>>, f: Option<G> }: poll polls inner; when it is ready, it applies the function f (once) and returns the result.",
+   "hint": "Pass the result of inner to f.take().unwrap()."
+  },
+  {
+   "id": "r31-then",
+   "title": "Sequence",
+   "statement": "Write a combinator function then<A, B, FB>(a: A, f: impl FnOnce(A::Output) -> FB) -> impl Future<Output = B::Output>: first wait for a, then run the future that f returns (an async block).",
+   "hint": "async move { let v = a.await; f(v).await }"
+  },
+  {
+   "id": "r31-join2",
+   "title": "Join2",
+   "statement": "Write Join2<A, B> { a: Pin<Box<A>>, b: Pin<Box<B>>, ra: Option<A::Output>, rb: Option<B::Output> }: poll polls the parts that are not ready yet and returns a pair when both are ready.",
+   "hint": "Poll only the parts without a result; the pair is ready when both are Some."
+  },
+  {
+   "id": "r31-select2",
+   "title": "Select2",
+   "statement": "Write Select2<A, B>: poll polls a, then b; it returns Either::Left(a's value) or Either::Right(b's value), whichever is ready first (if both are ready at once, a).",
+   "hint": "Poll a, then b; the first Ready wins."
+  },
+  {
+   "id": "r31-block-on-noop",
+   "title": "Your own block_on",
+   "statement": "Write block_on<F: Future>(f: F) -> F::Output: pin the future (Box::pin), create a Context with Waker::noop() and poll in a loop until it is ready.",
+   "hint": "Waker::noop() is a dummy waker (Rust ≥ 1.85)."
+  },
+  {
+   "id": "r31-block-on-park",
+   "title": "block_on with park",
+   "statement": "Write block_on_park<F: Future>(f: F) -> F::Output: the waker must wake the current thread (thread::unpark); implement the Wake trait for a struct holding a Thread; after Pending the loop calls thread::park().",
+   "hint": "ThreadWaker::wake is self.0.unpark(); loop: Ready → return, Pending → park."
+  },
+  {
+   "id": "r31-delay",
+   "title": "Your own timer",
+   "statement": "Write Delay { shared: Arc<Mutex<Shared>> }: new(ms) spawns a thread that after ms milliseconds sets a flag and wakes the stored waker. poll: if the flag is set, Ready(()); otherwise save cx.waker().clone() and return Pending.",
+   "hint": "The timer thread writes to the shared state and wakes the waker."
+  },
+  {
+   "id": "r31-oneshot-own",
+   "title": "Your own oneshot",
+   "statement": "Implement a oneshot channel: fn channel<T>() -> (Sender<T>, Receiver<T>); Sender::send(self, v) stores the value and wakes the receiver's waker; Receiver is a Future<Output = Option<T>> (None if the Sender is dropped without sending).",
+   "hint": "Drop for Sender marks the channel closed and wakes the receiver."
+  },
+  {
+   "id": "r31-signal",
+   "title": "Event between threads",
+   "statement": "A struct Signal { inner: Arc<Mutex<(bool, Option<Waker>)>> }: the method fire(&self) sets the flag and wakes; Signal is Clone and is a Future<Output = ()>. The driver polls the future before and after fire.",
+   "hint": "The flag and the waker live under one mutex."
+  },
+  {
+   "id": "r31-counting-waker",
+   "title": "Counting waker",
+   "statement": "Implement a struct CountWake { n: AtomicUsize } with the Wake trait (wake and wake_by_ref increment n). The driver creates Waker::from(arc), polls YieldOnce and CountDown-like futures, and prints the number of wakeups.",
+   "hint": "n.fetch_add(1, Ordering::SeqCst) in both methods."
+  },
+  {
+   "id": "r31-poll-once",
+   "title": "One poll",
+   "statement": "Write poll_once<F: Future + Unpin>(f: &mut F) -> Option<F::Output>: poll the future once with Waker::noop(): Some(value) on Ready, None on Pending.",
+   "hint": "Pin::new(f) is allowed for Unpin futures."
+  },
+  {
+   "id": "r31-state-machine",
+   "title": "A manual state machine",
+   "statement": "Write by hand a state machine TwoSteps equivalent to async { YieldOnce.await; YieldOnce.await; a + b } for a = 10 and b = 5: an enum of states Start, First, Second, Done; poll moves from state to state, returning Pending after each YieldOnce, and finally Ready(15).",
+   "hint": "Each .await is a transition to the next state."
+  },
+  {
+   "id": "r31-async-iter",
+   "title": "Async iterator",
+   "statement": "The trait AsyncIter { type Item; fn poll_next(self: Pin<&mut Self>, cx) -> Poll<Option<Item>> } is declared. Implement it for Ticks { left: u32, yielded: bool }: alternate Pending (once before each item) and the value left, left−1, …, 1, then Ready(None).",
+   "hint": "Pending before each item, then Some(left)."
+  },
+  {
+   "id": "r31-executor",
+   "title": "Executor with a queue",
+   "statement": "Write Executor { queue: VecDeque<Pin<Box<dyn Future<Output = ()>>>> }: spawn(fut) enqueues a task; run() polls tasks in turn (Waker::noop()), putting Pending tasks back at the end, until the queue is empty.",
+   "hint": "A task that returned Pending goes to the end of the queue."
+  },
+  {
+   "id": "r31-run-all",
+   "title": "Executor with results",
+   "statement": "Write run_all<T>(futs: Vec<Pin<Box<dyn Future<Output = T>>>>) -> Vec<T>: poll the futures that are not ready in a round-robin (Waker::noop()) and return the results in input order.",
+   "hint": "Keep results in a Vec<Option<T>> and count how many remain."
+  },
+  {
+   "id": "r31-timeout-polls",
+   "title": "Timeout by poll count",
+   "statement": "Write Timeout<F> { inner: Pin<Box<F>>, left: u32 }: each poll decrements left; if inner is ready, Ok(value); if left is exhausted and inner is still Pending, Err(\"таймаут\").",
+   "hint": "Poll inner first; if it is Pending, check the remaining attempts."
+  },
+  {
+   "id": "r31-pin-macro",
+   "title": "pin!",
+   "statement": "Write run_pinned<F: Future>(f: F) -> F::Output: pin the future on the stack with the std::pin::pin! macro (no Box) and poll it with Waker::noop() until it is ready.",
+   "hint": "let mut f = std::pin::pin!(f); then f.as_mut().poll(…)."
+  },
+  {
+   "id": "r31-size-of-future",
+   "title": "State machine size",
+   "statement": "Write sizes() -> (usize, usize): size_of_val of two async blocks: small just returns 1; big holds an array [0u8; 1024] across an .await. The driver checks that big ≥ 1024 and small < 64.",
+   "hint": "size_of_val(&async_block) is the size of the state machine."
+  },
+  {
+   "id": "r31-box-recursion",
+   "title": "Recursion with Box::pin",
+   "statement": "Write sum_to(n: u64) -> Pin<Box<dyn Future<Output = u64>>>: the sum 1…n via a recursive async block (an .await on sum_to(n − 1)); sum_to(0) = 0.",
+   "hint": "A recursive async fn is impossible without boxing: the state machine's size would be infinite."
+  },
+  {
+   "id": "r31-join-all",
+   "title": "JoinAll",
+   "statement": "Write JoinAll<F: Future> { futs: Vec<Pin<Box<F>>>, results: Vec<Option<F::Output>> }: poll polls the parts that are not ready and returns a Vec of results in input order when all are ready.",
+   "hint": "If all parts are ready, collect the results in input order."
+  },
+  {
+   "id": "r31-async-trait",
+   "title": "async fn in a trait",
+   "statement": "Declare trait Source { async fn get(&self) -> u32; }; implement it for Const(u32) (returns the number) and Delayed(u32) (one YieldOnce, then the number). The function total(a: &impl Source, b: &impl Source) -> u32 adds the results.",
+   "hint": "async fn in traits is stable (Rust ≥ 1.75)."
+  },
+  {
+   "id": "r31-drop-on-cancel",
+   "title": "Cancel = drop",
+   "statement": "A struct Job { name: String, steps: u32 } is a Future<Output = ()>: each poll decrements steps and returns Pending; at steps == 0 it is Ready. Implement Drop: it prints \"drop <name> (steps=<left>)\". The driver polls the Job once and drops it.",
+   "hint": "Drop runs both on cancellation and on normal completion."
+  },
+  {
+   "id": "r31-fuse",
+   "title": "Fuse",
+   "statement": "Write Fuse<F> { inner: Option<Pin<Box<F>>> }: after inner has returned Ready, further polls return Pending (and do not panic): the inner future is dropped.",
+   "hint": "After Ready, replace inner with None."
+  },
+  {
+   "id": "r31-will-wake",
+   "title": "Do not clone needlessly",
+   "statement": "A struct WakerSlot { w: Option<Waker> } with a method register(&mut self, new: &Waker) -> bool: if the stored waker does not wake the same task (will_wake), replace it with a clone and return true; otherwise false (without cloning).",
+   "hint": "Waker::will_wake tells whether two wakers wake the same task."
+  },
+  {
+   "id": "r31-wake-executor",
+   "title": "Executor with wakers",
+   "statement": "Write a real executor: Executor { tx: SyncSender<Arc<Task>>, rx: Receiver<Arc<Task>> }. Task { fut: Mutex<Option<Pin<Box<dyn Future<Output = ()> + Send>>>>, tx: SyncSender<Arc<Task>> }; spawn creates a task and sends it to the queue; Wake for Task sends itself to the queue; run() processes the queue until the signal arrives (the outer tx is dropped) and the tasks are finished.",
+   "hint": "The queue is a sync_channel; in run: drop(self.tx), so the loop ends once all tasks give up their copies of tx."
+  },
+  {
+   "id": "r31-collect-async",
+   "title": "Collect an async iterator",
+   "statement": "The trait AsyncIter is declared. Write collect_all<S: AsyncIter + Unpin>(mut s: S) -> Vec<S::Item>: poll poll_next with Waker::noop() in a loop (skip Pending) until None.",
+   "hint": "Pin::new(&mut s) is allowed because S: Unpin."
+  }
+ ]
+}

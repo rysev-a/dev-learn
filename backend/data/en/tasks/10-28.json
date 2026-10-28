@@ -1,0 +1,186 @@
+{
+ "book": 10,
+ "chapter": 28,
+ "tasks": [
+  {
+   "id": "r28-duration-hms",
+   "title": "Hours, minutes, seconds",
+   "statement": "Write hms(d: Duration) -> String: the format «HH:MM:SS» (hours may exceed 24; drop fractions of a second).",
+   "hint": "as_secs() gives whole seconds."
+  },
+  {
+   "id": "r28-duration-parse",
+   "title": "Parsing \"1h30m15s\"",
+   "statement": "Write parse_duration(s: &str) -> Option<Duration>: the total duration from a sequence of «<number><unit>» with the units h, m, s; an invalid or empty string gives None.",
+   "hint": "Accumulate digits; on a letter, multiply by the unit."
+  },
+  {
+   "id": "r28-duration-arith",
+   "title": "Duration arithmetic",
+   "statement": "Write total(parts: &[Duration]) -> Duration (the sum) and average(parts: &[Duration]) -> Option<Duration> (the mean; None for an empty slice).",
+   "hint": "Duration implements Sum; division is Duration / u32."
+  },
+  {
+   "id": "r28-duration-checked",
+   "title": "Safe subtraction",
+   "statement": "Write remaining(deadline: Duration, spent: Duration) -> Duration: how much is left (zero if time is up), using saturating_sub.",
+   "hint": "saturating_sub does not panic."
+  },
+  {
+   "id": "r28-epoch-days",
+   "title": "Seconds since 1970 to a date",
+   "statement": "Write civil_from_secs(secs: u64) -> (u32, u32, u32): the year, month and day (UTC) from seconds since 1 January 1970. The \"civil from days\" algorithm: z = days + 719468; era = z / 146097; doe = z − era·146097; yoe = (doe − doe/1460 + doe/36524 − doe/146096) / 365; y = yoe + era·400; doy = doe − (365·yoe + yoe/4 − yoe/100); mp = (5·doy + 2) / 153; d = doy − (153·mp + 2)/5 + 1; m = mp + 3 if mp < 10, otherwise mp − 9; y + 1 if m ≤ 2.",
+   "hint": "Integer arithmetic with i64; division truncates toward zero, which is what you need for positive numbers."
+  },
+  {
+   "id": "r28-instant-measure",
+   "title": "Measuring",
+   "statement": "Write time_it<F: FnOnce() -> u64>(f: F) -> (u64, Duration): call f exactly once and return its result together with the duration measured through Instant.",
+   "hint": "Instant::now(), the call, elapsed()."
+  },
+  {
+   "id": "r28-checked-ops",
+   "title": "Safe operations",
+   "statement": "Write safe_sum(v: &[i32]) -> Option<i32>: the sum with overflow checking (None if it did not fit).",
+   "hint": "try_fold with checked_add."
+  },
+  {
+   "id": "r28-pow-mod",
+   "title": "Power modulo",
+   "statement": "Write pow_mod(base: u64, exp: u64, m: u64) -> u64: base^exp mod m (m ≥ 1) by fast exponentiation; intermediate products in u128.",
+   "hint": "Go through the bits of the exponent; u128 holds the product of two u64 values."
+  },
+  {
+   "id": "r28-bits-count",
+   "title": "Bits",
+   "statement": "Write bit_stats(x: u32) -> (u32, u32, u32): the number of ones, leading zeros and trailing zeros (x ≠ 0 is the normal case; for 0 the methods return 32).",
+   "hint": "Three integer methods."
+  },
+  {
+   "id": "r28-is-pow2",
+   "title": "Power of two",
+   "statement": "Write round_up_pow2(n: u32) -> u32: the smallest power of two not less than n (1 for 0). Use the method next_power_of_two.",
+   "hint": "u32::next_power_of_two."
+  },
+  {
+   "id": "r28-gray",
+   "title": "Gray code",
+   "statement": "Write gray(n: u32) -> u32: n ^ (n >> 1), and ungray(g: u32) -> u32, the inverse transform (ungray(gray(n)) == n).",
+   "hint": "The inverse: xor of all right shifts."
+  },
+  {
+   "id": "r28-rotate-bytes",
+   "title": "Byte order",
+   "statement": "Write swap_endian(x: u32) -> u32 without swap_bytes, using to_le_bytes and from_be_bytes.",
+   "hint": "Write the bytes in one order, read them in the other."
+  },
+  {
+   "id": "r28-isqrt",
+   "title": "Integer root",
+   "statement": "Write isqrt(n: u64) -> u64: the largest r with r·r ≤ n (binary search, or the isqrt method if it is available). It is tested on large values, including u64::MAX.",
+   "hint": "Binary search over r; multiply in u128."
+  },
+  {
+   "id": "r28-float-round",
+   "title": "Rounding to digits",
+   "statement": "Write round_to(x: f64, digits: u32) -> f64: round to digits places after the decimal point (round, multiplying and dividing by 10^digits).",
+   "hint": "10f64.powi(digits as i32)"
+  },
+  {
+   "id": "r28-float-compare",
+   "title": "Comparison with tolerance",
+   "statement": "Write approx_eq(a: f64, b: f64, rel: f64) -> bool: |a − b| ≤ rel · max(|a|, |b|, 1.0).",
+   "hint": "NaN equals nothing: the comparison gives false."
+  },
+  {
+   "id": "r28-mean-std",
+   "title": "Mean and deviation",
+   "statement": "Write stats(v: &[f64]) -> Option<(f64, f64)>: the mean and the standard deviation (by the population formula, dividing by n); None for an empty slice.",
+   "hint": "Two sums: of the values and of the squared deviations."
+  },
+  {
+   "id": "r28-hypot-dist",
+   "title": "Distances",
+   "statement": "Write path_len(points: &[(f64, f64)]) -> f64: the length of the polyline through all points in order (hypot).",
+   "hint": "windows(2) and hypot."
+  },
+  {
+   "id": "r28-nan-sort",
+   "title": "Sorting with NaN",
+   "statement": "Write sorted_floats(v: &[f64]) -> Vec<f64>: a copy in ascending order with NaN at the end (total_cmp).",
+   "hint": "total_cmp gives a total order."
+  },
+  {
+   "id": "r28-nonzero",
+   "title": "NonZero",
+   "statement": "Write to_nonzero(v: &[u32]) -> Vec<Option<std::num::NonZeroU32>>: each number as a NonZeroU32 (None for zero).",
+   "hint": "NonZeroU32::new(x) returns an Option."
+  },
+  {
+   "id": "r28-wrapping-hash",
+   "title": "Hash with wrap-around",
+   "statement": "Write fnv1a(data: &[u8]) -> u32: the FNV-1a hash: h = 2166136261; for each byte h ^= byte; h = h * 16777619 (with wrap-around, wrapping_mul).",
+   "hint": "wrapping_mul does not panic on overflow."
+  },
+  {
+   "id": "r28-lcg",
+   "title": "Your own generator",
+   "statement": "Implement struct Lcg { state: u64 } with a function new(seed: u64) and a method next(&mut self) -> u64: state = state · 6364136223846793005 + 1442695040888963407 (with wrap-around); the result is state >> 33. The same seed gives the same sequence.",
+   "hint": "Use wrapping_mul and wrapping_add."
+  },
+  {
+   "id": "r28-shuffle",
+   "title": "Shuffling",
+   "statement": "Write shuffle(v: &mut [i32], seed: u64): shuffle in place with the Fisher–Yates algorithm and an xorshift generator: x ^= x << 13; x ^= x >> 7; x ^= x << 17 (u64, the seed is the state; replace seed 0 with 1); for i from len−1 down to 1 swap v[i] and v[x % (i + 1)].",
+   "hint": "A closure next() keeps the state x."
+  },
+  {
+   "id": "r28-size-table",
+   "title": "Sizes in bytes",
+   "statement": "Write sizes() -> Vec<(String, usize)>: pairs (name, size_of) for the types: u8, u64, char, &u8, &[u8], String, Option<u32>, Option<&u8>, (u8, u32), [u16; 5], Box<u8>, Option<Box<u8>>.",
+   "hint": "size_of::<T>() for each type."
+  },
+  {
+   "id": "r28-struct-packing",
+   "title": "Field order",
+   "statement": "Write packing() -> (usize, usize, usize): the sizes of three structs: A { a: u8, b: u32, c: u8 } without repr, A_C, the same with #[repr(C)], and B { b: u32, a: u8, c: u8 } with #[repr(C)]. Declare the structs inside the function or next to it.",
+   "hint": "The structs must be declared before the function."
+  },
+  {
+   "id": "r28-discriminant",
+   "title": "The same variant",
+   "statement": "There is a declared enum Shape { Circle(f64), Rect(f64, f64), Dot }. Write same_kind(a: &Shape, b: &Shape) -> bool: true if the values have the same variant (mem::discriminant).",
+   "hint": "discriminant values are compared with ==."
+  },
+  {
+   "id": "r28-float-bits",
+   "title": "Bits of a floating-point number",
+   "statement": "Write float_parts(x: f32) -> (u32, u32, u32): the sign (0/1), the biased exponent (8 bits) and the mantissa (23 bits) through to_bits.",
+   "hint": "x.to_bits() is a u32 with the same bits."
+  },
+  {
+   "id": "r28-mem-take-state",
+   "title": "State machine and mem::replace",
+   "statement": "There is a declared enum State { Idle, Running(u32), Done(String) }. Write finish(s: &mut State) -> Option<u32>: if it is Running(n), replace it with Done(«готово за n») (n is the number, for example «готово за 5»), and return Some(n); otherwise change nothing and return None. Use mem::replace.",
+   "hint": "Take the value out with replace, then write the state you need."
+  },
+  {
+   "id": "r28-leap-days",
+   "title": "Days between dates",
+   "statement": "Write days_between(y1: i64, m1: u32, d1: u32, y2: i64, m2: u32, d2: u32) -> i64: how many days from the first date to the second in the Gregorian calendar (negative if the second is earlier). Tip: convert each date into a \"day number\" with the days_from_civil algorithm.",
+   "hint": "days_from_civil: shift the year for January and February, 400-year eras."
+  },
+  {
+   "id": "r28-timeout-loop",
+   "title": "Wait with a timeout",
+   "statement": "Write spin_for(limit: Duration) -> bool: in a loop, check Instant::elapsed() until limit has passed; return true if at least limit really passed (always true).",
+   "hint": "while t.elapsed() < limit {}"
+  },
+  {
+   "id": "r28-system-time",
+   "title": "Seconds since 1970",
+   "statement": "Write unix_now() -> u64: the number of seconds since the start of 1970 (SystemTime::now().duration_since(UNIX_EPOCH)); the check requires the result to be greater than 1.7 billion.",
+   "hint": "duration_since returns a Result, so unwrap."
+  }
+ ]
+}

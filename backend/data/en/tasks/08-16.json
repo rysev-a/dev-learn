@@ -1,0 +1,54 @@
+{
+ "book": 8,
+ "chapter": 16,
+ "tasks": [
+  {
+   "id": "u16-write-nonblock",
+   "title": "Full write to a non-blocking descriptor",
+   "statement": "write_all_nb(int fd, const char *buf, size_t n) → long: fd is already non-blocking. Write all n bytes: after a partial write continue from where it stopped, on EINTR retry, and on EAGAIN wait until the descriptor is ready for writing (poll with POLLOUT, no idle loop) and keep writing. Return n, or −1 on any other error.",
+   "hint": "write on a non-blocking descriptor writes as much as fits and reports that in its result; EAGAIN means “the buffer is full”. Wait in poll instead of spinning a loop: that way the process sleeps until the reader frees some room."
+  },
+  {
+   "id": "u16-select",
+   "title": "Waiting on several descriptors: select",
+   "statement": "ready_mask(const int *fds, int n, int timeout_ms, unsigned *mask) → int: using select(2), wait until at least one of fds[0..n) becomes ready for reading (data or end of file), for no longer than timeout_ms. Store the bits of the ready ones in *mask (bit i is fds[i]) and return their count; 0 on timeout; −1 on error, including when some descriptor number is not less than FD_SETSIZE.",
+   "hint": "select corrupts the sets you pass in: they must be filled in again before every call, and the first argument is the highest descriptor number plus one. End of file (a closed write end) also counts as readiness for reading."
+  },
+  {
+   "id": "u16-epoll-ready",
+   "title": "epoll: who is ready",
+   "statement": "epoll_ready(const int *fds, int n, int *ready) → int: create an epoll object (epoll_create1), add fds[0..n) to it for reading (EPOLLIN), put the index i into data.u32; call epoll_wait with a 100 ms timeout and return the number of ready ones; store the indices of the ready ones in ascending order into ready. Close the epoll object. Error → −1.",
+   "hint": "In struct epoll_event the data field is a union: put the index in it and get it back from the event, so you do not have to search for the descriptor. The order of events from epoll_wait is not defined, so the indices must be sorted."
+  },
+  {
+   "id": "u16-lt-et",
+   "title": "Level and edge: when epoll reminds you",
+   "statement": "wakeups_after_partial_read(int edge) → int: create a pipe, write 100 bytes into it, add the read end to epoll with EPOLLIN (and also EPOLLET if edge ≠ 0). Make sure epoll_wait (100 ms timeout) returned 1; read only 40 bytes from the pipe and call epoll_wait once more with a 50 ms timeout. Return what the second call returned (level-triggered: 1, edge-triggered: 0). If the first call returned anything other than 1, return −1. drain_until_eagain(int rfd, char *out, size_t n) → long: rfd is non-blocking; read into out until read returns EAGAIN (or end of file, or out is full), and return the number of bytes read; any other error → −1.",
+   "hint": "Level-triggered epoll keeps reminding you while data remains in the buffer; edge-triggered reports once, when new data arrives. That is why with EPOLLET you read in a loop until EAGAIN: whatever was not read right away will not cause a new event."
+  },
+  {
+   "id": "u16-echo-server",
+   "title": "Event loop: an echo server on epoll",
+   "statement": "serve(int lfd, int nclients) → long: lfd is a listening Unix-domain socket (SOCK_STREAM). One thread, no fork and no threads. Implement an epoll loop: accept connections (accept4 with SOCK_NONBLOCK), reply to every message read with THE SAME text in upper case (ASCII, toupper); when a client closes the connection (read returned 0), close your side too. Once nclients clients have closed, return the total number of bytes sent to clients; on error return −1.",
+   "hint": "The whole server is one epoll_wait loop: an event on the listening socket means “you can accept”, on a client socket “you can read”. When you close a descriptor, do not forget to remove it from epoll. A message may arrive in pieces, so reply to every piece you read."
+  },
+  {
+   "id": "u16-pty-discipline",
+   "title": "Terminal from the inside: pseudoterminal and line discipline",
+   "statement": "pty_canonical(char *slave_got, char *master_echo, size_t n) → int: open a pseudoterminal (openpty, default values), write the string «abc\\n» into the master end, read from the slave what the program will receive (into slave_got) and what comes back as echo to the master (into master_echo, this is «abc\\r\\n»: the driver adds \\r). To read the echo use poll with a 200 ms timeout. Return 0 or −1. pty_line_buffering() → int: in canonical mode (the default) write a single character «x» to the master with no newline: return 1 if the slave does NOT become ready for reading within 100 ms (the driver waits for the end of the line). pty_raw_immediate() → int: switch the slave to raw mode (cfmakeraw + tcsetattr) and write «x» to the master: return 1 if the slave became ready for reading within 100 ms.",
+   "hint": "openpty gives a pair of descriptors: master (owned by the terminal emulator) and slave (the one the program sees). By default the line discipline works in canonical mode: it collects a line, echoes, and hands data to the program only after a newline. cfmakeraw turns all of that off."
+  },
+  {
+   "id": "u16-ring",
+   "title": "A ring buffer like io_uring's",
+   "statement": "Implement a request ring like io_uring's: an array slots of size cap (a power of two) and two freely growing unsigned indices head (where we read from) and tail (where we write to); the slot number is index & mask, where mask = cap − 1. The ring_t structure is already declared in the starter. ring_init(r, slots, cap) → 0, or −1 if cap is not a power of two or is zero; ring_push(r, v) → 0, or −1 if the ring is full; ring_pop(r, &v) → 0, or −1 if it is empty; ring_count(r) → the number of elements (tail − head with no bounds checks: the indices overflow and that is fine).",
+   "hint": "The head and tail indices are never reset: they grow and eventually overflow, while the difference tail − head stays correct for unsigned numbers. The ring is full when this difference equals the capacity."
+  },
+  {
+   "id": "u16-process-groups",
+   "title": "Process groups and sessions",
+   "statement": "kill_group(int n) → int: create n child processes that wait (pause); make them one process group (the first child is the leader: setpgid(pid, pid), the others use setpgid(pid, pgid of the leader); call setpgid in the PARENT to avoid a race). With one kill(−pgid, SIGTERM) call terminate the whole group, wait for the children (waitpid), and return the number of those killed by SIGTERM (WIFSIGNALED and WTERMSIG == SIGTERM). new_session() → int: the child calls setsid() and reports to the parent through a pipe its session, group, and process numbers (getsid(0), getpgid(0), getpid()); return 1 if all three are equal to each other and differ from the parent's session number, otherwise 0; −1 on error.",
+   "hint": "A process group is a set of processes sharing a pgid; kill with a negative number sends the signal to the whole group at once. setsid() creates a new session and makes the caller the leader of both the session and the new group (which is why a group leader cannot call setsid)."
+  }
+ ]
+}

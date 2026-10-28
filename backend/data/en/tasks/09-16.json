@@ -1,0 +1,236 @@
+{
+ "book": 9,
+ "chapter": 16,
+ "tasks": [
+  {
+   "id": "s16-01",
+   "title": "The first view",
+   "statement": "Create a view vip_customers: id, name, city of the VIP customers only (vip = 1). The result is checked by a query to the view.",
+   "hint": "A view is a saved query; you can refer to it like a table."
+  },
+  {
+   "id": "s16-02",
+   "title": "Expensive products",
+   "statement": "Create a view expensive_products(id, title, price) for products costing more than 5000.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s16-03",
+   "title": "Hide extra columns",
+   "statement": "Create a view customers_public (id, name, city) — without email and registration date.",
+   "hint": "This is how you close off sensitive columns.",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s16-04",
+   "title": "Selecting from a view",
+   "statement": "The database already has a view paid_orders (paid orders). Output id and total of the orders with a sum greater than 5000 from it; order by id.",
+   "hint": "You can work with a view like with an ordinary table: WHERE, ORDER BY, JOIN.",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s16-05",
+   "title": "A view with JOIN",
+   "statement": "Create a view order_details(order_id, customer, created, total): the order number, the customer's name, the date and the amount (JOIN orders and customers).",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s16-06",
+   "title": "Detailed line items",
+   "statement": "Create a view item_lines(order_id, title, qty, line_total): order items with the product title and the amount qty * price.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s16-07",
+   "title": "A view with an aggregate",
+   "statement": "Create a view customer_stats(customer_id, orders_n, revenue): the number of orders and the sum per customer (GROUP BY customer_id).",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s16-08",
+   "title": "Using a view",
+   "statement": "There is a view customer_stats(customer_id, orders_n, revenue). Output name and revenue of customers with revenue > 10000 (JOIN the view with customers); order by name.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s16-09",
+   "title": "Column names in parentheses",
+   "statement": "Column names can be given as a list: CREATE VIEW v (a, b) AS …. Create a view prices (title_ru, price_rub) from products (title, price).",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s16-10",
+   "title": "Calculated columns",
+   "statement": "Create a view product_value(id, title, stock_value), where stock_value = price * stock.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s16-11",
+   "title": "CASE in a view",
+   "statement": "Create a view order_labels(id, total, size): size = `'крупный'` when total ≥ 40000, `'средний'` when ≥ 5000, otherwise `'мелкий'`.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s16-12",
+   "title": "A view reflects the data",
+   "statement": "Create a view new_orders (id, total) for the status 'new', then ship order 6 (UPDATE status = 'shipped'). A view is always recomputed: it must still contain 11 and 17, 20.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s16-13",
+   "title": "A view over a view",
+   "statement": "There is a view paid_orders. On top of it create big_paid(id, total) — paid orders over 5000.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s16-14",
+   "title": "IF NOT EXISTS",
+   "statement": "Create the view v_vip twice in a row with IF NOT EXISTS — without an error: id, name of the VIP customers.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s16-15",
+   "title": "Dropping a view",
+   "statement": "The database has a view old_report. Drop it (DROP VIEW). The list of views is checked.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s16-16",
+   "title": "DROP VIEW IF EXISTS",
+   "statement": "Safely drop the view tmp_v (DROP VIEW IF EXISTS), and then create it again: the ids of products with stock 0.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s16-17",
+   "title": "Changing a view",
+   "statement": "A view can't be changed with ALTER — it is re-created. Drop v_cheap and create it again with the threshold 1000 instead of 500.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s16-18",
+   "title": "Where the definition is",
+   "statement": "A view's definition is stored in sqlite_master. Output the name and type of the view order_report: SELECT name, type FROM sqlite_master WHERE name = 'order_report'.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s16-19",
+   "title": "List of views",
+   "statement": "Output the names of all views in the database in alphabetical order (type = 'view').",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s16-20",
+   "title": "A temporary view",
+   "statement": "Create a temporary view (CREATE TEMP VIEW) top3_expensive: title, price of the three most expensive products.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s16-21",
+   "title": "A view and a window function",
+   "statement": "Create a view ranked_products(category, title, price, rk): the product's place in its category by descending price (RANK).",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s16-22",
+   "title": "A view as row protection",
+   "statement": "The manager of the city `'Москва'` should see only the customers from that city. Create a view moscow_customers (id, name, email) and check it with a select.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s16-23",
+   "title": "A view and masking",
+   "statement": "Create a view masked_customers (id, name, email_masked): email_masked is the first letter + '***' + the part starting from '@'; NULL for customers without an email.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s16-24",
+   "title": "Changing through a trigger",
+   "statement": "A view doesn't update by itself. Create a view v_stock (id, title, stock) and an INSTEAD OF UPDATE trigger that carries the change of stock over to the products table, then run UPDATE v_stock SET stock = 99 WHERE id = 6.",
+   "hint": "An INSTEAD OF trigger runs instead of the operation on the view.",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s16-25",
+   "title": "A report view",
+   "statement": "Create a view revenue_by_category(category, revenue): revenue per category (order_items JOIN products, SUM(qty * price)).",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s16-26",
+   "title": "Using the report",
+   "statement": "There is a view revenue_by_category. Output the categories with revenue above the average across categories; order by category.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s16-27",
+   "title": "HR: public directory",
+   "statement": "HR database. Create a view staff_directory(id, name, dept, email): the employee and the department name (LEFT JOIN, NULL for those without a department), without salary and phone.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s16-28",
+   "title": "HR: department statistics",
+   "statement": "HR database. Create a view dept_stats(dept, staff, payroll): the number of employees and the payroll by department (only departments that have employees).",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s16-29",
+   "title": "HR: a view for a manager",
+   "statement": "HR database. Create a view my_team (id, name, salary) — the subordinates of Nina Belova (boss_id = 5) — and select from it the employees with a salary above 100000; order by id.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s16-30",
+   "title": "School: gradebook",
+   "statement": "School database. Create a view gradebook(student, course, score, year): the student's and the course's names and the grade (JOIN of three tables).",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s16-31",
+   "title": "School: top students",
+   "statement": "School database. Create a view honors(student, avg_score): students whose average score for 2024 is at least 4.5 (ROUND to 2 digits).",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s16-32",
+   "title": "Movies: a selection",
+   "statement": "Movies database. Create a view top_movies(title, year, rating, director): movies with a rating ≥ 8 and the director's name (JOIN).",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s16-33",
+   "title": "Movies: using the selection",
+   "statement": "Movies database. There is a view top_movies(title, year, rating, director). Output the directors and the number of their movies from the view as n; order by n descending, then director.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  }
+ ]
+}

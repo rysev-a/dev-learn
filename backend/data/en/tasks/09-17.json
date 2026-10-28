@@ -1,0 +1,181 @@
+{
+ "book": 9,
+ "chapter": 17,
+ "tasks": [
+  {
+   "id": "d1-projection",
+   "title": "Projection: the columns you need",
+   "statement": "Table customers(id, name, city). Output the name and city of all customers in ascending id order (columns: name, city).",
+   "hint": "List the columns after SELECT and the table after FROM; ORDER BY sets the order.",
+   "starter": "-- name and city of all customers\nSELECT\n"
+  },
+  {
+   "id": "d1-filter-sort",
+   "title": "Selection: WHERE and ORDER BY",
+   "statement": "Table products(id, title, category, price). Output the title and price of products costing more than 1000 rubles, the most expensive first (columns: title, price).",
+   "hint": "WHERE price > 1000 ORDER BY price DESC.",
+   "starter": "-- products over 1000, by descending price\nSELECT\n"
+  },
+  {
+   "id": "d1-between-like",
+   "title": "Range and pattern",
+   "statement": "Output the titles of products whose price is from 500 to 5000 inclusive and whose title contains the lowercase Cyrillic letter «о». Column title, ordered by ascending id.",
+   "hint": "BETWEEN includes both bounds; `LIKE '%о%'` — the letter «о» anywhere. Note: in SQLite LIKE is case-insensitive only for Latin letters.",
+   "starter": "-- price from 500 to 5000 and the letter «о» in the title\nSELECT\n"
+  },
+  {
+   "id": "d1-distinct",
+   "title": "No duplicates",
+   "statement": "Output the list of cities where customers live, without duplicates, in alphabetical order. Column city.",
+   "hint": "SELECT DISTINCT city … ORDER BY city.",
+   "starter": "-- cities without duplicates\nSELECT\n"
+  },
+  {
+   "id": "d1-limit-offset",
+   "title": "Second most expensive item",
+   "statement": "Output the title of the most expensive product excluding first place, that is, the second most expensive item (exactly one row, column title).",
+   "hint": "ORDER BY price DESC, then LIMIT 1 OFFSET 1: skip one row and take the next.",
+   "starter": "-- second most expensive product\nSELECT\n"
+  },
+  {
+   "id": "d1-is-null",
+   "title": "No manager",
+   "statement": "Table employees(id, name, dept, manager_id, bonus, salary). Who has no manager (manager_id is not set)? Output name.",
+   "hint": "The comparison manager_id = NULL never fires: you need IS NULL.",
+   "starter": "-- employees without a manager\nSELECT\n"
+  },
+  {
+   "id": "d1-coalesce",
+   "title": "COALESCE: gaps in bonuses",
+   "statement": "Output the name and bonus of every employee, replacing a gap (NULL) in the bonus with zero. Columns: name, bonus; ordered by id.",
+   "hint": "COALESCE(bonus, 0) returns the first value that is not NULL.",
+   "starter": "-- name and bonus (NULL → 0)\nSELECT\n"
+  },
+  {
+   "id": "d1-count-null",
+   "title": "COUNT(*) and COUNT(column)",
+   "statement": "In a single query output two columns: how many employees there are in total (total) and for how many a bonus is set (with_bonus).",
+   "hint": "COUNT(*) counts all rows, while COUNT(bonus) skips NULL.",
+   "starter": "-- total and with_bonus\nSELECT\n"
+  },
+  {
+   "id": "d1-not-in-trap",
+   "title": "NOT IN and NULL",
+   "statement": "Table a holds the numbers 1, 2, 3, 4, and table b holds 2, NULL and 4. Output those x from a that are not in b (column x). A query with NOT IN will return nothing because of the NULL — find a correct one.",
+   "hint": "NOT EXISTS with a correlated subquery does not suffer from NULL in b; NOT IN (SELECT y FROM b WHERE y IS NOT NULL) also works.",
+   "starter": "-- x from a that are not in b (accounting for NULL in b)\nSELECT\n"
+  },
+  {
+   "id": "d1-create-constraints",
+   "title": "Constraints in a table",
+   "statement": "Create a table accounts: id — an integer primary key; owner — text, required; balance — an integer, required, not less than zero (CHECK). The table must be named accounts, with the columns in this order.",
+   "hint": "id INTEGER PRIMARY KEY, owner TEXT NOT NULL, balance INTEGER NOT NULL CHECK (balance >= 0).",
+   "starter": "-- create the accounts table\nCREATE TABLE accounts (\n\n);\n"
+  },
+  {
+   "id": "d1-foreign-key",
+   "title": "Foreign key",
+   "statement": "Create a table invoices: id — a primary key, customer_id — an integer, required, referencing customers(id), amount — an integer. The columns must be in this order.",
+   "hint": "customer_id INTEGER NOT NULL REFERENCES customers(id) — a foreign key in the column definition.",
+   "starter": "-- invoices table with a foreign key to customers\nCREATE TABLE invoices (\n\n);\n"
+  },
+  {
+   "id": "d1-inner-join",
+   "title": "Join: customer and order",
+   "statement": "Output the customer name and order date for all paid orders (status = 'paid') in ascending date order, ties broken by name. Columns: name, created.",
+   "hint": "orders JOIN customers ON customers.id = orders.customer_id.",
+   "starter": "-- customer name and date of paid orders\nSELECT\n"
+  },
+  {
+   "id": "d1-three-way-join",
+   "title": "Three tables: what a customer bought",
+   "statement": "Output the names of customers and the titles of products they bought in paid orders, without repeating customer–product pairs. Columns: name, title; ordered by name, then by title.",
+   "hint": "The chain: customers → orders → order_items → products; DISTINCT removes repeated pairs.",
+   "starter": "-- customer and product in paid orders\nSELECT\n"
+  },
+  {
+   "id": "d1-join-multiply",
+   "title": "A join multiplies rows",
+   "statement": "How many rows result if you join orders with order_items on order_id and filter nothing? Output a single number in the column n.",
+   "hint": "Each order repeats as many times as it has items: COUNT(*) after the JOIN.",
+   "starter": "-- number of rows after joining orders and order_items\nSELECT\n"
+  },
+  {
+   "id": "d1-left-anti",
+   "title": "Customers without orders",
+   "statement": "Find the customers who have no orders at all, using LEFT JOIN. Output one column name.",
+   "hint": "After LEFT JOIN, for customers without orders the orders columns are NULL: WHERE o.id IS NULL.",
+   "starter": "-- customers without orders\nSELECT\n"
+  },
+  {
+   "id": "d1-left-on-vs-where",
+   "title": "LEFT JOIN: the condition in ON",
+   "statement": "For each customer output the number of their paid orders (status = 'paid'), including customers who have none (then 0). Columns: name, paid; ordered by customer id. The condition on orders must go in ON, not in WHERE.",
+   "hint": "COUNT(o.id) does not count NULL; the condition o.status = 'paid' in ON keeps customers without paid orders.",
+   "starter": "-- customers and the number of paid orders (including 0)\nSELECT\n"
+  },
+  {
+   "id": "d1-group-having",
+   "title": "HAVING: active customers",
+   "statement": "Output the ids of customers who have at least two orders, and the number of orders (columns: customer_id, n).",
+   "hint": "GROUP BY customer_id HAVING COUNT(*) >= 2.",
+   "starter": "-- customers with two or more orders\nSELECT\n"
+  },
+  {
+   "id": "d1-revenue-by-category",
+   "title": "Revenue by category",
+   "statement": "Compute revenue by product category — the sum of qty × price — for paid orders only. Columns: category, revenue; ordered by descending revenue.",
+   "hint": "Join order_items, orders and products; WHERE o.status = 'paid'; GROUP BY p.category.",
+   "starter": "-- revenue by category (paid)\nSELECT\n"
+  },
+  {
+   "id": "d1-above-average",
+   "title": "Scalar subquery",
+   "statement": "Output the titles of products whose price is above the average price of all products. Column title, ordered by id.",
+   "hint": "The average price is a subquery in parentheses: price > (SELECT AVG(price) FROM products).",
+   "starter": "-- products above the average price\nSELECT\n"
+  },
+  {
+   "id": "d1-exists",
+   "title": "EXISTS: there is a paid order",
+   "statement": "Output the names of customers who have at least one paid order, using EXISTS. Column name, ordered by id.",
+   "hint": "A correlated subquery: WHERE o.customer_id = c.id AND o.status = 'paid'.",
+   "starter": "-- customers with a paid order\nSELECT\n"
+  },
+  {
+   "id": "d1-cte-no-multiply",
+   "title": "Collapse before joining",
+   "statement": "For each paid order output the number of items (items = sum of qty) and the sum of payments (paid_sum). If you join both tables directly, the sums double: first collapse each branch separately (WITH or subqueries). Columns: id, items, paid_sum; only orders that have both items and payments; ordered by id.",
+   "hint": "Each CTE gives one row per order; a JOIN of the collapsing queries no longer multiplies rows.",
+   "starter": "-- for paid orders: items and paid_sum without row multiplication\nWITH\n"
+  },
+  {
+   "id": "d1-update-returning",
+   "title": "UPDATE … RETURNING",
+   "statement": "Raise the price of all products in the category 'tech' by 10% (in whole rubles: price = price * 11 / 10) and return the changed rows: id and the new price (columns: id, price), in ascending id order.",
+   "hint": "RETURNING id, price at the end of UPDATE returns the changed rows. Do not forget WHERE category = 'tech'.",
+   "starter": "-- raise tech prices by 10% and return id, price\nUPDATE\n"
+  },
+  {
+   "id": "d1-upsert",
+   "title": "UPSERT: ON CONFLICT",
+   "statement": "Warehouse stock(id, qty). A delivery is arriving: 7 more units of product 2, and 4 units of product 3 (which is not in stock yet). With a single INSERT … ON CONFLICT perform both inserts so that the quantity grows for the existing product. The result is checked against the table.",
+   "hint": "ON CONFLICT (id) DO UPDATE SET qty = qty + excluded.qty; excluded is the row being inserted.",
+   "starter": "-- delivery: (2, 7) and (3, 4) via INSERT ... ON CONFLICT\nINSERT INTO stock (id, qty) VALUES\n"
+  },
+  {
+   "id": "d1-delete-check",
+   "title": "Safe deletion",
+   "statement": "Delete the cancelled orders (status = 'cancelled') together with their items: first the items, then the orders themselves. The result is checked by the row counts in orders and order_items.",
+   "hint": "The order matters because of the foreign key: first order_items with a subquery on orders, then orders.",
+   "starter": "-- delete cancelled orders and their items\nDELETE\n"
+  },
+  {
+   "id": "d1-case-when",
+   "title": "CASE: price tiers",
+   "statement": "For each product output the title and a price tier: `дорого` for a price of 5000 or more, `средне` from 1000 to 4999, otherwise `дёшево`. Columns: title, tier; ordered by id.",
+   "hint": "CASE WHEN … THEN … WHEN … THEN … ELSE … END; the branches are checked from top to bottom.",
+   "starter": "-- title and price tier\nSELECT\n"
+  }
+ ]
+}

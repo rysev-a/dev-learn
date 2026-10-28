@@ -1,0 +1,186 @@
+{
+ "book": 16,
+ "chapter": 3,
+ "tasks": [
+  {
+   "id": "c3-swap",
+   "title": "Swap through pointers",
+   "statement": "swap_int(int *a, int *b): swap the values of two variables. swap_ptr(int **a, int **b): swap the pointers themselves (who points where); the values are not copied.",
+   "hint": "In swap_ptr the temporary variable has type int *: addresses are swapped, not numbers."
+  },
+  {
+   "id": "c3-minmax",
+   "title": "Several results via pointers",
+   "statement": "minmax(const int *a, size_t n, int *mn, int *mx): store the smallest and largest elements (n ≥ 1). divmod(int a, int b, int *q, int *r): the quotient and remainder, both via pointers; returns 0 when b == 0 (do not touch the pointers), otherwise 1.",
+   "hint": "Initialize *mn and *mx with the first element, then compare in a loop."
+  },
+  {
+   "id": "c3-stats",
+   "title": "Array and size: sum, mean, argmax",
+   "statement": "sum(const int *a, size_t n) → long long, mean(const int *a, size_t n) → double (0.0 for n = 0), argmax(const int *a, size_t n) → size_t: the index of the first largest element (0 for n = 0).",
+   "hint": "Accumulate the sum in a long long: an int overflows on large values."
+  },
+  {
+   "id": "c3-reverse",
+   "title": "Reverse an array in place",
+   "statement": "reverse(int *a, size_t n): reverse the array in place with two pointers (no extra memory). reverse_range(int *a, size_t lo, size_t hi): reverse the part a[lo..hi] inclusive.",
+   "hint": "While lo < hi: swap a[lo] and a[hi], move both indices toward each other. Be careful with hi when n = 0 (it is unsigned)."
+  },
+  {
+   "id": "c3-rotate",
+   "title": "Cyclic array shift without extra memory",
+   "statement": "rotate_left(int *a, size_t n, size_t k): rotate the array left by k positions in O(n) time and O(1) memory (with three reversals; k can be anything, including greater than n). An array of a million elements must be processed instantly.",
+   "hint": "Reverse the first k, reverse the rest, then reverse the whole array."
+  },
+  {
+   "id": "c3-lower-bound",
+   "title": "Binary search: lower_bound and upper_bound",
+   "statement": "lower_bound(const int *a, size_t n, int x) → the index of the first element ≥ x (n if there is none); upper_bound: of the first element > x. The array is sorted ascending, duplicates are possible. Inputs are large: linear search will be too slow.",
+   "hint": "Invariant: the answer lies in [lo, hi]. Take the midpoint as lo + (hi - lo) / 2 to avoid overflow."
+  },
+  {
+   "id": "c3-insertion-sort",
+   "title": "Insertion sort",
+   "statement": "insertion_sort(int *a, size_t n): sort ascending in place (stable). is_sorted(const int *a, size_t n) → 1/0. Sorting 3000 elements must take a fraction of a second.",
+   "hint": "The inner loop shifts larger elements to the right; the index j is unsigned, so be careful: put the condition j > 0 first."
+  },
+  {
+   "id": "c3-partition",
+   "title": "Partition an array around a pivot",
+   "statement": "partition(int *a, size_t n, int pivot) → size_t: rearrange the elements so that all elements < pivot end up on the left; return their count k. Order within the groups does not matter (but each side is checked as a set). In one pass, in place.",
+   "hint": "The pointer k marks the boundary of the “smaller” part: each smaller element found is swapped with the element at position k."
+  },
+  {
+   "id": "c3-merge",
+   "title": "Merge two sorted arrays",
+   "statement": "merge(const int *a, size_t na, const int *b, size_t nb, int *out) → size_t: merge two sorted arrays into out (length na + nb), return na + nb. For equal elements, the one from a is taken first. dedup_sorted(int *a, size_t n) → size_t: remove duplicates from a sorted array in place, return the new length.",
+   "hint": "Two index pointers walk over the input arrays; in dedup_sorted, writing goes to position w and reading to position i."
+  },
+  {
+   "id": "c3-prefix-sums",
+   "title": "Prefix sums",
+   "statement": "build_prefix(const int *a, size_t n, long long *p): fill p (of length n + 1): p[0] = 0, p[i + 1] = a[0] + … + a[i]. range_sum(const long long *p, size_t l, size_t r) → the sum of a[l..r) in O(1). A million queries must run instantly.",
+   "hint": "The sum of a segment is the difference of two prefix sums: p[r] - p[l]."
+  },
+  {
+   "id": "c3-pointer-diff",
+   "title": "Pointers instead of indices",
+   "statement": "find_ptr(const int *a, size_t n, int x) → const int *: a pointer to the first occurrence of x, or NULL. count_between(const int *first, const int *last) → the number of elements in the half-open interval [first, last). index_of(const int *a, size_t n, int x) → the index or −1, obtained by subtracting pointers.",
+   "hint": "The difference of pointers to elements of the same array is a number of elements (type ptrdiff_t)."
+  },
+  {
+   "id": "c3-pointer-walk",
+   "title": "Walking with a pointer, no indexing",
+   "statement": "sum_ptr(const int *a, size_t n) → long: the sum of the elements; count_zeros(const int *a, size_t n) → size_t; copy_ints(const int *src, int *dst, size_t n). In all three, walk the array using pointer arithmetic only: the character «[» must not appear in the code.",
+   "hint": "*p++ reads an element and advances the pointer; the loop ends by comparing with a + n."
+  },
+  {
+   "id": "c3-matrix-flat",
+   "title": "Matrices in a flat array",
+   "statement": "A rows × cols matrix is stored row by row in a single array. transpose(const int *a, size_t rows, size_t cols, int *out): transpose (out has size cols × rows). mat_mul(const int *a, const int *b, int *out, size_t n, size_t m, size_t p): the product of an n × m matrix by an m × p matrix.",
+   "hint": "Element (i, j) of a matrix with cols columns is at index i * cols + j."
+  },
+  {
+   "id": "c3-array-2d",
+   "title": "Two-dimensional array with a fixed column count",
+   "statement": "For arrays of the form int a[][4]: row_sums(const int a[][4], size_t rows, long *out): the row sums; col_max(const int a[][4], size_t rows, int *out): the column maxima (rows ≥ 1); trace(const int a[4][4]) → int: the sum of the main diagonal.",
+   "hint": "In a two-dimensional array parameter the column count is mandatory: const int a[][4]."
+  },
+  {
+   "id": "c3-spiral",
+   "title": "Spiral traversal of a matrix",
+   "statement": "spiral(const int *a, size_t rows, size_t cols, int *out): write the elements of a matrix (stored row by row) in clockwise spiral order, starting from the top-left corner.",
+   "hint": "Four boundaries (top, bottom, left, right) shrink after each side; don't forget to check whether the boundaries have crossed after each pass."
+  },
+  {
+   "id": "c3-pascal",
+   "title": "Pascal's triangle in a two-dimensional array",
+   "statement": "pascal(int n, unsigned long t[][21]): fill the first n (≤ 21) rows: t[i][j] is the binomial coefficient C(i, j) for j ≤ i; leave the rest untouched. binom(int n, int k, unsigned long t[][21]) → t[n][k] if k ≤ n, otherwise 0.",
+   "hint": "Each inner element is the sum of the two neighbors in the row above; the edges are 1."
+  },
+  {
+   "id": "c3-skip-ptr",
+   "title": "Pointer to pointer: advancing through text",
+   "statement": "A string is read through const char *s. skip_spaces(const char **p): advance *p past all spaces; skip_digits(const char **p) → the number of digits skipped; take_int(const char **p, int *out) → 1 if an integer follows immediately (after spaces) with an optional sign «-» or «+»: store it and advance *p past the number; otherwise 0, and *p is not moved.",
+   "hint": "To advance someone else's pointer, dereference it: (*p)++. In take_int work with a local copy, and change *p only on success."
+  },
+  {
+   "id": "c3-ptr-table",
+   "title": "Array of pointers: a table of strings",
+   "statement": "day_name(int d) → const char *: d = 0..6 gives «Mon» … «Sun» (from a static array of pointers), otherwise «?». table_len(void) → the size of the table, computed with sizeof. longest_name(void) → the index of the longest name in the table of months (Jan, Feb, …, Dec; the first on a tie) and month_name(int m).",
+   "hint": "static const char *t[] = {...}; the number of elements is sizeof t / sizeof t[0]. To find the longest name, compare strlen."
+  },
+  {
+   "id": "c3-my-mem",
+   "title": "Your own memcpy / memmove / memset / memcmp",
+   "statement": "Implement my_memcpy, my_memmove (correct on overlap: copy forward or backward depending on the relative position), my_memset and my_memcmp for void pointers and a size in bytes (unsigned char inside). You must not use the library functions from <string.h>.",
+   "hint": "my_memmove: if dst < src, copy forward, otherwise from the end backward; that way overlap does not corrupt data not yet copied."
+  },
+  {
+   "id": "c3-generic",
+   "title": "Generic functions on void *",
+   "statement": "swap_bytes(void *a, void *b, size_t n): swap two objects of n bytes each. reverse_generic(void *base, size_t count, size_t size): reverse an array of count elements of any size. find_elem(const void *base, size_t count, size_t size, const void *key) → void *: a pointer to the first element that is byte-wise equal to *key, or NULL.",
+   "hint": "For arithmetic on void *, cast it to unsigned char * and multiply the index by size."
+  },
+  {
+   "id": "c3-bitset",
+   "title": "A bit set in a byte array",
+   "statement": "A set of numbers 0..n−1 is stored in a uint8_t array (8 numbers per byte). bs_set(uint8_t *s, size_t i), bs_clear, bs_test(const uint8_t *s, size_t i) → 0/1, bs_count(const uint8_t *s, size_t nbytes) → the number of elements, bs_first(const uint8_t *s, size_t nbits) → the index of the first element, or nbits. The caller creates an array of the required length.",
+   "hint": "The byte number is i / 8, the bit number within it is i % 8; count the ones with the trick b &= b - 1."
+  },
+  {
+   "id": "c3-histogram",
+   "title": "Byte histogram",
+   "statement": "histogram(const unsigned char *data, size_t n, size_t hist[256]): count how many times each byte value occurs (the hist array must be zeroed inside the function first). mode_byte(const unsigned char *data, size_t n) → int: the most frequent byte (the smaller one on a tie), −1 for n = 0.",
+   "hint": "A byte value (unsigned char) is a ready-made index into an array of 256 counters."
+  },
+  {
+   "id": "c3-fix-sizeof",
+   "title": "Fix: sizeof of an array parameter",
+   "statement": "mean(a) computes the average of an array using sizeof(a) / sizeof(a[0]) inside the function, but there a is a pointer, and the result is wrong. Fix the signature: let the length be passed as a second parameter size_t n (the driver already calls mean(a, n)).",
+   "hint": "int mean(const int a[], size_t n): the size of an array is known only where it is declared, so it is passed along."
+  },
+  {
+   "id": "c3-fix-const",
+   "title": "Fix: writing through a pointer to const",
+   "statement": "fill(a, n, v) must write v into all n elements, but the parameter is declared as const int *a, and the compiler forbids writing. Fix the signature. And sum_all stays read-only: it needs const.",
+   "hint": "A writing function needs int *, a reading one const int *; then it can be given a const array too (the driver does just that)."
+  },
+  {
+   "id": "c3-fix-overflow",
+   "title": "Fix: out of array bounds",
+   "statement": "copy_reversed(src, dst, n) copies src into dst in reverse order. Because of the bound i <= n, the function writes outside dst. The program runs with AddressSanitizer, which will stop it. Fix the loop bounds.",
+   "hint": "The indices of an array of n elements run from 0 to n − 1: the condition is i < n."
+  },
+  {
+   "id": "c3-fix-local-address",
+   "title": "Fix: address of a local array",
+   "statement": "make_squares(n) builds an array of squares and returns a pointer to a local array, which is invalid after the return. Fix it: the function must write the result into an array supplied by the caller (the out parameter) and return the number of elements written. Compilation uses -Werror=return-local-addr.",
+   "hint": "The signature is int make_squares(int n, int *out): the memory for the result belongs to the caller."
+  },
+  {
+   "id": "c3-fix-read-past",
+   "title": "Fix: reading past the end of an array",
+   "statement": "max_of(a, n) looks for the largest element, but the loop reads a[n], which is already someone else's memory. The program runs with AddressSanitizer. Fix it so that only a[0]…a[n − 1] are read.",
+   "hint": "The loop continuation condition is i < n, not i <= n."
+  },
+  {
+   "id": "c3-two-pointers",
+   "title": "Two pointers over a sorted array",
+   "statement": "two_sum_sorted(const int *a, size_t n, int target, size_t *i, size_t *j) → int: in an array sorted ascending, find indices i < j with a[i] + a[j] == target; return 1 and store the indices, or return 0. One pass with two pointers, O(n): an array of a million elements will not finish with a double loop.",
+   "hint": "If the sum is less than the target, move the left pointer right; if greater, move the right pointer left."
+  },
+  {
+   "id": "c3-dutch-flag",
+   "title": "Three colors in one pass",
+   "statement": "sort012(int *a, size_t n): the array contains only 0, 1 and 2; sort it in place in one pass (three pointers: the boundaries of zeros and twos, and the current position), without counting and without qsort.",
+   "hint": "Invariant: [0, lo) are zeros, [lo, mid) are ones, [hi, n) are twos; when swapping with the right boundary, mid does not advance."
+  },
+  {
+   "id": "c3-kadane",
+   "title": "Maximum subarray sum",
+   "statement": "max_subarray(const int *a, size_t n, size_t *start, size_t *len) → long long: the largest sum of a non-empty subarray of consecutive elements; *start and *len hold the first such solution with the smallest start (the shorter one on equal sums). n ≥ 1. In one pass.",
+   "hint": "If the running sum becomes negative, start a new subarray from the current element (Kadane's algorithm)."
+  }
+ ]
+}

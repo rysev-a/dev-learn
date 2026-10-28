@@ -34,7 +34,7 @@ test("переключатель EN / RU запоминает язык и пер
   expect(await stored(page, KEY)).toBe("ru");
 });
 
-test("переведённая книга английская целиком, непереведённая — русская с пометкой", async ({ page, request }) => {
+test("переведённые книги английские целиком, без пометки «RU»", async ({ page, request }) => {
   await loginFresh(page, request);
   await page.addInitScript((k) => window.localStorage.setItem(k, "en"), KEY);
   await page.goto("/");
@@ -45,9 +45,7 @@ test("переведённая книга английская целиком, �
   await expect(dm.locator(".lang-tag")).toHaveCount(0); // есть на английском — пометки нет
   const py = menu.filter({ hasText: "Python as a First Language" });
   await expect(py.locator(".lang-tag")).toHaveCount(0);
-  const arch = menu.filter({ hasText: "От assembler к языку C" });
-  await expect(arch.locator(".lang-tag")).toHaveText("RU");
-  await expect(menu.filter({ hasText: "Computer Architecture" }).locator(".lang-tag")).toHaveCount(0);
+  await expect(menu.locator(".lang-tag")).toHaveCount(0); // все книги курса есть на английском
 
   // раздел и глава переведённой книги
   await dm.click();
@@ -64,9 +62,6 @@ test("переведённая книга английская целиком, �
   await expect(page.locator(".quiz-head h3")).toHaveText("Quiz: sets");
   await expect(page.locator(".quiz").getByText("How does a set differ from a list?")).toBeVisible();
 
-  // у непереведённой книги интерфейс английский, содержимое русское и есть пояснение
-  await arch.click();
-  await expect(page.locator(".lang-note")).toContainText("has not been translated yet");
 });
 
 test("книга «Python» английская: текст, слайды, вопросы и условия задач", async ({ page, request }) => {

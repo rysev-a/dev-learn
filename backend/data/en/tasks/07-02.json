@@ -1,0 +1,126 @@
+{
+ "book": 7,
+ "chapter": 2,
+ "tasks": [
+  {
+   "id": "second-largest",
+   "title": "Second largest",
+   "statement": "Write a function second_largest(a) that returns the second largest DISTINCT value of a list. If there are fewer than two distinct values, return None. One pass and two variables are enough.",
+   "hint": "Keep first and second. If a new element is greater than first, the old first becomes second; otherwise it can only compete for second (and must not equal first)."
+  },
+  {
+   "id": "reverse-in-place",
+   "title": "Reverse in place",
+   "statement": "Write a function reverse_in_place(arr) that reverses a list IN PLACE with two pointers (one from the start, one from the end; swap and move toward each other). It returns nothing and makes no copies.",
+   "hint": "i, j = 0, len(arr) - 1; while i < j: arr[i], arr[j] = arr[j], arr[i]; i += 1; j -= 1."
+  },
+  {
+   "id": "rotate-right",
+   "title": "Cyclic shift",
+   "statement": "Write a function rotate_right(arr, k) that shifts a list right by k positions cyclically IN PLACE (k may be larger than the length). An O(n) solution is required: the checker feeds a million elements.",
+   "hint": "k %= n; then three reversals: the whole list, the first k, the rest. Or a slice: arr[:] = arr[-k:] + arr[:-k]."
+  },
+  {
+   "id": "dyn-array-class",
+   "title": "Your own dynamic array",
+   "statement": "Implement a class DynArray, a dynamic array on top of a FIXED-length list. The storage is the list self._data, whose length equals the capacity (the capacity property); the initial capacity is 1. append(x) writes into a free cell, and when there is no room it creates a new list twice as long and copies the elements. Also needed: len(a), a[i] and a[i] = x (IndexError for an index outside 0 … len−1), pop() (the last element, IndexError on an empty array) and insert(i, x) for 0 ≤ i ≤ len with a shift to the right. Do not use the built-in list append/insert/pop for the storage.",
+   "hint": "append: if self._len == len(self._data): create new = [None] * (2 * len(self._data)), copy with a loop, replace self._data. insert: append(None), then shift right to left down to position i."
+  },
+  {
+   "id": "remove-element",
+   "title": "Remove a value in place",
+   "statement": "Write a function remove_element(a, x) that removes all occurrences of x from the list a in place, keeping the order of the rest, and returns the new length k. After the call, the first k elements of a must be the remaining values (the tail doesn't matter). The checker feeds 400,000 elements, half of which equal x: repeated a.remove will not finish in time.",
+   "hint": "Two indexes: the reading one walks over all elements, the writing one k over the kept ones. If a[i] != x: a[k] = a[i]; k += 1."
+  },
+  {
+   "id": "move-zeroes",
+   "title": "Zeros to the end",
+   "statement": "Write a function move_zeroes(a) that moves all zeros of a list to the end in place, keeping the order of the other elements. Nothing needs to be returned. The checker feeds a million elements, half of them zeros at the start: pop and append in a loop will not finish in time.",
+   "hint": "The index k means \"the next place for a nonzero\". Walk through the list; when you meet a nonzero, swap it with a[k] and advance k."
+  },
+  {
+   "id": "merge-into-first",
+   "title": "Merge into the first array",
+   "statement": "The list a holds m sorted elements followed by n free places (zeros). The list b holds n sorted elements. Write merge(a, m, b, n): merge b into a so that all of a becomes sorted; return nothing. Don't create extra lists, and insertions with shifting will not finish in time on 300,000 elements.",
+   "hint": "Write from the end: that way the large values land in their places without overwriting what hasn't been read yet. Three indexes: i in a, j in b, k the write position."
+  },
+  {
+   "id": "range-sums-prefix",
+   "title": "Range sums",
+   "statement": "Write a function range_sums(a, queries), where queries is a list of pairs (l, r). For each pair, return the sum a[l..r] inclusive; the result is a list of sums in the order of the queries. The check: 300,000 elements and 300,000 queries, a loop over the range for each query will not finish in time, so prefix sums are needed.",
+   "hint": "p[i] is the sum of the first i elements (p[0] = 0). The sum a[l..r] = p[r + 1] − p[l]."
+  },
+  {
+   "id": "pivot-index",
+   "title": "Equilibrium point",
+   "statement": "Write a function pivot_index(a): the smallest index i for which the sum of the elements to the left of i equals the sum of the elements to the right of i (a[i] itself is not counted). If there is none, return −1. For an empty list, return −1. The checker feeds 300,000 elements: recomputing the sums with slices at every step will not finish in time.",
+   "hint": "Compute total once. Walking from the left, keep left; the right sum = total − left − a[i]."
+  },
+  {
+   "id": "product-except-self",
+   "title": "Product of the rest",
+   "statement": "Write a function product_except_self(a) that returns a list whose i-th element is the product of all elements of a except a[i]. Division is not allowed (the data may contain zeros), and linear time is required.",
+   "hint": "Two passes: left to right, res[i] is the product of everything left of i; right to left, multiply res[i] by the product of everything right of i."
+  },
+  {
+   "id": "apply-range-updates",
+   "title": "Range additions",
+   "statement": "Write a function apply_updates(n, updates) that returns a list of n zeros with all the commands (l, r, v) applied, where each command means \"add v to all elements from l to r inclusive\". The check: 500,000 elements and 100,000 commands on long ranges, a loop over the range will not finish in time, so a difference array is needed.",
+   "hint": "d[l] += v; d[r + 1] −= v (d has length n + 1). At the end, accumulate: cur += d[i], result[i] = cur."
+  },
+  {
+   "id": "matrix-transpose",
+   "title": "Transpose",
+   "statement": "Write a function transpose(m) that returns a new matrix in which rows and columns are swapped (m is rectangular, a list of lists; an empty matrix gives an empty one).",
+   "hint": "Element (i, j) of the new matrix is m[j][i]. The sizes swap: it was h × w, it becomes w × h."
+  },
+  {
+   "id": "rotate-matrix",
+   "title": "Matrix rotation",
+   "statement": "Write a function rotate_clockwise(m) that returns a new matrix: the original rotated by 90 degrees clockwise. An empty matrix gives an empty one. Hint: rotation is a transpose followed by reversing the rows.",
+   "hint": "The first row of the rotated matrix is the first column of the original read from bottom to top: m[h−1−i][j]."
+  },
+  {
+   "id": "spiral-order",
+   "title": "Spiral traversal",
+   "statement": "Write a function spiral(m) that returns the elements of a matrix in clockwise spiral order, starting from the top left corner. The matrix is rectangular and may be empty.",
+   "hint": "Four bounds top, bottom, left, right shrink after each loop. Watch the cases of a single row and a single column, otherwise you will repeat elements."
+  },
+  {
+   "id": "zero-rows-cols",
+   "title": "Zero out rows and columns",
+   "statement": "Write a function zero_rows_cols(m) that returns a new matrix in which every row and every column that contained a zero in the original matrix is replaced entirely by zeros. Zeros that you put in yourself do not affect other rows.",
+   "hint": "First one pass to remember the numbers of rows and columns with zeros; then a second pass to build the result."
+  },
+  {
+   "id": "is-anagram",
+   "title": "Anagrams",
+   "statement": "Write a function is_anagram(a, b) that returns True if the strings consist of the same characters in the same quantities (case matters). No sorting: count the frequencies in linear time.",
+   "hint": "A dictionary of counters: add for a, subtract for b (and give up right away if a counter goes negative)."
+  },
+  {
+   "id": "longest-common-prefix",
+   "title": "Common prefix",
+   "statement": "Write a function common_prefix(words) that returns the longest initial part shared by all words of the list (an empty string if there is none or the list is empty).",
+   "hint": "Take the first word as a candidate and shorten it until every word starts with it (startswith)."
+  },
+  {
+   "id": "run-length-encode",
+   "title": "Run-length compression",
+   "statement": "Write a function rle(s) in which each group of identical consecutive characters is replaced by the character and the group length, for example 'aaabcc' → 'a3b1c2'. An empty string gives an empty one. Build the result with a single join, not by concatenating in a loop.",
+   "hint": "Two indexes: i is the start of a group, j runs while the characters match. Put the pieces in a list, and at the end ''.join(...)."
+  },
+  {
+   "id": "reverse-words",
+   "title": "Words reversed",
+   "statement": "Write a function reverse_words(s) that returns the words of a string in reverse order, separated by a single space, with no spaces at the edges. Extra spaces between words in the original collapse; a string of only spaces gives an empty one.",
+   "hint": "s.split() with no arguments drops empty pieces by itself; then reverse the list and join with one space."
+  },
+  {
+   "id": "first-missing-positive",
+   "title": "First missing positive",
+   "statement": "Write a function first_missing_positive(a) that returns the smallest positive integer that is not in the list a. Linear time and constant extra memory are required: you may rearrange the elements of the list itself (it need not be preserved).",
+   "hint": "The answer lies in the range 1…n+1. Put each value v from 1…n into position v−1 by swaps, then find the first position where a[i] != i+1."
+  }
+ ]
+}

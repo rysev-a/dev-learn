@@ -1,0 +1,125 @@
+{
+ "book": 9,
+ "chapter": 25,
+ "tasks": [
+  {
+   "id": "d9-hit-ratio",
+   "title": "Hit ratio",
+   "statement": "From the access log access_log(key, hit, ms): hit = 1 is a hit, 0 is a miss. Output the hit ratio as a percentage rounded to an integer (one column pct).",
+   "hint": "SUM(hit) is the number of hits, COUNT(*) is the total; multiply by 100.0 to avoid integer division.",
+   "starter": "-- hit ratio in percent\nSELECT\n"
+  },
+  {
+   "id": "d9-hot-keys",
+   "title": "Hottest keys",
+   "statement": "Output the three most frequent keys and the number of accesses for each (columns key, n); break ties by key.",
+   "hint": "GROUP BY key, sort by count descending, LIMIT 3.",
+   "starter": "-- top 3 hot keys\nSELECT\n"
+  },
+  {
+   "id": "d9-avg-latency",
+   "title": "Average latency with and without cache",
+   "statement": "Output the average latency (column ms) separately for hits and misses: columns hit, avg_ms (integer, rounded), ordered by hit.",
+   "hint": "GROUP BY hit and AVG(ms).",
+   "starter": "-- average latency by hit\nSELECT\n"
+  },
+  {
+   "id": "d9-stale-entries",
+   "title": "Stale cache entries",
+   "statement": "The cache table holds copies of rows from source. Output the ids of entries that must be invalidated: the version in the cache is lower than the version in the source, as well as entries that no longer exist in the source. Column id, ascending.",
+   "hint": "LEFT JOIN cache → source: no match (IS NULL) or a lower version.",
+   "starter": "-- what to invalidate\nSELECT\n"
+  },
+  {
+   "id": "d9-refresh-upsert",
+   "title": "Refreshing the cache table",
+   "statement": "Update cache from source with a single INSERT … SELECT … ON CONFLICT: insert new ids, and for existing ones update version and body, but only if the version in source is greater. The result is checked on the cache table.",
+   "hint": "ON CONFLICT (id) DO UPDATE SET … WHERE excluded.version > cache.version; WHERE true is needed so that SQLite can parse ON CONFLICT after SELECT.",
+   "starter": "-- sync cache from source\nINSERT INTO cache\n"
+  },
+  {
+   "id": "d9-lru-cache",
+   "title": "LRU cache: get and put",
+   "statement": "A cache of capacity cap. Operations: ['put', key, value] and ['get', key]. put adds or updates (the entry becomes the freshest); on overflow the oldest is evicted. get returns the value and makes the entry the freshest. Write lru_run(cap, ops): a pair [list of get results (None on a miss), keys in the cache from the oldest to the freshest].",
+   "hint": "An order list plus a dictionary of values; get and put move the key to the end of the list."
+  },
+  {
+   "id": "d9-lfu",
+   "title": "LFU: who to evict",
+   "statement": "Access counters are a dictionary \"key → count\", the insertion order is the list keys (oldest to newest). The key with the fewest accesses is evicted; on a tie, the one inserted earlier. Write lfu_evict(keys, counts): the key to evict (None if the cache is empty).",
+   "hint": "min over the pair (access count, position in the insertion list)."
+  },
+  {
+   "id": "d9-ttl-cache",
+   "title": "Cache with time to live",
+   "statement": "Operations: ['put', t, key, value, ttl] and ['get', t, key]. An entry lives while t < t_put + ttl. Write ttl_run(ops): the list of get results (the value or None). A repeated put overwrites both the value and the expiry.",
+   "hint": "Store the value and the expiry moment; get compares t with the expiry moment."
+  },
+  {
+   "id": "d9-cache-aside",
+   "title": "Cache-aside: how many trips to the database",
+   "statement": "The requests are a list of keys to read. The cache is initially empty and unbounded. On a miss we read the database and put the value in the cache. Write cache_aside(reads): a pair [number of hits, number of database accesses].",
+   "hint": "A set of keys in the cache: already there is a hit, otherwise a database access and add it."
+  },
+  {
+   "id": "d9-write-back",
+   "title": "Write-back",
+   "statement": "The writes are a list of [key, value] in order. A write-back cache accumulates changes and flushes them to the database when batch distinct keys have accumulated, and flushes the remainder at the end. Write write_back_flush(writes, batch): the list of flushes, each a dictionary \"key → latest value\" at the moment of the flush (an empty list for no writes).",
+   "hint": "A dictionary of \"dirty\" keys; when batch distinct keys are reached, add it to the result and start a new one."
+  },
+  {
+   "id": "d9-stampede",
+   "title": "How many requests reach the database",
+   "statement": "At the moment an entry expires, n requests arrive at once. Without protection each goes to the database. With a single recompute (single-flight), one request goes to the database and the others wait. Write db_hits_on_expiry(n, single_flight): the number of database accesses (0 if there are no requests).",
+   "hint": "Two cases: n or 1; zero requests means zero accesses."
+  },
+  {
+   "id": "d9-jitter",
+   "title": "TTL jitter",
+   "statement": "So that entries do not expire in a bunch, a spread is added to the base period base. Deterministic version: for entry number i (from zero) the period = base + (i · step) % spread. Write ttl_with_jitter(base, spread, step, count): the list of periods for count entries (spread > 0).",
+   "hint": "A list by the formula base + (i * step) % spread."
+  },
+  {
+   "id": "d9-negative-cache",
+   "title": "Negative caching",
+   "statement": "The database is a dictionary \"key → value\"; a missing key gives None. The cache remembers both values and \"not found\" (the negative result). Database accesses are counted only on a cache miss. Write negative_cache(db, reads): a pair [list of answers, number of database accesses].",
+   "hint": "The cache stores None too; check whether the key is present in the cache, not whether the value is truthy."
+  },
+  {
+   "id": "d9-cache-key",
+   "title": "Cache key",
+   "statement": "The key is built from the path and parameters: path + '?' + parameters \"name=value\" joined with '&', sorted by name. Empty parameters (value None) are skipped; with no parameters the '?' is not needed. Write cache_key(path, params): a string.",
+   "hint": "Sort the pairs by name; format f\"{k}={v}\"."
+  },
+  {
+   "id": "d9-versioned-key",
+   "title": "Key versions",
+   "statement": "An entity's version is stored separately: a dictionary \"entity → version\". The cache key is \"entity:version\". Write versioned_keys(versions, bumps, entities): first apply bumps (a list of entities whose version grows by 1; a new entity goes from version 0 to 1), then return the list of keys for entities in the same order (an unknown entity has version 0).",
+   "hint": "Copy the versions dictionary; increment in a loop; then build the keys."
+  },
+  {
+   "id": "d9-double-delete",
+   "title": "Cache and database race",
+   "statement": "Three events in time order: 'read_db' (the reader took v1 from the database), 'write' (the writer updated the database to v2 and deleted the cache entry), 'set_cache' (the reader put its version into the cache). Write stale_after(events): True if after all the events the cache holds a stale value, that is, 'set_cache' happened after 'write' and 'read_db' before 'write'.",
+   "hint": "Staleness is only the order read_db < write < set_cache."
+  },
+  {
+   "id": "d9-expected-latency",
+   "title": "Expected latency",
+   "statement": "Write expected_latency(hit, t_cache, t_db): hit·t_cache + (1 − hit)·t_db, rounded to two decimals; and a second value, how many times the database load dropped (1 / (1 − hit); return None when hit = 1). Return a pair.",
+   "hint": "Two formulas; beware of division by zero when hit = 1."
+  },
+  {
+   "id": "d9-two-level",
+   "title": "Two-level cache",
+   "statement": "L1 (in process) and L2 (shared) are unbounded sets of keys. Read: if the key is in L1, the answer is 'L1'; otherwise if it is in L2, the answer is 'L2' and the key goes into L1; otherwise 'DB', and the key goes into both L1 and L2. Write two_level(reads): the list of answers.",
+   "hint": "Two sets; the order of checks is L1 → L2 → database."
+  },
+  {
+   "id": "d9-hot-key-detect",
+   "title": "Finding hot keys",
+   "statement": "The access log is a list of keys. A key is hot if it accounts for at least share (a fraction from 0 to 1) of all accesses. Write hot_keys(log, share): the sorted list of hot keys.",
+   "hint": "Count frequencies and compare c / n with share."
+  }
+ ]
+}

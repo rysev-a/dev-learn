@@ -1,0 +1,278 @@
+{
+ "book": 9,
+ "chapter": 3,
+ "tasks": [
+  {
+   "id": "s03-01",
+   "title": "Ascending sort",
+   "statement": "Output the title and price of products from cheapest to most expensive (ORDER BY price).",
+   "hint": "ORDER BY price sorts in ascending order."
+  },
+  {
+   "id": "s03-02",
+   "title": "Descending sort",
+   "statement": "Output the title and price of products from most expensive to cheapest (DESC). The products have different prices.",
+   "hint": "ORDER BY price DESC",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s03-03",
+   "title": "Sorting text",
+   "statement": "Output the name of customers in alphabetical order.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s03-04",
+   "title": "Reverse alphabet",
+   "statement": "Output the name of customers in reverse alphabetical order.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s03-05",
+   "title": "Sorting by date",
+   "statement": "Output the id and created of orders from newest to oldest.",
+   "hint": "Dates in YYYY-MM-DD format sort correctly as strings. For equal dates, add id DESC.",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s03-06",
+   "title": "Sorting by two columns",
+   "statement": "Output the city and name of customers: first by city, within a city by name (ORDER BY city, name).",
+   "hint": "The second column applies when the first is equal.",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s03-07",
+   "title": "Different directions",
+   "statement": "Output category, title, price: categories alphabetically, within a category the expensive ones first.",
+   "hint": "ORDER BY category, price DESC: the direction is set for each column.",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s03-08",
+   "title": "By expression",
+   "statement": "Output the title and the stock value (price * stock) as stock_value; the most valuable stock first.",
+   "hint": "You can sort by the alias.",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s03-09",
+   "title": "By column number",
+   "statement": "Output title, price, sorted by the second column of the list (ORDER BY 2) in descending order; the prices are distinct.",
+   "hint": "ORDER BY 2 sorts by the second column of the result.",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s03-10",
+   "title": "Sorting by a column not shown",
+   "statement": "Output only the title of products, sorted by price (price) in ascending order. You can sort by a column that is not in the result.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s03-11",
+   "title": "NULL in sorting",
+   "statement": "Output the name and city of customers, sorted by city ascending, then by name. In SQLite, NULL is considered the smallest value and comes first.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s03-12",
+   "title": "NULL last",
+   "statement": "Output the name and city of customers ordered by city, but with NULL cities at the end: first ORDER BY city IS NULL, then city, name.",
+   "hint": "city IS NULL equals 0 for filled values and 1 for empty ones.",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s03-13",
+   "title": "Filter and sort",
+   "statement": "Output the title and price of products cheaper than 5000, the most expensive first (WHERE first, then ORDER BY).",
+   "hint": "Word order: SELECT … FROM … WHERE … ORDER BY …",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s03-14",
+   "title": "First three",
+   "statement": "Output the three most expensive products: title and price (ORDER BY price DESC LIMIT 3).",
+   "hint": "LIMIT restricts the number of rows.",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s03-15",
+   "title": "The cheapest",
+   "statement": "Output the cheapest product (title, price).",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s03-16",
+   "title": "Newest order",
+   "statement": "Output the id and created of the most recent order (for equal dates, the one with the larger id).",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s03-17",
+   "title": "Earliest customer",
+   "statement": "Output the name and registered of the earliest customer by registration date.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s03-18",
+   "title": "Five biggest orders",
+   "statement": "Output the id and total of the five largest orders (the amounts are distinct).",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s03-19",
+   "title": "Skip rows",
+   "statement": "OFFSET skips rows. Output the id, name of customers in ascending id order, skipping the first three and taking the next four.",
+   "hint": "LIMIT 4 OFFSET 3",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s03-20",
+   "title": "Page 1",
+   "statement": "Paged output of 5 products each, sorted by id. Output page 1: id and title.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s03-21",
+   "title": "Page 2",
+   "statement": "Output page 2 (5 products per page, sorted by id): id and title.",
+   "hint": "OFFSET = (page number - 1) × page size.",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s03-22",
+   "title": "Page 3",
+   "statement": "Output page 3 (5 products per page, sorted by id): id and title. The page is not full.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s03-23",
+   "title": "Second by price",
+   "statement": "Output the product that is second by price (title, price): ORDER BY price DESC, skip one row, take one.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s03-24",
+   "title": "Three cheapest in a category",
+   "statement": "Output the title, price of the three cheapest products in the category `'Продукты'` (by ascending price).",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s03-25",
+   "title": "Latest registrations",
+   "statement": "Output the name and registered of the three customers who registered last (newest first).",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s03-26",
+   "title": "Distinct and ordered",
+   "statement": "Output the distinct product categories in alphabetical order (DISTINCT and ORDER BY together).",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s03-27",
+   "title": "Cities descending",
+   "statement": "Output the distinct non-empty customer cities in reverse alphabetical order.",
+   "hint": "IS NOT NULL filters out missing values.",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s03-28",
+   "title": "Warehouse: least stock",
+   "statement": "Output the title and stock of the five products with the smallest stock; ties broken by title.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s03-29",
+   "title": "Two sort keys",
+   "statement": "Output the status and total of orders: by status alphabetically, within a status the large orders first; id last for stability.",
+   "hint": "The third key, id, makes the order unambiguous.",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s03-30",
+   "title": "Top by title length",
+   "statement": "Output the title and length(title) as len for the three longest product titles (by length descending, then by title).",
+   "hint": "length(string) is the number of characters.",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s03-31",
+   "title": "Order lines",
+   "statement": "Table order_items. Output order_id, product_id, qty, price by qty descending, then by order_id, product_id; the first 5 rows.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s03-32",
+   "title": "Salaries descending",
+   "statement": "HR database. Output the name and salary of the five highest-paid employees (the salaries are distinct).",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s03-33",
+   "title": "Long-timers",
+   "statement": "HR database. Output the name and hired of the three employees who have worked at the company the longest.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s03-34",
+   "title": "Employees by department",
+   "statement": "HR database. Output dept_id, name, salary: by department, within a department by salary descending, then by name. The NULL department comes first.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s03-35",
+   "title": "Best scores",
+   "statement": "School database. Output student_id, course_id, score for the year 2024: by score descending (NULL last), then by student_id, course_id; the first 6 rows.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s03-36",
+   "title": "Youngest students",
+   "statement": "School database. Output the name and birth of the three youngest students (the latest birth dates).",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s03-37",
+   "title": "Movies by rating",
+   "statement": "Movies database. Output the title and rating of movies by rating descending; movies without a rating at the end. The first 5.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s03-38",
+   "title": "Biggest budgets",
+   "statement": "Movies database. Output the title and budget of the three movies with the biggest budget.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s03-39",
+   "title": "Chronology",
+   "statement": "Movies database. Output the title and year by ascending year, ties broken by title.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  }
+ ]
+}

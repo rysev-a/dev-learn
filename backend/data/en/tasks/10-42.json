@@ -1,0 +1,60 @@
+{
+ "book": 10,
+ "chapter": 42,
+ "tasks": [
+  {
+   "id": "r42-match-route",
+   "title": "Route matching",
+   "statement": "Write match_route(pattern: &str, path: &str) -> Option<BTreeMap<String, String>>: segments are separated by '/', and leading and trailing '/' are ignored. A pattern segment ':name' captures one path segment; a last segment '*name' captures the whole rest of the path (segments joined by '/', may be empty); the other segments must match verbatim. The number of segments without '*' must be equal.",
+   "hint": "Split both paths into segments and walk the pattern: ':' is a capture, '*' is the tail (return), otherwise equality."
+  },
+  {
+   "id": "r42-router",
+   "title": "Router with 404 and 405",
+   "statement": "Complete Router: new(), add(&mut self, method, pattern, handler), and handle(&self, method, path) -> (u16, String): the first entry whose method and pattern both match calls the handler with the parameters and returns (200, result). If none fits but the pattern matched for another method, return (405, \"method not allowed\"); if the pattern matched nowhere, return (404, \"not found\"). The function match_route is already written.",
+   "hint": "A single pass: remember whether the pattern matched with another method; the result comes after the loop."
+  },
+  {
+   "id": "r42-middleware",
+   "title": "Chain of layers",
+   "statement": "Types: Handler = Rc<dyn Fn(&Request) -> Response>, Layer = Rc<dyn Fn(&Request, &Handler) -> Response> (a layer receives the request and the \"next\" handler). Write compose(layers: Vec<Layer>, endpoint: Handler) -> Handler: the first layer in the list is the outermost (called first), and the last one calls endpoint.",
+   "hint": "Wrap from the end: the last layer goes around endpoint, the one before it around the result, and so on; layer and next are moved into the closure."
+  },
+  {
+   "id": "r42-todo-api",
+   "title": "REST interface of a to-do list",
+   "statement": "The Store is already written. Write handle(store: &Mutex<Store>, method: &str, path: &str, body: &str) -> (u16, String): GET /todos -> (200, a JSON array in ascending id: [{\"id\":1,\"title\":\"a\",\"done\":false}], and [] when empty); POST /todos (the body is the title without quotes, trimmed; empty gives (400, \"empty title\")) -> (201, {\"id\":N}); GET /todos/ID -> (200, the object) or (404, \"not found\"); a non-numeric ID gives (400, \"bad id\"); PUT /todos/ID/done -> (200, \"done\") or 404; DELETE /todos/ID -> (204, \"\") or 404. A known path with another method gives (405, \"method not allowed\"); an unknown path gives (404, \"not found\").",
+   "hint": "Split the path into segments and match on a slice: [\"todos\"], [\"todos\", id], [\"todos\", id, \"done\"]; take the lock once at the start."
+  },
+  {
+   "id": "r42-thread-pool",
+   "title": "Thread pool",
+   "statement": "Implement ThreadPool: new(n) starts n worker threads, execute(&self, f) sends a job (FnOnce + Send + 'static) to the shared queue, and Drop closes the queue and waits for all the workers (accepted jobs run to the end).",
+   "hint": "There is one receiver, so wrap it in Arc<Mutex<_>>; in Drop first close the channel (take + drop), then join."
+  },
+  {
+   "id": "r42-serve-until",
+   "title": "Server with graceful stop",
+   "statement": "Write serve_until(listener: TcpListener, stop: Arc<AtomicBool>, handler: fn(TcpStream)) -> usize: switch the socket to non-blocking mode and, until the stop flag is raised, accept connections (each is passed to handler in this same thread); if there is nothing to accept, sleep 2 ms. Return the number of connections handled.",
+   "hint": "accept() on a non-blocking socket returns a WouldBlock error when there are no connections; set the accepted stream back to blocking mode."
+  },
+  {
+   "id": "r42-rate-limiter",
+   "title": "Per-client limiter",
+   "statement": "Implement RateLimiter: new(capacity: f64, rate: f64) (each new key starts with a full bucket; last = the moment of the first access) and allow(&mut self, key: &str, now: f64) -> bool: the bucket refills by (now - last) * rate, no more than capacity; a request costs one token. Clients do not affect each other. For a single key the time arrives non-decreasing.",
+   "hint": "A key's state is a pair (tokens, last time); update it on refusal too (the tokens have been refilled)."
+  },
+  {
+   "id": "r42-histogram",
+   "title": "Latency histogram",
+   "statement": "Implement Histogram::new(bounds: &[u64]) (upper bucket bounds in ms, ascending), observe(&mut self, ms: u64), and render(&self, name: &str) -> String in the Prometheus style: for each bound a line name_bucket{le=\"B\"} N, where N is the number of observations <= B (cumulative); then name_bucket{le=\"+Inf\"} (all observations), name_count, and name_sum. Lines are separated by \\n, with no trailing one.",
+   "hint": "Cumulative buckets: an observation increments the counter of every bound that is not less than the value."
+  },
+  {
+   "id": "r42-parse-args",
+   "title": "Command-line parsing",
+   "statement": "Write parse_args(args: &[&str]) -> Result<Options, String> (Options is given): '--name=value' and '--name value' -> options[name] = value; '--flag' without a value (the next element starts with '-' or the list ends) -> flags contains flag; '-v', '-vv', '-vvv' -> verbose += the number of v letters; '--' -> everything after it is positional; anything else is positional. Errors: '-x' with a letter other than v gives Err(\"unknown option -x\"); '--=v' gives Err(\"empty option name\").",
+   "hint": "A single loop with an index: for \"--name\" the value is taken from the next element if it does not start with '-'."
+  }
+ ]
+}

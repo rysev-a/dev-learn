@@ -1,0 +1,332 @@
+{
+ "book": 9,
+ "chapter": 8,
+ "tasks": [
+  {
+   "id": "s08-01",
+   "title": "Add a customer",
+   "statement": "Add a customer: id 13, `'Олег Жуков'`, city `'Омск'`, email `'oleg@mail.ru'`, registration date `'2024-07-15'`, vip 0 (INSERT INTO customers VALUES …).",
+   "hint": "Values go in the order of the table's columns."
+  },
+  {
+   "id": "s08-02",
+   "title": "Column list",
+   "statement": "Add a customer, listing the columns: name, city, registered (the id will be assigned automatically, vip defaults to 0, email is NULL). Values: `'Олег Жуков'`, `'Омск'`, `'2024-07-15'`.",
+   "hint": "INSERT INTO customers (name, city, registered) VALUES (...)",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s08-03",
+   "title": "Default value",
+   "statement": "Add the customer `'Пётр Яковлев'` (city `'Тверь'`, registered `'2024-07-20'`) without specifying vip — DEFAULT 0 will apply.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s08-04",
+   "title": "NULL on insert",
+   "statement": "Add the customer `'Рита Ким'` with the date `'2024-07-21'`; do not specify the city and email (NULL).",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s08-05",
+   "title": "Several rows",
+   "statement": "Add two customers with one command: `'Сергей Тихонов'` (`'Казань'`, `'2024-07-22'`) and `'Таисия Громова'` (`'Москва'`, `'2024-07-23'`). Columns: name, city, registered.",
+   "hint": "After VALUES, several parenthesized groups separated by commas.",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s08-06",
+   "title": "New product",
+   "statement": "Add a product: id 14, `'Веб-камера'`, category `'Аксессуары'`, price 2800, stock 15, brand `'Sonic'`.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s08-07",
+   "title": "Order and items",
+   "statement": "Place order id 21 for customer 7 on the date `'2024-08-01'`, status `'new'` (total is 0 for now), with two items: product 4 — 2 pcs at 1500 and product 8 — 1 pc at 420.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s08-08",
+   "title": "Recalculate the total",
+   "statement": "Continuation: the total of order 21 must be calculated. Add the order and items (as in the previous task) and then UPDATE orders SET total = (sum of qty * price over the order's items) WHERE id = 21.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s08-09",
+   "title": "INSERT ... SELECT",
+   "statement": "Copy the VIP customers (vip = 1) into the table vip_customers(id, name, city): INSERT INTO vip_customers SELECT id, name, city FROM customers WHERE vip = 1.",
+   "hint": "The empty table vip_customers has already been created.",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s08-10",
+   "title": "Order archive",
+   "statement": "Move the cancelled orders into the table orders_archive (the same columns id, customer_id, created, status, total) and delete them from orders.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s08-11",
+   "title": "OR IGNORE",
+   "statement": "Inserting a customer with an existing id ends with an error. INSERT OR IGNORE silently skips such a row. Add with OR IGNORE: `(1, 'Дубликат', ...)` and `(14, 'Новый', ...)`. Columns id, name, registered.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s08-12",
+   "title": "OR REPLACE",
+   "statement": "INSERT OR REPLACE replaces the row on a key match. Replace the customer with id 3 by `('Вера Смирнова-Ким', 'Москва', 'vera@mail.ru', '2024-02-20', 1)`; specify all the columns.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s08-13",
+   "title": "UPSERT",
+   "statement": "Table notes. Add the note id 2 with the text `'позвонить Анне и Борису'`; if the id already exists, update body (INSERT … ON CONFLICT (id) DO UPDATE SET body = excluded.body).",
+   "hint": "excluded — the values from the failed insert.",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s08-14",
+   "title": "A single UPDATE",
+   "statement": "Change the city of the customer with id 2 to `'Санкт-Петербург'`.",
+   "hint": "Without WHERE all rows will change!"
+  },
+  {
+   "id": "s08-15",
+   "title": "Two columns",
+   "statement": "For customer 9, set the city `'Новосибирск'` and the email `'ksenia@mail.ru'`.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s08-16",
+   "title": "Many rows",
+   "statement": "Raise the prices of books (category = `'Книги'`) by 10%: price = price * 11 / 10.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s08-17",
+   "title": "Discount",
+   "statement": "Reduce by 100 rubles the price of products that cost more than 1000.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s08-18",
+   "title": "Restock",
+   "statement": "Raise the stock of all products with zero stock to 20.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s08-19",
+   "title": "Clear a field",
+   "statement": "Erase the email of customer 3 (set NULL if needed) and of customer 1: email = NULL for id IN (1, 3).",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s08-20",
+   "title": "UPDATE without WHERE",
+   "statement": "Set the total of all orders to 0 (an UPDATE without WHERE changes the whole table).",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s08-21",
+   "title": "UPDATE with CASE",
+   "statement": "Raise the price of `'Электроника'` products by 5%, `'Книги'` by 10%, and leave the rest unchanged — with one UPDATE using CASE: price = CASE category WHEN … THEN … ELSE price END.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s08-22",
+   "title": "Recalculating totals",
+   "statement": "The order totals in the orders table have been zeroed (total = 0). Compute the total of each order again from its items: UPDATE orders SET total = (SELECT SUM(qty * price) FROM order_items WHERE order_id = orders.id).",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s08-23",
+   "title": "VIP for a big order",
+   "statement": "Make VIP (vip = 1) all customers who have an order with a total over 40000 (EXISTS or IN).",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s08-24",
+   "title": "UPDATE ... FROM",
+   "statement": "The table deliveries(product_id, qty) holds deliveries. Increase the products' stock by the delivered quantity: UPDATE products SET stock = stock + d.qty FROM deliveries d WHERE d.product_id = products.id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s08-25",
+   "title": "Write off stock",
+   "statement": "After sales, decrease stock by the sold quantity for product 4: stock = stock − (SELECT SUM(qty) FROM order_items WHERE product_id = 4) WHERE id = 4.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s08-26",
+   "title": "Swapping values",
+   "statement": "In the table pairs(id, a, b) swap a and b in each row: UPDATE pairs SET a = b, b = a (the right-hand side uses the old values).",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s08-27",
+   "title": "DELETE one row",
+   "statement": "Delete the customer with id 12.",
+   "hint": "Without WHERE all rows are deleted."
+  },
+  {
+   "id": "s08-28",
+   "title": "DELETE by condition",
+   "statement": "Delete the completed notes (done = 1) from notes.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s08-29",
+   "title": "Empty a table",
+   "statement": "Delete all rows from notes.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s08-30",
+   "title": "Delete dependents",
+   "statement": "Delete the items of cancelled orders, and then the cancelled orders themselves (status = `'cancelled'`). First order_items.",
+   "hint": "Child rows first, then parent rows.",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s08-31",
+   "title": "Delete inactive",
+   "statement": "Delete the customers who have no orders at all (NOT IN (SELECT customer_id FROM orders)).",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s08-32",
+   "title": "Delete the earliest",
+   "statement": "Delete the customer with the earliest registration date (id = (SELECT id … ORDER BY registered LIMIT 1)).",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s08-33",
+   "title": "INSERT RETURNING",
+   "statement": "Add a customer (`'Олег Жуков'`, `'Омск'`, registered `'2024-07-15'`) and return the assigned id and name: INSERT … RETURNING id, name.",
+   "hint": "RETURNING outputs the rows the command changed.",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s08-34",
+   "title": "UPDATE RETURNING",
+   "statement": "Raise the price of product 4 by 100 and return the id and the new price: UPDATE … RETURNING id, price.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s08-35",
+   "title": "DELETE RETURNING",
+   "statement": "Delete the notes where done = 0 and return their id and body (DELETE … RETURNING).",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s08-36",
+   "title": "Transaction: transfer",
+   "statement": "Transfer 300 rubles from account 1 to account 2 in one transaction: BEGIN; two UPDATEs; COMMIT.",
+   "hint": "BEGIN … COMMIT makes two changes one whole.",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s08-37",
+   "title": "Rollback",
+   "statement": "Start a transaction, take all the money off account 1 (balance = 0) and change your mind: ROLLBACK. After that, credit account 3 a bonus of 10 (an ordinary UPDATE outside a transaction). Account 1 must not change.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s08-38",
+   "title": "Savepoint",
+   "statement": "BEGIN; debit 100 from account 1; SAVEPOINT s; debit 100 from account 2; ROLLBACK TO s; COMMIT. Only the first transfer must remain.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s08-39",
+   "title": "Insert without duplicates",
+   "statement": "Add two customers: `'Анна Петрова'` (city `'Москва'`, registered `'2024-01-15'`) and `'Роман Ким'` (city `'Омск'`, registered `'2024-08-03'`) — each only if no customer with that name exists yet (INSERT … SELECT … WHERE NOT EXISTS). Anna already exists, so only Roman will be added.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s08-40",
+   "title": "Generating rows",
+   "statement": "Add three notes to notes with one INSERT … SELECT … UNION ALL: id 10 `'a'`, id 11 `'b'`, id 12 `'c'` (done by default).",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s08-41",
+   "title": "HR: raise",
+   "statement": "HR database. Raise the salary of all `'junior'` level employees by 10%: salary = salary * 11 / 10.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s08-42",
+   "title": "HR: transfer to a department",
+   "statement": "HR database. Transfer employee 14 (`Тимур Рахимов`) to department 1 and make him a subordinate of employee 1.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s08-43",
+   "title": "HR: fire",
+   "statement": "HR database. Delete the employees hired before 2018 (hired < `'2018-01-01'`).",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s08-44",
+   "title": "HR: new department",
+   "statement": "HR database. Add department id 6 `'Аналитика'` (city `'Москва'`) and employee id 16 `'Дарья Ким'` (department 6, no manager, salary 140000, hired `'2024-08-01'`, email `'daria@corp.ru'`, no phone, grade `'middle'`).",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s08-45",
+   "title": "School: grade",
+   "statement": "School database. Give the grade 4 to all 2024 enrollments with an empty grade (score IS NULL).",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s08-46",
+   "title": "School: new enrollment",
+   "statement": "School database. Enroll student 10 in course 3 in 2024 without a grade (score NULL).",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s08-47",
+   "title": "Movies: rating",
+   "statement": "Movies database. Set the rating 6.5 and the budget 10 for the movie `'Неизвестный фильм'`.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  }
+ ]
+}

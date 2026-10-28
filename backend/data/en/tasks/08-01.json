@@ -1,0 +1,72 @@
+{
+ "book": 8,
+ "chapter": 1,
+ "tasks": [
+  {
+   "id": "u1-mode-string",
+   "title": "A permission string like ls -l",
+   "statement": "mode_string(mode_t m, char out[11]): ten characters, as in \"ls -l\": the file type (- regular, d directory, l link, c, b, p, s), then rwx for the owner, group and others. The setuid/setgid bits replace x with s (or S if x is not set), and sticky replaces it with t (or T). The string is zero-terminated.",
+   "hint": "The file type is m & S_IFMT; the nine rwx bits go in order S_IRUSR…S_IXOTH; the special bits modify the characters at positions 3, 6 and 9."
+  },
+  {
+   "id": "u1-stat-info",
+   "title": "stat: size, links and type",
+   "statement": "file_info(const char *path, long *size, long *nlink, int *kind): using lstat, store the size in bytes, the number of hard links and the type: 0 regular file, 1 directory, 2 symbolic link, 3 other. Return 0 or −1 (errno is preserved).",
+   "hint": "lstat does not follow symbolic links, so for a link the size is the length of the target path, and the type is S_ISLNK."
+  },
+  {
+   "id": "u1-hardlink",
+   "title": "Hard links and the nlink counter",
+   "statement": "hard_link(old, new) → 0 / −errno via link(); link_count(path) → st_nlink (−1 on error). drop_name(path) → 0 / −errno via unlink(). The driver checks: after link the count is 2, after removing the first name the data is still reachable by the second, and trying to link a directory fails.",
+   "hint": "link and unlink return −1 and set errno; return −errno right away, before it gets overwritten."
+  },
+  {
+   "id": "u1-readlink-chain",
+   "title": "A chain of symbolic links: readlink",
+   "statement": "resolve_links(path, out, cap) → 0 / −ELOOP / −errno: follow symbolic links by hand using lstat and readlink (relative targets are taken from the link's directory; absolute ones as they are), up to 40 hops, and store in out the path of the first object that is NOT a link (there is no need to canonicalize \"..\"). Do not use the library realpath or stat on the link.",
+   "hint": "A target that doesn't start with \"/\" is joined with the link's directory: the part of the current path up to the last \"/\", plus \"/\", plus the target."
+  },
+  {
+   "id": "u1-walk-count",
+   "title": "Directory walk: files, directories, bytes",
+   "statement": "walk_count(const char *dir, long *files, long *dirs, long *bytes): recursively walk the tree with opendir/readdir/lstat, counting regular files, subdirectories (not including dir itself) and the total size of regular files. Do not follow or count symbolic links. Zero the values before the walk.",
+   "hint": "lstat tells the type without dereferencing links; for directories make a recursive call, and skip \".\" and \"..\"."
+  },
+  {
+   "id": "u1-normalize",
+   "title": "A canonical path in C",
+   "statement": "normalize(const char *path, char *out, size_t cap): absolute path → canonical: without \"//\", \".\" and \"..\" (you can't go above the root) and without a trailing \"/\"; the root is \"/\". Returns the length of the result, or −1 if it doesn't fit in cap with the terminating zero. The path string is not modified.",
+   "hint": "Keep a stack of components right in the buffer: \"..\" pops the last component (but never the root), and empty components and \".\" are skipped."
+  },
+  {
+   "id": "u1-list-sorted",
+   "title": "Directory contents in alphabetical order",
+   "statement": "list_dir(const char *dir, char names[][64], size_t max) → the number of names (excluding \".\" and \"..\"), sorted by strcmp, but no more than max (if there are more, the first max after sorting). −1 if the directory can't be opened. Write the sort yourself or use qsort.",
+   "hint": "readdir returns names in arbitrary order: collect them all, sort, and only then cut down to max."
+  },
+  {
+   "id": "u1-sparse",
+   "title": "A sparse file: size and allocated blocks",
+   "statement": "make_sparse(path, hole_bytes, long *size, long *allocated): create a file, lseek to hole_bytes from the start and write a single byte \"X\". In *size store st_size (hole_bytes + 1), in *allocated the bytes really allocated (st_blocks × 512). Return 0 / −1. Then sparse_ratio(path) → 1 if less than half of the logical size is allocated. The hole reads as zeros.",
+   "hint": "lseek past the end of the file + write leaves a \"hole\"; look at the allocated space in st_blocks (units of 512 bytes)."
+  },
+  {
+   "id": "u1-open-unlinked",
+   "title": "A deleted but open file",
+   "statement": "read_unlinked(const char *path, char *out, size_t n) → int: create the file path with the contents \"secret data\" (open with O_CREAT, write), WITHOUT closing it remove the name (unlink), then rewind (lseek) and read the contents through the same descriptor into out (with '\\0'); return the number of bytes read. nlink_open_unlinked(const char *path) → int: do the same and return st_nlink from fstat on the open descriptor (after unlink it is 0). Both files must be completely gone after the function.",
+   "hint": "The inode is freed when both all the names and all the open descriptors are gone: after unlink there is no name (st_nlink = 0), but the data is reachable through the descriptor until it is closed."
+  },
+  {
+   "id": "u1-mount-lookup",
+   "title": "Which file system serves a path",
+   "statement": "mount_of(const char *table, const char *path, char *out, size_t n) → int: table is the text of a mount table, one line per mount point: \"point type\" (for example, \"/ ext4\", \"/home xfs\", \"/home/ann/mnt btrfs\"). Find the LONGEST mount point that is a prefix of path at a directory boundary (the point \"/home\" matches \"/home/x\" and \"/home\", but not \"/homework\"); the root \"/\" always matches. Store in out the \"point type\" of the line found (with '\\0') and return the length of the point; −1 if nothing matched or it doesn't fit in n.",
+   "hint": "Don't just compare the beginning of the string, compare at a directory boundary: after the point, the path must have either the end of the string or \"/\". Of all the matching points choose the longest: that is how the kernel finds nested mounts."
+  },
+  {
+   "id": "u1-statvfs",
+   "title": "Space and inodes: statvfs",
+   "statement": "fs_usage(const char *path, long *free_kib, long *free_inodes, int *used_percent) → int: using statvfs(2) return the free space for ordinary users in KiB (f_bavail × f_frsize / 1024), the number of free inodes (f_favail) and the percentage of used space as df computes it: used = f_blocks − f_bfree, percent = used × 100 / (used + f_bavail) rounded up. 0 on success, −1 on error. has_free_inodes(const char *path) → int: 1 if there is more than zero free inodes (on file systems without inodes, where f_files = 0, assume they are free).",
+   "hint": "statvfs fills struct statvfs: the block size f_frsize, the number of blocks f_blocks, free f_bfree (total) and f_bavail (available to ordinary users; root's reserve is not counted). Inodes are f_files and f_favail."
+  }
+ ]
+}

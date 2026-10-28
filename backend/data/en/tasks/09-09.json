@@ -1,0 +1,263 @@
+{
+ "book": 9,
+ "chapter": 9,
+ "tasks": [
+  {
+   "id": "s09-01",
+   "title": "First table",
+   "statement": "Create a table tags: id (integer, primary key) and name (text). The result is checked by the table structure.",
+   "hint": "CREATE TABLE name (column type, column type, …);"
+  },
+  {
+   "id": "s09-02",
+   "title": "Column types",
+   "statement": "Create a table items: id INTEGER PRIMARY KEY, title TEXT, price REAL, stock INTEGER.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s09-03",
+   "title": "NOT NULL",
+   "statement": "Create a table users: id INTEGER PRIMARY KEY, email TEXT NOT NULL, nickname TEXT (optional).",
+   "hint": "NOT NULL forbids empty values.",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s09-04",
+   "title": "DEFAULT",
+   "statement": "Create a table tasks: id INTEGER PRIMARY KEY, title TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'new', priority INTEGER DEFAULT 3.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s09-05",
+   "title": "DEFAULT in action",
+   "statement": "Create the table tasks (as in the previous exercise), add a row (title = `'написать отчёт'`) without status and priority, and make sure the default values were filled in.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s09-06",
+   "title": "Text key",
+   "statement": "Create a table countries: code TEXT PRIMARY KEY (for example, 'RU'), name TEXT NOT NULL.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s09-07",
+   "title": "Composite key",
+   "statement": "Create a table wishlist: customer_id INTEGER, product_id INTEGER, PRIMARY KEY (customer_id, product_id). A composite key forbids repeats of the pair.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s09-08",
+   "title": "UNIQUE",
+   "statement": "Create a table accounts: id INTEGER PRIMARY KEY, login TEXT NOT NULL UNIQUE. Then INSERT OR IGNORE two rows with the same login 'anna' — the second will be skipped.",
+   "hint": "OR IGNORE silently skips a row that violates a constraint.",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s09-09",
+   "title": "CHECK",
+   "statement": "Create a table goods: id INTEGER PRIMARY KEY, title TEXT, price INTEGER CHECK (price >= 0). Use INSERT OR IGNORE to insert the rows ('a', 100) and ('b', -5); the second will violate the CHECK.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s09-10",
+   "title": "CHECK with a list",
+   "statement": "Create a table orders2: id INTEGER PRIMARY KEY, status TEXT NOT NULL CHECK (status IN ('new', 'paid', 'shipped')). Use INSERT OR IGNORE to insert the statuses 'paid' and 'lost' — the last one will be rejected.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s09-11",
+   "title": "NOT NULL in action",
+   "statement": "Create a table people: id INTEGER PRIMARY KEY, name TEXT NOT NULL. INSERT OR IGNORE two rows: (`'Анна'`) and (NULL). One will remain.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s09-12",
+   "title": "Composite UNIQUE",
+   "statement": "Create a table slots: room TEXT, hour INTEGER, UNIQUE (room, hour). Use INSERT OR IGNORE to insert ('A', 9), ('A', 10), ('A', 9), ('B', 9) — the repeat of a pair will be rejected.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s09-13",
+   "title": "Foreign key",
+   "statement": "Create a table reviews: id INTEGER PRIMARY KEY, product_id INTEGER NOT NULL REFERENCES products(id), stars INTEGER NOT NULL CHECK (stars BETWEEN 1 AND 5), body TEXT. The result is checked by the table's foreign keys.",
+   "hint": "REFERENCES table(column) declares a foreign key.",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s09-14",
+   "title": "Two foreign keys",
+   "statement": "Create a table favorites: customer_id INTEGER NOT NULL REFERENCES customers(id), product_id INTEGER NOT NULL REFERENCES products(id), PRIMARY KEY (customer_id, product_id).",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s09-15",
+   "title": "ON DELETE CASCADE",
+   "statement": "Create a table comments: id INTEGER PRIMARY KEY, order_id INTEGER NOT NULL REFERENCES orders(id) ON DELETE CASCADE, body TEXT. The on_delete rule of the foreign key is checked.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s09-16",
+   "title": "AUTOINCREMENT",
+   "statement": "Create a table log: id INTEGER PRIMARY KEY AUTOINCREMENT, msg TEXT. Insert three messages 'a','b','c', delete the last one and insert 'd' — AUTOINCREMENT does not reuse the freed number.",
+   "hint": "Number 3 is already used, so 'd' will get 4.",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s09-17",
+   "title": "New column",
+   "statement": "Add a column phone TEXT to the customers table (ALTER TABLE … ADD COLUMN).",
+   "hint": ""
+  },
+  {
+   "id": "s09-18",
+   "title": "Column with DEFAULT",
+   "statement": "Add a column archived INTEGER NOT NULL DEFAULT 0 to products. Existing rows will get 0.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s09-19",
+   "title": "New column and data",
+   "statement": "Add a column note TEXT to orders and fill it for order 1 with the value `'подарок'`.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s09-20",
+   "title": "Rename a table",
+   "statement": "Rename the table products to goods (ALTER TABLE … RENAME TO …). The row count in goods is checked.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s09-21",
+   "title": "Rename a column",
+   "statement": "Rename the column title of the table products to name (RENAME COLUMN).",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s09-22",
+   "title": "Drop a column",
+   "statement": "Drop the column brand from the table products (ALTER TABLE … DROP COLUMN …).",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s09-23",
+   "title": "DROP TABLE",
+   "statement": "Drop the table order_items (DROP TABLE). The list of remaining tables is checked.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s09-24",
+   "title": "IF EXISTS",
+   "statement": "Drop the table temp_report if it exists (DROP TABLE IF EXISTS …), and once more — there must be no error. Then create temp_report(id INTEGER). The result is checked by structure.",
+   "hint": "IF EXISTS makes the command safe to run again.",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s09-25",
+   "title": "IF NOT EXISTS",
+   "statement": "Create a table cache(k TEXT PRIMARY KEY, v TEXT) with CREATE TABLE IF NOT EXISTS — twice in a row, without an error. Then insert one row ('a','1').",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s09-26",
+   "title": "Table from a query",
+   "statement": "Create a table vip_report from a query: id, name, city of the VIP customers (CREATE TABLE … AS SELECT …).",
+   "hint": "Constraints and keys are not copied.",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s09-27",
+   "title": "Summary table",
+   "statement": "Create a table sales_by_status(status, n, revenue) from a query: the number of orders and the total by status (use GROUP BY status).",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s09-28",
+   "title": "Temporary table",
+   "statement": "Create a temporary table top_products (CREATE TEMP TABLE … AS SELECT …) with the three most expensive products: title, price.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s09-29",
+   "title": "Generated column",
+   "statement": "Create a table lines: qty INTEGER, price INTEGER, total INTEGER GENERATED ALWAYS AS (qty * price) STORED. Insert (2, 150) and (3, 40); total is computed by itself.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s09-30",
+   "title": "Type affinity",
+   "statement": "SQLite converts values to the column's type (affinity). Create a table t(a INTEGER), insert '123' (as a string) and 'abc'. Output typeof(a) for both rows in ascending rowid order.",
+   "hint": "'123' becomes a number, and 'abc' stays text.",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s09-31",
+   "title": "Detailed catalog",
+   "statement": "Output the table names and the number of columns in each: sqlite_master JOIN pragma_table_info(name); columns name, cols; ordered by name.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s09-32",
+   "title": "Recreate with a new constraint",
+   "statement": "In SQLite a constraint cannot be added with ALTER — the table is recreated. Create goods_new(id INTEGER PRIMARY KEY, title TEXT NOT NULL, price INTEGER NOT NULL CHECK (price > 0)), copy id, title, price from products into it, drop products and rename goods_new to products.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s09-33",
+   "title": "Split a table",
+   "statement": "In the table flat(order_id, customer, city, product, price) the data is duplicated. Create a table cust(customer, city) without repeats and prod(product, price) without repeats (CREATE TABLE … AS SELECT DISTINCT …).",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s09-34",
+   "title": "Table structure",
+   "statement": "HR database. For the table employees, output the name, type and notnull flag of each column in declaration order: SELECT name, type, \"notnull\" FROM pragma_table_info('employees').",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s09-35",
+   "title": "Table indexes",
+   "statement": "Create a table u(id INTEGER PRIMARY KEY, email TEXT UNIQUE, code TEXT UNIQUE) and output the number of its indexes (pragma_index_list) as n — each UNIQUE creates an index.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s09-36",
+   "title": "School: a new table",
+   "statement": "School database. Create a table teachers(id INTEGER PRIMARY KEY, name TEXT NOT NULL, subject TEXT) and add two teachers: `'Н. Крылова'` (subject `'Математика'`) and `'А. Беляев'` (subject `'Физика'`).",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s09-37",
+   "title": "Movies: genres",
+   "statement": "Movies database. Create a lookup table genres(name TEXT PRIMARY KEY) and fill it with the distinct genres from movies (INSERT … SELECT DISTINCT genre …).",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  }
+ ]
+}

@@ -1,0 +1,320 @@
+{
+ "book": 9,
+ "chapter": 12,
+ "tasks": [
+  {
+   "id": "s12-01",
+   "title": "Customers by city",
+   "statement": "Output the city and the number of customers in it: `city`, `n` (GROUP BY city). Order by city; the NULL city comes first.",
+   "hint": "GROUP BY collects rows into groups, and the aggregate is computed in each group."
+  },
+  {
+   "id": "s12-02",
+   "title": "Orders by status",
+   "statement": "Output `status` and the number of orders `n` in each status; order by status.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s12-03",
+   "title": "Products by category",
+   "statement": "Output `category` and the number of products `n`; order by category.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s12-04",
+   "title": "Sum by category",
+   "statement": "Output `category` and the total stock `stock` as `total_stock`; order by category.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s12-05",
+   "title": "Average price in a category",
+   "statement": "Output `category` and the average price (ROUND to an integer) as `avg_price`; order by category.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s12-06",
+   "title": "Minimum and maximum in a group",
+   "statement": "Output `category`, `min_price` and `max_price` for each category; order by category.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s12-07",
+   "title": "Revenue by customer",
+   "statement": "Output `customer_id` and the total of all their orders `revenue`; order by customer_id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s12-08",
+   "title": "Revenue leaders",
+   "statement": "Output `customer_id` and `revenue` for the three customers with the largest order totals (the totals are distinct); order by revenue descending.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s12-09",
+   "title": "Two grouping columns",
+   "statement": "Output `customer_id`, `status` and the number of orders `n` for each pair; order by customer_id, status.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s12-10",
+   "title": "Grouping by expression",
+   "statement": "Output the order month `strftime('%Y-%m', created)` as `month` and the number of orders `n`; order by month.",
+   "hint": "You can group by a computed expression or its alias.",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s12-11",
+   "title": "Revenue by month",
+   "statement": "Output `month` (YYYY-MM) and the order total `revenue` per month; order by month.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s12-12",
+   "title": "WHERE before grouping",
+   "statement": "Compute the total of paid orders (`status = 'paid'`) per customer: `customer_id`, `revenue`; order by customer_id. WHERE runs before GROUP BY.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s12-13",
+   "title": "HAVING",
+   "statement": "Output the cities with at least two customers: `city`, `n` (`HAVING COUNT(*) >= 2`). Order by city.",
+   "hint": "HAVING filters groups after counting.",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s12-14",
+   "title": "HAVING on a sum",
+   "statement": "Output `customer_id` and `revenue` for customers whose total revenue exceeds 10000; order by customer_id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s12-15",
+   "title": "WHERE and HAVING together",
+   "statement": "Among orders that are not cancelled (`status <> 'cancelled'`), find customers with two or more orders: `customer_id`, `n`; order by customer_id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s12-16",
+   "title": "Duplicates",
+   "statement": "Find brands that occur in several products: `brand` and the number of products `n` (`HAVING COUNT(*) > 1`; ignore the NULL brand); order by brand.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s12-17",
+   "title": "The NULL group",
+   "statement": "How many customers are there in each city, including \"no city\"? NULL forms its own group. Output `city`, `n`; order by n descending, then by city.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s12-18",
+   "title": "Sorting by an aggregate",
+   "statement": "Output `category` and the number of products `n`, the most numerous categories first; on ties, order by category.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s12-19",
+   "title": "COUNT DISTINCT in a group",
+   "statement": "Output `status` and the number of distinct customers in it, `customers_n`; order by status.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s12-20",
+   "title": "Sold by product",
+   "statement": "Output `product_id` and how many units were sold, `sold` (`SUM(qty)`); order by product_id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s12-21",
+   "title": "Revenue by product",
+   "statement": "Output `product_id` and the revenue `SUM(qty * price)` as `revenue`; the most profitable first, on ties by product_id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s12-22",
+   "title": "Grouping with JOIN",
+   "statement": "Output the category name and its revenue: `category`, `revenue` (order_items JOIN products). Order by revenue descending.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s12-23",
+   "title": "Customers and their revenue",
+   "statement": "Output the customer's `name` and the total of their orders `revenue` (JOIN customers, GROUP BY c.id); order by revenue descending, then by name.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s12-24",
+   "title": "With zeros",
+   "statement": "Output `name` and the number of orders `n` for ALL customers, including those with no orders (LEFT JOIN, COUNT over o.id). Order by n descending, then by name.",
+   "hint": "COUNT(o.id) does not count NULL, so customers without orders get 0.",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s12-25",
+   "title": "A list in a group",
+   "statement": "Output `status` and a comma-separated list of order ids `ids` (group_concat), in id order: first a subquery with ORDER BY. Order by status.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s12-26",
+   "title": "Conditional sum in a group",
+   "statement": "Output `customer_id`, `paid_sum` (the total of paid orders) and `all_sum` (the total of all orders) for each customer; order by customer_id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s12-27",
+   "title": "Classes in a group",
+   "statement": "Output the price class `tier` (`'дёшево'` below 1000, otherwise `'дорого'`) and the number of products `n`: group by a CASE expression. Order by tier.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s12-28",
+   "title": "Category share",
+   "statement": "Output `category` and its share of the product count in percent (ROUND to an integer) as `pct`: `100.0 * COUNT(*) / (SELECT COUNT(*) FROM products)`. Order by pct descending, then category.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s12-29",
+   "title": "Most expensive in a category",
+   "statement": "Output the title of the most expensive product for each category: a subquery with MAX(price) by category and a join. Columns `category`, `title`; order by category.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s12-30",
+   "title": "Number in GROUP BY",
+   "statement": "Output `category` and `COUNT(*)` as `n`, grouping and sorting by column numbers (`GROUP BY 1 ORDER BY 1`).",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s12-31",
+   "title": "HR: by department",
+   "statement": "HR database. Output `dept_id`, the number of employees `n` and the average salary (ROUND to an integer) `avg_salary` by department, excluding employees without a department; order by dept_id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s12-32",
+   "title": "HR: payroll by department",
+   "statement": "HR database. Output the department name (JOIN departments) and the payroll `payroll`; order by payroll descending.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s12-33",
+   "title": "HR: large departments",
+   "statement": "HR database. Output the names of departments with 4 or more employees, and their count `n`; order by name.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s12-34",
+   "title": "HR: by grade",
+   "statement": "HR database. Output `grade` and the average salary (ROUND to an integer) `avg_salary`; order by avg_salary descending.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s12-35",
+   "title": "HR: who has how many subordinates",
+   "statement": "HR database. Output `boss_id` and the number of subordinates `n`; only for those who have any; order by n descending, then boss_id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s12-36",
+   "title": "HR: hires by year",
+   "statement": "HR database. Output the hiring year `strftime('%Y', hired)` as `year` and the number of hires `n`; order by year.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s12-37",
+   "title": "School: a student's average score",
+   "statement": "School database. Output `student_id` and the average score (ROUND to 2 decimals) `avg_score` over the records of 2024; order by avg_score descending, then student_id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s12-38",
+   "title": "School: average by course",
+   "statement": "School database. Output the course `title` and the average score for 2024 (ROUND to 2 decimals) as `avg_score`; only courses with grades; order by avg_score descending, then title.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s12-39",
+   "title": "School: top students",
+   "statement": "School database. Output the `name` of students who have two or more top marks (fives) in 2024 (HAVING), and the number of fives `fives`; order by name.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s12-40",
+   "title": "School: records by year",
+   "statement": "School database. Output `year` and the number of records `n`; order by year.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s12-41",
+   "title": "School: classes",
+   "statement": "School database. Output `class` and the number of students `n`; order by class.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s12-42",
+   "title": "Movies: by genre",
+   "statement": "Movie database. Output `genre`, the number of movies `n` and the average rating (ROUND to 2 decimals) `avg_rating` by genre; order by n descending, then genre.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s12-43",
+   "title": "Movies: directors",
+   "statement": "Movie database. Output the director's `name` and the number of their movies `n`; order by n descending, then name.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s12-44",
+   "title": "Movies: decades",
+   "statement": "Movie database. Output the decade `year / 10 * 10` as `decade` and the number of movies `n`; order by decade.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s12-45",
+   "title": "Movies: countries",
+   "statement": "Movie database. Output the director's country and the total budget of the movies `total_budget` (NULL budgets are not counted); order by total_budget descending.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  }
+ ]
+}

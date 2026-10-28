@@ -1,0 +1,48 @@
+{
+ "book": 7,
+ "chapter": 1,
+ "tasks": [
+  {
+   "id": "has-duplicates",
+   "title": "Duplicates in O(n)",
+   "statement": "Write a function has_duplicates(nums) that returns True if the list contains repeated numbers. The solution must run in O(n) or O(n log n): the checker passes lists of 300,000 elements, and with nested O(n²) loops you will not fit in the time limit.",
+   "hint": "Keep a dictionary or set of numbers seen so far: the check \"seen before\" is O(1)."
+  },
+  {
+   "id": "fast-power",
+   "title": "Fast exponentiation",
+   "statement": "Write a function fast_power(base, exp) that returns base to the power exp (exp is an integer, 0 or greater), using only the multiplication operator *. The algorithm must make O(log exp) multiplications: the checker counts how many times you multiplied and allows at most 30 for exp = 1000. For exp = 0 the result is 1.",
+   "hint": "Use the binary representation of the exponent: at each step square base, and if the current bit is one, multiply it into the result (or use recursion: x^n = (x^(n/2))² with one extra factor for odd n)."
+  },
+  {
+   "id": "count-pairs-hash",
+   "title": "Pairs with a given sum",
+   "statement": "Write a function count_pairs(nums, target) that returns how many index pairs i < j satisfy nums[i] + nums[j] == target. Numbers may repeat. A linear algorithm is required: the checker passes 100,000 numbers.",
+   "hint": "Go from left to right and keep a dictionary of how many times each number has been seen; for x add count[target - x]."
+  },
+  {
+   "id": "max-subarray-kadane",
+   "title": "Best subarray",
+   "statement": "Write a function max_subarray(nums) that returns the largest sum of a contiguous non-empty subarray of the list. The list is not empty. The solution must make a single pass (Kadane's algorithm): the checker passes a million numbers.",
+   "hint": "current = max(x, current + x); best = max(best, current): cut the segment off when the tail only gets in the way."
+  },
+  {
+   "id": "power-of-two",
+   "title": "Power of two in O(1)",
+   "statement": "Write a function is_power_of_two(n) that returns True if n is a power of two (1, 2, 4, 8, ...). For n <= 0 return False. No loops: a single bitwise check is enough.",
+   "hint": "A power of two has exactly one set bit: n & (n - 1) == 0."
+  },
+  {
+   "id": "fib-linear",
+   "title": "Fibonacci without the exponential",
+   "statement": "Write a function fib(n) that returns the n-th Fibonacci number (fib(0) = 0, fib(1) = 1). Naive recursion makes exponentially many calls, and the checker asks for fib(300): you need a linear algorithm (a loop or memoization).",
+   "hint": "Keep the last two values: a, b = b, a + b, for n steps."
+  },
+  {
+   "id": "binary-search-steps",
+   "title": "How many steps binary search takes",
+   "statement": "Write a function worst_case_steps(n) that returns how many comparisons binary search needs in the worst case on a sorted list of n elements (n >= 1). Halve n (discarding the remainder) until 0 is left, and count the steps: for 1 it is 1, for 7 it is 3, for 8 it is 4.",
+   "hint": "steps = 0; while n > 0: n //= 2; steps += 1. This is exactly the length of the binary representation of the number."
+  }
+ ]
+}

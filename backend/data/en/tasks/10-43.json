@@ -1,0 +1,66 @@
+{
+ "book": 10,
+ "chapter": 43,
+ "tasks": [
+  {
+   "id": "r43-encode-messages",
+   "title": "Postgres client messages",
+   "statement": "Write startup_message(params: &[(&str, &str)]) -> Vec<u8> (an i32 length including itself; protocol version 196608 (3.0) as an i32; then pairs 'name\\0value\\0'; and one more zero byte at the end), query_message(sql: &str) -> Vec<u8> ('Q', an i32 length = 4 + the bytes of sql + 1, the text, a zero byte), terminate_message() -> Vec<u8> ('X', length 4), and password_message(pw: &str) -> Vec<u8> ('p', length, the password and a zero byte). All numbers are most significant byte first.",
+   "hint": "A common helper: tag + (body length + 4) via u32::to_be_bytes + body."
+  },
+  {
+   "id": "r43-decode-messages",
+   "title": "Postgres server messages",
+   "statement": "Write read_message(buf: &[u8]) -> Option<(u8, Vec<u8>, usize)> (tag, content, how many bytes are used; None if the message is incomplete), data_row(payload: &[u8]) -> Result<Vec<Option<String>>, String> (the number of columns as i16, then for each a length i32 and the bytes; -1 is NULL; the error \"truncated\" if there is not enough data) and error_fields(payload: &[u8]) -> BTreeMap<char, String> (ErrorResponse: pairs 'tag byte, zero-terminated string', ended by a zero byte).",
+   "hint": "Always check bounds through get(..): incomplete data must not cause a panic."
+  },
+  {
+   "id": "r43-from-column",
+   "title": "Mapping columns to types",
+   "statement": "The trait FromColumn with the method from_col(c: Option<&str>) -> Result<Self, String> is given. Implement it for i32 (NULL -> Err(\"NULL\"), a non-number -> Err(\"bad int: TEXT\")), f64 (likewise \"bad float: TEXT\"), bool ('t'/'f'; anything else is Err(\"bad bool: TEXT\")), String, and Option<T> (for any T: FromColumn; None -> Ok(None)). Then write product_from_row(row: &[Option<&str>]) -> Result<Product, String>; column errors are formatted as \"column N: error\" (N counts from zero). Here TEXT stands for the offending input text and error for the error message.",
+   "hint": "A generic helper function col::<T>(row, i) adds the prefix \"column N: \" to any error."
+  },
+  {
+   "id": "r43-render-query",
+   "title": "Parameter substitution for a log",
+   "statement": "For a query log, write quote_literal(s: &str) -> String (quotes around it, inner ' doubled) and render_query(sql: &str, params: &[Option<&str>]) -> String: every $N (N is a number of one or more digits, numbering from one) is replaced with NULL for None and with quote_literal for Some; a $N with a number outside the list and a lone '$' are left as they are. Make no replacements inside string literals in sql (text between single quotes is copied unchanged; '' inside is an escaped quote).",
+   "hint": "Walk the characters and remember whether you are inside a string literal; read the number after '$' to the end of the digits so that $10 does not turn into $1 and '0'."
+  },
+  {
+   "id": "r43-select-builder",
+   "title": "SELECT builder",
+   "statement": "Implement Select: from(table), filter(mut self, col, op, value) (adds \"col op $N\"), filter_in(mut self, col, values: &[&str]) (\"col IN ($N, $N+1, ...)\"; an empty list gives the condition \"FALSE\"), order_by(mut self, col, desc: bool), limit(mut self, n), offset(mut self, n), and build(&self) -> (String, Vec<String>): 'SELECT * FROM t' + ' WHERE a AND b' + ' ORDER BY col ASC|DESC' + ' LIMIT n' + ' OFFSET n'; the parameters are in numbering order.",
+   "hint": "The parameter number = the length of the params list after adding; filter_in adds several at once."
+  },
+  {
+   "id": "r43-pool-timeout",
+   "title": "Connection pool with a timeout",
+   "statement": "Implement Pool: new(n: u32) -> Arc<Pool> (connections 1...n), get(self: &Arc<Self>, timeout: Duration) -> Option<PooledConn> (waits for a free connection, but no longer than timeout; None when it expires), and Drop for PooledConn, which returns the connection and wakes a waiter. The method idle(&self) -> usize tells how many connections are free.",
+   "hint": "Condvar::wait_timeout(guard, remaining) returns the guard; recompute the remaining time in a loop, because spurious wakeups are possible."
+  },
+  {
+   "id": "r43-tx-savepoint",
+   "title": "Transactions and savepoints",
+   "statement": "Conn (a command log) is given. Implement Tx<'a>: begin(conn) -> 'BEGIN'; commit(self) -> 'COMMIT'; rollback(self) -> 'ROLLBACK'; Drop without commit/rollback -> 'ROLLBACK'. The method savepoint(&mut self, name: &str) -> Savepoint<'_, 'a> sends 'SAVEPOINT name'; Savepoint has a method release(self) that sends 'RELEASE SAVEPOINT name', and Drop without release sends 'ROLLBACK TO SAVEPOINT name'.",
+   "hint": "A done flag on both guard objects; commit/rollback/release take self by value and set done so that Drop sends nothing."
+  },
+  {
+   "id": "r43-migrations",
+   "title": "Running migrations",
+   "statement": "Write run_migrations(applied: &mut Vec<u32>, migrations: &[Migration], exec: &mut dyn FnMut(&str) -> Result<(), String>) -> Result<Vec<u32>, String>: migrations are sorted by version; if two have the same version, return Err(\"duplicate version N\") before running anything; already applied ones (present in applied) are skipped; the rest run one at a time through exec(sql); after success the version is added to applied and to the result; on error, stop and return Err(\"migration N failed: TEXT\"), and the ones already run stay in applied. The result is the list of new versions in order. Here TEXT stands for the error text returned by exec.",
+   "hint": "First check for duplicates on the sorted list (windows(2)); then a loop with an early exit on error."
+  },
+  {
+   "id": "r43-db-url",
+   "title": "Connection address",
+   "statement": "Write parse_url(url: &str) -> Result<DbUrl, String> for 'postgres://[user[:password]@]host[:port]/db[?k=v&k2=v2]' (the scheme 'postgresql://' is also allowed): the password and user are decoded from percent-encoding; the default port is 5432; an IPv6 host in square brackets ('[::1]') is returned without the brackets; query parameters go into a BTreeMap. Errors: \"bad scheme\", \"missing host\", \"missing database\", \"bad port\".",
+   "hint": "Parse from the end to the start: first the query, then the credentials (rsplit_once('@'): the password may contain '@' in encoded form), then the host and the database."
+  },
+  {
+   "id": "r43-aggregate",
+   "title": "Aggregating result rows",
+   "statement": "Write aggregate(rows: &[Vec<Option<String>>], key: usize, val: usize) -> BTreeMap<String, (i64, usize)>: for each row the key is column key (rows with NULL in the key are skipped), and the value is column val as i64 (NULL and non-numbers are skipped, but the row still counts as an existing group). The result: key -> (sum of values, number of values counted).",
+   "hint": "entry(key).or_insert((0, 0)) creates the group even when the value could not be parsed; get(i) protects against short rows."
+  }
+ ]
+}

@@ -1,0 +1,191 @@
+{
+ "book": 9,
+ "chapter": 26,
+ "tasks": [
+  {
+   "id": "d10-month-totals",
+   "title": "Revenue by month",
+   "statement": "Output revenue (the sum of amount) by month: columns month (format YYYY-MM) and total, ordered by month.",
+   "hint": "substr(day, 1, 7) gives \"YYYY-MM\"; GROUP BY this expression.",
+   "starter": "-- revenue by month\nSELECT\n"
+  },
+  {
+   "id": "d10-star-join",
+   "title": "Joining the star",
+   "statement": "Output revenue for each combination of product category and client city: columns category, city, total; ordered by category, then by city.",
+   "hint": "Two INNER JOINs: to dim_product and to dim_client; group by two dimension columns.",
+   "starter": "-- facts + dimensions\nSELECT\n"
+  },
+  {
+   "id": "d10-category-share",
+   "title": "Category share",
+   "statement": "For each category output its share of total revenue in percent, rounded to an integer: columns category, pct; by share descending, ties by name.",
+   "hint": "Take the grand total with a scalar subquery, multiply by 100.0.",
+   "starter": "-- category shares\nSELECT\n"
+  },
+  {
+   "id": "d10-running-total",
+   "title": "Running revenue",
+   "statement": "Output, by day, the revenue for the day and the running total: columns day, daily, running; ordered by day. Use a window function.",
+   "hint": "First roll the facts up to days (a subquery), then SUM(...) OVER (ORDER BY day).",
+   "starter": "-- running total by day\nSELECT\n"
+  },
+  {
+   "id": "d10-day-diff",
+   "title": "Difference from the previous day",
+   "statement": "For each day that has a previous day with sales, output the change in revenue: columns day, delta (the day's revenue minus the previous day's revenue); ordered by day.",
+   "hint": "LAG(daily) OVER (ORDER BY day) gives the previous value; for the first day it is NULL, so remove that row.",
+   "starter": "-- LAG by day\nSELECT\n"
+  },
+  {
+   "id": "d10-top-per-category",
+   "title": "Best product in a category",
+   "statement": "For each category output the product with the highest revenue: columns category, name, total; ordered by category.",
+   "hint": "ROW_NUMBER() OVER (PARTITION BY category ORDER BY SUM(amount) DESC) on top of a grouping by product.",
+   "starter": "-- rank within category\nSELECT\n"
+  },
+  {
+   "id": "d10-rollup-emulation",
+   "title": "Totals like ROLLUP",
+   "statement": "SQLite has no ROLLUP. Output revenue by category and the grand total in a single query: columns category, total; the last row has category = `ИТОГО`. Order: categories alphabetically, the total last.",
+   "hint": "UNION ALL of the grouping and the grand total; add a helper column for ordering.",
+   "starter": "-- totals by category and overall\nSELECT\n"
+  },
+  {
+   "id": "d10-cohort",
+   "title": "Cohorts by month of first purchase",
+   "statement": "For each month of first purchase (cohort, format YYYY-MM) output the number of clients (clients) and how many of them also bought in the next calendar month (returned). Columns cohort, clients, returned; ordered by cohort. Months in the data are consecutive (Jan, Feb, Mar).",
+   "hint": "First the month of each client's first purchase, then EXISTS: does the client have a purchase in the month \"cohort + 1 month\" (strftime(..., '+1 month')).",
+   "starter": "-- cohorts\nSELECT\n"
+  },
+  {
+   "id": "d10-funnel",
+   "title": "Funnel",
+   "statement": "The table events(user_id, step, ts): steps 'view', 'cart', 'pay'. Output the funnel: the number of distinct users at each step, columns step, users; in the order view, cart, pay.",
+   "hint": "COUNT(DISTINCT user_id) by step; the order is set by a CASE in ORDER BY.",
+   "starter": "-- funnel\nSELECT\n"
+  },
+  {
+   "id": "d10-scd2-asof",
+   "title": "Dimension version on a date",
+   "statement": "For each order output the client's city on the day of the order (the version where valid_from <= day < valid_to, and valid_to = NULL means \"current\"): columns id, city; ordered by id.",
+   "hint": "The period condition goes in ON: valid_from <= day and (valid_to IS NULL OR day < valid_to).",
+   "starter": "-- city on the order date\nSELECT\n"
+  },
+  {
+   "id": "d10-scd2-update",
+   "title": "Close a version and add a new one",
+   "statement": "Client 7 moved to Moscow on 2026-04-01. Close the current version (valid_to = '2026-04-01') and add a new one with city = `Москва`, valid_from = '2026-04-01', valid_to = NULL. Do not touch client 8. The result is checked on the table.",
+   "hint": "First UPDATE only the open version of client 7 (valid_to IS NULL), then INSERT.",
+   "starter": "-- SCD2: close and add\n"
+  },
+  {
+   "id": "d10-mv",
+   "title": "Materialized table",
+   "statement": "Create the table mv_daily(day, total), revenue by day, with CREATE TABLE … AS SELECT. The result is checked on its contents.",
+   "hint": "CREATE TABLE mv_daily AS SELECT day, SUM(amount) AS total … GROUP BY day.",
+   "starter": "-- pre-aggregate by day\nCREATE TABLE mv_daily AS\n"
+  },
+  {
+   "id": "d10-mv-refresh",
+   "title": "Topping up a pre-aggregate",
+   "statement": "The table mv holds sums by day, but day d2 has grown (its sum in fact is 10), and day d3 has not arrived yet. With a single INSERT … ON CONFLICT refresh mv entirely from fact (insert new days, update total for existing ones). The result is checked on mv.",
+   "hint": "INSERT … SELECT … GROUP BY day … ON CONFLICT (day) DO UPDATE SET total = excluded.total; WHERE true is needed so ON CONFLICT parses.",
+   "starter": "-- recompute the pre-aggregate\nINSERT INTO mv\n"
+  },
+  {
+   "id": "d10-dedupe",
+   "title": "Duplicates in a load",
+   "statement": "In stage, events by id arrive many times with different version. Output one latest (highest version) record per id: columns id, version, payload; ordered by id.",
+   "hint": "ROW_NUMBER() OVER (PARTITION BY id ORDER BY version DESC) and filter rn = 1.",
+   "starter": "-- latest version per id\nSELECT\n"
+  },
+  {
+   "id": "d10-idempotent-load",
+   "title": "Idempotent load",
+   "statement": "Load stage into sales so that the run can be repeated: insert new ids, and for existing ones update day and amount. The result is checked on sales.",
+   "hint": "ON CONFLICT (id) DO UPDATE SET … = excluded.…",
+   "starter": "-- upsert from stage\nINSERT INTO sales\n"
+  },
+  {
+   "id": "d10-quality",
+   "title": "Data quality checks",
+   "statement": "Bad rows got into fact_sales. Output the ids of rows where there is no product in dim_product OR qty <= 0 OR amount < 0. Column id, ascending.",
+   "hint": "LEFT JOIN to dim_product and check p.id IS NULL; plus conditions on qty and amount.",
+   "starter": "-- bad rows\nSELECT\n"
+  },
+  {
+   "id": "d10-top-clients",
+   "title": "Best clients by city",
+   "statement": "For each city output the client with the highest revenue: columns city, name, total; ordered by city.",
+   "hint": "RANK() OVER (PARTITION BY city ORDER BY SUM(amount) DESC) on top of a grouping by client.",
+   "starter": "-- best client in a city\nSELECT\n"
+  },
+  {
+   "id": "d10-rollup-py",
+   "title": "ROLLUP by hand",
+   "statement": "Rows are lists [region, city, amount]. Write rollup_rows(rows): a list of rows [region, city, amount] in this order: for each region (alphabetically) its cities (alphabetically), then a subtotal [region, None, region's sum]; at the end the grand total [None, None, sum of all]. Empty input gives [[None, None, 0]].",
+   "hint": "First a dictionary \"region → city → amount\", then walk it in sorted order."
+  },
+  {
+   "id": "d10-rle",
+   "title": "Run-length compression",
+   "statement": "A column of values is stored with run-length encoding. Write rle_encode(values): a list of pairs [value, run length] of consecutive equal values; an empty list gives an empty list.",
+   "hint": "Watch the last pair: same value means increase the length, otherwise start a new pair."
+  },
+  {
+   "id": "d10-rows-to-cols",
+   "title": "From rows to columns",
+   "statement": "A table is a list of row dictionaries, columns is the column order. Write rows_to_cols(rows, columns): a dictionary \"column → list of values in row order\" (a missing value is None). For an empty list of rows, empty lists.",
+   "hint": "For each column, a list of r.get(c) values over the rows."
+  },
+  {
+   "id": "d10-column-scan",
+   "title": "How much we read",
+   "statement": "A table has rows rows and width bytes per row in total; a query reads columns of total size need bytes per row. Write scan_cost(rows, width, need): a pair [bytes for row storage, bytes for columnar storage] (in columnar storage without compression only the needed columns are read).",
+   "hint": "Row storage reads the whole row, columnar storage reads only the needed columns."
+  },
+  {
+   "id": "d10-etl-clean",
+   "title": "Cleaning before a load",
+   "statement": "Rows are lists [id, name, amount-as-string]. Write clean_rows(rows): keep rows whose amount is an integer (a minus sign is not allowed); the name is stripped of surrounding spaces and lowercased, the amount becomes int; for repeated ids keep only the first row. The result is a list of [id, name, amount] in the original order.",
+   "hint": "Check with str.isdigit(); a set of ids already seen."
+  },
+  {
+   "id": "d10-partition-replace",
+   "title": "Load by partition replacement",
+   "statement": "The warehouse is a dictionary \"day → list of amounts\". A new batch is a list of pairs [day, amount]. Loading by partition replacement: for each day present in the batch, the old data of that day is deleted and replaced by the batch's amounts (in batch order). Write load_partitions(store, batch): a new dictionary; do not modify the original. Repeating the same batch gives the same result.",
+   "hint": "Build the new partitions from the batch and update a copy of the warehouse with them."
+  },
+  {
+   "id": "d10-cdc-apply",
+   "title": "Applying a change stream",
+   "statement": "Events are lists [number, operation, key, value], the operation is 'put' or 'del'. Apply them in ascending number order (even if they arrived out of order); an event with an already seen number is skipped (redelivery). Write apply_changes(events): the resulting dictionary \"key → value\".",
+   "hint": "Sort by number, keep a set of seen numbers; put writes, del removes the key."
+  },
+  {
+   "id": "d10-scd2-py",
+   "title": "Dimension versions",
+   "statement": "A client's history is a list of versions [city, from, to] (to = None for the current one), the changes are a list [date, city] in ascending date order. Write scd2_apply(history, changes): the new history. For each change with a city different from the current version's, the current one is closed with this date and a new [city, date, None] is added; a change with the same city is ignored. Do not modify the original list. Dates are strings YYYY-MM-DD.",
+   "hint": "Copy the history; close \"to\" of the current version, then add a new one; skip an identical city."
+  },
+  {
+   "id": "d10-funnel-py",
+   "title": "Conversion funnel",
+   "statement": "Events are lists [user, step]. steps is the order of funnel steps. A user counts at step k only if they passed all steps up to and including k (in any order of events). Write funnel(events, steps): the list of user counts at each step.",
+   "hint": "A set of steps for each user; at step k it must contain steps[:k+1]."
+  },
+  {
+   "id": "d10-cohort-py",
+   "title": "Cohort retention",
+   "statement": "Purchases are lists [client, month], the month is an integer 1, 2, 3… A client's cohort is their first month. Write cohort_retention(purchases): a dictionary \"cohort (as a string) → list [clients in the cohort, of them those who also bought in the next month]\".",
+   "hint": "A set of months for each client; the cohort is the minimum; retention means minimum + 1 is present."
+  },
+  {
+   "id": "d10-pick-store",
+   "title": "Where to put the load",
+   "statement": "Write pick_store(qps, rows_per_query, point_lookup): 'OLTP' if there are many queries (qps >= 100) and they are pinpoint (point_lookup is True) and read at most 100 rows; 'OLAP' if there are few queries (qps < 100) and each reads at least 100000 rows; otherwise 'reduce' (rethink the load).",
+   "hint": "Two conditions and a default branch."
+  }
+ ]
+}

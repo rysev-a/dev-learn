@@ -1,0 +1,66 @@
+{
+ "book": 10,
+ "chapter": 38,
+ "tasks": [
+  {
+   "id": "r38-binary-search",
+   "title": "Binary search with a step counter",
+   "statement": "Write binary_search(v: &[i32], x: i32) -> (Option<usize>, u32): the index of the value in a sorted slice (any matching one if there are repeats) and the number of comparisons performed. The check feeds in a million elements and requires no more than 21 steps.",
+   "hint": "Compare v[mid] with x and move the lo / hi bounds; count every loop iteration."
+  },
+  {
+   "id": "r38-merge-sort",
+   "title": "Merge sort",
+   "statement": "Write merge_sort(v: &[i64]) -> Vec<i64>: a stable merge sort in O(n log n). The check feeds in 300,000 numbers.",
+   "hint": "split_at divides the slice into two parts; the merge uses two indices; recurse down to length 1."
+  },
+  {
+   "id": "r38-kth-largest",
+   "title": "The k-th largest through a heap",
+   "statement": "Write kth_largest(v: &[i32], k: usize) -> Option<i32>: the k-th largest element (k = 1 is the maximum; repeats count separately); None if k = 0 or k is greater than the length. Memory O(k): the check feeds in 2 million numbers.",
+   "hint": "A heap of k elements wrapped in Reverse: after all the elements have been seen, the top is the k-th largest."
+  },
+  {
+   "id": "r38-grid-bfs",
+   "title": "The shortest path in a maze",
+   "statement": "Write shortest_path(grid: &[&str], start: (usize, usize), goal: (usize, usize)) -> Option<usize>: the number of steps over cells (up, down, left, right) from start to goal; '#' is a wall, '.' is free. If there is no path or start/goal are walls, return None. The check feeds in a 1000×1000 field.",
+   "hint": "BFS over cells: dist is a table of distances, usize::MAX means \"not visited\"; compute neighbors carefully so you don't subtract from zero."
+  },
+  {
+   "id": "r38-dijkstra",
+   "title": "Dijkstra on a large graph",
+   "statement": "Write dijkstra(n: usize, edges: &[(usize, usize, u64)], s: usize) -> Vec<Option<u64>>: directed weighted edges (from, to, weight); distances from s (None means unreachable). The check feeds in 100,000 vertices and 500,000 edges.",
+   "hint": "An adjacency list plus BinaryHeap<Reverse<(u64, usize)>>; skip stale entries on extraction."
+  },
+  {
+   "id": "r38-lcs",
+   "title": "LCS on long strings",
+   "statement": "Write lcs(a: &str, b: &str) -> usize: the length of the longest common subsequence (by characters). The check feeds in two strings of 4000 characters each, so a full-size table is not needed.",
+   "hint": "Two table rows (prev, cur); turn the strings into Vec<char> so you can index characters."
+  },
+  {
+   "id": "r38-components",
+   "title": "Connected components",
+   "statement": "Write count_components(n: usize, edges: &[(usize, usize)]) -> usize: the number of connected components of an undirected graph (isolated vertices are separate components). The check: a million vertices and a million edges.",
+   "hint": "Union-Find with path compression (iterative, so the stack does not overflow on long chains)."
+  },
+  {
+   "id": "r38-kruskal",
+   "title": "Minimum spanning tree",
+   "statement": "Write mst_weight(n: usize, edges: &[(usize, usize, u64)]) -> Option<u64>: the total weight of the minimum spanning tree (Kruskal) or None if the graph is disconnected. For n = 0 or 1 the weight is 0.",
+   "hint": "Sort the edges by weight and add the ones that join different components; the spanning tree has exactly n − 1 edges."
+  },
+  {
+   "id": "r38-topo",
+   "title": "Topological sort",
+   "statement": "Write topo_order(n: usize, edges: &[(usize, usize)]) -> Option<Vec<usize>>: an order of the vertices 0..n such that for every edge (a, b) vertex a comes before b; from the available ones always take the vertex with the smallest number. If there is a cycle, return None.",
+   "hint": "Kahn's algorithm: in-degrees plus a heap of ready vertices (smallest number first)."
+  },
+  {
+   "id": "r38-safe-arith",
+   "title": "Careful arithmetic",
+   "statement": "Write safe_factorial(n: u32) -> Option<u64> (None on u64 overflow), mean_u8(v: &[u8]) -> Option<u8> (the average rounded down, without overflow; None for an empty slice) and distance(a: usize, b: usize) -> usize (|a − b| without a panic).",
+   "hint": "checked_mul returns None on overflow, and the ? operator aborts the function; accumulate the u8 sum in a wider type."
+  }
+ ]
+}

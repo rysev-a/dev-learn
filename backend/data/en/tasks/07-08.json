@@ -1,0 +1,126 @@
+{
+ "book": 7,
+ "chapter": 8,
+ "tasks": [
+  {
+   "id": "str-find-first",
+   "title": "First occurrence: naive search",
+   "statement": "Write a function find_first(text, pat): the index of the first occurrence of the pattern pat in the string text, or -1 if there is none. An empty pattern occurs at position 0. Solve it with two nested loops: the shift and the character-by-character comparison, without find, index and in.",
+   "hint": "For each shift i, compare text[i + j] and pat[j] while the characters are equal; if you reach the pattern length, you have found it."
+  },
+  {
+   "id": "str-common-prefix",
+   "title": "Common beginning of words",
+   "statement": "Write a function common_prefix(words): the longest common beginning of all words in the list. For an empty list, or if there is no common beginning, return an empty string.",
+   "hint": "Take the first word as the pattern and shorten the length of the common beginning with each following word."
+  },
+  {
+   "id": "str-count-overlap",
+   "title": "How many times it occurs, including overlaps",
+   "statement": "Write a function count_overlapping(text, pat): the number of occurrences of the pattern pat (it is non-empty) in text, where occurrences may overlap: in «aaaa» the pattern «aa» occurs three times.",
+   "hint": "After each occurrence found, move forward by just one position, not by the pattern length."
+  },
+  {
+   "id": "str-prefix-function",
+   "title": "Prefix function",
+   "statement": "Write a function prefix_function(s): a list p of the same length, where p[i] is the length of the longest proper prefix of the substring s[0..i] that equals its suffix. For «abacaba» the answer is [0, 0, 1, 0, 1, 2, 3]. The time is linear.",
+   "hint": "Keep k, the current match length; on a mismatch, roll back: k = p[k - 1]."
+  },
+  {
+   "id": "str-longest-border",
+   "title": "Longest border",
+   "statement": "A border of a string is a proper prefix that equals a suffix. Write a function longest_border(s): the longest border as a string (empty if there are no borders). For «abacaba» it is «aba».",
+   "hint": "The last value of the prefix function is the length of the longest border."
+  },
+  {
+   "id": "str-min-period",
+   "title": "Smallest period",
+   "statement": "Write a function min_period(s): the smallest length p such that the whole string consists of repetitions of its first p characters (p divides the length). If there is no such p smaller than the length, the answer is the length of the string; for an empty string it is 0. For example, for «abcabcabc» the answer is 3, and for «abcab» it is 5.",
+   "hint": "The candidate period is the length minus the last prefix function value; check that it divides the length."
+  },
+  {
+   "id": "str-kmp-search",
+   "title": "Knuth–Morris–Pratt search",
+   "statement": "Write a function find_all(text, pat): a list of the starting positions of all occurrences of the pattern in the text (with overlaps), in increasing order. An empty pattern occurs at every position from 0 to len(text). The time is on the order of n + m: the check feeds in a text of a million characters and a pattern of three hundred thousand. The following are forbidden: find, index, count, startswith, split, replace, in and re.",
+   "hint": "Build the prefix function of the pattern, then walk along the text: the text pointer never goes back, and k rolls back along the table."
+  },
+  {
+   "id": "str-prefix-occurrences",
+   "title": "How many times each prefix occurs",
+   "statement": "Write a function prefix_occurrences(s): a list ans, where ans[l - 1] is how many times the prefix of length l occurs in s as a substring (with overlaps). For «abab» the answer is [2, 2, 1, 1]. The time is linear.",
+   "hint": "Each prefix function value is an occurrence of a prefix of that length; then push the counters along the chain p[l - 1]."
+  },
+  {
+   "id": "str-is-rotation",
+   "title": "Cyclic shift",
+   "statement": "Write a function is_rotation(a, b): whether b can be obtained from a by a cyclic shift. The time is linear: the check feeds in strings of five hundred thousand characters. The following are forbidden: slices, find, index, count, startswith, split, replace, in and re.",
+   "hint": "b is a shift of a if b occurs in the concatenation a + a; search for it with the prefix function, without creating extra copies."
+  },
+  {
+   "id": "str-shortest-palindrome",
+   "title": "Shortest palindrome by prepending",
+   "statement": "Write a function shortest_palindrome(s): prepend to s on the left the minimum number of characters so that the result is a palindrome, and return it. For «abcd» the answer is «dcbabcd». The time is linear: the check feeds in a string of four hundred thousand characters. The following are forbidden: find, index, count, startswith, split, replace, in and re.",
+   "hint": "Find the longest palindromic prefix: the prefix function of s + separator + reversed s."
+  },
+  {
+   "id": "str-z-function",
+   "title": "Z-function",
+   "statement": "Write a function z_function(s): a list z, where z[i] is the length of the longest common beginning of the string s and its suffix starting at position i. We take z[0] to be 0. For «aabxaab» the answer is [0, 1, 0, 0, 3, 1, 0]. The time is linear.",
+   "hint": "Keep the Z-block [l, r): inside it start with min(r − i, z[i − l]), then extend character by character."
+  },
+  {
+   "id": "str-z-search",
+   "title": "Search with the Z-function",
+   "statement": "Write a function z_count(text, pat): the number of occurrences of a non-empty pattern in the text (with overlaps), using the Z-function of the concatenation pat + separator + text. The time is linear: the check feeds in a text of a million characters. The following are forbidden: find, index, count, startswith, split, replace, in and re.",
+   "hint": "z[i] == len(pat) at a position i > len(pat) means an occurrence; the separator keeps z from growing beyond the pattern length."
+  },
+  {
+   "id": "str-hash-substring",
+   "title": "Substring hash in constant time",
+   "statement": "Write a class SubHash: the constructor SubHash(s) computes the prefix hashes; the method get(l, r) returns the hash of the substring s[l:r] in O(1), and the method same(l1, l2, length) returns True if the substrings s[l1:l1+length] and s[l2:l2+length] are equal (compared by hashes, without slices). Use a large modulus, for example 2^61 − 1. The check: a string of nine hundred thousand characters and two hundred thousand queries. The following are forbidden: slices, find, index, count, startswith, split, replace, in and re.",
+   "hint": "H[i + 1] = (H[i] · B + character code) mod M; the hash of [l, r) = H[r] − H[l] · B^(r − l) mod M."
+  },
+  {
+   "id": "str-rabin-karp",
+   "title": "Rabin–Karp algorithm",
+   "statement": "Write a function rabin_karp(text, pat): the index of the first occurrence of pat in text, or -1; for an empty pattern it is 0. Compute the pattern hash and a rolling window hash (a large modulus, for example 2^61 − 1), and when the hashes are equal, compare the strings. The check: a text of a million characters and a pattern of three hundred thousand. The following are forbidden: slices, find, index, count, startswith, split, replace, in and re.",
+   "hint": "The window: ht = ((ht − code of the departed character · B^(m−1)) · B + code of the new one) mod M; do not forget to take the remainder after the subtraction."
+  },
+  {
+   "id": "str-trie",
+   "title": "Prefix tree",
+   "statement": "Write a class Trie with the methods insert(word), contains(word) → bool and count_prefix(prefix) → how many distinct inserted words start with prefix (an empty prefix means all words). Inserting a word again changes nothing. The check: a hundred thousand words and a hundred thousand queries, so scanning a list will not be fast enough.",
+   "hint": "In each node store a dictionary of children, an end-of-word flag and how many words pass through the node."
+  },
+  {
+   "id": "str-autocomplete",
+   "title": "Autocomplete",
+   "statement": "Write a function autocomplete(words, prefix, k): the first k words (without repeats) from the list words that start with prefix, in alphabetical order. If there are fewer than k such words, return as many as there are.",
+   "hint": "Descend into the trie along the prefix and traverse the subtree, visiting children in alphabetical order, until you collect k words."
+  },
+  {
+   "id": "str-edit-distance",
+   "title": "Levenshtein distance",
+   "statement": "Write a function edit_distance(a, b): the minimum number of insertions, deletions and substitutions of a character that turn a into b. For «kitten» and «sitting» the answer is 3. The time is on the order of len(a) · len(b).",
+   "hint": "d[i][j] = d[i − 1][j − 1] if the characters are equal; otherwise 1 + the minimum of the three neighbors. Two table rows are enough."
+  },
+  {
+   "id": "str-one-edit",
+   "title": "One edit",
+   "statement": "Write a function one_edit_away(a, b): True if a can be turned into b by at most one insertion, deletion or substitution of a character (equal strings also give True). The time is linear, without a table.",
+   "hint": "Find the first position where the strings differ and check the remaining tails for the three length cases."
+  },
+  {
+   "id": "str-lcs",
+   "title": "Longest common subsequence",
+   "statement": "Write a function lcs_length(a, b): the length of the longest common subsequence of two strings, where the characters go in the same order but not necessarily consecutively. For «abcde» and «ace» the answer is 3.",
+   "hint": "If the last characters match, the length is one more than for the prefixes; otherwise take the maximum of «without the last one in a» and «without the last one in b»."
+  },
+  {
+   "id": "str-distinct-substrings",
+   "title": "How many distinct substrings",
+   "statement": "Write a function count_distinct(s): the number of distinct non-empty substrings of the string s. For «aaa» the answer is 3, and for «abab» it is 7. You cannot store all the substrings: the check feeds in strings of two thousand characters, and the sandbox memory is limited. The idea: when a character is appended to a prefix of length i, new substrings appear, namely the suffixes that did not occur before. Their number is i minus the largest prefix function value of the reversed prefix.",
+   "hint": "The new substrings when appending a character are the suffixes that have not occurred before; their count is i minus the maximum π of the reversed prefix."
+  }
+ ]
+}

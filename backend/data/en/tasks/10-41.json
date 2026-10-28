@@ -1,0 +1,60 @@
+{
+ "book": 10,
+ "chapter": 41,
+ "tasks": [
+  {
+   "id": "r41-parse-request",
+   "title": "Parse a whole HTTP request",
+   "statement": "Write parse_request(raw: &str) -> Result<Request, String> (the Request struct is given): the start line (3 parts, otherwise Err(\"bad request line\")), the headers (key -> value; names in lower case, values trimmed of spaces at both ends; a line without ':' gives Err(\"bad header\")), query parameters after '?' (without decoding: pairs 'a=b', and without '=' the value is empty), and the body, which is everything after the empty line; Content-Length must be a number (otherwise Err(\"bad content-length\")) and no greater than the body length in bytes (otherwise Err(\"incomplete body\")); the body is cut to that length.",
+   "hint": "Start with split_once(\"\\r\\n\\r\\n\"); do the checks in this order: start line, headers, body length."
+  },
+  {
+   "id": "r41-percent",
+   "title": "Percent-encoding",
+   "statement": "Write percent_encode(s: &str) -> String: the bytes A-Z a-z 0-9 - _ . ~ stay as they are, and all other UTF-8 bytes are replaced with %XX (uppercase digits); and percent_decode(s: &str) -> String: '+' -> space, %XX -> byte; an invalid sequence (no two hexadecimal digits) is left as it is; the result is built from bytes with invalid UTF-8 sequences replaced (from_utf8_lossy).",
+   "hint": "Encode byte by byte (s.as_bytes()), with the format {:02X}; when decoding, accumulate a Vec<u8> and turn it into a string only at the end."
+  },
+  {
+   "id": "r41-build-response",
+   "title": "Build a response",
+   "statement": "Write build_response(status: u16, headers: &[(&str, &str)], body: &[u8]) -> Vec<u8>: the start line 'HTTP/1.1 CODE REASON' (reasons: 200 OK, 201 Created, 204 No Content, 400 Bad Request, 404 Not Found, 405 Method Not Allowed, 413 Payload Too Large, 500 Internal Server Error; 'Unknown' for other codes), the given headers in order, then automatically 'Content-Length: N' (N is the body in bytes) and 'Connection: close', an empty line, and the body. Line endings are \\r\\n.",
+   "hint": "body.len() is bytes; build the header as a string, then turn it into bytes and append the body."
+  },
+  {
+   "id": "r41-json-encode",
+   "title": "Encode JSON",
+   "statement": "For the enum Json { Null, Bool(bool), Num(f64), Str(String), Arr(Vec<Json>), Obj(Vec<(String, Json)>) } write to_json(v: &Json) -> String (compact, no spaces, key order as in the Vec). Numbers: integer values without a fractional part (3.0 -> 3), otherwise the standard {} output; strings are escaped: \\\" \\\\ \\n \\r \\t, and other control characters (< 0x20) as \\u00XX with lowercase hexadecimal digits.",
+   "hint": "Recurse over the variants; print an integer through as i64 so you don't print \"31.0\"."
+  },
+  {
+   "id": "r41-json-parse",
+   "title": "Parse JSON",
+   "statement": "Write parse_json(s: &str) -> Result<Json, String> (the enum Json is given): null, true/false, numbers (as in f64::from_str; no leading plus), strings with the escapes \\\" \\\\ \\/ \\n \\r \\t \\uXXXX (basic plane only), arrays, and objects; whitespace between elements is ignored. Any syntax error or extra characters after the value give Err(\"parse error\"). The nesting depth in the tests is small.",
+   "hint": "Recursive descent: a struct with a position i; value() looks at the first byte and picks a branch; after the value only whitespace may remain."
+  },
+  {
+   "id": "r41-safe-path",
+   "title": "Safe path and content type",
+   "statement": "Write safe_join(root: &str, url_path: &str) -> Option<String>: the path from the request (without the query) is joined to the root; only normal components are allowed, empty ones and '.' are skipped, any '..' or a backslash in a component gives None; percent-encoding is NOT decoded (but a component '%2e%2e' also gives None). The result is root + '/' + the components joined by '/'. And mime(path: &str) -> &'static str: html -> text/html; css -> text/css; js -> text/javascript; json -> application/json; png -> image/png; txt -> text/plain; anything else -> application/octet-stream (the case of the extension does not matter).",
+   "hint": "Check each component separately; \"..\" is always forbidden, even if in the end it would not leave the root."
+  },
+  {
+   "id": "r41-range",
+   "title": "The Range header",
+   "statement": "Write parse_range(header: &str, size: u64) -> Option<(u64, u64)>: the value 'bytes=START-END' for a file of size size -> inclusive bounds (first, last). 'bytes=500-' means to the end of the file; 'bytes=-100' means the last 100 bytes (the whole file if it is shorter); an END greater than the size is clamped to size - 1; None if the format is wrong, START >= size, START > END, size = 0, or there are several ranges (a comma).",
+   "hint": "Three forms: \"a-b\", \"a-\", and \"-n\"; compute the last one with saturating_sub."
+  },
+  {
+   "id": "r41-cookies",
+   "title": "Cookies",
+   "statement": "Write parse_cookies(header: &str) -> BTreeMap<String, String> (format 'a=1; b=two; flag'; spaces around names and values are trimmed; a pair without '=' has an empty value; empty parts are skipped; on a repeat the last one wins) and set_cookie(name: &str, value: &str, max_age: Option<u32>, http_only: bool) -> String: 'name=value' + '; Max-Age=N' (if given) + '; HttpOnly' (if needed) + always '; Path=/'. The order of the parts: Max-Age, Path, HttpOnly.",
+   "hint": "split(';'), trim, split_once('='): the value may contain '=' (take everything after the first one)."
+  },
+  {
+   "id": "r41-serve-one",
+   "title": "Mini server: one request",
+   "statement": "Write serve_one(stream: TcpStream) -> io::Result<()>: read one HTTP/1.1 request (headers up to the empty line, body by Content-Length), send a response, and close the connection (Connection: close; Content-Length in bytes). Routes: GET /hello?name=X -> 200 text/plain \"Hello, X!\" (X without decoding; with no parameter, \"Hello, world!\"); POST /echo -> 200 with the request body; any other path -> 404 \"not found\"; for /hello and /echo with a wrong method -> 405 \"method not allowed\"; an unparsable start line -> 400 \"bad request\". The response body is text.",
+   "hint": "Read through a BufReader: read_line for the start line and headers, read_exact for the body; assemble the response in one string and write it with write!."
+  }
+ ]
+}

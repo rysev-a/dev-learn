@@ -1,0 +1,72 @@
+{
+ "book": 8,
+ "chapter": 6,
+ "tasks": [
+  {
+   "id": "u6-write-all",
+   "title": "Reliable write and read: write_all, read_full",
+   "statement": "write_all(fd, buf, n) → 0 / −1: write may write less than requested or be interrupted by a signal (EINTR), so repeat until everything is written. read_full(fd, buf, n) → number of bytes read (fewer than n only at end of file), −1 on error. The check runs on a pipe that a second process writes into in small pieces, and on writing to a closed pipe (EPIPE with SIGPIPE ignored).",
+   "hint": "Loop: r = write(...); if r < 0 and errno == EINTR, retry; otherwise advance the pointer by r and reduce the remainder."
+  },
+  {
+   "id": "u6-copy-file",
+   "title": "Copying a file: open, read, write, close",
+   "statement": "copy_file(const char *src, const char *dst) → number of bytes copied or −1: open src for reading and dst for writing (create, truncate, permissions of the source file), copy in blocks of 4096 bytes through read/write, handling partial writes; close the descriptors on all paths. On error, delete the partially created dst (unlink). The file size is determined not by stat but by reading until 0.",
+   "hint": "The inner loop writes out the rest of the block until write has accepted everything; close(out) can also report an error."
+  },
+  {
+   "id": "u6-line-stats",
+   "title": "Reading a file in blocks and counting lines",
+   "statement": "line_stats(const char *path, long *lines, long *longest, long *bytes) → 0 / −1: read the file 7 bytes at a time (deliberately tiny pieces, so lines cross block boundaries) and count the number of lines (a last line without «\\n» counts too, an empty file has 0 lines), the length of the longest line without the newline, and the total size. Do not use fgets/getline/mmap, only read.",
+   "hint": "The state between blocks is the current line length and a flag \"there is an unfinished line\"; update them for every byte."
+  },
+  {
+   "id": "u6-errno",
+   "title": "errno: error codes and their names",
+   "statement": "errno_name(int e) → «ENOENT», «EACCES», «EEXIST», «ENOTDIR», «EISDIR», «EINVAL», «EMFILE», «ENOSPC», «EPIPE», «EAGAIN», «EINTR», «EBADF», «ENOMEM», or «E?» for all others. try_open(const char *path, int flags) → 0 on success (close the descriptor), otherwise −errno. classify(int e) → «retry» for EINTR/EAGAIN, «missing» for ENOENT/ENOTDIR, «denied» for EACCES/EPERM, «fatal» for the rest.",
+   "hint": "try_open must save errno before close(): store it in a local variable right after the failed open."
+  },
+  {
+   "id": "u6-dup2",
+   "title": "dup2: replace stdout and restore it",
+   "statement": "capture_stdout(void (*fn)(void), char *out, size_t cap) → number of bytes captured: temporarily redirect descriptor 1 to a temporary file (mkstemp in /tmp), call fn, restore the previous stdout through dup/dup2 (fflush before and after!), and read the file into out. fn prints through printf; restoring is mandatory so that later output goes to the console.",
+   "hint": "The order: fflush(stdout); saved = dup(1); dup2(tmp, 1); fn(); fflush(stdout); dup2(saved, 1). Without fflush the data stays in the stdio buffer."
+  },
+  {
+   "id": "u6-pread-pwrite",
+   "title": "pread/pwrite: access by offset",
+   "statement": "poke(int fd, off_t off, const void *buf, size_t n) → 0 / −1: write at an offset through pwrite (repeat on partial writes, do not change the file position). peek(fd, off, buf, n) → number of bytes read (fewer than n near the end of the file) through pread. swap_blocks(fd, off_a, off_b, n) → 0 / −1: swap two blocks of n bytes in the file without using lseek (n ≤ 4096).",
+   "hint": "pread/pwrite take the offset explicitly and do not move the file position: handy when several threads read one descriptor."
+  },
+  {
+   "id": "u6-raw-syscall",
+   "title": "System calls directly: syscall()",
+   "statement": "raw_getpid(void) → syscall(SYS_getpid); raw_gettid(void) → SYS_gettid; raw_write(int fd, const void *buf, size_t n) → ssize_t through syscall(SYS_write, …); raw_getcwd(char *buf, size_t n) → the length written by the SYS_getcwd call (including the terminating zero) or −1; raw_uname_sysname(char *out, size_t cap) → fill a struct utsname through SYS_uname and copy sysname (for example «Linux»).",
+   "hint": "syscall(number, arguments…) returns −1 and sets errno, like libc wrappers; the numbers are in <sys/syscall.h> (SYS_write and so on)."
+  },
+  {
+   "id": "u6-iovec",
+   "title": "Vectored I/O: writev and readv",
+   "statement": "write_parts(int fd, const char *const *parts, int n) → number of bytes written or −1: build a struct iovec for all the strings and send them in a single writev call (on a partial write, continue from the right place). read_split(int fd, char *a, size_t na, char *b, size_t nb) → number of bytes read: one readv fills buffer a first (na bytes), then b (nb bytes).",
+   "hint": "writev may write only part of the data: shift the iovec array by the number of bytes written (skip fully written elements and trim the first incomplete one)."
+  },
+  {
+   "id": "u6-copy-range",
+   "title": "Copying without passing through user memory",
+   "statement": "copy_fd(int in, int out) → long: copy all data from in (from the current position) to out using copy_file_range (sendfile is also allowed), without reading it into your own buffer; return the number of bytes copied or −1. Copying runs in a loop: one call may copy less than requested. You may not use read/write for the data itself.",
+   "hint": "copy_file_range copies data inside the kernel, and on some file systems even without actually copying the blocks. The call returns the number of bytes copied, and zero means the end of the input; repeat until you get zero."
+  },
+  {
+   "id": "u6-lockfile",
+   "title": "Lock file: O_CREAT | O_EXCL",
+   "statement": "try_lockfile(const char *path) → int: atomically create the file path (open with O_CREAT | O_EXCL | O_WRONLY, mode 0600) and write your pid into it; return 1 if the lock is acquired, 0 if the file already exists (EEXIST), −1 on any other error. unlock_file(const char *path) → int: remove the lock (unlink), 0 or −1. Checking \"if the file doesn't exist, create it\" with separate calls breaks atomicity: you need a single open with the right flags.",
+   "hint": "O_CREAT | O_EXCL makes the existence check and the creation ONE atomic kernel operation: out of any number of competitors, exactly one succeeds. The sequence access + open gives no such guarantee."
+  },
+  {
+   "id": "u6-cloexec",
+   "title": "Descriptors and exec: O_CLOEXEC",
+   "statement": "child_sees_fd(int cloexec) → int: open /dev/null for reading (if cloexec ≠ 0, add the O_CLOEXEC flag), then use fork and execv to run the program /bin/sh -c 'test -e /proc/self/fd/N', where N is the number of your descriptor. Return 1 if the launched program SEES this descriptor (test returned 0), otherwise 0; an error → −1. Close the descriptor in the parent.",
+   "hint": "By default open descriptors survive exec and \"leak\" into the program being launched. The O_CLOEXEC flag (or FD_CLOEXEC through fcntl) closes the descriptor automatically on exec, which is what all careful programs do."
+  }
+ ]
+}

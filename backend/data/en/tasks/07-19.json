@@ -1,0 +1,54 @@
+{
+ "book": 7,
+ "chapter": 19,
+ "tasks": [
+  {
+   "id": "greedy-interval-scheduling",
+   "title": "Maximum number of non-overlapping meetings",
+   "statement": "Write a function max_meetings(intervals): intervals is a list of [start, end] pairs. Return the largest number of meetings that can be held if no two meetings may overlap (a meeting ending at time t does not conflict with one starting at t). The greedy choice: by the earliest end.",
+   "hint": "Sort by end; take a meeting if its start is >= the end of the last chosen one."
+  },
+  {
+   "id": "greedy-merge-intervals",
+   "title": "Merging segments",
+   "statement": "Write a function merge_intervals(intervals): merge overlapping and touching [start, end] segments and return the result sorted by start.",
+   "hint": "Sort by start; keep extending the current segment while the next one starts no later than its end."
+  },
+  {
+   "id": "greedy-jump-game",
+   "title": "Jumping through an array",
+   "statement": "Write a function can_reach(jumps): from position i you can jump forward any number of cells from 0 to jumps[i]. Can you get from the first cell to the last? Greedily: keep track of the farthest reachable cell. The test uses a million cells.",
+   "hint": "far = 0; for each i: if i > far, it is a dead end (False); far = max(far, i + jumps[i]); once the last cell is reached, True."
+  },
+  {
+   "id": "greedy-min-jumps",
+   "title": "Minimum number of jumps",
+   "statement": "Write a function min_jumps(jumps): the smallest number of jumps from the first cell to the last (from cell i you can jump 0..jumps[i]); reaching the end is guaranteed to be possible. Greedily, in one pass: the test feeds a million cells.",
+   "hint": "Boundaries of the “current jump”: end is the limit of the current step, far is the farthest reachable cell; when you reach end, make a jump and set end = far."
+  },
+  {
+   "id": "greedy-gas-station",
+   "title": "Gas stations on a circle",
+   "statement": "Gas stations stand along a circular road: gas[i] is how much fuel there is at station i, cost[i] is how much is spent driving to the next one. Write a function start_station(gas, cost): the index of a station from which you can start (with an empty tank) and drive the whole circle, or -1. Such an index is unique. One pass.",
+   "hint": "If the total fuel is less than the total cost, the answer is -1. Otherwise walk around the circle: whenever the balance becomes negative, the start is the next station."
+  },
+  {
+   "id": "greedy-fractional-knapsack",
+   "title": "Continuous knapsack",
+   "statement": "Items can be split. Write a function fractional_knapsack(items, capacity): items are [weight, value] pairs. Return the maximum value rounded to two decimal places (round). Greedily: take items with the highest value per unit of weight first.",
+   "hint": "Sort by value/weight in descending order; take items whole while they fit, and the last one as a fraction."
+  },
+  {
+   "id": "greedy-huffman-cost",
+   "title": "Cost of a Huffman code",
+   "statement": "Write a function huffman_cost(freqs): freqs are symbol frequencies. Return the total cost of the optimal prefix code: the sum of code lengths weighted by frequencies (equal to the sum of all merges in Huffman's algorithm). At each step: take the two smallest frequencies (a heap) and replace them with their sum. For a single symbol, the answer is 0.",
+   "hint": "heap = freqs; while the heap has more than one element: a, b = the two smallest; cost += a + b; push a + b back; return cost."
+  },
+  {
+   "id": "greedy-min-platforms",
+   "title": "Minimum number of platforms",
+   "statement": "Write a function min_platforms(arrivals, departures): how many platforms a station needs so that no train waits. Train i stands from arrivals[i] to departures[i] (if one leaves when another arrives, the platform is freed). Sort the events and walk with two pointers. The test uses 200 000 trains.",
+   "hint": "Sort both sequences; with i, j: if arrivals[i] < departures[j], a new platform is needed (i += 1), otherwise a train has left (j += 1); track the maximum."
+  }
+ ]
+}

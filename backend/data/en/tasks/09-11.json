@@ -1,0 +1,321 @@
+{
+ "book": 9,
+ "chapter": 11,
+ "tasks": [
+  {
+   "id": "s11-01",
+   "title": "String length",
+   "statement": "Output `title` and `length(title)` as `len` for products; order by id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s11-02",
+   "title": "Case",
+   "statement": "Output customers' `email` in upper (`upper`) and lower (`lower`) case as `up` and `low`; only non-empty ones, order by id.",
+   "hint": "upper and lower work for Latin letters.",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s11-03",
+   "title": "Substring",
+   "statement": "Output `title` and the first 5 characters `substr(title, 1, 5)` as `head` for products; order by id.",
+   "hint": "substr(string, start, length); numbering starts at 1.",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s11-04",
+   "title": "Substring to the end",
+   "statement": "Output `title` and the part of the title starting from the 6th character: `substr(title, 6)` as `tail`; order by id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s11-05",
+   "title": "Last characters",
+   "statement": "Output the last 2 characters of each email: `substr(email, -2)` as `tail` for customers who have an email; order by id.",
+   "hint": "A negative start counts from the end.",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s11-06",
+   "title": "Character position",
+   "statement": "Output `name` and the position of the first space `instr(name, ' ')` as `pos` for customers; order by id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s11-07",
+   "title": "Customer first name",
+   "statement": "Output the first name (up to the space) as `first_name`: `substr(name, 1, instr(name, ' ') - 1)`; order by id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s11-08",
+   "title": "Customer last name",
+   "statement": "Output the last name (after the space) as `last_name`: `substr(name, instr(name, ' ') + 1)`; order by id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s11-09",
+   "title": "Initials",
+   "statement": "Output initials in the form «А.П.» (the first letter of the first name, a dot, the first letter of the last name, a dot) as `initials`; order by id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s11-10",
+   "title": "Slug from a title",
+   "statement": "Output `slug`: the product title in lower case with hyphens instead of spaces, `lower(replace(title, ' ', '-'))`, for products whose title contains «Air» or «Click»; order by id.",
+   "hint": "replace(string, what, with_what)",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s11-11",
+   "title": "Trimming spaces",
+   "statement": "Output `trim('  ab  ')` as `a`, `ltrim('  ab  ')` as `b`, `rtrim('  ab  ')` as `c`.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s11-12",
+   "title": "Trimming characters",
+   "statement": "`trim(string, characters)` removes the listed characters from both ends. Output `trim('--abc--', '-')` as `a` and `rtrim('xxabcxx', 'x')` as `b`.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s11-13",
+   "title": "Alignment",
+   "statement": "`printf` formats numbers and strings. Output `printf('%05d', id)` as `code` and `printf('%-8s|', brand)` as `brand_col` for products that have a brand; order by id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s11-14",
+   "title": "Joining with concat_ws",
+   "statement": "`concat_ws(separator, a, b, …)` joins values and skips NULL. Output `concat_ws(', ', name, city, email)` as `card` for customers; order by id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s11-15",
+   "title": "Bar chart",
+   "statement": "Draw bars made of asterisks: `replace(hex(zeroblob(qty)), '00', '*')` for order items of orders 5 and 10 (`order_id IN (5, 10)`); columns `order_id`, `product_id`, `bar`; order by order_id, product_id.",
+   "hint": "hex(zeroblob(n)) gives a string of 2n zeros; we replace pairs of zeros with asterisks.",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s11-16",
+   "title": "Character code",
+   "statement": "Output `unicode('A')` as `code` and `char(66, 67)` as `letters`.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s11-17",
+   "title": "Characters and bytes",
+   "statement": "A Cyrillic character takes 2 bytes. Output `length('Анна')` as `chars` and `octet_length('Анна')` as `bytes`.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s11-18",
+   "title": "Absolute value",
+   "statement": "Output the order `id` and `abs(total - 10000)` as `dist` (the distance to 10000); order by dist, then by id; first 5.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s11-19",
+   "title": "Rounding",
+   "statement": "Output `title` and `price / 3.0` rounded to hundredths (`round(…, 2)`) as `third` for products cheaper than 1500; order by id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s11-20",
+   "title": "Price in thousands",
+   "statement": "Output `title` and the price in thousands of rubles with one decimal: `round(price / 1000.0, 1)` as `k`; order by id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s11-21",
+   "title": "Down and up",
+   "statement": "Output `price / 1000.0` as `x`, `floor(price / 1000.0)` as `fl`, `ceil(price / 1000.0)` as `ce` for products with id ≤ 3; order by id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s11-22",
+   "title": "Remainder of division",
+   "statement": "Output `id` and the \"shift\" number `id % 3` as `shift` for customers; order by id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s11-23",
+   "title": "Maximum of two",
+   "statement": "The scalar `max` and `min` accept several values. Output `title` and `max(price, 1000)` as `at_least`, `min(price, 5000)` as `at_most`; order by id.",
+   "hint": "Don't confuse them with the aggregate MAX/MIN: the scalar ones take several arguments.",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s11-24",
+   "title": "Root and power",
+   "statement": "Output `sqrt(144)` as `r` and `power(2, 10)` as `p`.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s11-25",
+   "title": "Sign of a number",
+   "statement": "Output the order `id` and `sign(total - 10000)` as `s` (−1, 0 or 1); order by id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s11-26",
+   "title": "Type conversion",
+   "statement": "Output `CAST('12abc' AS INTEGER)` as `a`, `CAST(7 AS TEXT) || '!'` as `b`, `CAST('3.9' AS REAL)` as `c`.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s11-27",
+   "title": "Date parts",
+   "statement": "Output the order `id`, and the year, month and day of `created` as `y`, `m`, `d` using `strftime('%Y', …)`, `'%m'`, `'%d'`; order by id, first 4.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s11-28",
+   "title": "Plus a week",
+   "statement": "Output `id` and the date 7 days after `created`: `date(created, '+7 days')` as `due`; order by id, first 4.",
+   "hint": "date(date, modifier) shifts a date.",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s11-29",
+   "title": "Start of the month",
+   "statement": "Output `id` and the start of the order's month `date(created, 'start of month')` as `month_start`; order by id, first 4.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s11-30",
+   "title": "End of the month",
+   "statement": "Output `id` and the last day of the order's month: `date(created, 'start of month', '+1 month', '-1 day')` as `month_end`; order by id, first 4.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s11-31",
+   "title": "Days between dates",
+   "statement": "Output `id` and the number of days from `created` to `'2024-08-01'`: `julianday('2024-08-01') - julianday(created)`, converted to an integer (`CAST AS INTEGER`) as `days_ago`; order by id, first 5.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s11-32",
+   "title": "July orders",
+   "statement": "Output `id` and `created` of the July 2024 orders using `strftime('%Y-%m', created) = '2024-07'`; order by id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s11-33",
+   "title": "Day of the week",
+   "statement": "Output `id` and the day-of-week number `strftime('%w', created)` (0 is Sunday) as `wd` for orders 1–4; order by id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s11-34",
+   "title": "Quarter",
+   "statement": "Output `id` and the order's quarter: `(CAST(strftime('%m', created) AS INTEGER) + 2) / 3` as `quarter`; order by id, first 6.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s11-35",
+   "title": "Russian-style date",
+   "statement": "Output `id` and the date in the format DD.MM.YYYY: `strftime('%d.%m.%Y', created)` as `d`; order by id, first 3.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s11-36",
+   "title": "Customer tenure",
+   "statement": "Output `name` and how many whole months passed from `registered` to `'2024-08-01'`: (year2 − year1)·12 + (month2 − month1) as `months`; order by id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s11-37",
+   "title": "Date and time",
+   "statement": "Output `datetime('2024-03-15 10:00', '+1 day', '-2 hours')` as `dt` and `time('12:30', '+90 minutes')` as `t`.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s11-38",
+   "title": "HR: years of service",
+   "statement": "HR database. Output `name` and the years of service as of `'2024-08-01'` in whole years: `CAST((julianday('2024-08-01') - julianday(hired)) / 365.25 AS INTEGER)` as `years`; order by id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s11-39",
+   "title": "HR: email login",
+   "statement": "HR database. Output `name` and the email login (before the @) as `login`: `substr(email, 1, instr(email, '@') - 1)`; order by id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s11-40",
+   "title": "HR: phone without spaces",
+   "statement": "HR database. Output `name` and the phone without spaces and hyphens: `replace(replace(phone, ' ', ''), '-', '')` as `digits`, only for those who have a phone; order by id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s11-41",
+   "title": "HR: salary in thousands",
+   "statement": "HR database. Output `name` and `salary` in thousands, rounded down: `salary / 1000` as `k`; order by id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s11-42",
+   "title": "School: age",
+   "statement": "School database. Output `name` and the age as of `'2024-09-01'` in whole years: `CAST((julianday('2024-09-01') - julianday(birth)) / 365.25 AS INTEGER)` as `age`; order by id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s11-43",
+   "title": "School: grade number",
+   "statement": "School database. Output `name` and the grade number (the number in `class`) as `grade`: `CAST(class AS INTEGER)`; the conversion takes the number from the start of the string; order by id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s11-44",
+   "title": "Movies: decade",
+   "statement": "Movie database. Output `title` and the decade of release: `year / 10 * 10` as `decade`; order by id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s11-45",
+   "title": "Movies: long titles",
+   "statement": "Movie database. Output the movie title length `length(title)` as `len` for movies where it is greater than 12; order by len, title.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  }
+ ]
+}

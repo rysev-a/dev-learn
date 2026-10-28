@@ -1,0 +1,186 @@
+{
+ "book": 10,
+ "chapter": 12,
+ "tasks": [
+  {
+   "id": "r12-last-neg",
+   "title": "Negative indexes",
+   "statement": "Python: l[-k]. Write from_end(v: &[i32], k: usize) -> Option<i32>: the k-th element from the end (k = 1 is the last). For k = 0 or k > len, return None.",
+   "hint": "The index is v.len() - k."
+  },
+  {
+   "id": "r12-rotate",
+   "title": "Cyclic shift",
+   "statement": "Python: l[k:] + l[:k]. Write rotate_left(v: &[i32], k: usize) -> Vec<i32>: shift left by k (k may be larger than the length).",
+   "hint": "First k %= len, then concatenate the two slices."
+  },
+  {
+   "id": "r12-step",
+   "title": "Slice with a step",
+   "statement": "Python: l[::2]. Write every_other(v: &[i32]) -> Vec<i32>: the elements at even indexes 0, 2, 4, …",
+   "hint": "iter().step_by(2).copied().collect()"
+  },
+  {
+   "id": "r12-remove-value",
+   "title": "list.remove(x)",
+   "statement": "Python: l.remove(x) deletes the first occurrence and raises ValueError if there is none. Write remove_first(v: &mut Vec<i32>, x: i32) -> bool: true if something was removed.",
+   "hint": "position gives the index of the first one, remove(i) deletes it."
+  },
+  {
+   "id": "r12-remove-all",
+   "title": "Remove all",
+   "statement": "Python: [x for x in l if x != v]. Write remove_all(v: &mut Vec<i32>, x: i32) — remove all occurrences in a single pass, using retain.",
+   "hint": "v.retain(|&e| e != x)"
+  },
+  {
+   "id": "r12-dedup-order",
+   "title": "Unique, keeping order",
+   "statement": "Python: list(dict.fromkeys(l)). Write unique(v: &[i32]) -> Vec<i32>: remove duplicates, keeping the order of first occurrences. No HashSet (only a vector and contains).",
+   "hint": "Check out.contains(&x) before push."
+  },
+  {
+   "id": "r12-chunks",
+   "title": "Batches",
+   "statement": "Write batches(v: &[i32], n: usize) -> Vec<Vec<i32>>: split into batches of n elements (the last may be shorter), n > 0. Use chunks.",
+   "hint": "v.chunks(n).map(|c| c.to_vec()).collect()"
+  },
+  {
+   "id": "r12-windows",
+   "title": "Sliding window",
+   "statement": "Write moving_sums(v: &[i32], k: usize) -> Vec<i32>: the sums of all windows of k consecutive elements (k > 0). Use windows.",
+   "hint": "windows(k) yields slices of length k."
+  },
+  {
+   "id": "r12-is-sorted",
+   "title": "Is it sorted",
+   "statement": "Write is_sorted(v: &[i32]) -> bool: the elements are non-decreasing. Use windows(2).",
+   "hint": "all on an empty sequence is true."
+  },
+  {
+   "id": "r12-sort-desc",
+   "title": "sorted(reverse=True)",
+   "statement": "Python: sorted(l, reverse=True). Write sorted_desc(v: &[i32]) -> Vec<i32> — a sorted copy in descending order; the original slice is not changed.",
+   "hint": "to_vec() and sort_by(|a, b| b.cmp(a))"
+  },
+  {
+   "id": "r12-sort-key",
+   "title": "key=len",
+   "statement": "Python: sorted(words, key=len). Write by_len(words: &[&str]) -> Vec<String>: the words in increasing length in characters; for equal lengths, in the original order.",
+   "hint": "sort_by_key is stable."
+  },
+  {
+   "id": "r12-top-k",
+   "title": "Top-k",
+   "statement": "Python: sorted(l, reverse=True)[:k]. Write top_k(v: &[i32], k: usize) -> Vec<i32>: the k largest in descending order (if there are fewer elements, all of them).",
+   "hint": "sort_by, then truncate(k)."
+  },
+  {
+   "id": "r12-binary-search",
+   "title": "bisect",
+   "statement": "Python: bisect.bisect_left(l, x). Write insert_pos(v: &[i32], x: i32) -> usize: the position where to insert x to keep the order (to the left of equal ones). The slice is sorted. Use partition_point.",
+   "hint": "partition_point(|&e| e < x)"
+  },
+  {
+   "id": "r12-zip-pairs",
+   "title": "zip",
+   "statement": "Python: list(zip(a, b)). Write pairs(a: &[i32], b: &[&str]) -> Vec<(i32, String)>: pairs up to the length of the shorter of the two slices.",
+   "hint": "a.iter().zip(b.iter())"
+  },
+  {
+   "id": "r12-enumerate-rev",
+   "title": "Indexes from the end",
+   "statement": "Write last_index_of(v: &[i32], x: i32) -> Option<usize>: the index of the last occurrence of x, or None. Use iter().rposition.",
+   "hint": "rposition searches from the end."
+  },
+  {
+   "id": "r12-flatten",
+   "title": "Flatten lists",
+   "statement": "Python: [x for row in rows for x in row]. Write flatten(rows: &[Vec<i32>]) -> Vec<i32>.",
+   "hint": "rows.iter().flatten().copied().collect()"
+  },
+  {
+   "id": "r12-transpose",
+   "title": "Transpose",
+   "statement": "Python: list(zip(*m)). Write transpose(m: &[Vec<i32>]) -> Vec<Vec<i32>> for a rectangular matrix (all rows have the same length; an empty matrix gives an empty result).",
+   "hint": "t[j][i] = m[i][j]"
+  },
+  {
+   "id": "r12-grid-trap",
+   "title": "The [[0]*n]*m trap",
+   "statement": "Write make_grid(rows: usize, cols: usize) -> Vec<Vec<i32>> filled with zeros; the rows are independent. After the call the driver changes one cell, and only one row changes.",
+   "hint": "vec![vec![0; cols]; rows]"
+  },
+  {
+   "id": "r12-flat-index",
+   "title": "Flat matrix",
+   "statement": "A matrix is stored in one vector row by row, with width w. Write get(m: &[i32], w: usize, row: usize, col: usize) -> Option<i32>: the element, or None if out of bounds (col ≥ w or the index is past the end).",
+   "hint": "The index is row * w + col; check col < w separately."
+  },
+  {
+   "id": "r12-stack-brackets",
+   "title": "Bracket stack",
+   "statement": "Write balanced(s: &str) -> bool: whether the brackets ()[]{} are placed correctly (use a Vec as a stack).",
+   "hint": "push the opening ones, pop and compare for the closing ones."
+  },
+  {
+   "id": "r12-queue",
+   "title": "Queue on VecDeque",
+   "statement": "Write josephus(n: usize, k: usize) -> usize: the Josephus problem — n people in a circle, every k-th one is eliminated; return the number (from 1) of the last one left. Use VecDeque.",
+   "hint": "Move k - 1 times from the front to the back, then remove."
+  },
+  {
+   "id": "r12-bfs-grid",
+   "title": "Shortest path on a grid",
+   "statement": "Write shortest(grid: &[&str]) -> Option<usize>: the length of the shortest path from 'S' to 'E' over the '.' cells (up, down, left, right), where '#' is a wall. None if there is no path. Breadth-first search on a VecDeque.",
+   "hint": "dist stores the distances; the queue is a VecDeque of cells."
+  },
+  {
+   "id": "r12-heap-kth",
+   "title": "k-th largest",
+   "statement": "Python: heapq.nlargest(k, l)[-1]. Write kth_largest(v: &[i32], k: usize) -> Option<i32>: the k-th largest (k = 1 is the largest) using BinaryHeap. None if k = 0 or k > len.",
+   "hint": "BinaryHeap is a max-heap; pop gives the largest."
+  },
+  {
+   "id": "r12-capacity",
+   "title": "Vector capacity",
+   "statement": "Write growth(n: usize) -> Vec<usize>: create an empty Vec<u8>, add n elements, and record capacity() in the result every time it changes (no consecutive repeats). For the first n = 20 the result will be strictly increasing.",
+   "hint": "Remember the capacity after each push and compare it with the last one."
+  },
+  {
+   "id": "r12-split-at",
+   "title": "Split in half",
+   "statement": "Write halves(v: &[i32]) -> (Vec<i32>, Vec<i32>): the left half (length len / 2) and the right (the rest). Use split_at.",
+   "hint": "split_at(mid) returns two slices."
+  },
+  {
+   "id": "r12-drain",
+   "title": "Pull out a range",
+   "statement": "Write cut(v: &mut Vec<i32>, a: usize, b: usize) -> Vec<i32>: remove the elements a..b from v and return them (drain).",
+   "hint": "v.drain(a..b).collect()"
+  },
+  {
+   "id": "r12-argmax",
+   "title": "Index of the maximum",
+   "statement": "Python: l.index(max(l)). Write argmax(v: &[i32]) -> Option<usize>: the index of the first largest element, or None for an empty slice.",
+   "hint": "A strict comparison keeps the index of the first one."
+  },
+  {
+   "id": "r12-prefix-sums",
+   "title": "Prefix sums",
+   "statement": "Python: list(itertools.accumulate(l)). Write prefix_sums(v: &[i32]) -> Vec<i32>: partial sums (the i-th element is the sum of the first i + 1).",
+   "hint": "A closure can change an outer variable s."
+  },
+  {
+   "id": "r12-two-sum",
+   "title": "Two numbers with a given sum",
+   "statement": "Write two_sum(v: &[i32], target: i32) -> Option<(usize, usize)>: indexes i < j with v[i] + v[j] = target (the first pair found when iterating i, then j).",
+   "hint": "Two nested loops, j starts at i + 1."
+  },
+  {
+   "id": "r12-merge",
+   "title": "Merge sorted",
+   "statement": "Write merge(a: &[i32], b: &[i32]) -> Vec<i32>: merge two sorted slices into one sorted vector in linear time (with two indexes).",
+   "hint": "After the loop, append the tails of both slices."
+  }
+ ]
+}

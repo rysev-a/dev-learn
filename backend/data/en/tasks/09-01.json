@@ -1,0 +1,288 @@
+{
+ "book": 9,
+ "chapter": 1,
+ "tasks": [
+  {
+   "id": "s01-01",
+   "title": "All customers",
+   "statement": "Output all columns and all rows of the customers table. The star * means \"all columns\".",
+   "hint": "SELECT * FROM customers;"
+  },
+  {
+   "id": "s01-02",
+   "title": "All products",
+   "statement": "Output the entire contents of the products table.",
+   "hint": "Replace ... with the table name."
+  },
+  {
+   "id": "s01-03",
+   "title": "One column",
+   "statement": "Output only the product names: the title column of the products table.",
+   "hint": "Instead of *, list the column you need: SELECT title FROM products;"
+  },
+  {
+   "id": "s01-04",
+   "title": "Two columns",
+   "statement": "Output the name and city of every customer (the name and city columns of the customers table).",
+   "hint": "Columns are listed separated by commas.",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s01-05",
+   "title": "Column order",
+   "statement": "Output the customer columns in reverse order: city first, then name.",
+   "hint": "The order of columns in the result is the order in the list after SELECT.",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s01-06",
+   "title": "Three columns",
+   "statement": "From products, output three columns: title, category, price, in exactly this order.",
+   "hint": "",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s01-07",
+   "title": "Column alias",
+   "statement": "Output the product name under the name product (an alias is set with the word AS): a product column, from the products table.",
+   "hint": "SELECT title AS product FROM products;"
+  },
+  {
+   "id": "s01-08",
+   "title": "Alias with a space",
+   "statement": "Output city under the header `Город` (aliases with spaces or non-Latin letters are put in double quotes) for the customers table.",
+   "hint": "AS \"Город\": the name in double quotes.",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s01-09",
+   "title": "Arithmetic without a table",
+   "statement": "SELECT works without FROM too. Calculate 2 + 3 * 4 and output it under the name result.",
+   "hint": "Multiplication runs before addition: the result is 14."
+  },
+  {
+   "id": "s01-10",
+   "title": "Parentheses",
+   "statement": "Calculate (2 + 3) * 4 under the name result.",
+   "hint": "Parentheses change the order of operations.",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s01-11",
+   "title": "Five operations",
+   "statement": "In one row, output the results of 10 + 5, 10 - 5, 10 * 5, 10 / 5, 10 % 3 under the names plus, minus, mult, div, rest.",
+   "hint": "% is the remainder of division.",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s01-12",
+   "title": "Integer division",
+   "statement": "Output 7 / 2 as div_int and 7 / 2.0 as div_real. Note that dividing integers throws away the fractional part.",
+   "hint": "If at least one number is fractional, the result is fractional.",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s01-13",
+   "title": "String literal",
+   "statement": "Output the string `'привет'` (in single quotes) in a column greeting.",
+   "hint": "Strings in SQL go in single quotes: `'привет'`.",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s01-14",
+   "title": "Apostrophe in a string",
+   "statement": "Output the string O'Brien in a column name. An apostrophe inside a string is written twice.",
+   "hint": "'O''Brien'",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s01-15",
+   "title": "Boolean values",
+   "statement": "Output the results of the comparisons 1 = 1 and 1 = 2 under the names yes and no. In SQLite, true is 1 and false is 0.",
+   "hint": "",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s01-16",
+   "title": "Value types",
+   "statement": "Output the types of values with the function typeof: for 1, 1.5, 'a' and NULL under the names a, b, c, d.",
+   "hint": "typeof(expression) returns integer, real, text or null.",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s01-17",
+   "title": "Computed column",
+   "statement": "From the products table, output title and the price with a 10% discount (price * 9 / 10) under the name sale_price.",
+   "hint": "Arithmetic works right in the column list.",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s01-18",
+   "title": "Value of the stock",
+   "statement": "For each product, output title and the value of the stock on hand (price * stock) as stock_value.",
+   "hint": "",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s01-19",
+   "title": "Joining strings",
+   "statement": "Output one string per product of the form `Название (Категория)`, that is, title, a space, and the category in parentheses: use the || operator for concatenation; column label.",
+   "hint": "title || ' (' || category || ')'",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s01-20",
+   "title": "A tag in every row",
+   "statement": "Output the customer's name and the constant `'клиент'` in a column kind.",
+   "hint": "A constant can be output as a column.",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s01-21",
+   "title": "Division remainder",
+   "statement": "For each product, output title and the remainder of dividing stock by 10 (column rest).",
+   "hint": "",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s01-22",
+   "title": "Dividing the price",
+   "statement": "Output title and price / 100 (the integer part) as hundreds.",
+   "hint": "Both numbers are integers, so the fractional part is thrown away.",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s01-23",
+   "title": "No repeats: cities",
+   "statement": "Output the list of customer cities without repeats (DISTINCT): column city.",
+   "hint": "SELECT DISTINCT city FROM customers;",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s01-24",
+   "title": "No repeats: categories",
+   "statement": "Output the product categories without repeats.",
+   "hint": "",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s01-25",
+   "title": "No repeats: statuses",
+   "statement": "Output all the distinct order statuses (the orders table).",
+   "hint": "",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s01-26",
+   "title": "Distinct pairs",
+   "statement": "Output the distinct pairs (category, brand) from products.",
+   "hint": "DISTINCT applies to the whole result row at once.",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s01-27",
+   "title": "Table.column",
+   "statement": "Output the customers' name, giving the column together with the table name: customers.name.",
+   "hint": "A column name can be qualified with the table name and a dot.",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s01-28",
+   "title": "Table alias",
+   "statement": "Output the name and city of customers, giving the table the alias c (FROM customers AS c) and referring to the columns as c.name, c.city.",
+   "hint": "FROM customers AS c",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s01-29",
+   "title": "Tables of the database",
+   "statement": "The database stores its own descriptions in the system table sqlite_master. Output the names of all tables in the database (type = 'table') in alphabetical order: column name.",
+   "hint": "SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name;",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s01-30",
+   "title": "How many tables",
+   "statement": "How many tables are in the database? Output the number under the name n.",
+   "hint": "COUNT(*) counts rows.",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s01-31",
+   "title": "Table columns",
+   "statement": "Output the column names of the orders table in the order they were declared: SELECT name FROM pragma_table_info('orders') ORDER BY cid;",
+   "hint": "pragma_table_info('table') describes the columns.",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s01-32",
+   "title": "Primary key",
+   "statement": "Which columns make up the primary key of the order_items table? Output their names (pk > 0) in order of pk.",
+   "hint": "In pragma_table_info the key columns have pk > 0.",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s01-33",
+   "title": "Foreign keys",
+   "statement": "Output the foreign keys of the orders table: the columns \"from\", \"table\" and \"to\" of the function pragma_foreign_key_list('orders').",
+   "hint": "The words from, table, to are keywords, so they go in double quotes.",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s01-34",
+   "title": "Row count",
+   "statement": "How many rows are in the customers table? Output the number as n.",
+   "hint": "",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s01-35",
+   "title": "Departments",
+   "statement": "HR database. Output the name and city of all departments (the departments table).",
+   "hint": "",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s01-36",
+   "title": "Employees and salary",
+   "statement": "HR database. Output the name and salary of every employee.",
+   "hint": "",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s01-37",
+   "title": "Annual salary",
+   "statement": "HR database. Output the name and the annual pay (salary * 12) as per_year.",
+   "hint": "",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s01-38",
+   "title": "Courses",
+   "statement": "School database. Output the title and hours of all courses.",
+   "hint": "",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s01-39",
+   "title": "Classes without repeats",
+   "statement": "School database. Output the students' classes (class) without repeats.",
+   "hint": "",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s01-40",
+   "title": "Films",
+   "statement": "Films database. Output title and year for all films.",
+   "hint": "",
+   "starter": "-- Write the query\n"
+  },
+  {
+   "id": "s01-41",
+   "title": "Directors' countries",
+   "statement": "Films database. Output the directors' countries without repeats.",
+   "hint": "",
+   "starter": "-- Write the query\n"
+  }
+ ]
+}

@@ -1,0 +1,126 @@
+{
+ "book": 7,
+ "chapter": 14,
+ "tasks": [
+  {
+   "id": "seg-range-sums",
+   "title": "Range sums: prefix sums",
+   "statement": "Write a function range_sums(a, queries): queries is a list of pairs [l, r] (zero-based indices, both ends included); return the list of sums a[l] + … + a[r]. Build the prefix sums once, and answer each query in constant time.",
+   "hint": "p[i + 1] = p[i] + a[i]; the sum on [l, r] equals p[r + 1] − p[l]."
+  },
+  {
+   "id": "seg-fenwick-range",
+   "title": "Which range a Fenwick cell stores",
+   "statement": "In a Fenwick tree the elements are numbered from one, and cell i stores the sum of a range of length i & −i ending at i. Write a function fenwick_range(i): a tuple (l, r) with the boundaries of this range. For example, fenwick_range(12) = (9, 12).",
+   "hint": "The range length is i & −i; it ends at i."
+  },
+  {
+   "id": "seg-prefix-path",
+   "title": "Prefix query path",
+   "statement": "Write a function prefix_path(i): the list of Fenwick tree cells that are added up when querying the sum of the first i elements, in visiting order. Start with i and clear the lowest bit at each step; for 11 it is [11, 10, 8], for 0 it is an empty list.",
+   "hint": "Loop: while i > 0, record i and subtract i & −i."
+  },
+  {
+   "id": "seg-update-path",
+   "title": "Update path",
+   "statement": "Write a function update_path(i, n): the list of cells of a Fenwick tree of size n that change when element i changes, in visiting order. Start with i and add the lowest bit until you go past n; update_path(3, 8) = [3, 4, 8].",
+   "hint": "Loop: while i ≤ n, record i and add i & −i."
+  },
+  {
+   "id": "seg-fenwick",
+   "title": "Fenwick tree",
+   "statement": "Write a class Fenwick: the constructor Fenwick(n) creates a zero array of n elements (indices from 1); add(i, delta) adds delta to element i; prefix(i) is the sum of the first i elements (prefix(0) = 0); range_sum(l, r) is the sum of elements l through r inclusive. Everything in O(log n): the check performs two hundred thousand operations on an array of two hundred thousand elements.",
+   "hint": "Cell i stores the sum of a range of length i & −i: add goes up (i += i & −i), prefix goes down (i −= i & −i)."
+  },
+  {
+   "id": "seg-fenwick-build",
+   "title": "Building a Fenwick tree in linear time",
+   "statement": "Write a function build_fenwick(a): a list tree of length n + 1 (tree[0] = 0) in which tree[i] is the sum a[i − (i & −i)] … a[i − 1] (that is, of the range of length i & −i ending at the i-th element in one-based numbering). Time is O(n): n consecutive calls to add would give n log n; the check uses two and a half million numbers.",
+   "hint": "Put a into tree[1..n], then for each i add tree[i] to its parent i + (i & −i) if it does not go past n."
+  },
+  {
+   "id": "seg-inversions",
+   "title": "Counting inversions",
+   "statement": "Write a function count_inversions(a): the number of pairs i < j such that a[i] > a[j]. The check feeds in two hundred thousand numbers, so a quadratic scan will not finish in time. Think about a Fenwick tree over compressed values, or about merge sort.",
+   "hint": "Go left to right: how many already seen elements are greater than the current one is (number seen) − (number ≤ current)."
+  },
+  {
+   "id": "seg-range-add",
+   "title": "Range add, point value",
+   "statement": "Write a class RangeAdd: RangeAdd(n) is an array of n zeros (zero-based indices); add(l, r, v) adds v to all elements l through r inclusive; get(i) returns the value of the i-th element. Both in O(log n): store the differences in a Fenwick tree. The check is two hundred thousand operations.",
+   "hint": "add(l, r, v) is two point updates of the differences: +v at position l and −v at position r + 1; get is a prefix sum of the differences."
+  },
+  {
+   "id": "seg-order-set",
+   "title": "k-th smallest via Fenwick descent",
+   "statement": "Write a class OrderSet: OrderSet(maxv) is an empty set of values from 1 to maxv (repeats allowed); add(x) adds x; discard(x) removes one occurrence of x (it is guaranteed to exist); kth(k) is the k-th value in ascending order (k from one). Everything in O(log maxv): keep counters in a Fenwick tree and descend by bits. bisect, heapq, sorted and the methods insert, remove, pop, sort, index, count are forbidden.",
+   "hint": "A Fenwick node holds the number of elements of its range: descend from the highest bit, adding the step while the accumulated count is less than k."
+  },
+  {
+   "id": "seg-smaller-before",
+   "title": "How many smaller on the left",
+   "statement": "Write a function smaller_before(a): a list res where res[i] is how many elements to the left of the i-th are strictly smaller than a[i]. The check is two hundred thousand numbers: a quadratic scan will not finish in time.",
+   "hint": "Compress the values into ranks; in a Fenwick tree count how many ranks smaller than the current one have been seen."
+  },
+  {
+   "id": "seg-distinct-ranges",
+   "title": "Distinct numbers on ranges",
+   "statement": "Write a function distinct_in_ranges(a, queries): for each query [l, r] (zero-based, both ends included), the number of distinct values among a[l..r]. Answers are in query order. The check is two hundred thousand elements and queries. Idea: process the queries offline by the right end and keep ones in a Fenwick tree at the last occurrences of the values.",
+   "hint": "Go through r left to right: keep a one at the last occurrence of a value and remove it at the previous one; the answer is the sum on [l, r]."
+  },
+  {
+   "id": "seg-tree-sum",
+   "title": "Segment tree: sum",
+   "statement": "Write a class SegTree: SegTree(a) builds a tree from the list a; update(i, v) assigns a[i] = v; query(l, r) returns the sum a[l] + … + a[r − 1] (the right end is excluded). Operations in O(log n): the check performs two hundred thousand operations on an array of two hundred thousand numbers.",
+   "hint": "The leaves are in the second half of an array of 2n elements; parent i is the sum of the children 2i and 2i + 1. The query uses two pointers l and r and climbs to the root."
+  },
+  {
+   "id": "seg-tree-generic",
+   "title": "Segment tree for any operation",
+   "statement": "Write a class GenericTree: GenericTree(a, op, neutral) is a tree for an associative operation op with a neutral element neutral (op need not be commutative: string concatenation, matrix multiplication); update(i, v) assigns a[i] = v; query(l, r) is the result of op over the elements a[l..r − 1] from left to right (for an empty range, neutral). The order of op's arguments matters.",
+   "hint": "Accumulate the left and right parts separately: left = op(left, t[l]), right = op(t[r], right); then the order is preserved."
+  },
+  {
+   "id": "seg-first-at-least",
+   "title": "First element at least x",
+   "statement": "Write a class MaxTree: MaxTree(a) builds a tree of maximums; update(i, v) assigns a[i] = v; first_at_least(x) returns the smallest index i with a[i] ≥ x, or -1. The answer is a single descent from the root, O(log n): the check places a hundred thousand requests in a hotel with 131072 rooms.",
+   "hint": "A node stores the maximum: if the left child contains a value ≥ x, go left; otherwise go right."
+  },
+  {
+   "id": "seg-max-subarray",
+   "title": "Maximum subarray sum with updates",
+   "statement": "Write a class MaxSub: MaxSub(a) builds the structure; update(i, v) assigns a[i] = v; query(l, r) is the largest sum of a non-empty subarray inside a[l..r − 1] (l < r). Store a quadruple in a node: the sum of the whole range, the best prefix, the best suffix and the best subarray. The check is a hundred thousand operations.",
+   "hint": "Merging (s₁, p₁, u₁, b₁) and (s₂, p₂, u₂, b₂): sum s₁ + s₂, prefix max(p₁, s₁ + p₂), suffix max(u₂, s₂ + u₁), best max(b₁, b₂, u₁ + p₂)."
+  },
+  {
+   "id": "seg-lazy-add",
+   "title": "Lazy tags: add and sum",
+   "statement": "Write a class LazyTree: LazyTree(a); add(l, r, x) adds x to all elements a[l..r − 1]; sum(l, r) is the sum of a[l..r − 1]. Both operations in O(log n) with lazy tags. The check is fifty thousand operations on an array of fifty thousand numbers.",
+   "hint": "A node fully covered by the operation is updated at once and gets a tag; before descending, the tag is passed to the children (push)."
+  },
+  {
+   "id": "seg-lazy-assign",
+   "title": "Lazy tags: assign and sum",
+   "statement": "Write a class AssignTree: AssignTree(a); assign(l, r, x) assigns x to all elements a[l..r − 1]; sum(l, r) is the sum of a[l..r − 1]. The tag is \"assign x\" (None if there is no tag): a new tag replaces the old one, and the node's answer equals x times the range length. The check is a hundred thousand elements and sixty thousand operations.",
+   "hint": "A None tag means nothing was postponed; on push, update the children's answers as x · length and pass them the tag."
+  },
+  {
+   "id": "seg-sparse-table",
+   "title": "Sparse table",
+   "statement": "Write a class SparseTable: SparseTable(a) builds the table in O(n log n); query(l, r) returns the minimum of a[l..r − 1] (l < r) in O(1), using two overlapping powers of two. The check is three hundred thousand elements and five hundred thousand queries.",
+   "hint": "Row k stores minimums over ranges of length 2ᵏ: t[k][i] = min(t[k − 1][i], t[k − 1][i + 2^(k−1)]). For a query take k = floor(log₂(r − l))."
+  },
+  {
+   "id": "seg-fenwick-2d",
+   "title": "Two-dimensional Fenwick tree",
+   "statement": "Write a class Fenwick2D: Fenwick2D(n, m) is a zero n × m matrix (zero-based indices); add(x, y, v) adds v to cell (x, y); sum(x1, y1, x2, y2) is the sum over the rectangle with corners (x1, y1) and (x2, y2), borders included. Each operation is O(log n · log m): the check is a 1000 × 1000 matrix and a hundred thousand operations.",
+   "hint": "A nested loop: the outer one over x (i += i & −i), the inner one over y. A rectangle is four prefixes, as in two-dimensional sums."
+  },
+  {
+   "id": "seg-lis",
+   "title": "Longest increasing subsequence",
+   "statement": "Write a function lis_length(a): the length of the longest strictly increasing subsequence of the list (not necessarily of adjacent elements). The check is a hundred thousand numbers, so O(n log n) is needed: a Fenwick tree for the maximum (the best length is stored at the position of the value) or the \"tails\" method with binary search.",
+   "hint": "A Fenwick tree for the maximum: dp[value] = 1 + the maximum over smaller values; the answer is the maximum of all dp."
+  }
+ ]
+}

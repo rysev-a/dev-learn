@@ -1,0 +1,186 @@
+{
+ "book": 10,
+ "chapter": 26,
+ "tasks": [
+  {
+   "id": "r26-char-class",
+   "title": "Character classes",
+   "statement": "Write classify(s: &str) -> (usize, usize, usize, usize): the number of letters, digits, whitespace and other characters (by Unicode rules: is_alphabetic, is_numeric, is_whitespace).",
+   "hint": "Four counters and an if / else if chain."
+  },
+  {
+   "id": "r26-hex-digits",
+   "title": "Digits in different bases",
+   "statement": "Write hex_sum(s: &str) -> u32: the sum of the values of the hexadecimal digits in the string (to_digit(16)); non-hex characters are skipped.",
+   "hint": "filter_map(|c| c.to_digit(16))"
+  },
+  {
+   "id": "r26-from-digit",
+   "title": "A number to a string in any base",
+   "statement": "Write to_radix(n: u32, radix: u32) -> String: the representation of n in base radix (2…36) with lowercase letters; for 0 — «0». Use char::from_digit.",
+   "hint": "The remainders of division are the digits in reverse order."
+  },
+  {
+   "id": "r26-split-multi",
+   "title": "Split on several separators",
+   "statement": "Write tokens(s: &str) -> Vec<String>: words separated by any of the characters «,», «;», «:» or whitespace; empty pieces are skipped.",
+   "hint": "split accepts a closure as a pattern."
+  },
+  {
+   "id": "r26-splitn",
+   "title": "splitn",
+   "statement": "Write parse_cmd(line: &str) -> (String, String): the command and the rest of the line. Split at the first space (splitn(2, ' ')); if there is no space, the second part is empty. Do not trim the rest.",
+   "hint": "splitn(2, ' ') does not split the remainder."
+  },
+  {
+   "id": "r26-strip-prefix",
+   "title": "strip_prefix",
+   "statement": "Write command(line: &str) -> String: «ECHO <text>» → the text; «UP <text>» → the text in uppercase; otherwise «неизвестная команда». Use strip_prefix.",
+   "hint": "strip_prefix returns Option<&str>."
+  },
+  {
+   "id": "r26-split-inclusive",
+   "title": "Sentences",
+   "statement": "Write sentences(s: &str) -> Vec<String>: split the text into sentences, keeping the end mark (. ! ?) at the end of each, and trim the spaces at the edges. split_inclusive with a closure.",
+   "hint": "split_inclusive keeps the separator in the piece."
+  },
+  {
+   "id": "r26-trim-matches",
+   "title": "Strip the wrapping",
+   "statement": "Write unquote(s: &str) -> String: remove from both ends any quotes «\"» and «'» and spaces (trim_matches with a closure).",
+   "hint": "trim_matches(|c| …) trims from both ends."
+  },
+  {
+   "id": "r26-match-indices",
+   "title": "Positions of occurrences",
+   "statement": "Write positions(text: &str, pat: &str) -> Vec<usize>: the byte positions of all (non-overlapping) occurrences of pat (match_indices); pat is not empty.",
+   "hint": "match_indices returns (position, match)."
+  },
+  {
+   "id": "r26-rfind-ext",
+   "title": "File extension",
+   "statement": "Write extension(name: &str) -> Option<&str>: the extension after the last dot; None if there is no dot, if the dot is at the start (a hidden file «.bashrc») or at the end.",
+   "hint": "rfind('.') and a slice after the dot."
+  },
+  {
+   "id": "r26-string-edit",
+   "title": "In-place edits",
+   "statement": "Write censor(s: &mut String, bad: &str): replace the first occurrence of bad with asterisks of the same length in characters (replace_range) — if bad is absent, change nothing.",
+   "hint": "find gives a byte index; the range is i..i + bad.len()."
+  },
+  {
+   "id": "r26-retain-clean",
+   "title": "Keep only letters",
+   "statement": "Write letters_only(s: &mut String): keep only letters in the string (retain + is_alphabetic).",
+   "hint": "s.retain(|c| c.is_alphabetic())"
+  },
+  {
+   "id": "r26-truncate-char",
+   "title": "Truncate by characters",
+   "statement": "Write truncate_chars(s: &str, n: usize) -> String: the first n characters; if the string is longer, append «…» at the end (characters, not bytes; do not cut in the middle of a character).",
+   "hint": "chars().take(n).collect::<String>()"
+  },
+  {
+   "id": "r26-fmt-table",
+   "title": "Table",
+   "statement": "Write table(rows: &[(&str, f64)]) -> Vec<String>: lines of the form «<name, width of the longest> | <number right-aligned in a field of 8 with two decimals>»; the name is left-aligned.",
+   "hint": "{:<w$} and {:>8.2}"
+  },
+  {
+   "id": "r26-fmt-radix",
+   "title": "Number bases with format",
+   "statement": "Write formats(n: u32) -> Vec<String>: n in decimal, hexadecimal (with the 0x prefix, 4 digits zero-padded), binary (8 digits zero-padded) and octal: for 255 → [\"255\", \"0x00ff\", \"11111111\", \"377\"].",
+   "hint": "{:#06x}, {:08b}, {:o}"
+  },
+  {
+   "id": "r26-fmt-sign",
+   "title": "Sign and precision",
+   "statement": "Write signed(x: f64) -> String: the number with an explicit sign and two digits after the decimal point, centered in a field of 9 characters with the fill «.»: signed(3.14159) = «..+3.14..».",
+   "hint": "{:.^+9.2} — fill «.», center, sign, width 9, precision 2."
+  },
+  {
+   "id": "r26-fmt-dynamic",
+   "title": "Width from an argument",
+   "statement": "Write pad_left(s: &str, width: usize, fill: char) -> String: right-align s to a width of width characters, adding the fill character on the left (the format does not take the fill from a variable — add it by hand). If s is not shorter than width, return it as is.",
+   "hint": "The number of fill characters is width - n."
+  },
+  {
+   "id": "r26-display-money",
+   "title": "Display for money",
+   "statement": "The struct Money(i64) stores kopecks. Implement Display: «123.05 ₽» for 12305, «-0.99 ₽» for −99, «0.00 ₽» for 0.",
+   "hint": "The sign separately, rubles a / 100, kopecks {:02}."
+  },
+  {
+   "id": "r26-display-pad",
+   "title": "Display that respects the width",
+   "statement": "The struct Name(String) implements Display through f.pad(&self.0), so that width and alignment work: «[{:>8}]» for Name(\"Аня\") gives «[     Аня]».",
+   "hint": "f.pad takes the width, alignment and precision (truncation) into account."
+  },
+  {
+   "id": "r26-debug-manual",
+   "title": "Debug by hand",
+   "statement": "The struct User { name: String, age: u32, secret: String } — implement Debug by hand via debug_struct so that the field secret is not printed (the output is «User { name: \"Аня\", age: 30 }»).",
+   "hint": "debug_struct(\"User\").field(…).finish()"
+  },
+  {
+   "id": "r26-display-matrix",
+   "title": "Display for a matrix",
+   "statement": "The struct Matrix(Vec<Vec<i32>>) implements Display: rows separated by a newline (no empty line at the end), numbers in a row separated by a space, each right-aligned in a field of width 3: «  1  2», «  3  4».",
+   "hint": "writeln!(f)? between rows, write!(f, \"{:>3}\", x)? for the numbers."
+  },
+  {
+   "id": "r26-parse-kv",
+   "title": "Parsing «key=value»",
+   "statement": "Write parse_kv(line: &str) -> Option<(String, i32)>: «name = 42» → (\"name\", 42); None if there is no «=», the key is empty, or the value is not an integer.",
+   "hint": "split_once, trim, parse().ok()?"
+  },
+  {
+   "id": "r26-parse-csv",
+   "title": "A CSV line to numbers",
+   "statement": "Write parse_row(s: &str) -> Result<Vec<f64>, String>: comma-separated numbers (with spaces around); on error — Err(«плохое поле: <field>»).",
+   "hint": "collect::<Result<Vec<_>, _>>()"
+  },
+  {
+   "id": "r26-parse-radix",
+   "title": "A number with a prefix",
+   "statement": "Write parse_num(s: &str) -> Option<i64>: decimal, or with the prefix 0x (hex), 0b (binary) or 0o (octal); the sign «-» is allowed before the prefix. Underscores are ignored.",
+   "hint": "First remove the sign and underscores, then check the prefixes."
+  },
+  {
+   "id": "r26-word-freq-fmt",
+   "title": "Frequency report",
+   "statement": "Write report(text: &str) -> Vec<String>: words in lowercase and their frequencies; lines of the form «word: N», in descending order of N, ties broken alphabetically.",
+   "hint": "Counters in a Vec of pairs, then sort_by."
+  },
+  {
+   "id": "r26-wrap-text",
+   "title": "Centering",
+   "statement": "Write center_lines(text: &str, width: usize) -> Vec<String>: center each line of the text (lines) in a field of width width (with the format {:^w$}); lines longer than width are left unchanged.",
+   "hint": "format!(\"{:^w$}\", l, w = width)"
+  },
+  {
+   "id": "r26-case-convert",
+   "title": "snake_case to CamelCase",
+   "statement": "Write to_camel(s: &str) -> String: «my_var_name» → «MyVarName» (the separator is «_»; empty pieces are skipped).",
+   "hint": "The first letter of each piece goes to uppercase."
+  },
+  {
+   "id": "r26-camel-to-snake",
+   "title": "CamelCase to snake_case",
+   "statement": "Write to_snake(s: &str) -> String: «MyVarName» → «my_var_name» (a «_» is put before each capital letter except the first character).",
+   "hint": "out.extend(c.to_lowercase()) — to_lowercase returns an iterator."
+  },
+  {
+   "id": "r26-caesar-unicode",
+   "title": "Vigenère cipher",
+   "statement": "Write vigenere(text: &str, key: &str) -> String: the Vigenère cipher for Latin lowercase letters (a–z); the key is lowercase letters, not empty; the key advances only on letters of the text; other characters stay unchanged.",
+   "hint": "The key position j increases only on a Latin letter."
+  },
+  {
+   "id": "r26-utf8-len",
+   "title": "Bytes of characters",
+   "statement": "Write byte_lens(s: &str) -> Vec<(char, usize)>: each character and how many bytes it takes in UTF-8 (len_utf8).",
+   "hint": "c.len_utf8() — 1…4."
+  }
+ ]
+}

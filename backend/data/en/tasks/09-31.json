@@ -1,0 +1,208 @@
+{
+ "book": 9,
+ "chapter": 31,
+ "tasks": [
+  {
+   "id": "d15-rbac-direct",
+   "title": "Direct privileges of a role",
+   "statement": "Output the direct privileges of the role app_rw: columns object, priv; ordered by object and privilege.",
+   "hint": "A selection from grants by role.",
+   "starter": "-- GRANTs of the role\nSELECT\n"
+  },
+  {
+   "id": "d15-rbac-effective",
+   "title": "Effective privileges with inheritance",
+   "statement": "The role anna is a member of dev, dev of app_rw, and app_rw of report_ro. Output all privileges of anna, taking inheritance into account (no duplicates): object, priv; ordered by object and privilege.",
+   "hint": "Collect the roles recursively: anna herself and all her ancestors, then select the privileges for those roles.",
+   "starter": "-- recursively over role_member\nWITH RECURSIVE\n"
+  },
+  {
+   "id": "d15-who-can-delete",
+   "title": "Who can delete",
+   "statement": "Output the roles (name) that, taking inheritance into account, can perform DELETE on orders; ordered by name. Hint: check both the holders of the privilege themselves and those who are members of such roles.",
+   "hint": "Go down the inheritance: members of the holder roles get the right too.",
+   "starter": "-- who can DELETE on orders\nWITH RECURSIVE\n"
+  },
+  {
+   "id": "d15-excessive-ddl",
+   "title": "Excessive privileges",
+   "statement": "Output the roles that have the DROP privilege on any object although they are not owner: column role; ordered by name. Include privileges inherited through membership.",
+   "hint": "Recursively collect the roles with DROP and those who are members of them; exclude owner.",
+   "starter": "-- roles with DROP, except owner\nWITH RECURSIVE\n"
+  },
+  {
+   "id": "d15-grant-sim",
+   "title": "GRANT as INSERT",
+   "statement": "GRANT is modelled by an insert into grants. Give the role report_ro the SELECT privilege on users, and take the UPDATE privilege on orders away from app_rw (DELETE from grants). The result is checked against the grants table.",
+   "hint": "One INSERT of a row and a DELETE with three conditions."
+  },
+  {
+   "id": "d15-view-rls",
+   "title": "Row protection through a view",
+   "statement": "Create a view people_a that shows only the people of tenant 'A' (all columns). The result is checked by selecting from the view by id.",
+   "hint": "CREATE VIEW … AS SELECT * FROM people WHERE tenant = 'A'.",
+   "starter": "-- RLS via view\nCREATE VIEW people_a AS\n"
+  },
+  {
+   "id": "d15-view-columns",
+   "title": "Only safe columns",
+   "statement": "Create a view people_public(id, name, city) without email and phone. The result is checked by a selection and by the list of the view's columns.",
+   "hint": "List only the permitted columns.",
+   "starter": "-- a safe view\nCREATE VIEW people_public AS\n"
+  },
+  {
+   "id": "d15-mask-email",
+   "title": "Masking an email",
+   "statement": "Output the masked email: the first letter + '***' + everything starting from the '@' character. Columns id, masked; ordered by id. Example: anna@mail.ru → a***@mail.ru.",
+   "hint": "substr(email, 1, 1) and substr(email, instr(email, '@')).",
+   "starter": "-- masking\nSELECT\n"
+  },
+  {
+   "id": "d15-mask-phone",
+   "title": "Masking a phone number",
+   "statement": "Output the last 4 characters of the phone number, replacing the rest with asterisks as a single group: '***' || the last 4. For NULL, NULL. Columns id, masked; ordered by id.",
+   "hint": "substr(phone, -4) takes the last 4 characters; CASE for NULL.",
+   "starter": "-- phone masking\nSELECT\n"
+  },
+  {
+   "id": "d15-pseudonymize",
+   "title": "Anonymization for tests",
+   "statement": "Anonymize the table: name = 'User' || id, email = 'user' || id || '@example.com', phone = NULL. The result is checked against the table.",
+   "hint": "One UPDATE with three assignments.",
+   "starter": "-- UPDATE for the test environment\nUPDATE people\n"
+  },
+  {
+   "id": "d15-k-anonymity",
+   "title": "k-anonymity",
+   "statement": "Groups by city with fewer than 2 people make it possible to identify a person. Output such cities and the number of people: columns city, n; ordered by city.",
+   "hint": "GROUP BY city HAVING COUNT(*) < 2.",
+   "starter": "-- small groups\nSELECT\n"
+  },
+  {
+   "id": "d15-find-pii",
+   "title": "Finding personal data",
+   "statement": "Find the notes that contain an email address (they have the '@' character): column id; ascending.",
+   "hint": "LIKE '%@%'.",
+   "starter": "-- search for e-mail\nSELECT\n"
+  },
+  {
+   "id": "d15-delete-subject",
+   "title": "The right to erasure",
+   "statement": "At the request of a data subject, delete all data of the user with email 'a@x.ru' from all tables with a single DELETE command (the cascade does the rest). The result is checked against three tables.",
+   "hint": "Cascading foreign keys will delete the dependent rows by themselves.",
+   "starter": "-- delete the data subject\nDELETE FROM\n"
+  },
+  {
+   "id": "d15-audit-trigger",
+   "title": "Audit trigger",
+   "statement": "Create a trigger trg_audit AFTER UPDATE OF balance ON accounts: it writes a row (acc_id, old_balance, new_balance) into audit. Then run UPDATE accounts SET balance = balance + 25 WHERE id = 1. The result is checked against audit.",
+   "hint": "CREATE TRIGGER … AFTER UPDATE OF balance ON accounts BEGIN INSERT … VALUES (OLD.id, OLD.balance, NEW.balance); END;",
+   "starter": "-- audit of changes\nCREATE TRIGGER trg_audit\n"
+  },
+  {
+   "id": "d15-audit-who",
+   "title": "Who changed the most",
+   "statement": "For each user, output the number of DELETE actions: columns who, deletes; ordered by count descending, then by name. Only those who had any.",
+   "hint": "WHERE action = 'DELETE' and GROUP BY who.",
+   "starter": "-- audit of deletions\nSELECT\n"
+  },
+  {
+   "id": "d15-brute-force",
+   "title": "Password guessing",
+   "statement": "Output the IP addresses from which there were 3 or more failed logins (ok = 0): columns ip, failures; ordered by count descending, then by address.",
+   "hint": "WHERE ok = 0, GROUP BY ip, HAVING COUNT(*) >= 3."
+  },
+  {
+   "id": "d15-lockout",
+   "title": "Lockout after failures",
+   "statement": "Output the users who, according to the log, have at least two failed logins and no successful ones: column user; ordered by name.",
+   "hint": "GROUP BY user HAVING SUM(ok = 0) >= 2 AND SUM(ok = 1) = 0.",
+   "starter": "-- candidates for lockout\nSELECT\n"
+  },
+  {
+   "id": "d15-sqli-log",
+   "title": "Suspicious queries in the log",
+   "statement": "Find the records that contain signs of injection: the substrings ' OR 1=1' or '; DROP' (case does not matter, LIKE is enough). Column id; ascending.",
+   "hint": "Two LIKEs joined with OR.",
+   "starter": "-- looking for traces of injections\nSELECT\n"
+  },
+  {
+   "id": "d15-hash-password",
+   "title": "Salted password hash",
+   "statement": "Write hash_password(password, salt): the result is hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), 1000).hex(), a string of hexadecimal digits. (The exact value matters for submission: the parameters are fixed.)",
+   "hint": "hashlib.pbkdf2_hmac('sha256', …, 1000).hex()."
+  },
+  {
+   "id": "d15-verify-password",
+   "title": "Password verification",
+   "statement": "Write verify_password(password, salt, stored): True if hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), 1000).hex() matches stored. Compare in constant time (hmac.compare_digest).",
+   "hint": "hmac.compare_digest(h, stored)."
+  },
+  {
+   "id": "d15-password-policy",
+   "title": "Password policy",
+   "statement": "Rules: length at least 8 ('short'), contains a digit ('no-digit'), contains an uppercase letter ('no-upper'), no three identical characters in a row ('repeat'). Write password_violations(pw): a sorted list of the violated rules.",
+   "hint": "Four independent checks; sort the result."
+  },
+  {
+   "id": "d15-param-query",
+   "title": "Parameterized query",
+   "statement": "Only the tables users and orders are allowed, and the filter columns are id, name, city, status. Write build_query(table, filters): a pair [sql, params], where sql = 'SELECT * FROM <table> WHERE a = ? AND b = ?' (conditions in the order of the keys of the dict filters; with no filters, 'SELECT * FROM <table>'), and params are the values in the same order. If the table or a column is not allowed, return None.",
+   "hint": "Allowlists for the table and the columns; values go only into params."
+  },
+  {
+   "id": "d15-order-by",
+   "title": "Safe sorting",
+   "statement": "The user passes a column and a direction. Allowed are the columns from allowed and the directions 'asc'/'desc' (case-insensitive). Write safe_order_by(column, direction, allowed): the string 'ORDER BY col DIR' (direction in capitals) or 'ORDER BY id ASC' if the input is not allowed.",
+   "hint": "Check both parameters against allowlists."
+  },
+  {
+   "id": "d15-detect-sqli",
+   "title": "Suspicious input",
+   "statement": "Write looks_like_injection(s): True if the lowercased string contains one of these signs: \"' or \", \"--\", \";\", \"union select\", \"/*\". Otherwise False. This is a heuristic for the log, not a defense.",
+   "hint": "Convert to lowercase and check each substring."
+  },
+  {
+   "id": "d15-effective-privs",
+   "title": "Role inheritance",
+   "statement": "Roles are given by a dict \"role → list of parent roles\", privileges by a dict \"role → list of privileges\". Write effective_privs(role, parents, privs): a sorted list of the role's privileges taking inheritance into account (cycles are allowed). Unknown roles have no privileges.",
+   "hint": "Traverse the role graph with a set of visited roles."
+  },
+  {
+   "id": "d15-rls-filter",
+   "title": "Row policy",
+   "statement": "Rows are dicts with the key 'tenant'. Write rls_filter(rows, tenant, is_owner): if is_owner, all rows (the owner bypasses the policy), otherwise only the tenant's rows.",
+   "hint": "A list with a filter by tenant, or without it for the owner."
+  },
+  {
+   "id": "d15-mask-card",
+   "title": "Masking a card number",
+   "statement": "Write mask_card(number): keep the last 4 digits, replace the other digits with '•', and keep spaces and hyphens as they are. If there are fewer than 4 digits, keep all the digits.",
+   "hint": "Find the positions of the digits; keep the last 4."
+  },
+  {
+   "id": "d15-k-anon-py",
+   "title": "Small groups",
+   "statement": "Records are lists of quasi-identifier values (for example, [city, age]). Write small_groups(rows, k): a sorted list of groups (as lists) that occur fewer than k times.",
+   "hint": "Count the tuples and select the groups with n < k."
+  },
+  {
+   "id": "d15-audit-diff",
+   "title": "What changed",
+   "statement": "The rows before and after are dicts. Write audit_diff(before, after): a list of records [field, was, now] sorted by field, for the fields whose values differ (if a field is in only one of the dicts, the missing value is None).",
+   "hint": "Merge the keys and compare the values with get."
+  },
+  {
+   "id": "d15-rate-limit",
+   "title": "Rate limiting",
+   "statement": "Login attempts are an increasing list of seconds. The limit: at most limit attempts in any window seconds (window [t − window + 1, t]). Write allowed_attempts(times, limit, window): a list of True/False for each attempt, whether it is allowed (rejected attempts also count in the window as attempts).",
+   "hint": "For each attempt, count the attempts in the window, including itself."
+  },
+  {
+   "id": "d15-hba",
+   "title": "Access rules",
+   "statement": "Rules are a list [type, database, role, network, decision]; 'all' means any value, and the network is a CIDR. The first matching rule wins. Write match_rule(rules, db, role, ip, ssl): the decision ('allow' or 'reject') of the first match; the type 'hostssl' matches only when ssl=True, 'host' matches always; if nothing matches, 'reject'. Use ipaddress.",
+   "hint": "Go through the rules in order, skipping those that don't match."
+  }
+ ]
+}

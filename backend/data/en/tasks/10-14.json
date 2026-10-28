@@ -1,0 +1,186 @@
+{
+ "book": 10,
+ "chapter": 14,
+ "tasks": [
+  {
+   "id": "r14-word-count",
+   "title": "Counter",
+   "statement": "Python: Counter(words). Write count_words(text: &str) -> Vec<(String, usize)>: word frequencies (split_whitespace, lowercase), in descending order of frequency, ties broken alphabetically.",
+   "hint": "entry().or_insert(0) and sorting the pairs."
+  },
+  {
+   "id": "r14-get-default",
+   "title": "d.get(k, default)",
+   "statement": "Python: d.get(k, 0). Write lookup(m: &HashMap<String, i32>, k: &str) -> i32 — the value for the key, or 0.",
+   "hint": "get(k).copied().unwrap_or(0)"
+  },
+  {
+   "id": "r14-invert",
+   "title": "Invert a dictionary",
+   "statement": "Python: {v: k for k, v in d.items()}. Write invert(m: &HashMap<String, i32>) -> HashMap<i32, String> (values are unique).",
+   "hint": "iter().map(|(k, v)| (*v, k.clone())).collect()"
+  },
+  {
+   "id": "r14-group-by-len",
+   "title": "Group by length",
+   "statement": "Python: defaultdict(list). Write group_by_len(words: &[&str]) -> BTreeMap<usize, Vec<String>>: words by length in characters (in original order within each group).",
+   "hint": "entry(len).or_default().push(…)"
+  },
+  {
+   "id": "r14-anagram-groups",
+   "title": "Anagram groups",
+   "statement": "Write group_anagrams(words: &[&str]) -> Vec<Vec<String>>: anagram words together; the groups are sorted by their first word, and the words within groups are in original order. The key is the sorted letters.",
+   "hint": "A Vec<char> key works: Vec implements Hash."
+  },
+  {
+   "id": "r14-two-sum-map",
+   "title": "Two numbers in one pass",
+   "statement": "Write two_sum(v: &[i32], target: i32) -> Option<(usize, usize)>: indices (i, j), i < j, with v[i] + v[j] = target, in a single pass with a HashMap “value → index”. For the first pair found as j advances.",
+   "hint": "For each x, look for target - x among those already seen."
+  },
+  {
+   "id": "r14-merge-sum",
+   "title": "Merge with addition",
+   "statement": "Python: Counter(a) + Counter(b). Write merge_sum(a: &HashMap<String, i32>, b: &HashMap<String, i32>) -> BTreeMap<String, i32>: the keys are combined, and values are added when keys coincide.",
+   "hint": "Walk both maps and accumulate into one."
+  },
+  {
+   "id": "r14-dict-from-zip",
+   "title": "dict(zip(k, v))",
+   "statement": "Write zip_map(keys: &[&str], vals: &[i32]) -> BTreeMap<String, i32> — pairs up to the shorter of the two slices.",
+   "hint": "zip + collect into BTreeMap."
+  },
+  {
+   "id": "r14-top-n",
+   "title": "Top words",
+   "statement": "Write top_words(text: &str, n: usize) -> Vec<String>: the n most frequent words (lowercase); ties in frequency are broken alphabetically.",
+   "hint": "Count first, then sort_by and take(n)."
+  },
+  {
+   "id": "r14-entry-and-modify",
+   "title": "and_modify",
+   "statement": "Write apply(events: &[(&str, i32)]) -> BTreeMap<String, i32>: for each event (key, value) — if the key already exists, add the value, otherwise set it (and_modify + or_insert).",
+   "hint": "m.entry(k).and_modify(|e| *e += v).or_insert(v)"
+  },
+  {
+   "id": "r14-btree-range",
+   "title": "Key range",
+   "statement": "Write between(m: &BTreeMap<i32, String>, lo: i32, hi: i32) -> Vec<String>: the values for keys in [lo, hi] in ascending key order (the range method).",
+   "hint": "m.range(lo..=hi)"
+  },
+  {
+   "id": "r14-first-last",
+   "title": "Minimum and maximum key",
+   "statement": "Write extremes(m: &BTreeMap<i32, i32>) -> Option<(i32, i32)>: (smallest key, largest key) or None for an empty map (first_key_value, last_key_value).",
+   "hint": "first_key_value() returns Option<(&K, &V)>."
+  },
+  {
+   "id": "r14-set-ops",
+   "title": "Set operations",
+   "statement": "Write set_ops(a: &[i32], b: &[i32]) -> (Vec<i32>, Vec<i32>, Vec<i32>): the union, the intersection, and the difference a − b, each result sorted in ascending order.",
+   "hint": "union, intersection, difference are iterators; collect into a Vec and sort."
+  },
+  {
+   "id": "r14-unique-count",
+   "title": "How many distinct",
+   "statement": "Python: len(set(l)). Write distinct(v: &[i32]) -> usize.",
+   "hint": "collect into a HashSet and len()."
+  },
+  {
+   "id": "r14-has-duplicates",
+   "title": "Any duplicates",
+   "statement": "Write has_duplicates(v: &[i32]) -> bool in linear time: a HashSet and an early exit on a repeat (insert returns false).",
+   "hint": "if !seen.insert(x) { return true; }"
+  },
+  {
+   "id": "r14-common-chars",
+   "title": "Common letters",
+   "statement": "Write common(a: &str, b: &str) -> String: the letters present in both strings (without repeats), in alphabetical order.",
+   "hint": "The intersection of two HashSet<char>."
+  },
+  {
+   "id": "r14-pangram",
+   "title": "Pangram",
+   "statement": "Write is_pangram(s: &str) -> bool: whether the string contains all 26 Latin letters (case doesn't matter).",
+   "hint": "Collect a set of letters and check its size."
+  },
+  {
+   "id": "r14-lru-like",
+   "title": "First non-repeating",
+   "statement": "Python: Counter + a pass. Write first_unique(v: &[i32]) -> Option<i32>: the first element that occurs exactly once.",
+   "hint": "The first pass counts, the second looks for count == 1."
+  },
+  {
+   "id": "r14-char-histogram",
+   "title": "Character histogram",
+   "statement": "Write histogram(s: &str) -> BTreeMap<char, usize>: how many times each character occurs (excluding spaces).",
+   "hint": "BTreeMap keeps keys sorted."
+  },
+  {
+   "id": "r14-inventory",
+   "title": "Warehouse",
+   "statement": "Write update_stock(stock: &mut HashMap<String, u32>, op: &str, item: &str, n: u32) -> Result<(), String>: «add» increases the stock; «take» decreases it (Err(\"нет товара\") if the key is missing, and Err(\"мало\") if the stock is less than n; when the stock reaches 0 the key is removed); any other operation — Err(\"операция\").",
+   "hint": "get_mut gives &mut to the value; remove at zero."
+  },
+  {
+   "id": "r14-index",
+   "title": "Word index",
+   "statement": "Write build_index(docs: &[&str]) -> BTreeMap<String, Vec<usize>>: for each word (lowercase) — the numbers of the documents (from 0, without repeats, ascending) where it occurs.",
+   "hint": "Check last() before push so you don't duplicate a number."
+  },
+  {
+   "id": "r14-memo-fib",
+   "title": "Memoization",
+   "statement": "Write fib(n: u64, memo: &mut HashMap<u64, u64>) -> u64 with memoization (like @lru_cache): fib(0)=0, fib(1)=1. For n = 90 the computation is instant.",
+   "hint": "Look in memo first, then compute and store."
+  },
+  {
+   "id": "r14-lookup-table",
+   "title": "Lookup table",
+   "statement": "Write roman_to_int(s: &str) -> u32: a Roman numeral to an ordinary number (I=1, V=5, X=10, L=50, C=100, D=500, M=1000; a smaller digit before a larger one is subtracted). Use a HashMap<char, u32> or match.",
+   "hint": "If the next digit is larger, subtract the current one."
+  },
+  {
+   "id": "r14-cache",
+   "title": "Cache with a limit",
+   "statement": "Implement a struct Cache with the fields map: HashMap<String, i32>, order: Vec<String>, cap: usize. The function new(cap) creates an empty cache; put(&mut self, k: &str, v: i32) adds a pair and, when cap is exceeded, evicts the oldest key (FIFO); updating an existing key doesn't change the order; get(&self, k: &str) -> Option<i32>.",
+   "hint": "On eviction, remove the first element of order and its key from map."
+  },
+  {
+   "id": "r14-bimap",
+   "title": "Bidirectional mapping",
+   "statement": "Write is_isomorphic(a: &str, b: &str) -> bool: can the letters of a be replaced by letters of b to get b (each letter maps to the same one, different letters to different ones; the strings have equal length).",
+   "hint": "Two maps: a → b and b → a."
+  },
+  {
+   "id": "r14-graph-degrees",
+   "title": "Vertex degrees of a graph",
+   "statement": "Write degrees(edges: &[(u32, u32)]) -> BTreeMap<u32, usize>: the degree of each vertex of an undirected graph (each edge increases the degree of both endpoints; a loop (v, v) counts twice).",
+   "hint": "Two entry calls per edge."
+  },
+  {
+   "id": "r14-adjacency",
+   "title": "Adjacency list",
+   "statement": "Write adjacency(edges: &[(u32, u32)]) -> BTreeMap<u32, Vec<u32>>: for each vertex — a sorted list of the neighbors in an undirected graph, without repeats.",
+   "hint": "or_default().push in both directions; then sort and dedup."
+  },
+  {
+   "id": "r14-sorted-by-value",
+   "title": "Sort by value",
+   "statement": "Python: sorted(d.items(), key=lambda kv: kv[1]). Write by_value(m: &HashMap<String, i32>) -> Vec<(String, i32)>: pairs in ascending order of value, ties broken by key.",
+   "hint": "sort_by with then to break ties."
+  },
+  {
+   "id": "r14-struct-key",
+   "title": "Struct as a key",
+   "statement": "Add the needed derives (Hash, PartialEq, Eq, Clone, Copy, Debug) to the struct Pos { x: i32, y: i32 } and write visited(path: &[(i32, i32)]) -> usize: how many distinct cells were visited (HashSet<Pos>).",
+   "hint": "#[derive(Hash, PartialEq, Eq)] makes a struct usable as a key."
+  },
+  {
+   "id": "r14-sym-diff",
+   "title": "What changed",
+   "statement": "Write changed(old: &[&str], new: &[&str]) -> Vec<String>: the words that are in exactly one of the lists (the symmetric difference), in alphabetical order.",
+   "hint": "symmetric_difference returns an iterator."
+  }
+ ]
+}

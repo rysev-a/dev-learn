@@ -1,0 +1,186 @@
+{
+ "book": 16,
+ "chapter": 12,
+ "tasks": [
+  {
+   "id": "c12-hash-functions",
+   "title": "Hash functions: FNV-1a, djb2, finalizer, combining",
+   "statement": "fnv1a32(p, n) (offset 2166136261, prime 16777619) and fnv1a64(p, n) (14695981039346656037, 1099511628211) — for each byte: h ^= byte; h *= prime. djb2(s): h = 5381; for each character h = h · 33 + c (uint32_t). mix32(x): x ^= x >> 16; x *= 0x85ebca6b; x ^= x >> 13; x *= 0xc2b2ae35; x ^= x >> 16. hash_combine(seed, v) = seed ^ (mix32(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2)). range_reduce(h, n) → (uint64_t)h · n >> 32 (an index in [0, n) without division).",
+   "hint": "FNV-1a: first XOR with the byte, then multiply (FNV-1 does it in the opposite order). Do all computations in unsigned types of the right width."
+  },
+  {
+   "id": "c12-hash-distribution",
+   "title": "Hash function quality: distribution over buckets",
+   "statement": "struct dist { size_t empty, max_chain, collisions, sum_squares; }. bucket_stats(keys, n, buckets, hash, *d): distribute the keys over buckets (index = hash(key) % buckets) and compute: empty — the number of empty buckets, max_chain — the length of the longest bucket, collisions — the number of keys that landed in an already occupied bucket (n − the number of non-empty buckets), sum_squares — the sum of squares of the bucket lengths. unique_hashes(keys, n, hash) — the number of distinct hash values (use qsort). worst_bucket(keys, n, buckets, hash) → the index of the fullest bucket (the smallest index on ties).",
+   "hint": "Allocate an array of counters, one per bucket (calloc), and make one pass over the keys; collisions = n − the number of non-empty buckets."
+  },
+  {
+   "id": "c12-chain-map",
+   "title": "Chained hash table: string → number",
+   "statement": "struct smap { struct snode **b; size_t nb, count; }; struct snode { char *key; int val; struct snode *next; }. smap_init(m) — 8 buckets. Index = fnv1a32(key) % nb (offset 2166136261, prime 16777619; the key is a C string). smap_put(m, key, val) → 1 for a new key, 0 if the value was updated, −1 on error; a new node is inserted at the HEAD of the chain; the key is copied. After inserting a new key, if count > nb · 3 / 4 (integer arithmetic) — rebuild at double size: the buckets of the old table are walked from 0, chains from the head, and each node is inserted at the head of the chain in its new bucket (the nodes themselves are reused). smap_get(m, key, *out) → 1/0; smap_remove(m, key) → 1/0 (the node is freed); smap_each(m, fn, ctx) — walk the buckets from 0 and the chains from the head: fn(key, val, ctx); smap_free. Under AddressSanitizer.",
+   "hint": "Copy the key (malloc + strcpy). On growth do not create nodes anew — move the existing ones, inserting at the head of the new bucket's chain in the same order in which you walk the old one."
+  },
+  {
+   "id": "c12-open-linear",
+   "title": "Open addressing with linear probing and tombstones",
+   "statement": "struct omap { struct oslot *s; size_t cap, used, tombs; } (slot: int key, val; unsigned char state — 0 empty, 1 occupied, 2 tombstone). omap_init(m): cap = 8. Hash: h = (uint32_t)key · 2654435761u; index = (h ^ (h >> 15)) & (cap − 1); linear probing (i + 1, wrapping around). omap_put(m, k, v) → 1 for a new key, 0 for an update, −1 on error: the key is searched for up to the first empty slot (tombstones are skipped); for a new key, before inserting: if (used + tombs + 1) · 4 > cap · 3 — rebuild: the new capacity is cap · 2 if (used + 1) · 2 > cap, otherwise the same; live elements are moved in the order of the old slots; then insert into the first tombstone or empty slot met along the probe path. omap_get(m, k, *out) → 1/0; omap_remove(m, k) → 1/0 (slot → tombstone, used−−, tombs++); omap_slot(m, k) → the index of the slot with the key or −1; omap_free. Under AddressSanitizer.",
+   "hint": "The search goes up to the first EMPTY slot (state 0), tombstones (2) are skipped. When inserting a new key, take the first slot without a live element."
+  },
+  {
+   "id": "c12-backshift",
+   "title": "Open addressing: deletion by backward shift",
+   "statement": "struct oset { int *key; unsigned char *used; size_t cap, n; }. oset_init(s, cap) (cap is a power of two, fixed; the table does not grow). The hash is the identity: index = (uint32_t)key & (cap − 1); linear probing. oset_add(s, k) → 1/0 (already present)/−1 (table full: n == cap − 1, one empty slot is always kept). oset_has(s, k). oset_del(s, k) → 1/0: deletion by BACKWARD SHIFT — after freeing slot i, look at the following consecutive occupied slots j: if the ideal place of their key does not lie cyclically in (i, j], move the key to i and continue with the new hole j. oset_dump(s, out) → a string of slots «3 . 11 .» (numbers/dots separated by spaces). Under AddressSanitizer.",
+   "hint": "Loop over slots j after the hole i: a key stays if its home slot h lies cyclically in (i, j]; otherwise move it to i, and j becomes the hole."
+  },
+  {
+   "id": "c12-robin-hood",
+   "title": "Robin Hood: open addressing with evened-out probes",
+   "statement": "struct rh { int key[16]; unsigned char used[16]; size_t n; } (capacity 16, does not grow). The hash is the identity: home = (uint32_t)key & 15. The \"distance\" of an element in slot i is (i − home) & 15. rh_put(h, k) → 1 new/0 already present/−1 if n == 15: walk the slots from home; if the slot is empty, place the key there; if it holds an element whose distance is LESS than the current distance of the key being inserted, swap them (the evicted element becomes the one being inserted, its distance is recomputed) and continue; otherwise move on. rh_has(h, k): walk from home; stop if the slot is empty or the distance of its element is less than the current probe length (the key is not further along). rh_del(h, k) → 1/0 with backward shift: after the deletion, shift the following elements back while they are not empty and their distance is > 0. rh_max_dist(h) — the largest distance among the elements. rh_dump(h, out) — like «3 . 11 .» over all 16 slots.",
+   "hint": "Insertion: while the slot holds an element with a smaller distance, swap with it (\"take from the rich\"). Deletion: shift back the elements whose distance is > 0."
+  },
+  {
+   "id": "c12-hashset-generic",
+   "title": "Generic set on open addressing",
+   "statement": "struct hset { unsigned char *data; unsigned char *state; size_t esize, cap, n; uint32_t (*hash)(const void *); int (*eq)(const void *, const void *); }. hset_new(esize, hash, eq): cap = 8, linear probing, index = hash(elem) & (cap − 1). hset_add(s, elem) → 1/0 (already present)/−1: if (n + 1) · 4 > cap · 3 — rebuild with double capacity (move in the order of the old slots); hset_has; hset_del(s, elem) → 1/0 — deletion by backward shift (as in the previous tasks); hset_len; hset_each(s, fn, ctx) — over the slots from 0; hset_free. Elements are copied with memcpy (esize bytes). Under AddressSanitizer.",
+   "hint": "The slot state is a separate byte array. Growth: double the capacity, insert the old elements in slot order. Deletion — backward shift with a cyclic interval check."
+  },
+  {
+   "id": "c12-lru-cache",
+   "title": "LRU cache: a table and a doubly linked list",
+   "statement": "struct lru — a cache for capacity entries (key int → value int). lru_new(cap) → the cache; lru_get(c, key, *val) → 1/0: a hit moves the entry to the front (the freshest), hits/misses grow; lru_put(c, key, val, *evicted) → 1 if the oldest entry was evicted (its key goes into *evicted), otherwise 0: for an existing key the value is updated and the entry moves to the front; a new entry goes to the front, and on overflow the tail is evicted. lru_keys(c, out) → the number of entries and the keys from the freshest to the oldest; lru_hits(c), lru_misses(c), lru_size(c); lru_free. All operations are O(1) (table + list). Under AddressSanitizer.",
+   "hint": "A table from key to a pointer to the list node; the list keeps the order: the head is the freshest. Access — unlink the node and insert it at the head; eviction — remove the tail and its entry from the table."
+  },
+  {
+   "id": "c12-ordered-map",
+   "title": "A dictionary with insertion order (like dict in Python)",
+   "statement": "om_put(m, k, v) → 1 new/0 update; om_get(m, k, *out) → 1/0; om_del(m, k) → 1/0; om_keys(m, out) → the number of keys and the keys themselves in the order of FIRST insertion (an update does not change the order; a deletion followed by a re-insertion puts the key at the end); om_len; om_compactions(m) — how many times compaction has been performed. Design: an array of entries (key, val, alive?) in insertion order plus an index table. Deletion marks the entry as a \"hole\"; if after a deletion the holes make up more than half of all entries and there are at least 8 entries in total, the entry array is compacted (holes are removed, order is kept). Under AddressSanitizer.",
+   "hint": "An array of entries in insertion order + an \"alive\" flag. Deletion: flag to 0, alive−−; if holes > half and entries ≥ 8 — repack the array keeping the order. You can keep the index by key in a hash table, but only the results are checked."
+  },
+  {
+   "id": "c12-bloom",
+   "title": "Bloom filter",
+   "statement": "struct bloom { uint8_t *bits; size_t m; int k; }. bloom_new(m, k) — m bits (zeroed), k hash functions. Indices for a string s: h1 = fnv1a32(s) (offset 2166136261, prime 16777619), h2 = djb2(s) | 1 (h = 5381, h = h · 33 + c, uint32_t); the i-th index = (h1 + i · h2) mod m for i = 0…k−1 (compute in uint32_t, then take the remainder modulo m). bloom_add(b, s); bloom_maybe(b, s) → 1 \"possibly present\", 0 \"definitely not\"; bloom_popcount(b) — the number of set bits; bloom_fill_ratio_pct(b) → popcount · 100 / m (integer); bloom_free. Under AddressSanitizer.",
+   "hint": "All k indices are computed from two hashes: (h1 + i · h2) % m. On add, set the bits; on check, require that all k are set."
+  },
+  {
+   "id": "c12-avl-insert",
+   "title": "AVL tree: insertion and rotations",
+   "statement": "struct avl { int key, h; struct avl *l, *r; } — h is the node height (a leaf is 1, NULL is 0). avl_insert(t, key) → the new root of the subtree (duplicates are ignored); after the recursive call the height is recomputed and rotations are performed (left-left → right, right-right → left, left-right and right-left — double); avl_rotations() — the number of single rotations over all time (a double rotation counts as two); avl_height(t); avl_size(t); avl_preorder(t, out) → the number of nodes and the keys in pre-order (root, left, right); avl_inorder(t, out); avl_valid(t) → 1 if the tree is ordered, the heights are right and the balance of every node is at most 1 in absolute value; avl_free(t). Under AddressSanitizer.",
+   "hint": "balance(t): recompute the height; if the left is higher than the right by more than 1 — if needed do left-right (first a left rotation of the left child), then a right rotation; symmetrically on the right."
+  },
+  {
+   "id": "c12-avl-delete",
+   "title": "AVL tree: deletion and rebalancing",
+   "statement": "The structure is the same: struct avl { int key, h; struct avl *l, *r; }, h is the height (a leaf is 1, NULL is 0). avl_insert(t, key) and avl_erase(t, key) → the new root; erase removes the key (if present); a node with two children is replaced by the smallest key of the right subtree; after deletion, rebalance on the way back. If the balance factor of the child is 0, a single rotation is enough. avl_contains(t, key); avl_min(t) → the smallest key or INT_MIN for an empty tree; avl_height(t); avl_size(t); avl_inorder(t, out); avl_preorder(t, out); avl_valid(t); avl_free(t). Under AddressSanitizer.",
+   "hint": "erase follows the same recursive path as insert: after the recursive call — balance(t). In balance, for a child whose grandchildren have equal heights, a single rotation is enough."
+  },
+  {
+   "id": "c12-avl-rank",
+   "title": "AVL with subtree sizes: ranks and ranges",
+   "statement": "struct ost { int key, h; size_t size; struct ost *l, *r; } — an AVL tree whose node also stores the subtree size (a leaf is 1). ost_insert(t, key), ost_erase(t, key) → the new root (duplicates are ignored), sizes and heights are updated during balancing. ost_select(t, k, *key) → 1 and the k-th key in order (k from 0), otherwise 0; ost_rank(t, key) → the number of keys strictly less than key; ost_count_range(t, lo, hi) → the number of keys in [lo, hi] (lo > hi → 0); ost_size(t); ost_valid(t) — ordering, heights, balance and sizes; ost_free. Query operations are O(log n). Under AddressSanitizer.",
+   "hint": "Node update: height and size = 1 + size(l) + size(r) — after every rotation, for both nodes involved. select/rank — a descent guided by the size of the left subtree."
+  },
+  {
+   "id": "c12-bst-iter",
+   "title": "Tree iterator without recursion",
+   "statement": "struct bnode { int key; struct bnode *l, *r; } and bst_insert(t, key) → the root (duplicates are ignored) are already written. Implement an in-order iterator with an explicit stack (an array of 64 pointers): bst_iter_init(it, root) — the first key will be the smallest; bst_iter_next(it, *key) → 1 and the next key in ascending order, 0 — the end. bst_iter_seek(it, root, key) — the iterator starts at the smallest key ≥ key. bst_range(root, lo, hi, out, max) → the number of keys from [lo, hi] in ascending order (using the iterator, stopping once past hi). bst_height_iter(root) — the height without recursion (breadth-first traversal with a queue-array of 4096 nodes). bst_free(root) — freeing without recursion (a stack array is allowed). Under AddressSanitizer.",
+   "hint": "The stack holds the chain of left children: init — descend left with push; next — pop, then descend left from the right child. seek — descend from the root, deferring to the stack the nodes with key ≥ the sought one."
+  },
+  {
+   "id": "c12-treap",
+   "title": "Treap: split, merge, and insertion",
+   "statement": "struct treap { int key; uint32_t prio; struct treap *l, *r; }; the priority of a node is mix32(key) (mix32: x ^= x >> 16; x *= 0x85ebca6b; x ^= x >> 13; x *= 0xc2b2ae35; x ^= x >> 16). A heap by priority: a parent has a priority no less than its children (greater means higher). tr_split(t, key, *a, *b): a gets the keys < key, b gets the keys ≥ key. tr_merge(a, b) — all keys of a are less than all keys of b. tr_insert(t, key) — via split and merge (a duplicate is not added); tr_erase(t, key) — via split and merge; tr_preorder(t, out); tr_inorder(t, out); tr_height(t); tr_valid(t) — key order and heap by priority; tr_free. Under AddressSanitizer.",
+   "hint": "split: if the node's key < key — the node and its left subtree go to a, and we keep splitting the right one. merge: the root is the node with the greater priority."
+  },
+  {
+   "id": "c12-heap",
+   "title": "Binary heap: insertion, extraction, building, sorting",
+   "statement": "A min-heap on a dynamic array: struct heap { int *a; size_t n, cap; }. heap_init(h); heap_push(h, v) → 0/−1 (capacity 4, doubles on growth); heap_pop(h, *out) → 1/0 (the smallest); heap_peek(h, *out) → 1/0; heap_replace_top(h, v, *old) → 1/0: replace the root with v using a single sift-down, returning the previous minimum in *old. heap_build(a, n) — turn an array into a min-heap in place in O(n) (sinking from the middle); heap_valid(a, n) → 1 if the heap property holds; heap_sort_desc(a, n) — in-place sort in descending order: build a min-heap, then n times swap the root with the last element of the heap and sift down within the shrunken heap. heap_free(h). Under AddressSanitizer.",
+   "hint": "sift_down picks the smaller of the two children. Building: for i = n/2 − 1 … 0 — sift_down. Descending sort: extract the minimum from the min-heap to the end."
+  },
+  {
+   "id": "c12-indexed-heap",
+   "title": "A queue with priority decrease and Dijkstra's algorithm",
+   "statement": "A priority queue for identifiers 0…n−1 (the priority is a long): ipq_init(q, n); ipq_push(q, id, prio) → 1/0 (id already in the queue); ipq_decrease(q, id, prio) → 1 if id is in the queue and its priority was decreased, otherwise 0; ipq_pop(q, *id, *prio) → 1/0 (the smallest priority; on ties the smaller id); ipq_contains(q, id); ipq_size(q); ipq_free. You need a position map (id → index in the heap) — a decrease in O(log n). dijkstra(n, edges, m, src, dist): struct edge { int u, v; long w; } — directed edges; dist[i] is the length of the shortest path from src or −1 (unreachable); it uses ipq. Under AddressSanitizer.",
+   "hint": "pos[id] is the index of id in the heap or −1. Every swap in the heap updates pos. decrease: change the priority and sift up. In Dijkstra: if the id is already in the queue — decrease, otherwise push."
+  },
+  {
+   "id": "c12-topk-median",
+   "title": "Streaming problems with heaps: top-k and median",
+   "statement": "topk(a, n, k, out) → write into out the k largest values in descending order (k ≤ n; k > n → all n), using a min-heap of size k (without sorting the whole array), returns the number written. struct median { two heaps }: med_init(m); med_add(m, x); med_median(m, *out) → 1/0 (empty); the median is the average of the two middle values for an even count (the result is a double); med_count(m); med_free. kth_smallest(a, n, k) → the k-th smallest by value (k counts from 1) using a max-heap of size k, or INT_MIN if k is outside 1…n. Write the heaps yourself (dynamic arrays). Under AddressSanitizer.",
+   "hint": "top-k: a min-heap of k elements — if the new element is greater than the root, replace the root and sift down. Median: a max-heap for the lower half and a min-heap for the upper half, with sizes differing by at most 1."
+  },
+  {
+   "id": "c12-trie",
+   "title": "Prefix tree for words over a–z",
+   "statement": "struct trie { struct trie *next[26]; int end; size_t below; } (below is the number of words in the subtree, including this node). trie_new() — an empty root; trie_insert(t, w) → 1 new word / 0 already present; trie_contains(t, w); trie_count_prefix(t, p) — how many words start with p (an empty prefix — all words); trie_complete(t, p, out, max) → the number of words with prefix p in alphabetical order, written into out[][32] (at most max); trie_erase(t, w) → 1/0 with freeing of nodes that became unnecessary (below is updated); trie_lcp(t, out) — the longest common prefix of all words (written into out; empty for an empty tree); trie_free. Words use only a–z, length < 32. Under AddressSanitizer.",
+   "hint": "Increase the below counter in every node along the path on insertion, decrease it on deletion; free a node with below == 0. Alphabetical traversal — over the children from a to z."
+  },
+  {
+   "id": "c12-skiplist",
+   "title": "Skip list with deterministic levels",
+   "statement": "struct skip — at most 8 levels. The level of key k: 1 + the number of trailing zero bits of mix32(k) (mix32: x ^= x >> 16; x *= 0x85ebca6b; x ^= x >> 13; x *= 0xc2b2ae35; x ^= x >> 16), but not more than 8. sl_new(); sl_insert(s, k) → 1/0 (duplicate); sl_contains(s, k); sl_erase(s, k) → 1/0; sl_len(s); sl_levels(s) — the highest level among live keys (empty — 0); sl_dump(s, lvl, out) → the number of keys at level lvl (1…8) in ascending order and the keys themselves (level lvl shows the keys whose level is ≥ lvl); sl_lower_bound(s, k, *out) → 1 and the smallest key ≥ k, or 0; sl_free. Under AddressSanitizer.",
+   "hint": "Classic insertion: find the \"predecessors\" at every level (an upd array), create a node of the needed height and link it in at every level where it is visible."
+  },
+  {
+   "id": "c12-union-find",
+   "title": "Disjoint set union and Kruskal's spanning tree",
+   "statement": "struct dsu { int *parent, *size; int n, sets; }. dsu_init(d, n): n singleton sets; dsu_find(d, x) — the root of the set with path compression (iteratively, no recursion); dsu_union(d, a, b) → 1 if the sets differ (merges the smaller into the larger by size; on equal sizes the root of the first argument becomes the root), otherwise 0; dsu_same(d, a, b); dsu_size(d, x) — the size of the set of x; dsu_sets(d). dsu_free. struct wedge { int u, v; long w; }. kruskal(n, edges, m, *used) → the total weight of the minimum spanning tree (or −1 if the graph is disconnected); *used is the number of edges in the tree; edges are sorted by weight (on ties by original order, so qsort must be made stable with the index).",
+   "hint": "find: two passes — find the root, then re-hang all nodes of the path onto the root. union: the \"heavier\" set becomes the root. For kruskal — sort the edges and union as long as the edges connect different sets."
+  },
+  {
+   "id": "c12-segment-tree",
+   "title": "Segment tree: sum, minimum, maximum",
+   "statement": "struct seg { long *t; int n; int op; } — a bottom-up (iterative) tree on 2n elements: leaves t[n … 2n−1]. op: 0 — sum (neutral element 0), 1 — minimum (neutral LONG_MAX), 2 — maximum (neutral LONG_MIN). seg_build(s, a, n, op) — build in O(n); seg_update(s, i, v) — assign a[i] = v in O(log n); seg_query(s, l, r) — the value of the operation on the half-open interval [l, r) in O(log n) (an empty interval gives the neutral element). seg_free. The size n is arbitrary, not only a power of two. Under AddressSanitizer.",
+   "hint": "Iterative tree: leaves in t[n + i]; the parent of i is t[i >> 1]. Query: l += n, r += n; while l < r — if l is odd, take t[l++]; if r is odd — t[--r]; then l >>= 1, r >>= 1."
+  },
+  {
+   "id": "c12-fenwick",
+   "title": "Fenwick tree: prefix sums and inversions",
+   "statement": "struct fen { long *t; int n; }. fen_init(f, n) (indices 0…n−1, one-based numbering inside); fen_add(f, i, delta); fen_prefix(f, i) — the sum a[0…i] (i = −1 → 0); fen_range(f, l, r) — the sum on [l, r] (l > r → 0); fen_lower_bound(f, target) → the smallest index i such that fen_prefix(f, i) ≥ target (all values are non-negative); n if there is none; fen_free. count_inversions(a, n) → the number of pairs i < j with a[i] > a[j] (values are arbitrary ints, using coordinate compression and a Fenwick tree; O(n log n)). Under AddressSanitizer.",
+   "hint": "add: i += i & -i; prefix: i -= i & -i (one-based numbering). lower_bound — a descent over powers of two. Inversions: go from right to left and count how many smaller values have already been seen."
+  },
+  {
+   "id": "c12-distinct-window",
+   "title": "Hash tables in algorithms: windows, repeats, subarrays",
+   "statement": "Using your own hash table (open addressing, int → int, capacity ≥ 2n, grows as needed) write: distinct_in_windows(a, n, w, out) — for each window of w consecutive numbers, the number of distinct values (out[i] for the window starting at i; n − w + 1 in total; w < 1 or w > n → 0 windows, returns 0); first_repeat(a, n) → the index of the first element that has already occurred before, or −1; longest_zero_sum(a, n) → the length of the longest subarray with a zero sum (using prefix sums and a table of first occurrences); count_pairs_sum(a, n, target) → the number of pairs i < j with a[i] + a[j] == target. You may not use qsort or nested loops (O(n²) will not pass on large inputs).",
+   "hint": "Window: frequency counters in the table; add a[i], remove a[i − w]. Zero sum: a prefix sum that has occurred before — the sum between the occurrences is zero. Pairs: for each a[i] add the number of already seen values target − a[i]."
+  },
+  {
+   "id": "c12-hash-puzzles",
+   "title": "Hash tables in problems: anagrams, consecutive numbers, pairs",
+   "statement": "Use a hash table (no qsort inside these functions and no nested loops over the array). group_anagrams(words, n, ids) — assign anagram group numbers to the words (the key is the word's sorted letters; sorting the letters inside a word is allowed as counting the frequencies of a–z); groups are numbered from 0 in order of first appearance; returns the number of groups. longest_consecutive(a, n) — the length of the longest run of consecutive values (in any order in the array, duplicates not counted twice). two_sum(a, n, target, *i, *j) → 1 and indices i < j with a[i] + a[j] == target, where j is the smallest possible (for several i — the smallest i); otherwise 0. first_unique_char(s) → the index of the first character that occurs exactly once in the string, or −1.",
+   "hint": "Anagrams: the key is the letter counts (hash of them). Consecutive: start a run only from an x for which x − 1 is not in the table. Pairs: check whether target − a[k] is among the previous ones."
+  },
+  {
+   "id": "c12-fix-tombstone",
+   "title": "Fix it: tombstones in an open addressing table",
+   "statement": "struct tset — a set of ints on 16 slots, linear probing, index = (uint32_t)key & 15, slot: 0 — empty, 1 — occupied, 2 — tombstone. Right now tset_has stops at a tombstone (deleted elements \"break\" chains), tset_add does not use tombstones for new keys and duplicates keys, and tset_count counts tombstones too. Fix it: the search goes up to an EMPTY slot; an insertion does not create a duplicate and takes the first tombstone along the path; tset_add → 1 new/0 already present/−1 no room (all slots hold live elements). tset_count — the number of live elements.",
+   "hint": "The search skips tombstones (state 2) and stops only at an empty slot (0). On insertion, first make sure the key is absent (tset_has), then take the first slot that is not \"occupied\"."
+  },
+  {
+   "id": "c12-fix-avl-height",
+   "title": "Fix it: heights and balance in an AVL tree",
+   "statement": "The insertion functions of the AVL tree struct avl { int key, h; struct avl *l, *r; } contain bugs: heights are recomputed in the wrong order during rotations (first the new root, then the old one), the balance factor is computed with the wrong sign for the \"left-right\" case, and inserting a duplicate increases the height. Fix avl_insert / the rotations so that the tree always remains a correct AVL tree (order, heights and balance) and the height after n insertions does not exceed ⌊1.45·log₂(n + 2)⌋ + 1.",
+   "hint": "In rot_*: first upd on the node that went down (it became a child), then on the one that went up. The sign for choosing the double rotation: left-right — if the right subtree of the left child is higher than its left subtree. For a duplicate — just return t."
+  },
+  {
+   "id": "c12-fix-heap-sift",
+   "title": "Fix it: child indices and sifting",
+   "statement": "A min-heap on an array with zero-based numbering. The implementation mixes up the child index formulas (taken for one-based numbering), sift_down compares not with the smaller of the children, and pop decreases the size only after sifting. Fix sift_up, sift_down, push and pop so that extraction gives values in ascending order, and heap_check(a, n) confirms the heap property after every operation. You do not need to change heap_check — it is already correct.",
+   "hint": "For zero-based numbering the children of i are 2i + 1 and 2i + 2, the parent is (i − 1) / 2. In sift_down compare the right child with the current minimum m. In pop decrease n first."
+  },
+  {
+   "id": "c12-model-test",
+   "title": "Model-based testing: comparing a set with a reference",
+   "statement": "struct set_ops { void *(*create)(void); int (*add)(void *, int); int (*has)(void *, int); int (*del)(void *, int); size_t (*len)(const void *); void (*destroy)(void *); } — the interface of the set of ints under test (add → 1 new / 0 was there; del → 1 removed / 0 was not there). Write model_check(ops, seed, steps) → −1 if the implementation matched the model at every step, otherwise the number of the first step (from 0) where the result differed (the operation result or len). The model is your simple array/list. Generator: x = seed; at each step x = x · 1103515245 + 12345 (uint32_t); op = (x >> 16) % 3 (0 — add, 1 — has, 2 — del); then x is updated once more in the same way and key = (x >> 16) % 20. After each operation, compare the operation result and len. destroy is called exactly once at the end. Under AddressSanitizer.",
+   "hint": "Keep an array present[20] and a counter count as the model; at each step perform the operation in the model and in the implementation and compare the return value and len. It is important to repeat the generator exactly: two updates of x per step (first op, then key)."
+  },
+  {
+   "id": "c12-invariants",
+   "title": "Checking data structure invariants",
+   "statement": "Structures: struct bn { int key; struct bn *l, *r; } (BST), struct an { int key, h; struct an *l, *r; } (AVL), an int array (min-heap), struct dn { int v; struct dn *prev, *next; } (doubly linked list), struct ht { struct hn **b; size_t nb, count; } with struct hn { int key; struct hn *next; } (chains; index = (unsigned)key % nb). The functions return 0 for a correct structure and otherwise: bst_valid(root) → −1 if the order is violated (left < key < right, duplicates forbidden); avl_valid(root) → −1 order, −2 wrong height (h ≠ 1 + max, a leaf is 1, NULL is 0), −3 imbalance > 1 (checked in this order over the whole tree: order, heights, balance); heap_valid(a, n) → −1 if a parent is greater than a child; dlist_valid(head, max_len) → −1 for inconsistent links (head->prev ≠ NULL or next->prev ≠ the node), −2 if the length is greater than max_len (a cycle); ht_valid(t) → −1 if a key lies not in its own bucket, −2 if the number of nodes ≠ count, −3 if one key appears twice. Recursive structures — with recursion.",
+   "hint": "Check the tree order by recursion with bounds (lo, hi); heights — bottom-up; the heap — by the parent formula; the list — by the prev/next links and a step counter against cycles; the hash table — by bucket index, count and duplicates."
+  }
+ ]
+}

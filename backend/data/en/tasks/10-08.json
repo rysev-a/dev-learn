@@ -1,0 +1,192 @@
+{
+ "book": 10,
+ "chapter": 8,
+ "tasks": [
+  {
+   "id": "r8-struct-create",
+   "title": "The first struct",
+   "statement": "Declare a struct Point with fields x and y of type i32. Create the point (3, -4) and print «x=3 y=-4».\n\nExpected output:\nx=3 y=-4",
+   "hint": "struct Point { x: i32, y: i32 }; Point { x: 3, y: -4 }.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r8-struct-mut",
+   "title": "Changing a field",
+   "statement": "Declare a struct Counter { value: u32 }, create a mutable instance with the value 0 and increase value by 5 three times. Print «15».\n\nExpected output:\n15",
+   "hint": "let mut c — otherwise the field cannot be changed.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r8-struct-debug",
+   "title": "Printing with Debug",
+   "statement": "Add #[derive(Debug)] to the struct Book { title: &str, pages: u32 } and print the instance with {:?} and then prettily with {:#?}. For the book «Rust» with 500 pages: first «Book { title: \"Rust\", pages: 500 }», then the multi-line form.\n\nExpected output:\nBook { title: \"Rust\", pages: 500 }\nBook {\n    title: \"Rust\",\n    pages: 500,\n}",
+   "hint": "#[derive(Debug)] above the struct; a reference field needs 'static: &'static str.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r8-struct-shorthand",
+   "title": "Field init shorthand",
+   "statement": "Write a function make_user(name: &str, age: u32) -> User, where User { name: String, age: u32 }, using the shorthand (name and age match the fields; for name you need name.to_string()). Print «Аня 30».\n\nExpected output:\n«Аня 30»",
+   "hint": "let name = name.to_string(); then User { name, age }.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r8-struct-update",
+   "title": "Struct update",
+   "statement": "Config { width, height, title: &'static str }. Create base (800, 600, \"окно\"), then big — a copy with width = 1920 through ..base. Print «1920x600 окно».\n\nExpected output:\n«1920x600 окно»",
+   "hint": "Config { width: 1920, ..base }",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r8-impl-area",
+   "title": "The area method",
+   "statement": "For the struct Rect { w: u32, h: u32 } write the methods area(&self) -> u32 (area) and perimeter(&self) -> u32 (perimeter).",
+   "hint": "self.w * self.h; 2 * (self.w + self.h)"
+  },
+  {
+   "id": "r8-impl-new",
+   "title": "The constructor new",
+   "statement": "Add to the struct Circle { r: f64 } an associated function new(r: f64) -> Circle and a method area(&self) -> f64 (π ≈ 3.14159).",
+   "hint": "Circle::new(r) — a function without self."
+  },
+  {
+   "id": "r8-impl-mut-self",
+   "title": "A counter with methods",
+   "statement": "Add to the struct Counter { n: u32 } the methods new() -> Counter (n = 0), inc(&mut self), add(&mut self, k: u32) and get(&self) -> u32.",
+   "hint": "&mut self lets you change self.n."
+  },
+  {
+   "id": "r8-bank-account",
+   "title": "A bank account",
+   "statement": "Implement Account { balance: i64 }: new(), deposit(&mut self, x: i64), withdraw(&mut self, x: i64) -> bool (false and no change if the funds are insufficient; true and the withdrawal otherwise), balance(&self) -> i64.",
+   "hint": "Check the balance inside withdraw and return a bool."
+  },
+  {
+   "id": "r8-point-distance",
+   "title": "Distance between points",
+   "statement": "For the struct Point { x: f64, y: f64 } write a method dist(&self, other: &Point) -> f64 — the Euclidean distance.",
+   "hint": "other is passed by reference: a.dist(&b)."
+  },
+  {
+   "id": "r8-tuple-struct",
+   "title": "A tuple struct",
+   "statement": "Declare a struct Meters(f64) and a function to_feet(m: Meters) -> f64: converting meters to feet (1 m = 3.28084 ft).",
+   "hint": "A tuple struct's field is accessed as m.0."
+  },
+  {
+   "id": "r8-color-struct",
+   "title": "Color and brightness",
+   "statement": "The struct Color(u8, u8, u8) is RGB. Write a function brightness(c: &Color) -> u32: the average of the three components (integer division by 3).",
+   "hint": "Add them up as u32, otherwise u8 overflows."
+  },
+  {
+   "id": "r8-enum-basic",
+   "title": "Directions",
+   "statement": "An enum Direction { Up, Down, Left, Right } and a function opposite(d: Direction) -> Direction that returns the opposite direction. Add derive(Debug) for printing.",
+   "hint": "A match over the four variants."
+  },
+  {
+   "id": "r8-enum-coin",
+   "title": "Coins",
+   "statement": "An enum Coin { Penny, Nickel, Dime, Quarter } and a function value(c: &Coin) -> u32 in cents: 1, 5, 10, 25.",
+   "hint": "match c { Coin::Penny => 1, … }"
+  },
+  {
+   "id": "r8-enum-shape",
+   "title": "Shapes",
+   "statement": "An enum Shape { Circle(f64), Rect(f64, f64), Square(f64) } and a function area(s: &Shape) -> f64 (π ≈ 3.14159).",
+   "hint": "Take the data out in the pattern: Shape::Rect(w, h)."
+  },
+  {
+   "id": "r8-enum-method",
+   "title": "A method on an enum",
+   "statement": "An enum Light { Red, Yellow, Green } with a method next(&self) -> Light: the cycle Red → Green → Yellow → Red. Derive(Debug).",
+   "hint": "Methods on an enum are written in an impl, like on a struct."
+  },
+  {
+   "id": "r8-option-find",
+   "title": "Searching with Option",
+   "statement": "Write a function find(v: &[i32], x: i32) -> Option<usize>: the index of the first occurrence of x, or None.",
+   "hint": "return Some(i) inside the loop, None at the end."
+  },
+  {
+   "id": "r8-option-divide",
+   "title": "Safe division",
+   "statement": "Write a function safe_div(a: i32, b: i32) -> Option<i32>: None when b == 0, otherwise the quotient.",
+   "hint": "The if branches return None and Some(…)."
+  },
+  {
+   "id": "r8-option-unwrap-or",
+   "title": "unwrap_or",
+   "statement": "Write a function first_or(v: &[i32], default: i32) -> i32: the first element, or default if the slice is empty. Use v.first() and unwrap_or.",
+   "hint": "v.first() gives Option<&i32>; unwrap_or(&default), then an asterisk."
+  },
+  {
+   "id": "r8-option-match",
+   "title": "match on Option",
+   "statement": "Write a function describe(x: Option<i32>) -> String: «нет значения» for None, «ноль» for Some(0), and otherwise «число N» (N is the value).",
+   "hint": "The pattern Some(0) goes before the general Some(n)."
+  },
+  {
+   "id": "r8-if-let",
+   "title": "if let",
+   "statement": "Write a function print_first(v: &[&str]): if the slice is not empty, it prints «первый: …», otherwise «пусто». Use if let Some(x) = v.first().",
+   "hint": "if let Some(x) = … { } else { }"
+  },
+  {
+   "id": "r8-result-parse",
+   "title": "Result from parse",
+   "statement": "Write a function to_num(s: &str) -> Result<i32, String>: Ok(number) if the string is an integer, otherwise Err(\"не число: <s>\").",
+   "hint": "match s.parse::<i32>() { Ok(n) => …, Err(_) => … }"
+  },
+  {
+   "id": "r8-result-div",
+   "title": "Division with an error",
+   "statement": "Write a function divide(a: f64, b: f64) -> Result<f64, String>: Err(\"деление на ноль\") if b == 0.0, otherwise Ok(quotient).",
+   "hint": "Err(String::from(\"…\")) and Ok(a / b)"
+  },
+  {
+   "id": "r8-struct-vec",
+   "title": "A vector of structs",
+   "statement": "The struct Student { name: String, grade: u32 }. Write a function best(students: &[Student]) -> &str: the name of the student with the highest grade (the first of the best). The list is not empty.",
+   "hint": "Keep a reference top to the best student."
+  },
+  {
+   "id": "r8-inventory",
+   "title": "A warehouse",
+   "statement": "The struct Item { name: String, qty: u32 }. A function total(items: &[Item]) -> u32 — the total quantity, and a function find_qty(items: &[Item], name: &str) -> Option<u32>.",
+   "hint": "it.name == name — comparing a String and a &str works."
+  },
+  {
+   "id": "r8-traffic-fsm",
+   "title": "An order status machine",
+   "statement": "An enum Status { New, Paid, Shipped, Done }. The method advance(&self) -> Status moves to the next status (Done stays Done), and is_final(&self) -> bool is true only for Done. Derive(Debug).",
+   "hint": "matches!(self, Status::Done) is a short check of a variant."
+  },
+  {
+   "id": "r8-fix-mut-struct",
+   "title": "Fix it: a struct without mut",
+   "statement": "The program does not build: a field is changed on an immutable struct. Fix the declaration; the result is «11».\n\nExpected output:\n11",
+   "hint": "Add mut to the variable s."
+  },
+  {
+   "id": "r8-fix-missing-variant",
+   "title": "Fix it: a match without all the variants",
+   "statement": "The match does not cover the variant Blue. Add a branch so that the output is «синий» for Color::Blue.\n\nExpected output:\n«синий»",
+   "hint": "Add Color::Blue => \"синий\",",
+   "starter": "enum Color {\n    Red,\n    Green,\n    Blue,\n}\n\nfn name(c: Color) -> &'static str {\n    match c {\n        Color::Red => \"красный\",\n        Color::Green => \"зелёный\",\n    }\n}\n\nfn main() {\n    println!(\"{}\", name(Color::Blue));\n}\n"
+  },
+  {
+   "id": "r8-fix-self",
+   "title": "Fix it: a method without &mut self",
+   "statement": "The method inc must change the field, but it is declared with &self. Fix the signature; the result is «2».\n\nExpected output:\n2",
+   "hint": "Replace &self with &mut self."
+  },
+  {
+   "id": "r8-vec-of-enum",
+   "title": "A shopping list",
+   "statement": "An enum Item { Apple(u32), Milk(f64) } (a number of apples and liters of milk). A function describe(items: &[Item]) -> String: for each element «N яблок» or «X л молока», separated by «; ».",
+   "hint": "Collect the strings into a Vec<String> and glue them with join(\"; \")."
+  }
+ ]
+}

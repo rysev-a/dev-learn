@@ -1,0 +1,126 @@
+{
+ "book": 7,
+ "chapter": 9,
+ "tasks": [
+  {
+   "id": "num-gcd",
+   "title": "Greatest common divisor",
+   "statement": "Write a function gcd(a, b): the greatest common divisor of nonnegative numbers using Euclid's algorithm. gcd(a, 0) = a. The numbers in the checks reach 10^30, so trying divisors will not be fast enough.",
+   "hint": "While b is not zero, replace the pair (a, b) with (b, a % b)."
+  },
+  {
+   "id": "num-lcm",
+   "title": "Least common multiple of a list",
+   "statement": "Write a function lcm_list(nums): the least common multiple of all positive numbers in the list. For an empty list it is 1. Hint: lcm(a, b) = a / gcd(a, b) · b.",
+   "hint": "Accumulate the result: res = res // gcd(res, v) * v."
+  },
+  {
+   "id": "num-ext-gcd",
+   "title": "Extended Euclidean algorithm",
+   "statement": "Write a function ext_gcd(a, b): a tuple (g, x, y), where g is the greatest common divisor of the nonnegative a and b, and the integers x and y satisfy a·x + b·y = g. Any pair (x, y) will do; the check substitutes it into the equality.",
+   "hint": "Recursively: (g, x, y) = ext_gcd(b, a % b), then x' = y, y' = x − (a // b)·y."
+  },
+  {
+   "id": "num-mod-inverse",
+   "title": "Modular inverse",
+   "statement": "Write a function mod_inverse(a, m): the x from 0 to m − 1 such that a·x ≡ 1 (mod m), or -1 if there is no inverse (a and m are not coprime). The modulus is m ≥ 2, not necessarily prime.",
+   "hint": "Keep the coefficients at a together with the remainders: this is the iterative extended Euclid."
+  },
+  {
+   "id": "num-pow-mod",
+   "title": "Fast exponentiation modulo a number",
+   "statement": "Write a function power_mod(b, e, m): b to the power e modulo m (m ≥ 1, e ≥ 0). The exponent can be on the order of 10^18, so you need about log e multiplications. Without the built-in pow with three arguments.",
+   "hint": "Walk along the binary digits of e: if the digit is one, multiply the result by the current power of b; then square b."
+  },
+  {
+   "id": "num-fib-mod",
+   "title": "Fibonacci number in logarithmic time",
+   "statement": "Write a function fib_mod(n, m): the n-th Fibonacci number modulo m (F(0) = 0, F(1) = 1). n can be on the order of 10^18, so you need fast matrix exponentiation or the doubling formulas.",
+   "hint": "Raise the matrix [[1, 1], [1, 0]] to the power n modulo m; the Fibonacci number is the element in the corner."
+  },
+  {
+   "id": "num-is-prime",
+   "title": "Primality test",
+   "statement": "Write a function is_prime(n): True if n is prime (n ≥ 0; 0 and 1 are not prime). The numbers in the checks reach 10^12, so look for divisors only up to the square root of n.",
+   "hint": "Check two separately, then the divisors 3, 5, 7, … while d · d ≤ n."
+  },
+  {
+   "id": "num-sieve",
+   "title": "Sieve of Eratosthenes",
+   "statement": "Write a function primes_upto(n): a list of all prime numbers from 2 to n inclusive. The check asks for all primes up to five million, so trial division will not meet the time limit.",
+   "hint": "Create an array of marks; for each unmarked i with i·i ≤ n, mark i·i, i·i + i, … (with a slice it is faster)."
+  },
+  {
+   "id": "num-goldbach",
+   "title": "Goldbach partition",
+   "statement": "Write a function goldbach(n): for an even n ≥ 4, return the smallest prime p such that n − p is also prime (for example, for 28 it is 5, because 23 is prime). The checks go up to 10^6.",
+   "hint": "Build a sieve up to n and find the first prime p for which n − p is also marked as prime."
+  },
+  {
+   "id": "num-factorize",
+   "title": "Prime factorization",
+   "statement": "Write a function factorize(n): the factorization of n ≥ 1 into primes, a list of tuples (prime, exponent) in increasing order of primes. For 1 it is an empty list; for example, factorize(12) = [(2, 2), (3, 1)]. The numbers reach 10^12: use trial division up to the root.",
+   "hint": "Divide by d while it divides, recording the exponent; if the remainder after the loop is greater than 1, it is a prime factor."
+  },
+  {
+   "id": "num-spf",
+   "title": "Factorization with a divisor table",
+   "statement": "Write a class Factorizer: the constructor Factorizer(limit) builds a table of smallest prime divisors up to limit, and the method factor(n) (2 ≤ n ≤ limit) returns a list of tuples (prime, exponent) in increasing order. The check: a table up to three million and three hundred thousand queries, so trial division will not keep up.",
+   "hint": "The sieve: spf[j] = i for composite j that have not yet received a divisor; factor divides n by spf[n] while n > 1."
+  },
+  {
+   "id": "num-divisor-count",
+   "title": "Number of divisors",
+   "statement": "Write a function divisor_count(n): how many natural divisors n ≥ 1 has (including 1 and n). The numbers reach 10^12: factor into primes and multiply (exponent + 1).",
+   "hint": "Factor n: the answer is the product of (e + 1) over all prime factors."
+  },
+  {
+   "id": "num-euler-phi",
+   "title": "Euler's function",
+   "statement": "Write a function euler_phi(n): how many numbers from 1 to n are coprime with n (φ(1) = 1). For n = p₁ᵉ¹ · … the answer is n · ∏(1 − 1/p). The numbers reach 10^12.",
+   "hint": "For each prime divisor p do result -= result // p, then remove p from n completely."
+  },
+  {
+   "id": "num-binom",
+   "title": "Binomial coefficients modulo a prime",
+   "statement": "Write a class Binom: the constructor Binom(limit, p) (p is prime, p > limit) prepares factorials and inverse factorials modulo p; the method c(n, k) returns C(n, k) mod p in O(1) (0 if k < 0 or k > n). The check: limit = 10^6 and three hundred thousand queries.",
+   "hint": "f[n] = n! mod p; the inverse of f[limit] is the power p − 2, the rest: inv[i − 1] = inv[i] · i."
+  },
+  {
+   "id": "num-pow2",
+   "title": "Power of two",
+   "statement": "Write a function is_power_of_two(x): True if x is a power of two (1, 2, 4, 8, …). Zero and negative numbers give False. No loops and no logarithms: use a single bitwise expression.",
+   "hint": "A power of two has a single one in its binary form: x & (x − 1) clears it and gives 0."
+  },
+  {
+   "id": "num-popcount",
+   "title": "Number of ones in the binary form",
+   "statement": "Write a function popcount(x): how many ones are in the binary form of a nonnegative x. The loop must run as many times as the number has ones: use x & (x − 1). Without bin(), count and bit_count.",
+   "hint": "While x is not zero, clear the lowest one and increase the counter."
+  },
+  {
+   "id": "num-gray",
+   "title": "Gray code",
+   "statement": "Write a function gray_code(n): a list of 2ⁿ numbers, the Gray codes of length n in order of their indices, where neighboring codes differ in exactly one bit. The formula: i ^ (i >> 1). For n = 0 it is [0].",
+   "hint": "The code with index i equals i XOR (i >> 1)."
+  },
+  {
+   "id": "num-subsets",
+   "title": "All subsets with masks",
+   "statement": "Write a function all_subsets(items): a list of all subsets of the list (each one a list) in the order of masks 0, 1, …, 2ⁿ − 1; bit number i of the mask means that items[i] is in the subset; elements inside a subset go in index order. For [1, 2] it is [[], [1], [2], [1, 2]].",
+   "hint": "For each mask from 0 to 2ⁿ − 1, collect the elements whose bits are set."
+  },
+  {
+   "id": "num-single-number",
+   "title": "The single unpaired number",
+   "statement": "Write a function single_number(nums): in the list every number occurs twice except one; return that number. The time is linear and the memory is constant. Dictionaries, sets, sorted, count and index are forbidden: the check feeds in two million numbers.",
+   "hint": "Exclusive or: a ^ a = 0, a ^ 0 = a. The pairs cancel out and one number remains."
+  },
+  {
+   "id": "num-tsp",
+   "title": "Traveling salesman with dynamic programming over masks",
+   "statement": "Write a function tsp(dist): dist is a square matrix of distances between n cities (dist[i][j] is the cost from i to j, possibly asymmetric). Return the length of the shortest cycle that starts and ends at city 0 and visits every city exactly once; for one city it is 0. There are up to 13 cities: trying all permutations will not be fast enough, so you need the dynamic programming dp[mask][last city].",
+   "hint": "dp[mask][v] is the length of the shortest path from 0 through the cities of the mask ending at v; transitions go to a city not yet visited."
+  }
+ ]
+}

@@ -1,0 +1,186 @@
+{
+ "book": 16,
+ "chapter": 8,
+ "tasks": [
+  {
+   "id": "c8-fmt-row",
+   "title": "Fixed-width table",
+   "statement": "print_row(out, name, qty, price) prints a row in the format \"%-10s|%5d|%8.2f\" and a newline; a name longer than 10 characters is cut to 10 (without breaking the table). print_total(out, n, sum) prints \"ИТОГО: n позиций на S\" (S with two decimals), where the word \"позиций\" takes the Russian grammatical form \"1 позиция\", \"2 позиции\", \"5 позиций\" (singular for 1, 21…; 2–4; the rest; 11–14 take \"позиций\").",
+   "hint": "\"%-10.10s\" both left-aligns and truncates the string to 10 characters. For the word endings, look at n % 100 and n % 10."
+  },
+  {
+   "id": "c8-hex-dump",
+   "title": "Hexadecimal memory dump",
+   "statement": "hex_dump(out, p, n) prints bytes 16 per line in the format \"0000: 48 65 6c 6c 6f 2c 20 57 6f 72 6c 64 21 0a 00 ff  |Hello, World!...|\": the offset as four hex digits, a colon, a space, 16 bytes as \"%02x\" separated by spaces (in an incomplete last line the missing positions are filled with spaces so that the ASCII column does not shift), two spaces, \"|\", the characters (non-printable ones as a dot), \"|\".",
+   "hint": "An outer loop over lines (step 16) with two inner ones: the hex bytes (with \"   \" for empty places) and the ASCII column."
+  },
+  {
+   "id": "c8-money",
+   "title": "Money with digit separators",
+   "statement": "fmt_money(buf, size, cents) writes an amount in cents as \"$1,234.56\" (thousands separator is a comma; negatives as \"-$5.07\"; zero as \"$0.00\"; cents always two digits) and returns the length of the full result without the terminating zero, like snprintf. If there is not enough room the text is truncated and the terminating zero is always written (if size > 0). Values down to LLONG_MIN are allowed.",
+   "hint": "Split the number into whole and fractional parts (in unsigned long long — for LLONG_MIN), group the digits by three from right to left, build the result in a temporary buffer, and copy at most size − 1 bytes."
+  },
+  {
+   "id": "c8-join-ints",
+   "title": "Joining numbers into a string without overflow",
+   "statement": "join_ints(buf, size, a, n, sep) writes the numbers separated by a delimiter (\"1, 2, 3\" with sep = \", \") and returns the length of the full result without the terminating zero, like snprintf. If there is not enough room, the text is truncated but the terminating zero is in place (if size > 0), and the return value stays the full length. An empty array → an empty string. Use only snprintf.",
+   "hint": "Accumulate total as the sum of the values snprintf returned; pass snprintf the remaining space (or 0 and NULL if the buffer is already used up)."
+  },
+  {
+   "id": "c8-fmt-len",
+   "title": "Length of a printf result and your own asprintf",
+   "statement": "fmt_len(fmt, …) → the number of characters printf would print with those arguments, without printing (via vsnprintf with a NULL buffer). xasprintf(fmt, …) → a string allocated by malloc, of the needed length (or NULL on error); the caller frees it. The program runs with AddressSanitizer.",
+   "hint": "vsnprintf(NULL, 0, fmt, ap) returns the needed length. An argument list can be used only once — make a va_copy for the second pass."
+  },
+  {
+   "id": "c8-my-printf",
+   "title": "Your own printf: %d %u %x %c %s %%",
+   "statement": "my_printf(out, fmt, …) → the number of characters written: ordinary characters are copied, while \"%d\" (int), \"%u\" (unsigned), \"%x\" (unsigned, lowercase digits), \"%c\", \"%s\" (NULL prints as \"(null)\"), and \"%%\" are handled by hand. No width or flags need to be supported; an unknown specifier is printed as is (including the percent sign). You must not call the printf family (fprintf, vfprintf, snprintf…) — only fputc and fputs.",
+   "hint": "A loop over the format: an ordinary character — fputc; after \"%\" look at the next letter and fetch the argument via va_arg. Collect digits in an array in reverse order."
+  },
+  {
+   "id": "c8-log-wrapper",
+   "title": "A logger with levels via vfprintf",
+   "statement": "struct logger { FILE *out; int min_level; int written; }. log_init(l, out, min_level); logf(l, level, fmt, …) — if level ≥ min_level, prints \"[LEVEL] message\" and a newline and increments written; level names: 0 DEBUG, 1 INFO, 2 WARN, 3 ERROR (others — \"LEVEL?\"); the function returns 1 if the message was output, otherwise 0. Use vfprintf for printing.",
+   "hint": "fprintf for the prefix, then vfprintf(l->out, fmt, ap) with a va_list, then fputc('\\n')."
+  },
+  {
+   "id": "c8-varargs-utils",
+   "title": "Functions with a variable number of arguments",
+   "statement": "sum_ints(n, …) — the sum of n int values; avg(n, …) — the average of n double values (n > 0, otherwise 0.0); concat_all(first, …) — string concatenation, the list ends with NULL; the result is a malloc string (the caller frees it), for a lone NULL → an empty string; max_of(n, …) — the maximum of n int values. Do not call va_arg more times than were passed. Under AddressSanitizer.",
+   "hint": "For concat_all two passes over the va_list are enough: count the length, then va_end and va_start again for copying."
+  },
+  {
+   "id": "c8-sscanf-record",
+   "title": "Parsing a record \"name:age:score\"",
+   "statement": "struct rec { char name[16]; int age; double score; }. parse_rec(line, *r) → 0 on success, −1 on error: the string must look like \"name:age:score\" (name — up to 15 characters without a colon, not empty; age — an integer; score — a number with a decimal point); after the score only a whitespace tail is allowed (spaces, newline). Use sscanf with a width limit and result checking; on error the struct must not change.",
+   "hint": "The format \"%15[^:]:%d:%lf%n\": %n stores how many characters were used; check that k == 3 and that only whitespace follows the used count."
+  },
+  {
+   "id": "c8-strtol-safe",
+   "title": "Safe number parsing: parse_int and parse_double",
+   "statement": "parse_int(s, base, *out) → 0 on success; −1 — no digits (including an empty string and \"-\"); −2 — extra characters after the number (a whitespace tail is allowed, leading whitespace is allowed); −3 — out of the range of long (errno == ERANGE). On error *out is unchanged. parse_double(s, *out) → 0, −1, or −2 by the same rules (infinities and NaN count as error −1).",
+   "hint": "errno = 0 before the call; end == s — no digits; then errno == ERANGE; then the rest of the string must consist of whitespace."
+  },
+  {
+   "id": "c8-read-lines",
+   "title": "Reading lines into an array of fixed-size strings",
+   "statement": "read_lines(in, lines, max) reads lines from a stream into an array char lines[][32]: the newline (and a possible \"\\r\") is removed; lines longer than 31 characters are cut to 31, and the rest of the line is skipped (it does not become a new line); empty lines are kept; the last line without a newline also counts. Returns the number of lines read (at most max). Use fgets.",
+   "hint": "Read with fgets into a 32-byte buffer: if there is no newline and the line has not ended, it is the start of a too-long line; skip the rest until you meet a newline."
+  },
+  {
+   "id": "c8-read-line-alloc",
+   "title": "A line of arbitrary length",
+   "statement": "read_line(in) → a malloc string without the newline (and without a possible \"\\r\" before it), or NULL if there is nothing more to read; the last line without a newline is returned as is; an empty line between newlines is an empty string (not NULL). The line length is unlimited: the buffer doubles starting from 4 bytes. Under AddressSanitizer: leaks and out-of-bounds accesses are forbidden.",
+   "hint": "Read fgetc into an int; track \"cap\" with room for the terminating zero. An empty stream differs from a stream with a single newline: in the second case an empty string is returned."
+  },
+  {
+   "id": "c8-wc",
+   "title": "wc: lines, words, characters",
+   "statement": "struct counts { size_t lines, words, chars; }. count_stream(in, *c) reads the stream character by character (fgetc) and counts: chars — all bytes read; lines — the number of newlines; words — the number of words (sequences of non-whitespace characters; whitespace is isspace). A last line without a newline is not included in lines (as in wc). The function zeroes the struct at the start.",
+   "hint": "An \"inside a word\" state: a word starts at the transition from a whitespace character to a non-whitespace one. fgetc returns int; pass the value itself to isspace."
+  },
+  {
+   "id": "c8-csv-write",
+   "title": "Writing CSV with quotes",
+   "statement": "write_csv_field(out, s) prints a field: if it contains a comma, a double quote, or a newline (\\n or \\r), the field is wrapped in double quotes and inner quotes are doubled; otherwise it is printed as is. write_csv_row(out, fields, n) prints n fields separated by commas and ends the row with \\n. An empty field is empty. Use fputc/fputs for output.",
+   "hint": "strpbrk(s, \",\\\"\\r\\n\") tells you whether quotes are needed; inside quotes write every double quote twice."
+  },
+  {
+   "id": "c8-csv-parse",
+   "title": "Parsing a CSV line",
+   "statement": "parse_csv(line, fields, max) parses one CSV line into an array char fields[][32] and returns the number of fields (at most max). Fields are separated by commas; a field in double quotes may contain commas, and `\"\"` inside quotes means one quote; spaces are kept; the trailing newline (\\n, \\r\\n) is dropped; an empty line is one empty field. Too-long fields are cut to 31 characters.",
+   "hint": "States: \"plain field\" (up to a comma) and \"in quotes\" (up to a single quote; `\"\"` → `\"`). After the closing quote skip everything up to the comma."
+  },
+  {
+   "id": "c8-copy-stream",
+   "title": "Copying streams in blocks",
+   "statement": "copy_stream(in, out) copies all data from in to out in blocks of 7 bytes through fread/fwrite (the block size is deliberately odd) and returns the number of bytes copied, or −1 if a write or read ended with an error (writing fewer bytes than were read). copy_n(in, out, n) copies at most n bytes and returns the number actually copied. Binary data (including zero bytes) must pass through unchanged.",
+   "hint": "Loop: k = fread(buf, 1, sizeof buf, in); if k == 0 — the end; fwrite(buf, 1, k, out) must write exactly k."
+  },
+  {
+   "id": "c8-binary-records",
+   "title": "Binary records of a fixed format",
+   "statement": "struct rec { uint32_t id; char name[8]; uint16_t score; }. The record format is exactly 14 bytes: id (4 bytes, little-endian), name (8 bytes, padded with zeros; long names are cut to 8 without a terminating zero), score (2 bytes, little-endian). write_rec(f, r) → 0/−1; read_rec(f, *r) → 1 on success, 0 at end of file or on an incomplete record (the struct does not change); name in the struct is always zero-terminated (8 bytes are read plus a zero in the 9th element — hence name[9] in the struct).",
+   "hint": "Assemble and parse the 14 bytes by hand: byte shifts for id and score, memcpy for name. fwrite of the whole struct is a mistake: alignment."
+  },
+  {
+   "id": "c8-file-ops",
+   "title": "File size, reading at an offset, the tail",
+   "statement": "file_size(f) → the size of the stream in bytes without changing the current position (fseek/ftell and return); read_at(f, off, buf, n) → 0 if exactly n bytes were read from offset off, otherwise −1; tail_bytes(f, n, buf) → the number of bytes written into buf: the last n bytes of the file (or the whole file if it is shorter). The stream position after the calls need not be preserved, except for file_size.",
+   "hint": "file_size: remember ftell, fseek(SEEK_END), ftell, go back. tail_bytes: start = size − n (or 0), fseek, fread."
+  },
+  {
+   "id": "c8-tokenizer",
+   "title": "Words from a stream, character by character",
+   "statement": "next_token(in, buf, size) reads the next word from the stream (a sequence of non-whitespace characters; whitespace is isspace) and writes it into buf; returns the word length (up to size − 1), or −1 if there are no more words. A too-long word is cut to size − 1 characters and its remaining characters are skipped (they do not become the next word). Use fgetc and, if needed, ungetc.",
+   "hint": "First skip whitespace; then read up to a whitespace character, storing at most size − 1 characters. The delimiter you read can be returned with ungetc."
+  },
+  {
+   "id": "c8-fix-feof",
+   "title": "Fix it: a loop on feof",
+   "statement": "sum_lines reads numbers one per line and adds them up, and longest_line returns the length of the longest line (without the newline). Both functions use a while (!feof(f)) loop and process the last line twice. Fix the loops: check the result of fgets.",
+   "hint": "while (fgets(line, sizeof line, f)) { … } — the body runs only if the read succeeded."
+  },
+  {
+   "id": "c8-fix-format",
+   "title": "Fix it: printf specifiers",
+   "statement": "print_stats prints \"total=… n=… flags=… avg=… big=…\" with wrong specifiers: the ones chosen for long, size_t, unsigned char, double, and long long are wrong, and the output is distorted (and this is undefined behavior). Choose the right specifiers: avg — with two digits after the decimal point; flags — as a number (unsigned char).",
+   "hint": "long → %ld, size_t → %zu, unsigned char (cast to unsigned) → %u, double → %.2f, long long → %lld."
+  },
+  {
+   "id": "c8-fix-sprintf",
+   "title": "Fix it: sprintf without a size",
+   "statement": "make_label(out, size, name, id) must write into out the label \"name-NNNN\" (id with four digits with leading zeros) and return 1 if the label fit entirely, otherwise 0 (out then holds the truncated text with a terminating zero). Right now the function uses sprintf and corrupts memory with long names. Rewrite it with snprintf. Under AddressSanitizer.",
+   "hint": "snprintf returns the length of the full result: the label fit if it is less than size."
+  },
+  {
+   "id": "c8-fix-scanf-width",
+   "title": "Fix it: sscanf without a width",
+   "statement": "parse_pair(s, *p) reads two words \"key value\" from a string into struct pair { char key[8]; char val[8]; } and returns the number of fields read (0–2). Right now the format \"%s %s\" without a width overflows the fields on long words. Fix the format by setting a width for each field: at most 7 characters. Long words are then read in pieces of 7 characters — this is normal sscanf behavior; the main thing is that memory is not corrupted. Under AddressSanitizer.",
+   "hint": "The format \"%7s %7s\": the width is the number of characters without the terminating zero (7 for char[8])."
+  },
+  {
+   "id": "c8-fix-atoi",
+   "title": "Fix it: a port via atoi",
+   "statement": "get_port(s) must return a port number 1…65535 or −1 on error. Only a string made entirely of decimal digits is valid (no spaces, sign, or extra characters); out-of-range values and overflow are errors. Right now atoi is used, which accepts \"80abc\", spaces, and overflows. Rewrite the function with strtol and full checking.",
+   "hint": "Check the first character with isdigit, then strtol with errno and *end == 0, then the range. \"4294967376\" is 2^32 + 80: atoi/int will give 80."
+  },
+  {
+   "id": "c8-fix-newline",
+   "title": "Fix it: commands and the newline character",
+   "statement": "run_commands(in, out) reads commands one per line: \"add N\" (add a number to the total), \"show\" (print \"total=T\"), \"quit\" (stop), an empty line is ignored, anything else prints \"?\". The function returns the number of lines read (including quit). Because of the unremoved newline character, the commands show and quit are never recognized. Fix it: remove the newline (and a possible \\r) from line after fgets.",
+   "hint": "line[strcspn(line, \"\\r\\n\")] = 0; — right after fgets."
+  },
+  {
+   "id": "c8-buffered-writer",
+   "title": "Your own buffered writer",
+   "statement": "struct bw { FILE *f; unsigned char buf[16]; size_t n; unsigned flushes; }. bw_init(w, f). bw_write(w, data, len): if len ≥ 16 — first flush what has accumulated (if any), then write data directly to f; if accumulated + len > 16 — flush the accumulated data and put data into the buffer; otherwise just append to the buffer. bw_flush(w): if the buffer has data — write it to f with a single fwrite and zero n. Each fwrite call to f increments flushes by 1. Data must not be lost or reordered.",
+   "hint": "Three cases in bw_write: a big piece (flush + direct write), a piece that doesn't fit (flush + buffer), a piece that fits (into the buffer)."
+  },
+  {
+   "id": "c8-tail-lines",
+   "title": "tail: the last n lines",
+   "statement": "tail_lines(in, out, n) prints the last n lines of the stream (n from 0 to 16) in the original order; each line in the output ends with a newline (even the last one, if the source text had none). You may store at most 16 lines of 64 bytes (lines longer than 63 characters do not occur in the tests). If there are fewer than n lines, all are printed.",
+   "hint": "A ring buffer of n lines: line number k lives in cell k % n; after reading, print from count − n to count − 1."
+  },
+  {
+   "id": "c8-grep-lite",
+   "title": "grep with the flags -v, -i, -n",
+   "statement": "grep_stream(in, out, pat, flags) prints the lines of the stream that contain the substring pat. flags: GREP_INVERT (1) — print the lines where pat is absent; GREP_ICASE (2) — ignore ASCII case; GREP_NUMBERS (4) — print \"number:\" before the line (numbering from 1 over all lines read). The line is output unchanged, with a newline at the end. Returns the number of lines printed. Lines are at most 255 characters. An empty pat matches any line.",
+   "hint": "For -i convert both the line and the pattern to lowercase (copies; the original line remains for output). Increment the line number for every line read."
+  },
+  {
+   "id": "c8-parse-kv",
+   "title": "Parsing \"key=value; …\"",
+   "statement": "struct kv { char key[8]; int val; }. parse_kv(s, out, max) → the number of pairs parsed. Format: \"key=number\", pairs separated by semicolons, spaces around the key, the equals sign, the number, and the semicolon are allowed; a trailing \";\" is allowed. The key is up to 7 characters of letters, digits, and \"_\". Parsing stops at the first bad pair (the rest is ignored); the result is at most max pairs. Use sscanf with \"%n\".",
+   "hint": "The format \"%7[A-Za-z0-9_] = %d %n\" (spaces in the format match any whitespace); after a pair expect \";\" or the end. %n stores the number of characters used."
+  },
+  {
+   "id": "c8-read-matrix",
+   "title": "A matrix of integers from a stream",
+   "statement": "read_matrix(in, m, max_rows, max_cols, *rows, *cols) reads lines of integers (separated by spaces) into the array m row by row (row-major, the stride is the real number of columns). Empty (all-space) lines are skipped. Result: 0 — success (rows, cols are set); −1 — a non-number in a line; −2 — lines of different length; −3 — more than max_rows rows or max_cols columns; −4 — no lines at all. A line is at most 255 characters; use strtol.",
+   "hint": "The number of columns is not known in advance, so first read a line into a local array while counting numbers; only then copy into m with the real stride."
+  }
+ ]
+}

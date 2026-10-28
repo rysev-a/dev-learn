@@ -1,0 +1,292 @@
+{
+ "book": 9,
+ "chapter": 5,
+ "tasks": [
+  {
+   "id": "s05-01",
+   "title": "How many customers",
+   "statement": "How many customers are in the customers table? Output the number as n (COUNT(*)).",
+   "hint": "COUNT(*) counts rows."
+  },
+  {
+   "id": "s05-02",
+   "title": "How many products",
+   "statement": "How many products are in products?",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s05-03",
+   "title": "How many orders",
+   "statement": "How many orders are in the orders table? Column n.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s05-04",
+   "title": "Only with a city",
+   "statement": "How many customers gave a city (COUNT(city))? COUNT(column) skips NULL. Column n.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s05-05",
+   "title": "Distinct cities",
+   "statement": "How many distinct cities do customers have (COUNT(DISTINCT city))? Column n.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s05-06",
+   "title": "Distinct categories",
+   "statement": "How many distinct product categories are there? Column n.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s05-07",
+   "title": "Customers with orders",
+   "statement": "How many distinct customers placed at least one order? COUNT(DISTINCT customer_id) over orders. Column n.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s05-08",
+   "title": "Total stock",
+   "statement": "How many units of goods are in stock in total? SUM(stock) as total_stock.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s05-09",
+   "title": "Total of all orders",
+   "statement": "What is the total amount of all orders? SUM(total) as revenue.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s05-10",
+   "title": "Average",
+   "statement": "What is the average product price? Output ROUND(AVG(price), 2) as avg_price.",
+   "hint": "AVG returns a fractional number; ROUND(x, 2) rounds to hundredths.",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s05-11",
+   "title": "Minimum and maximum",
+   "statement": "Output the lowest and the highest price: min_price and max_price.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s05-12",
+   "title": "Price spread",
+   "statement": "Output the difference between the highest and the lowest price as spread.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s05-13",
+   "title": "MIN/MAX for dates",
+   "statement": "Output the earliest and the latest order date: first_order, last_order.",
+   "hint": "MIN and MAX work with both strings and dates.",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s05-14",
+   "title": "MIN/MAX for text",
+   "statement": "Output the smallest and the largest (alphabetically) customer name: first_name, last_name.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s05-15",
+   "title": "Aggregate and WHERE",
+   "statement": "How many orders have the status 'paid'? Column n.",
+   "hint": "WHERE selects rows before counting.",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s05-16",
+   "title": "Revenue of paid orders",
+   "statement": "What is the sum of orders with the status 'paid'? Column revenue.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s05-17",
+   "title": "Average check",
+   "statement": "The average order amount among paid and shipped orders (status IN ('paid','shipped')), rounded to an integer: avg_check.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s05-18",
+   "title": "Most expensive in a category",
+   "statement": "What is the highest price among products of the category `Электроника`? Column max_price.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s05-19",
+   "title": "How many units sold",
+   "statement": "How many units of goods were sold in total according to the order_items table (SUM(qty))? Column sold.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s05-20",
+   "title": "Revenue by order lines",
+   "statement": "What is the sum of qty * price over all order_items lines? Column amount.",
+   "hint": "An aggregate can be computed over an expression.",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s05-21",
+   "title": "Lines of a product",
+   "statement": "How many order lines contain the product with id = 3? Column n.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s05-22",
+   "title": "Units of a product sold",
+   "statement": "How many units of the product with id = 3 were sold in total? Column sold.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s05-23",
+   "title": "Aggregate over an empty selection",
+   "statement": "SUM over an empty set is NULL. Output SUM(total) for orders with the status 'refund' (there are none) as s and COUNT(*) as n.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s05-24",
+   "title": "COALESCE around SUM",
+   "statement": "Do the same, but output 0 instead of NULL: COALESCE(SUM(total), 0) as s.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s05-25",
+   "title": "TOTAL",
+   "statement": "The total() function always returns a number (0.0 for an empty set). Output total(total) for the status 'refund' as t.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s05-26",
+   "title": "AVG and NULL",
+   "statement": "AVG ignores NULL. Output AVG(rating) over the movies and COUNT(rating) as cnt (not every movie has a rating), rounding the mean to 2 decimals: avg_rating, cnt.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s05-27",
+   "title": "Glue values",
+   "statement": "The group_concat function collects values into a string. Output the category names (without duplicates) separated by commas: SELECT group_concat(DISTINCT category) AS cats.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s05-28",
+   "title": "Glue with a separator",
+   "statement": "Output the names of customers from `Тверь` joined with ' | ' (in id order): group_concat(name, ' | ') as names. Hint: first a subquery with ORDER BY id.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s05-29",
+   "title": "Share",
+   "statement": "What share (in percent, ROUND to an integer) do VIP customers make up? 100.0 * SUM(vip) / COUNT(*) as vip_pct.",
+   "hint": "vip stores 0 or 1, so SUM(vip) is the number of VIPs.",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s05-30",
+   "title": "Conditional count",
+   "statement": "In a single row output the number of orders by status: paid_n, new_n, cancelled_n — via SUM(status = '...').",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s05-31",
+   "title": "Expensive products",
+   "statement": "How many products cost more than the average price? Hint: the subquery (SELECT AVG(price) FROM products). Column n.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s05-32",
+   "title": "All aggregates at once",
+   "statement": "In a single row over the products table: cnt (count), total_price (sum of prices), min_price, max_price, avg_price (rounded to an integer).",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s05-33",
+   "title": "HR: payroll",
+   "statement": "HR database. Output the sum of salaries as payroll and the average (ROUND to an integer) as avg_salary.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s05-34",
+   "title": "HR: highest salary",
+   "statement": "HR database. Output the largest and the smallest salary: max_salary, min_salary.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s05-35",
+   "title": "HR: how many without a department",
+   "statement": "HR database. How many employees have a department (COUNT(dept_id)) and how many in total (COUNT(*))? with_dept, total.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s05-36",
+   "title": "HR: newcomers",
+   "statement": "HR database. How many employees were hired after 2023-01-01? n.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s05-37",
+   "title": "School: average grade",
+   "statement": "School database. The average grade for 2024 (ROUND to 2 decimals): avg_score. NULL grades are ignored.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s05-38",
+   "title": "School: how many fives",
+   "statement": "School database. How many fives (top grades) were given over all years? n.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s05-39",
+   "title": "School: total hours",
+   "statement": "School database. The total number of hours across all courses: SUM(hours) as total_hours.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s05-40",
+   "title": "Movies: budget",
+   "statement": "Movies database. How many movies have a known budget (cnt) and what is the total budget (total_budget)?",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  },
+  {
+   "id": "s05-41",
+   "title": "Movies: best rating",
+   "statement": "Movies database. Output the highest rating as best.",
+   "hint": "",
+   "starter": "-- Write a query\n"
+  }
+ ]
+}

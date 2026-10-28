@@ -1,0 +1,216 @@
+{
+ "book": 10,
+ "chapter": 1,
+ "tasks": [
+  {
+   "id": "r1-hello",
+   "title": "Hello, world!",
+   "statement": "Write a program that prints a single line: «Привет, мир!»\n\nExpected output:\n«Привет, мир!»",
+   "hint": "Inside fn main() call println!(\"…\"); do not forget the semicolon at the end.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r1-two-lines",
+   "title": "Two lines",
+   "statement": "Print two lines: first «Меня зовут Rust», then «Мне уже больше десяти лет».\n\nExpected output:\n«Меня зовут Rust\nМне уже больше десяти лет»",
+   "hint": "Each println! call prints a line and ends it. Two calls — two lines.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r1-print-one-line",
+   "title": "print! without a newline",
+   "statement": "Using three calls of print! (not println!), print on one line «Раз, два, три!», and then make one call of println!() that only ends the line.\n\nExpected output:\n«Раз, два, три!»",
+   "hint": "print!(\"…\") does not add a newline; an empty println!() ends the line.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r1-placeholders",
+   "title": "Substituting values",
+   "statement": "Print the equation 2 + 3 = 5, passing the numbers 2, 3 and 5 as arguments of println! (use three pairs of {} in the string).\n\nExpected output:\n2 + 3 = 5",
+   "hint": "println!(\"{} + {} = {}\", 2, 3, 5); — the values are substituted left to right.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r1-expression-arg",
+   "title": "An expression right in the argument",
+   "statement": "Print the line «Сумма: 12», but let the program compute the number 12: pass the expression 5 + 7 to println!.\n\nExpected output:\n«Сумма: 12»",
+   "hint": "Any expression can be an argument of println!: println!(\"Сумма: {}\", 5 + 7);",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r1-named-args",
+   "title": "Names inside the braces",
+   "statement": "Declare two variables: `let name = \"Аня\"; let age = 30;` and print «Аня, 30 лет», inserting them right into the string: {name} and {age} (no arguments after the string).\n\nExpected output:\n«Аня, 30 лет»",
+   "hint": "If you write a variable name inside the braces, println! takes its value: {name}.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r1-escape-braces",
+   "title": "Real curly braces",
+   "statement": "Print the line {ok} including the braces, and on the next line — {} (an empty pair of braces).\n\nExpected output:\n{ok}\n{}",
+   "hint": "To print one curly brace, write two in a row: {{ and }}.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r1-quotes",
+   "title": "Quotes and the backslash",
+   "statement": "Print two lines. The first: «Он сказал: \"привет\"» (with double quotes inside). The second: C:\\temp\\new (with backslashes).\n\nExpected output:\n«Он сказал: \"привет\"»\nC:\\temp\\new",
+   "hint": "Inside a string a quote is written as \\\" and a backslash as \\\\.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r1-tabs",
+   "title": "Tab",
+   "statement": "Print a table of two lines where the columns are separated by the tab character \\t: «Имя<tab>Возраст» and «Аня<tab>30».\n\nExpected output:\n«Имя\tВозраст»\n«Аня\t30»",
+   "hint": "\\t inside a string is one tab character.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r1-card",
+   "title": "Business card",
+   "statement": "Print a business card of four lines (the output is shown below; note the frame made of the characters + - |).\n\nExpected output:\n+----------------+\n«| Аня Петрова    |\n| Rust-новичок   |»\n+----------------+",
+   "hint": "Each line of the card is a separate println!; the spaces inside the quotes matter.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r1-cat",
+   "title": "A cat from characters",
+   "statement": "Draw a cat in four lines (the exact look is in the expected output below).\n\nExpected output:\n /\\_/\\\n( o.o )\n > ^ <\n«мяу!»",
+   "hint": "A backslash in a string is written as \\\\ — otherwise it starts an escape sequence.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r1-receipt",
+   "title": "A receipt with calculations",
+   "statement": "Print a receipt: «Хлеб: 40», «Молоко: 95», «Сыр: 310» and the total line «Итого: 445». Do not type the total by hand — compute it with the expression 40 + 95 + 310 right inside println!.\n\nExpected output:\n«Хлеб: 40\nМолоко: 95\nСыр: 310\nИтого: 445»",
+   "hint": "println!(\"Итого: {}\", 40 + 95 + 310);",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r1-mult-table",
+   "title": "3×3 multiplication table",
+   "statement": "Print a 3×3 multiplication table: three lines, each with three numbers separated by spaces (the products i·j). Compute the products in the arguments of println!, do not type the finished numbers.\n\nExpected output:\n1 2 3\n2 4 6\n3 6 9",
+   "hint": "println!(\"{} {} {}\", 1 * 1, 1 * 2, 1 * 3); — and so on for three lines.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r1-number-bases",
+   "title": "Number bases",
+   "statement": "Print the number 42 in four ways on one line separated by spaces: decimal ({}), binary ({:b}), hexadecimal ({:x}) and octal ({:o}).\n\nExpected output:\n42 101010 2a 52",
+   "hint": "The format goes after the colon inside the braces: b — binary, x — hexadecimal, o — octal.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r1-width",
+   "title": "Aligning by width",
+   "statement": "Print the number 42 in three ways, each in square brackets on its own line: right-aligned in five positions [   42], left-aligned [42   ] and zero-padded [00042]. Use {:>5}, {:<5} and {:05}.\n\nExpected output:\n[   42]\n[42   ]\n[00042]",
+   "hint": ">5 — right-aligned, <5 — left-aligned, 05 — pad with zeros to five positions.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r1-precision",
+   "title": "How many decimal places",
+   "statement": "Print the number 3.14159 with two decimal places (3.14), and the number 2.0 / 3.0 with three (0.667), each on its own line. The formats are {:.2} and {:.3}.\n\nExpected output:\n3.14\n0.667",
+   "hint": "{:.2} — two decimal places; rounding is done automatically.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r1-debug",
+   "title": "Debug output {:?}",
+   "statement": "Print on one line separated by spaces using {:?}: the string \"текст\", the number 5, the character 'a' and the tuple (1, 2.5, true). The {:?} format shows values the way they look in code (with the string in quotes).\n\nExpected output:\n\"текст\" 5 'a' (1, 2.5, true)",
+   "hint": "{:?} works for almost any value — handy for debugging.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r1-raw-string",
+   "title": "Raw string",
+   "statement": "Print the path C:\\Users\\anna\\docs with a single raw string r\"…\" (in such a string backslashes do not need to be doubled).\n\nExpected output:\nC:\\Users\\anna\\docs",
+   "hint": "r\"…\" is a raw string: it has no escape sequences inside. You can pass it as an argument for {}.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r1-unicode",
+   "title": "Russian and Unicode",
+   "statement": "Print two lines: «Раст любит Unicode» and «Краб 🦀 говорит привет».\n\nExpected output:\n«Раст любит Unicode\nКраб 🦀 говорит привет»",
+   "hint": "Strings in Rust are UTF-8, so Russian letters and emoji can be written right inside the quotes.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r1-multiline-literal",
+   "title": "A string of several lines",
+   "statement": "With a single call of println!, print three lines: «Первая», «Вторая», «Третья». To do this, put two newline characters \\n into the string (or write the string over several lines of code).\n\nExpected output:\n«Первая\nВторая\nТретья»",
+   "hint": "\\n inside a string is a newline; println! adds one more at the very end.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r1-arith-ops",
+   "title": "The five arithmetic operations",
+   "statement": "Print five lines with operations on the integers 7 and 3: «7 + 3 = 10», «7 - 3 = 4», «7 * 3 = 21», «7 / 3 = 2» (integer division) and «7 % 3 = 1» (remainder). Compute the results in the program.\n\nExpected output:\n7 + 3 = 10\n7 - 3 = 4\n7 * 3 = 21\n7 / 3 = 2\n7 % 3 = 1",
+   "hint": "Integers divide with truncation: 7 / 3 gives 2, and the remainder is 7 % 3.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r1-float-ops",
+   "title": "Floating-point numbers",
+   "statement": "Print three lines: 7.0 / 3.0 with three decimal places, 2.5 * 4.0 with one, and 10.0 - 0.1 with two (only the results, one number per line).\n\nExpected output:\n2.333\n10.0\n9.90",
+   "hint": "Floating-point literals are written with a dot: 7.0, not 7.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r1-seconds",
+   "title": "Seconds in a day",
+   "statement": "Print the line «В сутках 86400 секунд», computing the number with the expression 24 * 60 * 60 inside println!.\n\nExpected output:\n«В сутках 86400 секунд»",
+   "hint": "println!(\"В сутках {} секунд\", 24 * 60 * 60);",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r1-circle",
+   "title": "Area of a circle",
+   "statement": "The area of a circle with radius 5 is 3.14159 · 5 · 5. Print «Площадь: 78.54» (two decimal places), computing the number in the program.\n\nExpected output:\n«Площадь: 78.54»",
+   "hint": "Fractional numbers in the expression use a dot: 3.14159 * 5.0 * 5.0; format {:.2}.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r1-celsius",
+   "title": "Celsius and Fahrenheit",
+   "statement": "Print «100°C = 212°F», computing 212 with the formula 100.0 * 9.0 / 5.0 + 32.0 (print the number with no decimal places: format {:.0}).\n\nExpected output:\n100°C = 212°F",
+   "hint": "{:.0} rounds to an integer; remember that floating-point literals are written with a dot.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r1-booleans",
+   "title": "True and false",
+   "statement": "Print on one line separated by spaces the results of the comparisons 5 > 3, 2 + 2 == 5 and 4 <= 4 (you get: true false true).\n\nExpected output:\ntrue false true",
+   "hint": "A comparison is an expression of type bool; println! prints it as true or false.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r1-char-number",
+   "title": "A character and its number",
+   "statement": "Print the character 'R' and its numeric Unicode code using as: «R 82». For this use the expression 'R' as u32.\n\nExpected output:\nR 82",
+   "hint": "as u32 turns a char into a number — its code.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r1-progress-bar",
+   "title": "Progress bar",
+   "statement": "Print a progress bar of ten characters: five hash signs and five hyphens in square brackets, then a space and 50%.\n\nExpected output:\n[#####-----] 50%",
+   "hint": "The percent sign in println! is printed as is: you do not need to escape the % character in the format.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r1-schedule",
+   "title": "Daily schedule",
+   "statement": "Print a schedule of five lines in the format «time<tab>activity»: 08:00 «зарядка», 09:00 «работа», 13:00 «обед», 18:00 «прогулка», 22:00 «сон».\n\nExpected output:\n«08:00\tзарядка»\n«09:00\tработа»\n«13:00\tобед»\n«18:00\tпрогулка»\n«22:00\tсон»",
+   "hint": "Separate the time and the activity with the \\t character.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r1-comments",
+   "title": "Comments are not printed",
+   "statement": "The program must print exactly two lines: «Видно» and «Тоже видно». Between the two println! calls add two comments: a line comment (// …) with any text and a block comment (/* … */) containing the fragment `println!(\"не должно быть видно\");` — it must not run.\n\nExpected output:\n«Видно\nТоже видно»",
+   "hint": "Everything after // to the end of the line and inside /* … */ is a comment; the compiler skips it.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  }
+ ]
+}

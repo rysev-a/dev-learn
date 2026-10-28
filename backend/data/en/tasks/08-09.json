@@ -1,0 +1,78 @@
+{
+ "book": 8,
+ "chapter": 9,
+ "tasks": [
+  {
+   "id": "u9-mmap-anon",
+   "title": "Anonymous memory: mmap and munmap",
+   "statement": "page_size(void) → the page size (sysconf). map_region(size_t n) → a pointer to n bytes (round up to a page) of zeroed memory via mmap(MAP_PRIVATE|MAP_ANONYMOUS), NULL on error. unmap_region(void *p, size_t n) → 0 / −1. align_up(size_t x, size_t a) and align_down(size_t x, size_t a) for a a power of two.",
+   "hint": "mmap returns MAP_FAILED on error (not NULL); always round the length up to a whole number of pages."
+  },
+  {
+   "id": "u9-protect",
+   "title": "Page protection: mprotect and SIGSEGV",
+   "statement": "can_write(char *p) → 1 if a write to *p succeeds and 0 if it causes SIGSEGV: install a SIGSEGV handler (sigaction with SA_NODEFER), and in the handler do siglongjmp to the label set by sigsetjmp in can_write; after the check, restore the previous handler. page_readonly(void *page, size_t n) → 0 / −1: mprotect(PROT_READ). page_writable(...) → mprotect(READ|WRITE). Write one byte at a time without changing the value (save and restore it).",
+   "hint": "Before writing, save the value and put it back, so that the check does not change the data; siglongjmp from the handler returns control to sigsetjmp."
+  },
+  {
+   "id": "u9-buddy",
+   "title": "Buddy page allocator",
+   "statement": "An arena of 64 pages (orders 0…6: a block of order k is 2ᵏ pages). buddy_init(), buddy_alloc(order) → the number of the first page or −1: take the smallest free block of order ≥ order, split a larger one in half (the right half stays free). buddy_free(page, order): the block is merged with its \"buddy\" (page ^ (1 << order)) while the buddy is free and the order is < 6. buddy_free_pages() → the number of free pages. Among several blocks, choose the one with the lower page number.",
+   "hint": "The buddy of a block of order k is the page with bit k flipped; when freeing, merge with it while it is free, raising the order."
+  },
+  {
+   "id": "u9-pagewalk",
+   "title": "Page table walk (address translation)",
+   "statement": "A two-level table: a 32-bit virtual address = [10-bit index into the directory][10-bit index into the table][12-bit offset]. A table entry (uint32_t): bit 0 — present, bit 1 — writable, bits 12..31 — the physical frame number (for the directory — the frame number of the table). translate(const uint32_t *dir, const uint32_t *const *tables /* indexed by frame number */, uint32_t va, int write, uint32_t *pa) → 0 success, 1 — the page is absent (page fault), 2 — a write to a read-only page. Take the table of frame f as tables[f].",
+   "hint": "Split the address with shifts and masks: va >> 22, (va >> 12) & 0x3FF, va & 0xFFF; the presence error takes priority over the permission error."
+  },
+  {
+   "id": "u9-page-replace",
+   "title": "Page replacement: FIFO, LRU, clock",
+   "statement": "Given a reference string refs[0..n) (page numbers) and a number of frames frames (1…8), count the faults: fifo_faults — the oldest loaded page is evicted; lru_faults — the page that has gone unused the longest; clock_faults — the \"clock\" algorithm: each frame has a reference bit (set on access), the hand goes around in a circle, and on eviction clears bits until the first zero one; when a new page is loaded its bit = 1, and the hand moves to the next frame.",
+   "hint": "In the clock algorithm the hand moves only on eviction: while the bit of the page under the hand is 1, clear it and keep going around the circle."
+  },
+  {
+   "id": "u9-private-shared",
+   "title": "MAP_PRIVATE and MAP_SHARED for a file",
+   "statement": "map_write_effect(const char *path, int shared, char new_byte) → byte 0 of the file, read via read(2) AFTER new_byte is written to byte zero of the mapping: the file (at least 4096 bytes, already created) is mapped with mmap using MAP_SHARED if shared != 0, otherwise MAP_PRIVATE; with MAP_PRIVATE the file stays unchanged (copy-on-write), with MAP_SHARED the change reaches the file. Return the byte read, or −1 on error.",
+   "hint": "With MAP_PRIVATE a write creates the process's own copy of the page and the file does not change; with MAP_SHARED the page is shared with the file."
+  },
+  {
+   "id": "u9-demand-paging",
+   "title": "Lazy allocation: RSS grows on access",
+   "statement": "rss_kb(void) → the VmRSS value from /proc/self/status (in KiB; −1 on error). touch_growth(size_t bytes, int touch) → the RSS growth in KiB after an mmap(MAP_ANONYMOUS) of bytes bytes: if touch != 0, the memory is \"touched\" by writing one byte per page, otherwise not; after measuring, the region is released. It shows that reserving address space does not yet hand out physical memory.",
+   "hint": "VmRSS is the number of resident pages of the process: mmap reserves addresses, and physical pages appear on first access (page fault)."
+  },
+  {
+   "id": "u9-rlimit-as",
+   "title": "Address space limit: setrlimit",
+   "statement": "mmap_under_limit(size_t limit_bytes, size_t request) → 1 if mmap of request bytes succeeded, 0 if it failed with ENOMEM, −1 on any other error: in a CHILD process (fork) set RLIMIT_AS = limit_bytes via setrlimit and try mmap(request); the child passes the result through its exit code (0/1/2); the parent reads it. The parent's limit does not change.",
+   "hint": "The limit must be set in the child before mmap: setrlimit affects the process itself and its whole address space, including code and stack."
+  },
+  {
+   "id": "u9-minor-faults",
+   "title": "Page faults: lazy allocation",
+   "statement": "faults_first_touch(int pages) → long: get pages pages via mmap (MAP_PRIVATE | MAP_ANONYMOUS) (the page size is sysconf(_SC_PAGESIZE)), then write one byte into EACH page and return the difference of ru_minflt from getrusage(RUSAGE_SELF) before and after the walk. faults_second_touch(int pages) → long: do the same, but after the first pass walk the pages a second time and return the increase in ru_minflt for the second pass (the pages are already in memory). Release the memory (munmap). The kernel may serve one fault for several neighboring pages at once, so the number of faults can be less than the number of pages, but not more.",
+   "hint": "mmap only reserves addresses: a physical page is handed out on first access, through a page fault (minor fault: no data needs to be read). Repeated accesses go without faults until the pages are evicted."
+  },
+  {
+   "id": "u9-dontneed",
+   "title": "Giving memory back to the kernel: MADV_DONTNEED",
+   "statement": "rss_kib() → long: read the VmRSS field (in KiB) from /proc/self/status, −1 on error. rss_dropped_pages(int pages) → long: allocate an area of pages pages with mmap (MAP_PRIVATE | MAP_ANONYMOUS), write a byte into each page, remember rss_kib(), call madvise(addr, len, MADV_DONTNEED), measure rss_kib() again and return by how many pages the RSS decreased ((before − after) × 1024 / page size). Release the area.",
+   "hint": "VmRSS is how many of the process's pages are actually in physical memory right now. MADV_DONTNEED tells the kernel the contents of the pages are no longer needed: it takes them back, while the addresses stay valid (a new access brings zeroed pages)."
+  },
+  {
+   "id": "u9-slab",
+   "title": "A slab cache model: a pool of same-size objects",
+   "statement": "Implement a simple slab (the slab_t structure in the starter). slab_init(s, mem, memsize, objsize) → 0 or −1 (objsize < sizeof(void*), or not a single object fits): cut mem into objects of objsize bytes and link the free ones into a singly linked list in ASCENDING address order (the first bytes of a free object hold a pointer to the next). slab_alloc(s) → void *: take the head of the list (NULL if empty). slab_free(s, p) → 0 or −1 (if p is outside the area or not on an object boundary): put the object at the HEAD of the list. s->inuse is the number of objects handed out, s->nobj the total.",
+   "hint": "While an object is free, its own first bytes hold the pointer to the next free one: no separate memory is needed for the list. A freed object goes to the head, so it is also the next one to be handed out (warm for the processor cache)."
+  },
+  {
+   "id": "u9-mincore",
+   "title": "Which pages are really in memory: mincore",
+   "statement": "resident_count(void *addr, size_t len) → int: return how many pages of the area [addr, addr+len) are currently in RAM (mincore; addr is page-aligned, len is a multiple of the page size); −1 on error. In the driver the area is obtained via mmap, and pages 0, 3, 7, 8 and 15 out of 16 have already been touched (written).",
+   "hint": "mincore fills an array of bytes, one per page: the lowest bit is 1 if the page is in memory. Note that the address must be page-aligned, otherwise the call returns EINVAL."
+  }
+ ]
+}

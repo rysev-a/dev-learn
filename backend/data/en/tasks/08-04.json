@@ -1,0 +1,72 @@
+{
+ "book": 8,
+ "chapter": 4,
+ "tasks": [
+  {
+   "id": "u4-fork-wait",
+   "title": "fork and wait: the child's exit code",
+   "statement": "spawn_and_wait(int code) → int: create a child process that exits immediately with code code (_exit), and return what the parent got from waitpid (exit code 0..255). −1 if fork fails. child_pid_differs() → 1 if the child's pid differs from the parent's pid and getppid() in the child equals the parent's pid (the child passes the result to the parent through a pipe).",
+   "hint": "After fork, fork returned 0 in the child and the child's pid in the parent. The child must finish with _exit, not return, so it does not continue running the parent's code."
+  },
+  {
+   "id": "u4-fork-collect",
+   "title": "Several children and the order of exit",
+   "statement": "run_children(int n, int *results) → int: create n children (n ≤ 16); child i exits with code 10 + i. Wait for all of them via waitpid(-1, …) and store the code of child i in results[i] (identify it by pid), and return the number successfully collected. The children are started before the first wait, not one at a time.",
+   "hint": "Keep an array of pids; in a loop waitpid(-1, …) returns the pid of the one that finished — find its index and store the status."
+  },
+  {
+   "id": "u4-zombie",
+   "title": "Zombies and reaping them",
+   "statement": "count_zombies(int n) → int: create n (≤ 16) children that exit immediately and wait 50 ms with nanosleep — by then all of them are zombies (finished but not reaped). Check each one with kill(pid, 0): for a zombie the call succeeds. Count them, then reap each with waitpid(pid, …) and make sure kill(pid, 0) now gives ESRCH (otherwise return −1); return the number of zombies. reap_all() → the number of reaped children: a loop of waitpid(-1, NULL, WNOHANG) until it returns 0 or an error.",
+   "hint": "A child that has finished but not been reaped stays in the process table (a zombie): kill(pid, 0) succeeds for it until waitpid."
+  },
+  {
+   "id": "u4-exec",
+   "title": "exec: replace the process image",
+   "statement": "exec_capture(const char *prog, char *const argv[], char *out, size_t cap) → exit code: in the child run execv(prog, argv) (the program path is full), and collect the child's stdout through a pipe. If exec fails, the child exits with code 127 and writes the reason (strerror) to stderr. Use this idiom: after a successful exec the code after it does not run.",
+   "hint": "execv returns only on error; after it comes the message and _exit(127). Don't forget dup2 before exec."
+  },
+  {
+   "id": "u4-signal-handler",
+   "title": "Signal handler: sigaction",
+   "statement": "install_counter(int sig) → 0 / −1: use sigaction to install a handler that increments the global counter sig_count (volatile sig_atomic_t). hit_count() → the counter value. reset_count(). raise_n(int sig, int n): send yourself n signals in a row via kill(getpid(), sig) — the handler must have time to run (for ordinary signals, wait for each one). ignore_signal(int sig) — SIG_IGN, restore_default(int sig) — SIG_DFL.",
+   "hint": "The handler writes only to a volatile sig_atomic_t; SIGKILL and SIGSTOP cannot be caught — sigaction will return an error."
+  },
+  {
+   "id": "u4-pipe-pingpong",
+   "title": "Two pipes: a \"ping-pong\" exchange",
+   "statement": "pingpong(int rounds) → int: the parent and child exchange integers through two pipes: the parent sends k, the child replies k + 1 (rounds rounds, k from 0 upward: the next k is taken from the reply). Return the last number received by the parent (after rounds rounds it equals 2·rounds). −1 on error. Read and write exactly sizeof(int) bytes (read may return less — repeat).",
+   "hint": "The parent must close its write ends at the end, otherwise the child will never see end of file and will not exit."
+  },
+  {
+   "id": "u4-proc-self",
+   "title": "Process information from /proc/self",
+   "statement": "proc_name(char *out, size_t cap) → read /proc/self/comm (the process name without the newline), proc_state(void) → the state character from /proc/self/stat (after \")\" comes a letter: for a running process it is 'R'), proc_threads(void) → the number from the \"Threads:\" line of /proc/self/status, open_fds(void) → the number of entries in /proc/self/fd (minus the directory itself, opened during counting).",
+   "hint": "The name in stat is enclosed in parentheses and may contain spaces, so look for the last closing parenthesis with strrchr; then come a space and the state letter."
+  },
+  {
+   "id": "u4-cow-fork",
+   "title": "fork copies memory: changes are not visible",
+   "statement": "fork_isolation(int *shared_value) → int: the child increases *shared_value by 100 and reports its new value to the parent through a pipe; the parent, after waitpid, reads the reply and checks that its own *shared_value has NOT changed. Return the number sent by the child, leaving your own value untouched. thread_vs_fork(): the same, but with a thread instead of a process — the thread changes the value of a shared variable; return the value after join (a demonstration of the difference).",
+   "hint": "Processes have separate copies of memory (copy-on-write), threads share it: a change in the child is not visible to the parent, in a thread it is."
+  },
+  {
+   "id": "u4-orphan-reparent",
+   "title": "An orphaned process gets a new parent",
+   "statement": "orphan_reparent() → int: make the current process an orphan collector (prctl(PR_SET_CHILD_SUBREAPER, 1)). Create a child A; A creates a grandchild B and exits immediately. B waits until its parent changes (a loop of usleep(1000) for up to 2 seconds while getppid() equals A's number) and reports the value of getppid() through a pipe. Return 1 if B's new parent is your process (the main getpid()), otherwise 0; errors → −1. Wait for everyone (waitpid).",
+   "hint": "When a parent dies before its descendant, the kernel hands the orphan to the nearest ancestor marked as a subreaper, and if there is none, to the process with number 1. That is exactly why init must call wait all the time."
+  },
+  {
+   "id": "u4-sigchld-reap",
+   "title": "SIGCHLD: reaping zombies in a handler",
+   "statement": "reap_with_sigchld(int n) → int: install a SIGCHLD handler (sigaction, SA_RESTART) that calls waitpid(-1, NULL, WNOHANG) in a loop until it returns ≤ 0, and increases a counter by the number reaped; create n (≤ 16) children that exit with small delays (child i: usleep(5000 × i) and _exit(0)), and wait until the counter equals n (no longer than 3 seconds; wait in a loop with a short nanosleep or with sigsuspend). Return the counter value; restore the previous SIGCHLD action. After everything finishes, waitpid(-1, …) must find no children (ECHILD), otherwise return −1.",
+   "hint": "Several SIGCHLD signals that arrive at the same time merge into one, so in the handler you must reap children in a waitpid(-1, …, WNOHANG) loop, not just once. And remember to save errno: the handler must not clobber it."
+  },
+  {
+   "id": "u4-posix-spawn",
+   "title": "posix_spawn: launching without a manual fork",
+   "statement": "spawn_capture(const char *path, char *const argv[], char *out, size_t n, int *status) → int: launch a program via posix_spawn (not fork), having set up posix_spawn_file_actions beforehand so that its standard output goes into a pipe (adddup2 and addclose). Read the output into out (up to n−1 bytes, '\\0'), wait for it to finish (waitpid), and store the exit CODE (WEXITSTATUS) in *status. Return the number of bytes read; if posix_spawn returned an error (for example, no such program) — −1.",
+   "hint": "posix_spawn combines fork and exec and can reconfigure descriptors in advance through posix_spawn_file_actions. Close the pipe's write end in the parent right after the launch, otherwise the read will not get end of file."
+  }
+ ]
+}

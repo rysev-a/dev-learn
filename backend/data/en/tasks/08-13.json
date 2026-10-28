@@ -1,0 +1,78 @@
+{
+ "book": 8,
+ "chapter": 13,
+ "tasks": [
+  {
+   "id": "u13-cgroup-files",
+   "title": "cgroup v2 files: memory and CPU limits",
+   "statement": "parse_mem_max(const char *s) → the limit in bytes from the contents of memory.max (\"max\" → −1; a number with an optional newline; suffixes K, M, G are powers of 1024); parse_cpu_max(const char *s, long *quota_us, long *period_us) → 0 / −1: \"max 100000\" → quota = −1; \"50000 100000\" → quota = 50000. cpu_percent(const char *s) → the share of one core in percent ×100 (50000/100000 → 5000, \"max …\" → −1). parse_stat(const char *text, const char *key) → the value of a key from memory.stat (\"anon 4096\\nfile 8192\\n…\"), −1 if absent.",
+   "hint": "A key in memory.stat is the word up to the space: compare it whole (anon ≠ anon_thp), and read the value with strtoll after the space."
+  },
+  {
+   "id": "u13-uid-map",
+   "title": "uid mapping in a user namespace",
+   "statement": "The file /proc/PID/uid_map holds lines \"inside outside length\". map_to_host(const char *map, long inside, long *host) → 0 / −1: translate a uid inside the container to a host uid (the first matching line: inside ∈ [start, start + length)). map_to_ns(const char *map, long host, long *inside) → the reverse. Example: \"0 100000 65536\": inside 0 ↔ outside 100000, 1000 ↔ 101000. Unmapped uids → −1 (in the kernel this is the \"overflow uid\").",
+   "hint": "A range [start, start + length): the offset within the range is the same on both sides, so the answer = the other start + the offset."
+  },
+  {
+   "id": "u13-overlay",
+   "title": "OverlayFS: looking up a file across layers",
+   "statement": "struct layer { int n; const char *paths[16]; }. overlay_lookup(const struct layer *layers, int nlayers, const char *path) → the index of the layer (0 is the top/upper) where the file is found, −1 if there is no file or it is hidden (whiteout): \".wh.<name>\" in a higher layer (or in the same layer) hides the name in all lower layers; an opaque directory is an entry \".wh..wh..opq\" inside the directory: everything under that directory in the lower layers is hidden. The layers are ordered top to bottom. Paths are absolute, \"/a/b\".",
+   "hint": "Go through the layers top to bottom: first check whether the path is in the layer, then whether the layer hides the path through a whiteout or an opaque directory."
+  },
+  {
+   "id": "u13-rlimit",
+   "title": "Open file limit: RLIMIT_NOFILE",
+   "statement": "count_opens(int limit) → the number of successful open(\"/dev/null\") calls in a row before the EMFILE error: in a child process set RLIMIT_NOFILE = limit (soft and hard), open files in a loop until you get EMFILE, and pass the number to the parent through a pipe (open the pipe descriptors before setting the limit; descriptors 0, 1, 2 are already taken, plus the pipe itself takes two). Return the number of successful opens, or −1 on error. get_limit(void) → the current soft limit.",
+   "hint": "The limit restricts the largest allowed descriptor number + 1: with limit N there are at most N occupied descriptors, including the standard ones and the pipe."
+  },
+  {
+   "id": "u13-chroot",
+   "title": "chroot: a process's filesystem root",
+   "statement": "read_in_chroot(const char *root, const char *path, char *out, size_t cap) → the length read, or −1: in a child process perform chroot(root), chdir(\"/\"), open path (absolute INSIDE the new root) and pass the contents to the parent through a pipe; the parent reads and waits for the child. If the process has no right to chroot, return −2. Nothing outside the new root is visible: the path /etc/passwd does not exist inside such a root.",
+   "hint": "chroot changes the root only of the calling process, so do it in the child; after chroot you must chdir(\"/\"), otherwise the current directory stays outside."
+  },
+  {
+   "id": "u13-image-usage",
+   "title": "Image layers: shared disk and deduplication",
+   "statement": "struct image { int n; const char *layer[8]; }; layer sizes come from a table struct lsize { const char *id; long mb; }. disk_usage(const struct image *imgs, int n, const struct lsize *sizes, int ns) → how many megabytes all the images take together (shared layers are counted once). unique_layers(imgs, n) → the number of distinct layers. shared_layers(a, b) → how many layers two images have in common. An unknown layer has size 0.",
+   "hint": "Count a layer on first encounter: check whether the same identifier appeared earlier, in this image or in previous ones."
+  },
+  {
+   "id": "u13-port-map",
+   "title": "Port forwarding: parsing -p and lookup",
+   "statement": "struct pmap { int host, cont; char proto[4]; char ip[16]; }. parse_port(const char *s, struct pmap *p) → 0 / −1: formats \"8080:80\", \"8080:80/udp\", \"127.0.0.1:8080:80/tcp\"; ports 1..65535, protocol tcp (default) or udp, ip defaults to \"0.0.0.0\". host_to_container(const struct pmap *m, int n, const char *proto, int host_port, const char *bind_ip, int *cont) → 1/0: whether a mapping is found: the host port and protocol match, and the address is either \"0.0.0.0\" in the map or equal to bind_ip. conflicts(const struct pmap *m, int n) → the number of pairs of maps with the same protocol and host port whose addresses overlap (\"0.0.0.0\" overlaps with everything).",
+   "hint": "Split by \"/\", then by \":\": two parts are host:cont, three are ip:host:cont; check a port as a number with no extra characters in the range 1..65535."
+  },
+  {
+   "id": "u13-prctl",
+   "title": "Process isolation: prctl and no_new_privs",
+   "statement": "set_comm(const char *name) → 0 / −1: change the process name via prctl(PR_SET_NAME) (up to 15 characters), get_comm(char *out, size_t cap) → read it via prctl(PR_GET_NAME). comm_in_proc(char *out, size_t cap) → the same from /proc/self/comm without the newline. lock_privs(void) → 0 / −1: prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0); privs_locked(void) → the result of PR_GET_NO_NEW_PRIVS (1 after locking; irreversible until the process ends, so in the driver the check runs in a child process).",
+   "hint": "The process name (comm) is at most 15 characters plus a NUL; PR_SET_NO_NEW_PRIVS forbids descendants from gaining new privileges through setuid files."
+  },
+  {
+   "id": "u13-seccomp",
+   "title": "The seccomp system call filter",
+   "statement": "deny_syscall(int nr, int err) → int: install on the current process a seccomp filter (classic BPF) that returns the error err (SECCOMP_RET_ERRNO | err) for the system call with number nr and allows all others (SECCOMP_RET_ALLOW). First prctl(PR_SET_NO_NEW_PRIVS, 1), then prctl(PR_SET_SECCOMP, SECCOMP_MODE_FILTER, &prog). The filter must first check the architecture (the arch field of struct seccomp_data: AUDIT_ARCH_X86_64 or AUDIT_ARCH_AARCH64, chosen by the macros __x86_64__/__aarch64__): a foreign architecture gets SECCOMP_RET_KILL_PROCESS. Return 0 on success, −1 on error. It must be called only in a child process.",
+   "hint": "A filter is a small program for the BPF virtual machine: load a field of seccomp_data (BPF_LD|BPF_W|BPF_ABS), compare (BPF_JEQ), return a verdict (BPF_RET). A filter cannot be removed and is inherited by descendants; this is how container runtimes take dangerous calls away from processes."
+  },
+  {
+   "id": "u13-no-new-privs",
+   "title": "no_new_privs: privileges no longer grow",
+   "statement": "nnp_report(char *out, size_t n) → int: write to out the string \"before=B set=S after=A child=C unset=U\", where B is prctl(PR_GET_NO_NEW_PRIVS) before setting, S is the result of prctl(PR_SET_NO_NEW_PRIVS, 1) (0 on success), A is the flag value after setting, C is the flag value in a child process (fork), which it reports to the parent through a pipe, U is the errno of an attempt to reset the flag back (prctl(PR_SET_NO_NEW_PRIVS, 0)): the flag cannot be reset. Do all of this in a CHILD wrapper process so as not to change the flag of the caller; return 0 or −1.",
+   "hint": "The no_new_privs flag forbids a process and all its descendants from gaining privileges on exec (through setuid bits and file capabilities). It can be turned on but not off; container engines enable it by default along with seccomp."
+  },
+  {
+   "id": "u13-pid-ns-view",
+   "title": "PID namespaces: one process, different numbers",
+   "statement": "A process is created at nesting level level (0 is the main namespace, 1 is a container, 2 is a container in a container) and has number pids[k] in each namespace k = 0..level. The struct proc is given in the starter. pid_seen(const struct proc *p, int viewer) → int: the process number as seen by an observer from the namespace of level viewer (pids[viewer]), or 0 if the process is not visible to it (a process is visible if its level ≥ viewer; a namespace sees itself and the nested ones). count_visible(const struct proc *t, int n, int viewer) → int: how many processes are visible to the observer. find_by_pid(const struct proc *t, int n, int viewer, int pid) → int: the index of the process that has number pid in namespace viewer, or −1.",
+   "hint": "From the outer namespace all nested processes are visible, each with its \"outer\" number; from inside a container the outer processes are not visible at all. That is why a container's \"init\" has number 1 inside and a completely different one outside."
+  },
+  {
+   "id": "u13-cpu-quota",
+   "title": "cgroup cpu.max: quota and throttling",
+   "statement": "run_with_quota(const long *demand, int n, long quota, long period, long *throttled) → long: the group is assigned \"quota microseconds of CPU time per each period\" (cpu.max). demand[i] is how much work appears in period i (µs). The model: the accumulated unfinished work backlog += demand[i]; in the period the group performs run = min(backlog, quota); backlog −= run. A period counts as \"throttled\" if backlog > 0 remains after running (the group was stopped until the end of the period). Return the total work done over n periods, and in *throttled the number of throttled periods. quota ≤ 0 means \"no limit\" (period.run = backlog).",
+   "hint": "The quota is a \"budget\" for the period: while it is not exhausted, the group runs; once exhausted, it stops until the next period begins. Unfinished work does not vanish but carries over to later periods."
+  }
+ ]
+}

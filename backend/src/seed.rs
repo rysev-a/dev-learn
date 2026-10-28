@@ -377,7 +377,21 @@ fn load_task_texts(dir: &std::path::Path, raw: &mut Vec<u8>) -> anyhow::Result<V
 
 /// Код без комментариев: у переведённого начального кода всё, кроме комментариев, совпадает с русским.
 fn code_skeleton(code: &str) -> String {
-    code.lines().map(|l| l.split('#').next().unwrap_or("").split("//").next().unwrap_or("").trim_end()).collect::<Vec<_>>().join("\n")
+    // блочные комментарии `/* … */` убираем целиком (как в C, Rust, SQL), остальные — от `#`, `//` или `--` до конца строки
+    let mut text = String::with_capacity(code.len());
+    let mut rest = code;
+    while let Some(start) = rest.find("/*") {
+        text.push_str(&rest[..start]);
+        match rest[start..].find("*/") {
+            Some(end) => rest = &rest[start + end + 2..],
+            None => {
+                rest = "";
+                break;
+            }
+        }
+    }
+    text.push_str(rest);
+    text.lines().map(|l| l.split('#').next().unwrap_or("").split("//").next().unwrap_or("").split("--").next().unwrap_or("").trim_end()).collect::<Vec<_>>().join("\n")
 }
 
 /// Тексты лабораторий: у каждой главы с переводом те же упражнения, что и в русских данных, а пути `spec_text` указывают на строки сценария.

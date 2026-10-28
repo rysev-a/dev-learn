@@ -1,0 +1,72 @@
+{
+ "book": 8,
+ "chapter": 12,
+ "tasks": [
+  {
+   "id": "u12-unit-parse",
+   "title": "Parsing a systemd unit file",
+   "statement": "struct unit { char sec[16][32]; char key[64][48]; char val[64][128]; int sidx[64]; int nsec, nkv; }. unit_parse(const char *text, struct unit *u) → 0 / −1: lines like \"[Section]\" open a section; \"Key=value\" lines (spaces around \"=\" and at the ends are trimmed) belong to the current one; lines starting with \"#\" or \";\" and empty lines are ignored; a line ending in a backslash continues on the next one (joined with a space). A key outside a section or without \"=\" gives −1. unit_get(u, section, key) → the first value or NULL; unit_count(u, section, key) → how many times the key occurs (Wants=, After= repeat).",
+   "hint": "Accumulate the logical line in a buffer: if the physical line ends in a backslash, append the next one; a key outside a section is an error."
+  },
+  {
+   "id": "u12-start-order",
+   "title": "Unit start order: topological sort",
+   "statement": "struct dep { int n; const char *name[16]; int nafter[16]; const char *after[16][8]; }. start_order(const struct dep *d, const char **out) → the number of units, or −1 on a cycle: a unit starts after all units in its after list (names of unknown units are ignored). Of those ready to start, the first alphabetically (lexicographically by name) is taken. The result is the names in start order in out.",
+   "hint": "Kahn's algorithm: at each step, among the units not yet started whose dependencies have all started, pick the smallest by name; if there are none, there is a cycle."
+  },
+  {
+   "id": "u12-daemonize",
+   "title": "Daemonizing: double fork and setsid",
+   "statement": "daemon_flags(void) → a mask: run a \"daemon\" in a child process the way classic services did: fork (the parent exits), setsid(), a second fork (so as not to be a session leader), chdir(\"/\"), umask(0), stdin/stdout/stderr redirected to /dev/null. The grandchild sends a check-mask byte through a pipe: 1 — the session id changed relative to the original process, 2 — the grandchild is NOT a session leader (getsid(0) != getpid()), 4 — the current directory is \"/\", 8 — read(0) returns 0 (EOF). The original process reads the mask and waits for the intermediate processes (waitpid).",
+   "hint": "The first fork + setsid detaches the process from the session's terminal; the second fork guarantees the daemon is not a session leader and cannot accidentally acquire a controlling terminal."
+  },
+  {
+   "id": "u12-pidfile",
+   "title": "PID file and single-instance locking",
+   "statement": "pidfile_acquire(const char *path) → a descriptor ≥ 0 or −errno: open the file (create, 0644), try flock(fd, LOCK_EX | LOCK_NB); on refusal (EWOULDBLOCK) close it and return −EWOULDBLOCK; on success truncate the file, write \"pid\\n\" and return fd (kept open). pidfile_read(path) → the pid from the file or −1; pidfile_release(fd, path) — unlock, close and delete the file. Two acquire calls on the same path from the same process also conflict (different open file descriptions).",
+   "hint": "flock is tied to the open file description: the lock survives fork but is released automatically when the last descriptor is closed."
+  },
+  {
+   "id": "u12-dpkg-version",
+   "title": "Comparing package versions (dpkg)",
+   "statement": "vercmp(const char *a, const char *b) → <0, 0, >0 for versions of the form [epoch:]upstream[-revision]. The epoch (before the first \":\") is compared as a number (0 by default). Then the upstream part and the revision (split at the last \"-\"; no revision = \"0\") are compared with the dpkg algorithm: non-digit and digit parts alternate; in the non-digit parts the character order is: \"~\" sorts before everything (even the end of the string), then the end of the string, then letters, then other characters by code; digit parts are compared as numbers.",
+   "hint": "Follow the dpkg specification: the comparison alternates non-digit and digit chunks; \"~\" sorts below empty space, so \"1.0~rc1\" is older than \"1.0\" in ordering (less)."
+  },
+  {
+   "id": "u12-notify",
+   "title": "The sd_notify protocol: readiness message",
+   "statement": "struct notify { int ready, stopping; long mainpid; char status[64]; int watchdog; }. parse_notify(const char *msg, struct notify *n) → the number of recognized fields: the message is lines of \"KEY=value\" separated by \"\\n\": READY=1, STOPPING=1, MAINPID=number, STATUS=text, WATCHDOG=1; other keys are ignored. notify_via_socket(const char *msg, struct notify *n) → the parse result: create a socketpair(AF_UNIX, SOCK_DGRAM), send msg as one datagram and receive it on the other side (as systemd does), then parse what was received.",
+   "hint": "The message is a set of \"KEY=value\" lines; split at the first \"=\"; a datagram socket preserves the message boundary as a whole."
+  },
+  {
+   "id": "u12-timer-spec",
+   "title": "Timers: when it fires next",
+   "statement": "next_run(const char *spec, time_t from) → the nearest moment STRICTLY after from (UTC): spec is \"hourly\" (at the start of every hour), \"daily\" (at 00:00), \"weekly\" (Monday 00:00), \"HH:MM\" (daily at that time), \"Mon HH:MM\" … \"Sun HH:MM\" (by weekday) or \"*:MM\" (every hour at MM minutes). An invalid format → (time_t)−1. Use gmtime_r and timegm.",
+   "hint": "First build a candidate for today (or this hour) via timegm(struct tm); if it is not later than from, add the period (hour, day, week)."
+  },
+  {
+   "id": "u12-restart-policy",
+   "title": "Service restart policy",
+   "statement": "service_sim(const int *exit_codes, const long *times, int n, int restart_mode, int burst, long interval, long restart_sec, long *start_times) → the number of starts: the service starts at moment 0; the i-th run ends (code exit_codes[i], moment times[i]); the decision: restart_mode 0 — no (do not restart), 1 — on-failure (code ≠ 0), 2 — always. The restart happens restart_sec after the exit. The limit: if within the last interval seconds there were already burst starts (including the initial one), the service goes to failed and is not started. The start moments are written to start_times. When the records run out — stop.",
+   "hint": "Before each restart, count the starts in the window [t − interval, t]: if there are already burst of them, the service is \"failed\"."
+  },
+  {
+   "id": "u12-listen-fds",
+   "title": "Socket activation: the LISTEN_FDS protocol",
+   "statement": "listen_fds() → int: by systemd convention, open sockets are passed to a service starting from descriptor 3. Read the environment variables LISTEN_PID and LISTEN_FDS: if LISTEN_PID equals getpid() and LISTEN_FDS is a number n ≥ 0, return n and set the FD_CLOEXEC flag on descriptors 3…3+n−1; otherwise return 0. In any case remove both variables from the environment (unsetenv). A number parse error → −1.",
+   "hint": "The LISTEN_PID check is needed so that variables inherited by child processes are not mistaken for ones addressed to them. The FD_CLOEXEC flag keeps the sockets from leaking into programs the service launches."
+  },
+  {
+   "id": "u12-cmdline",
+   "title": "Kernel command line: parsing boot parameters",
+   "statement": "cmdline_get(const char *cmdline, const char *key, char *out, size_t n) → int: parse a kernel parameter string (like /proc/cmdline). Parameters are separated by spaces; they come as \"key\" (a flag) and \"key=value\"; a value may be in double quotes and then contain spaces (the quotes are not part of the result). If a key occurs several times, the LAST one is taken. Return 1 if the key is found (the value goes to out, an empty string for a flag), otherwise 0; if the value does not fit in n, −1.",
+   "hint": "A token is a sequence of characters up to a space, but spaces inside quotes belong to the token. The key must match entirely: \"ro\" must not be found in \"root=…\". Overwriting the value on a repeat is simply taking the last one found."
+  },
+  {
+   "id": "u12-stop-service",
+   "title": "Stopping a service: SIGTERM, wait, SIGKILL",
+   "statement": "stop_service(pid_t pid, int timeout_ms) → int: stop the child process pid the way a service manager does. Send SIGTERM and every 10 ms check waitpid(pid, …, WNOHANG) until the process exits or timeout_ms expires. If it exited by itself, return 0; if SIGKILL had to be sent (after the timeout), send it, wait for the process (waitpid) and return 1; a kill/waitpid error → −1.",
+   "hint": "First a polite request (SIGTERM): the service has time to save its data. If the process is still alive after the timeout, SIGKILL remains, which cannot be caught. systemd does exactly this (TimeoutStopSec)."
+  }
+ ]
+}

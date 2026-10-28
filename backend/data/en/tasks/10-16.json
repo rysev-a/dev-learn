@@ -1,0 +1,188 @@
+{
+ "book": 10,
+ "chapter": 16,
+ "tasks": [
+  {
+   "id": "r16-count-vowels",
+   "title": "Borrowing to read: &str",
+   "statement": "Write count_vowels(s: &str) -> usize: how many vowels are in the string. The vowels are the Russian `а е ё и о у ы э ю я` and the Latin `a e i o u`, case does not matter. The function only reads: after the call the string stays with its owner.",
+   "hint": "s.chars() iterates over characters; to_lowercase() on a char returns an iterator — take the first character with .next().unwrap()."
+  },
+  {
+   "id": "r16-add-all",
+   "title": "&mut Vec and a slice: writing through a reference",
+   "statement": "Write add_all(dst: &mut Vec<i32>, extra: &[i32]): append to the end of dst all the elements of the slice extra (copying the numbers). The caller passes &mut v and &[..]: at the call you can immediately see which one is read and which is changed.",
+   "hint": "for &x in extra gives the numbers by value (i32 is Copy); then dst.push(x)."
+  },
+  {
+   "id": "r16-swap-ends",
+   "title": "Swapping the ends of a slice",
+   "statement": "Write swap_ends(v: &mut [i32]): swap the first and last elements of the slice. For an empty slice and a one-element slice do nothing. The function must accept an array, a vector, and a part of a vector.",
+   "hint": "A slice has the method swap(i, j); do not forget the case of length less than two."
+  },
+  {
+   "id": "r16-fix-two-mut",
+   "title": "Fix it: two mutable references at once",
+   "statement": "The compiler does not let you hold two mutable references to one vector at the same time. Fix build so that it returns [1, 2], keeping the work through &mut: a borrow must end before the next one begins.",
+   "hint": "The first reference lives until its last use: use it completely, and only then take the second."
+  },
+  {
+   "id": "r16-fix-read-push",
+   "title": "Fix it: a reference to an element and push",
+   "statement": "grow_with_first must append to the end of the vector first the number 100, and then a copy of its first element. The code does not compile: the reference first is still alive when push(100) is called. Fix it minimally: the number can be copied out from under the reference.",
+   "hint": "let first = v[0]; — an i32 is copied, and the borrow ends at once."
+  },
+  {
+   "id": "r16-fix-dangle",
+   "title": "Fix it: a reference to a local string",
+   "statement": "greeting builds the string «Привет, <name>!» and tries to return a reference to it, but the local string is destroyed when the function exits. Fix it: return ownership, not a reference.",
+   "hint": "The result type is String; the last expression of the function can be format! itself.",
+   "starter": "fn greeting(name: &str) -> &str {\n    let s = format!(\"Привет, {name}!\");\n    &s\n}\n"
+  },
+  {
+   "id": "r16-longest",
+   "title": "Lifetimes: longest",
+   "statement": "Write longest<'a>(a: &'a str, b: &'a str) -> &'a str: return the longer string (by bytes); if the lengths are equal, the first. The result is a reference to one of the arguments, not a new string.",
+   "hint": "Compare len() and return the reference that fits; the 'a annotations are already in the signature."
+  },
+  {
+   "id": "r16-first-word",
+   "title": "A slice of the first word",
+   "statement": "Write first_word(s: &str) -> &str: the first word is a run of non-whitespace characters; leading whitespace is skipped; if there are no words, return an empty string. The result is a slice of the original string, not a new string.",
+   "hint": "split_whitespace().next() returns Option<&str>; unwrap_or(\"\") gives an empty slice."
+  },
+  {
+   "id": "r16-lifetime-fix",
+   "title": "Fix it: the result has no lifetime",
+   "statement": "pick(a, b, first) returns a or b depending on the flag. The compiler does not know which argument the result is tied to. Add a lifetime parameter to the signature.",
+   "hint": "fn pick<'a>(a: &'a str, b: &'a str, first: bool) -> &'a str."
+  },
+  {
+   "id": "r16-slice-split",
+   "title": "Two halves of one slice",
+   "statement": "Write halves(v: &[i32]) -> (&[i32], &[i32]): the left half of length len/2 (rounded down) and the rest. The data is not copied: both parts are slices of the original.",
+   "hint": "A slice has the method split_at(mid), which returns a pair of slices."
+  },
+  {
+   "id": "r16-max-mut",
+   "title": "Option<&mut T>: a reference to the maximum",
+   "statement": "Write max_mut(v: &mut [i32]) -> Option<&mut i32>: a mutable reference to the largest element (None for an empty slice). Through it the caller can write a new value into the array.",
+   "hint": "iter_mut() yields &mut i32; max_by_key(|x| **x) picks the largest without copying the elements."
+  },
+  {
+   "id": "r16-fix-nll",
+   "title": "Fix it: read, and then push",
+   "statement": "log_and_grow returns the last element of the vector and appends 100 to the end. The reference last is still needed when push is called. Fix it so that the function returns the last element BEFORE the append (for [1, 2] return 2).",
+   "hint": "It is enough to dereference at once: let last = *v.last().unwrap(); — the borrow ends on that line."
+  },
+  {
+   "id": "r16-iter-kinds",
+   "title": "Three ways to traverse a vector",
+   "statement": "sum_ref(v: &Vec<i32>) → the sum (a loop over a reference); double_in_place(v: &mut Vec<i32>) — double all elements in place (mutable references); consume(v: Vec<i32>) → i32 — the sum that takes the elements (the vector is destroyed).",
+   "hint": "for x in v (v: &Vec) gives &i32; v.iter_mut() gives &mut i32 (change the value through *x); for x in v (v: Vec) gives i32."
+  },
+  {
+   "id": "r16-parser",
+   "title": "A struct with a reference: Parser<'a>",
+   "statement": "Parser stores a slice of text and a position. Parser::new(text) creates a parser; next_word(&mut self) returns the next word (non-whitespace characters) as a slice of the ORIGINAL text, or None when there are no more words. The words must live as long as the text, not as long as the parser itself (&'a str in the result).",
+   "hint": "Look for the start of a word after trim_start, and for the end at the first whitespace character; move self.pos past the word."
+  },
+  {
+   "id": "r16-method-forms",
+   "title": "Three forms of self",
+   "statement": "Counter counts events. new() — starting from zero; get(&self) reads the value; inc(&mut self) increases it by 1; finish(self) takes the counter and returns the total. Choose the right form for each method: after finish the counter can no longer be used.",
+   "hint": "The signatures are already given: &self reads, &mut self changes the field via self.n += 1, self passes the field on."
+  },
+  {
+   "id": "r16-fix-method-self",
+   "title": "Fix it: a method changes a field through &self",
+   "statement": "add must increase the number of coins, but the method takes &self — a field cannot be changed through a shared reference. Fix the method's signature (the calling code already uses let mut).",
+   "hint": "fn add(&mut self, n: u32) — a mutable reference to self."
+  },
+  {
+   "id": "r16-swap-values",
+   "title": "Swapping through two &mut without mem::swap",
+   "statement": "Write swap_values(a: &mut i32, b: &mut i32): swap the values without using std::mem::swap or the swap method. The checker allows two &mut to DIFFERENT values; in the calling code both variables are declared mut.",
+   "hint": "You need a temporary variable: tmp = *a; *a = *b; *b = tmp;"
+  },
+  {
+   "id": "r16-reborrow",
+   "title": "Reborrowing: passing &mut on",
+   "statement": "bump(x: &mut i32) adds one — it is already written. Write bump_n(x: &mut i32, n: u32): call bump exactly n times with the same x. A &mut is not copied, but passing it to a function creates a temporary borrow, and x can be used again.",
+   "hint": "In the loop just write bump(x); — each call borrows x for the duration of the call."
+  },
+  {
+   "id": "r16-split-halves-mut",
+   "title": "split_at_mut: two writers, different parts",
+   "statement": "Write reshape(v: &mut [i32]): zero out the left half (len/2 elements), and replace each element of the right half with the sum of the corresponding original elements of the left and right halves (for pair i: right[i] = left_old[i] + right_old[i]; if the right half is longer, the extra last element stays as it was). Use split_at_mut: two mutable references to non-overlapping parts are allowed.",
+   "hint": "let (left, right) = v.split_at_mut(mid); — both parts can be changed at the same time."
+  },
+  {
+   "id": "r16-fix-iter-invalidate",
+   "title": "Fix it: changing a vector during traversal",
+   "statement": "dup_evens appends to the end of the vector copies of all even numbers (order: the original elements, then the copies of the even ones in original order). The loop over &v holds a borrow while push changes the vector — it does not compile. Fix it: first collect the copies, then add them.",
+   "hint": "Create a separate vector extra, fill it in the loop, and after the loop call v.extend(extra)."
+  },
+  {
+   "id": "r16-initial-char",
+   "title": "A slice on a character boundary",
+   "statement": "initial(s: &str) -> &str returns the first character of the string as a slice (empty string → empty slice). The starter takes one BYTE and fails on Cyrillic: slice boundaries must fall on a UTF-8 character boundary. Fix it.",
+   "hint": "char_indices() yields pairs (byte offset, character): the offset of the second character is the end of the first; if there is no second one, the whole string will do."
+  },
+  {
+   "id": "r16-stack-addr",
+   "title": "The stack grows down",
+   "statement": "Write inner(outer: usize) -> bool with the attribute #[inline(never)]: create a local variable, get its address (as *const u64 as usize) and return whether it is smaller than the address outer. And grows_down() -> bool: a local variable whose address is passed to inner. The result must be true: the frame of the nested call lies lower. Wrap the values in std::hint::black_box so the optimizer does not remove them.",
+   "hint": "let y = black_box(0u64); let ay = &y as *const u64 as usize; — the same in grows_down; in inner compare ay < outer."
+  },
+  {
+   "id": "r16-ptr-eq",
+   "title": "Equal values or the same object",
+   "statement": "same_text(a, b) is true if the strings are equal in content (==). same_object(a, b) is true only if both references point to ONE object in memory (std::ptr::eq). These are the analogues of == and is from Python.",
+   "hint": "a == b compares the values behind the references; ptr::eq(a, b) compares the addresses themselves."
+  },
+  {
+   "id": "r16-trim-all",
+   "title": "Slices in a vector: trim_all",
+   "statement": "Write trim_all<'a>(lines: &[&'a str]) -> Vec<&'a str>: a vector of slices, each trimmed of whitespace at both ends. No new strings are created — only slices of the original strings, so the result lives as long as the original texts (lifetime 'a).",
+   "hint": "s.trim() on a &'a str returns &'a str; collect the result with map(...).collect()."
+  },
+  {
+   "id": "r16-longest-word",
+   "title": "The longest word",
+   "statement": "Write longest_word(text: &str) -> &str: the longest word of the text (words are separated by whitespace; the length is in characters, not bytes; on a tie, the first; empty text → \"\"). Return a slice of the text.",
+   "hint": "Keep the best slice in a variable of type &str and replace it when you find a word that is longer by chars().count()."
+  },
+  {
+   "id": "r16-struct-ref-fix",
+   "title": "Fix it: a struct with a reference has no lifetime",
+   "statement": "Highlight stores a slice of text and an offset, mark(text, from, to) builds a highlight. The compiler requires a lifetime to be specified. Add the parameters to the struct definition and to the function signature.",
+   "hint": "struct Highlight<'a> { text: &'a str, … } and fn mark<'a>(text: &'a str, …) -> Highlight<'a>."
+  },
+  {
+   "id": "r16-fix-outlive",
+   "title": "Fix it: the value does not live long enough",
+   "statement": "outer_len compares the input string with a temporary string and returns the length of the larger one. The reference result outlives the temporary string b, and the compiler refuses to build the code. Fix it without changing longest and without moving b out of its block: take the length while b is still alive.",
+   "hint": "Replace result with a number: n = longest(a, &b).len(); inside the block."
+  },
+  {
+   "id": "r16-longest-row",
+   "title": "A reference to the longest row of a grid",
+   "statement": "grid is a vector of rows (vectors). longest_row(grid: &[Vec<i32>]) -> Option<&Vec<i32>> returns a reference to the longest row (on a tie, the first; an empty grid → None). push_to_longest(grid: &mut [Vec<i32>], x) appends x to the end of that same row (the first of the longest).",
+   "hint": "For the push you need an index: find it with a reading traversal (the borrow ends), and then take &mut grid[i]."
+  },
+  {
+   "id": "r16-first-negative",
+   "title": "Option<&mut i32>: the first negative",
+   "statement": "Write first_negative(v: &mut [i32]) -> Option<&mut i32>: a mutable reference to the first negative element (None if there are none). Through it the caller fixes the value right in the array.",
+   "hint": "iter_mut().find(|x| **x < 0): in the closure x has the type &&mut i32, hence two stars."
+  },
+  {
+   "id": "r16-fix-report",
+   "title": "Fix it: a reference to the first element and clear",
+   "statement": "report(names) returns the string «первое — <name>; осталось <N>» (the words «первое» and «осталось» are printed exactly like this, in Russian) and clears the vector. The reference first to an element of the vector is still needed when the vector is cleared. Fix it: make an independent copy of the name.",
+   "hint": "names[0].clone() gives a new String unrelated to the vector.",
+   "starter": "fn report(names: &mut Vec<String>) -> String {\n    let first = &names[0];\n    names.clear();\n    format!(\"первое — {}; осталось {}\", first, names.len())\n}\n"
+  }
+ ]
+}

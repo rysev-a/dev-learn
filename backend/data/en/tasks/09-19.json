@@ -1,0 +1,145 @@
+{
+ "book": 9,
+ "chapter": 19,
+ "tasks": [
+  {
+   "id": "d3-create-index",
+   "title": "First index",
+   "statement": "The query SELECT * FROM orders WHERE customer_id = 7 scans the whole table. Create an index on customer_id (name it whatever you like) so that the plan becomes an index lookup.",
+   "hint": "CREATE INDEX name ON orders (customer_id);",
+   "starter": "-- index for looking up orders by customer_id\nCREATE INDEX\n"
+  },
+  {
+   "id": "d3-unique-index",
+   "title": "Unique index",
+   "statement": "Email addresses in users must be unique, and searching by them must be fast. Create one unique index on email.",
+   "hint": "CREATE UNIQUE INDEX … ON users (email);",
+   "starter": "-- unique index on email\nCREATE\n"
+  },
+  {
+   "id": "d3-composite-order",
+   "title": "Column order in a composite index",
+   "statement": "A frequent query: `WHERE city = 'Москва' AND created >= '2024-06-01'`. Create a composite index so that it can be searched both by city (equality) and by date (range) — choose the column order yourself.",
+   "hint": "Put the equality column first and the range column last: (city, created).",
+   "starter": "-- composite index for city (=) and created (>=)\nCREATE INDEX\n"
+  },
+  {
+   "id": "d3-left-prefix",
+   "title": "Left prefix",
+   "statement": "There is an index on (customer_id, status), but the query SELECT * FROM orders WHERE status = 'paid' cannot search with it. Create an index that turns this query into a lookup (the index may start with status).",
+   "hint": "The index (customer_id, status) does not help a query on status alone: you need an index that starts with status.",
+   "starter": "-- index for WHERE status = 'paid'\nCREATE INDEX\n"
+  },
+  {
+   "id": "d3-expression-index",
+   "title": "Expression index",
+   "statement": "Users are looked up with the query WHERE lower(email) = 'user5@mail.ru', and it scans the whole table. Create an index that turns it into a lookup.",
+   "hint": "CREATE INDEX … ON users (lower(email)); — the function is part of the index.",
+   "starter": "-- index for WHERE lower(email) = ...\nCREATE INDEX\n"
+  },
+  {
+   "id": "d3-prefix-range",
+   "title": "Prefix search as a range",
+   "statement": "We need products whose title starts with «Кн». The query with `LIKE '%Кн%'` scans the table. Output the plan of a query that searches by the range `title >= 'Кн' AND title < 'Ко'` through the index idx_title (the last command is EXPLAIN QUERY PLAN SELECT …).",
+   "hint": "A range over an ordered column: `title >= 'Кн' AND title < 'Ко'` replaces the prefix «Кн%».",
+   "starter": "-- EXPLAIN QUERY PLAN for a range over title\n"
+  },
+  {
+   "id": "d3-covering",
+   "title": "Covering index",
+   "statement": "The query SELECT status, total FROM orders WHERE customer_id = 7 reads the table. Create one index that covers it entirely: USING COVERING INDEX should appear in the plan.",
+   "hint": "First the search column (customer_id), then the other needed ones: status and total.",
+   "starter": "-- covering index for SELECT status, total ... WHERE customer_id = 7\nCREATE INDEX\n"
+  },
+  {
+   "id": "d3-partial-index",
+   "title": "Partial index",
+   "statement": "Almost all queries look only for new orders: WHERE status = 'new' AND created >= '2024-06-01'. Create a partial index on created only for rows with status = 'new'.",
+   "hint": "CREATE INDEX … ON orders (created) WHERE status = 'new';",
+   "starter": "-- partial index on created for status = 'new'\nCREATE INDEX\n"
+  },
+  {
+   "id": "d3-order-by-index",
+   "title": "Sorting via an index",
+   "statement": "The query SELECT * FROM orders ORDER BY created LIMIT 10 builds a temporary sort. Create an index after which it disappears from the plan.",
+   "hint": "An index on created is already ordered — no TEMP B-TREE for sorting will be needed.",
+   "starter": "-- index for ORDER BY created\nCREATE INDEX\n"
+  },
+  {
+   "id": "d3-keyset",
+   "title": "Keyset pagination",
+   "statement": "A page of orders is ordered by (created, id). The last row of the previous page: created = '2024-03-10', id = 70. Output the next 5 orders after it — columns id, created, without OFFSET. Compare the condition as the pair (created, id).",
+   "hint": "WHERE (created, id) > ('2024-03-10', 70) ORDER BY created, id LIMIT 5.",
+   "starter": "-- 5 orders after (created='2024-03-10', id=70)\nSELECT\n"
+  },
+  {
+   "id": "d3-join-index",
+   "title": "Index for a join",
+   "statement": "The query joins order_items with products on product_id: SELECT p.title FROM order_items i JOIN products p ON p.id = i.product_id WHERE i.order_id = 4. Create an index on order_items so that the item rows of an order are found by a lookup (the plan should show SEARCH i USING … order_id).",
+   "hint": "Index the column we use to find the items: order_id.",
+   "starter": "-- index for WHERE i.order_id = ...\nCREATE INDEX\n"
+  },
+  {
+   "id": "d3-selectivity",
+   "title": "Column selectivity",
+   "statement": "Compute the selectivity of two columns — the share of distinct values: COUNT(DISTINCT x) * 1.0 / COUNT(*). Output one row with the columns customer_sel, status_sel (round each to 3 decimal places with ROUND).",
+   "hint": "The closer the share is to 1, the better the index; status has only three values — an index on it is weak.",
+   "starter": "-- selectivity of customer_id and status\nSELECT\n"
+  },
+  {
+   "id": "d3-index-list",
+   "title": "Which indexes exist",
+   "statement": "Output the names of the indexes of table t in alphabetical order using pragma_index_list (column name).",
+   "hint": "SELECT name FROM pragma_index_list('t') ORDER BY name; the index t_a is redundant, since t_ab exists.",
+   "starter": "-- indexes of table t\nSELECT\n"
+  },
+  {
+   "id": "d3-binary-search",
+   "title": "Binary search: number of probes",
+   "statement": "A sorted list of keys is an index page. Write probe_count(keys, target): a pair [position or -1, number of comparisons], where the search halves the range: mid = (lo + hi) // 2, one comparison per probe.",
+   "hint": "Classic binary search; count each check of keys[mid] as one probe."
+  },
+  {
+   "id": "d3-btree-height",
+   "title": "B-tree height",
+   "statement": "An index page holds fanout references. Write btree_height(rows, fanout): the minimum number of levels h (h ≥ 1) such that fanout ** h ≥ rows. For rows ≤ 1 return 1.",
+   "hint": "A loop: multiply the capacity by fanout while it is less than rows."
+  },
+  {
+   "id": "d3-btree-contains",
+   "title": "Search in a B-tree",
+   "statement": "A node is a dictionary {\"keys\": [...], \"kids\": [...]}: a leaf has an empty kids, and an internal node has len(kids) = len(keys) + 1 (children to the left of the first key, between the keys, and to the right of the last). Write btree_search(node, key): a pair [whether the key was found (True/False), how many nodes were read]. The key is looked for in the node, otherwise we descend into the right child.",
+   "hint": "Find the position i — the number of the node's keys smaller than the target; descend into kids[i]. Each node is one read."
+  },
+  {
+   "id": "d3-range-scan",
+   "title": "Range over the leaf chain",
+   "statement": "A B+ tree: the leaves are sorted lists stored in order. Write range_scan(leaves, lo, hi): a pair [the keys in the range lo ≤ k ≤ hi in order, how many leaves were read]. You must read only the leaves from the first one that may contain lo to the last one that still has keys ≤ hi (do not read empty and extra leaves).",
+   "hint": "Skip the leaves that are entirely smaller than lo; stop at the leaf that starts with a key greater than hi."
+  },
+  {
+   "id": "d3-leaf-split",
+   "title": "Leaf split",
+   "statement": "A leaf holds at most m keys. Write insert_leaf(leaf, key, m): insert key into the sorted leaf; if there are now more than m keys, split the leaf in half (the left part has ceil(len/2) keys) and return [left, right, first_key_of_right]; otherwise return [leaf].",
+   "hint": "Insert and sort; on overflow cut the list at the point (n + 1) // 2."
+  },
+  {
+   "id": "d3-usable-prefix",
+   "title": "How many index columns work",
+   "statement": "An index is a list of columns, the conditions are a dictionary \"column → '=' or 'range'\". Write usable_prefix(index_cols, conds): how many leading index columns are used for the search. Count consecutive columns with equality; the first column with a range is also used, but you cannot go further; a column with no condition stops the count.",
+   "hint": "Go through the index columns from left to right: equality — count it and continue, range — count it and stop, no condition — stop."
+  },
+  {
+   "id": "d3-choose-plan",
+   "title": "Index or scan",
+   "statement": "The optimizer compares costs. A table scan reads table_pages pages. An index lookup reads height index pages plus one page for each matching row: height + rows * selectivity. Write choose_plan(table_pages, rows, selectivity, height): 'index' if the index is strictly cheaper, otherwise 'scan'.",
+   "hint": "Compute both costs and compare strictly: the index wins only when the share of matching rows is small."
+  },
+  {
+   "id": "d3-redundant-indexes",
+   "title": "Redundant indexes",
+   "statement": "Indexes are given as lists of columns. An index is redundant if its columns are the beginning (left prefix) of another, longer index, or if it is identical to another one (then we consider the second of them redundant). Write redundant_indexes(indexes): a sorted list of the (zero-based) numbers of the redundant indexes.",
+   "hint": "For each index, check whether it is a prefix of a longer one; for exact duplicates, the one that comes later is redundant."
+  }
+ ]
+}

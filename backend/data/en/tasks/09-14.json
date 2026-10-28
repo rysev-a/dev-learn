@@ -1,0 +1,262 @@
+{
+ "book": 9,
+ "chapter": 14,
+ "tasks": [
+  {
+   "id": "s14-01",
+   "title": "The first WITH",
+   "statement": "Using WITH, create a named query paid (paid orders: SELECT * FROM orders WHERE status = 'paid') and count its rows in the main query as n.",
+   "hint": "WITH name AS (query) main_query"
+  },
+  {
+   "id": "s14-02",
+   "title": "Customer revenue",
+   "statement": "In a CTE revenue compute the sum of orders per customer (customer_id, s), and in the main query show the customers with a sum above 10000: customer_id, s; ordered by customer_id.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s14-03",
+   "title": "CTE and JOIN",
+   "statement": "Join the CTE revenue (sum of orders per customer) with customers and show name and s; ordered by s descending.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s14-04",
+   "title": "Average per customer",
+   "statement": "What is the average revenue per customer (among customers with orders)? Use the CTE revenue and AVG(s) as avg_revenue, ROUND to an integer.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s14-05",
+   "title": "Above average",
+   "statement": "Show customer_id and s of the customers whose revenue is above the per-customer average. The CTE revenue is used twice; ordered by customer_id.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s14-06",
+   "title": "Two CTEs",
+   "statement": "Define two CTEs: paid_sum (the sum of paid orders) and new_sum (the sum of new ones), and show both numbers in one row: paid, new_.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s14-07",
+   "title": "A chain of CTEs",
+   "statement": "A chain: items_sum (SUM(qty * price) per order_id) → big (orders with an item sum > 40000) → the main query shows order_id, s ordered by order_id.",
+   "hint": "Each next CTE can refer to the previous ones.",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s14-08",
+   "title": "Revenue share",
+   "statement": "For every customer with orders show customer_id and the revenue share in percent (ROUND to an integer) as pct: s * 100.0 / the grand total. Use the CTE revenue; ordered by pct descending, then customer_id.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s14-09",
+   "title": "Revenue by month",
+   "statement": "A CTE monthly(month, s) is the sum of orders by month (strftime('%Y-%m', created)); show the months where s is greater than 20000. Ordered by month.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s14-10",
+   "title": "Previous month",
+   "statement": "Compare neighboring months without window functions. A CTE monthly(month, s) is the sum of orders by month (strftime('%Y-%m', created)). Join monthly m1 with monthly m2 on the condition m2.month = strftime('%Y-%m', m1.month || '-01', '-1 month') and show month (from m1) and prev_sum (the sum of the previous month); ordered by month.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s14-11",
+   "title": "Best product of a category",
+   "statement": "A CTE sales(product_id, revenue) is the revenue per product; for each category show the product with the maximum revenue: category, title, revenue; ordered by category. (Each product's revenue is distinct within its category.)",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s14-12",
+   "title": "CTE columns",
+   "statement": "A CTE can be given column names: WITH t(a, b) AS (VALUES (1, 'x'), (2, 'y')). Show all rows of t.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s14-13",
+   "title": "A lookup via VALUES",
+   "statement": "Create a CTE rank_order(status, pos) from VALUES: ('new', 1), ('paid', 2), ('shipped', 3), ('cancelled', 4), and show id and status of the orders, sorted by pos (JOIN), then by id; the first 6.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s14-14",
+   "title": "Recursion: numbers",
+   "statement": "A recursive CTE: WITH RECURSIVE n(i) AS (SELECT 1 UNION ALL SELECT i + 1 FROM n WHERE i < 10). Show the numbers from 1 to 10 (column i).",
+   "hint": "The anchor is the first row; the step is how to get the next one; the condition stops the recursion."
+  },
+  {
+   "id": "s14-15",
+   "title": "Sum of 1..100",
+   "statement": "Compute the sum of the numbers from 1 to 100 with a recursive CTE: column s (it must come out as 5050).",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s14-16",
+   "title": "Factorials",
+   "statement": "Show i and i! for i from 1 to 10 with a recursive CTE: i, f. Hint: the next row is (i + 1, f * (i + 1)).",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s14-17",
+   "title": "Fibonacci",
+   "statement": "Show the first 12 Fibonacci numbers: n (1…12) and fib (1, 1, 2, 3, …). The state is (n, a, b).",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s14-18",
+   "title": "A date series",
+   "statement": "Generate 7 dates from '2024-07-01' to '2024-07-07' with a recursive CTE (date(d, '+1 day')): column d.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s14-19",
+   "title": "A calendar without gaps",
+   "statement": "For each day from 2024-07-01 to 2024-07-12 show the number of orders n (0 if there were no orders that day): d, n; ordered by d. The days come from a recursive CTE, then a LEFT JOIN with orders.",
+   "hint": "LEFT JOIN keeps the days without orders; COUNT(o.id) gives 0.",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s14-20",
+   "title": "Multiplication table",
+   "statement": "Show a 3 × 3 multiplication table: a, b, a * b as prod for a, b from 1 to 3, using two recursive CTEs or one with VALUES; ordered by a, b.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s14-21",
+   "title": "HR: Nina's subordinates",
+   "statement": "The HR database. Show name and level (1 means direct subordinates) of all subordinates of Nina Belova (id 5) at any level; ordered by level, then id.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s14-22",
+   "title": "HR: Olga's whole team",
+   "statement": "The HR database. Show name and level for all employees under Olga Gromova (id 1), including indirect ones; ordered by level, then id.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s14-23",
+   "title": "HR: the chain upward",
+   "statement": "The HR database. Show the managers of Pyotr Zuev (id 4) all the way to the top: name and level (1 is the direct manager); ordered by level.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s14-24",
+   "title": "HR: path in the hierarchy",
+   "statement": "The HR database. For every subordinate of Olga (id 1) at all levels, show the path of the form «Ольга Громова > Игорь Беляев > Пётр Зуев»: path; ordered by path.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s14-25",
+   "title": "HR: salary fund of a branch",
+   "statement": "The HR database. What is the total salary of the whole branch of Nina Belova (Nina and all her subordinates)? Column s.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s14-26",
+   "title": "HR: employees by level",
+   "statement": "The HR database. How many employees are there at each level of the hierarchy (0 means those who have no manager)? level, n; ordered by level.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s14-27",
+   "title": "HR: team size",
+   "statement": "The HR database. For every manager (who has subordinates) show name and the number of all subordinates team (at all levels); ordered by team descending, then name.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s14-28",
+   "title": "Graph: reachable vertices",
+   "statement": "The table edges holds the edges of a directed graph (src → dst) with a cycle A→B→C→A. Show all vertices reachable from 'A' (without A itself, unless it is reachable through the cycle, which it is here): node. UNION (not UNION ALL) excludes repeats and protects against looping. Ordered by node.",
+   "hint": "UNION drops vertices already found, so the cycle does not repeat forever."
+  },
+  {
+   "id": "s14-29",
+   "title": "Graph: distance",
+   "statement": "Show the minimum number of steps from 'A' to every reachable vertex: node, steps; ordered by steps, then node. Hint: a recursion with depth and MIN in the main query (limit the depth with the condition steps < 6).",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s14-30",
+   "title": "Graph: unreachable",
+   "statement": "Show the vertices that are not reachable from 'A' (they appear in edges but not among the reachable ones): node; ordered by node.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s14-31",
+   "title": "School: above the class average",
+   "statement": "The school database. A CTE class_avg(class, a) is the average grade by class for 2024 (over the grades of the class's students). Show the name of the students whose personal average for 2024 is above the average of their class; ordered by name. Hint: two CTEs, a personal one and a per-class one.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s14-32",
+   "title": "School: popular courses",
+   "statement": "The school database. A CTE cnt(course_id, n) is the number of enrollments per course for 2024. Show the title of the courses with more enrollments than the per-course average; ordered by title.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s14-33",
+   "title": "Movies: strong directors",
+   "statement": "The movies database. A CTE d_avg(director_id, a) is a director's average rating. Show the name of the directors whose average rating is above the average over all movies; ordered by name.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s14-34",
+   "title": "Movies: cumulative budget",
+   "statement": "The movies database. A CTE ordered(id, title, budget) holds the movies with a known budget. For every movie show id, title and the cumulative budget cumulative: the sum of the budgets of movies with id not greater than the current one (a correlated subquery). Ordered by id.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s14-35",
+   "title": "CTE in INSERT",
+   "statement": "Add to the table top_clients(customer_id, s) the customers with revenue above 10000: INSERT INTO top_clients WITH r AS (…) SELECT … FROM r.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s14-36",
+   "title": "CTE in DELETE",
+   "statement": "Delete the orders of customers whose total revenue is less than 3000, using WITH low AS (…) DELETE FROM orders WHERE customer_id IN (SELECT customer_id FROM low). The check looks at the number of remaining orders.",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  },
+  {
+   "id": "s14-37",
+   "title": "CTE in UPDATE",
+   "statement": "Make the customers with revenue above 40000 VIP (vip = 1): WITH big AS (…) UPDATE customers SET vip = 1 WHERE id IN (SELECT customer_id FROM big).",
+   "hint": "",
+   "starter": "-- Write your query\n"
+  }
+ ]
+}

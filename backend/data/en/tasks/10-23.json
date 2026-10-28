@@ -1,0 +1,186 @@
+{
+ "book": 10,
+ "chapter": 23,
+ "tasks": [
+  {
+   "id": "r23-par-sum",
+   "title": "Parallel sum: scope and chunks",
+   "statement": "par_sum(v: &[i64], parts: usize) → i64: cut the slice into parts pieces (the last may be shorter; parts ≥ 1), start one thread per piece in thread::scope, let each compute its own sum, then add the results. The data is not copied: the threads take references to the pieces.",
+   "hint": "chunks(size) gives slices; s.spawn(move || …) in a scope can take a slice directly; h.join().unwrap() returns the sum of the piece."
+  },
+  {
+   "id": "r23-spawn-join-results",
+   "title": "spawn and join: results in order",
+   "statement": "squares_in_threads(n) → Vec<u64>: for each i from 1 to n start a thread that returns i², and collect the results IN THE ORDER of i (wait for the threads one by one through JoinHandle). word_lengths(words: Vec<String>) → Vec<usize> — each word is processed in its own thread (the words move into the threads).",
+   "hint": "First start ALL the threads (collect the handles into a vector), only then join: otherwise the threads run one after another."
+  },
+  {
+   "id": "r23-fix-move",
+   "title": "Fix: the closure borrows a local",
+   "statement": "sum_in_thread starts a thread that sums a vector, but the closure takes v by reference, and the thread may outlive the function (E0373). Fix it with one word.",
+   "hint": "move hands the vector over to the thread completely."
+  },
+  {
+   "id": "r23-fix-rc",
+   "title": "Fix: Rc is not Send",
+   "statement": "len_in_thread wraps a string in an Rc and sends it to a thread — the compiler refuses (Rc does not implement Send). Replace Rc with Arc and leave the rest as is.",
+   "hint": "Arc has the same methods new, clone and strong_count — put it in place of Rc and import std::sync::Arc."
+  },
+  {
+   "id": "r23-counter-mutex",
+   "title": "Shared counter: Arc<Mutex<u64>>",
+   "statement": "count_parallel(threads: usize, per_thread: u64) → u64: start threads threads, each increasing the shared counter (Arc<Mutex<u64>>) by one per_thread times; return the total. contended(threads, per_thread) → u64 — the same, but each thread first counts locally and adds to the shared one once.",
+   "hint": "Each thread gets its own clone of the Arc; the lock is taken for a single operation: *c.lock().unwrap() += 1."
+  },
+  {
+   "id": "r23-bank-transfers",
+   "title": "Transfers without deadlocks",
+   "statement": "transfer_all(accounts: &[Arc<Mutex<i64>>], transfers: &[(usize, usize, i64)]) → Vec<i64>: each transfer (from, to, amount) runs in its own thread at the same time as the others. To avoid a deadlock, always lock the accounts in order of increasing index. from == to — do nothing. Return the final balances (negative ones are allowed).",
+   "hint": "Always lock the account with the smaller index first: then a wait cycle is impossible."
+  },
+  {
+   "id": "r23-rwlock-cache",
+   "title": "A cache on RwLock",
+   "statement": "Cache holds a RwLock<HashMap<u64, u64>> and an AtomicUsize with the number of real computations. get(&self, x, f: fn(u64) → u64) → u64: reads under the read lock; if the value is missing, takes the write lock, checks again and computes (the computation is counted). computations(&self) → usize. When called from several threads, one value must be computed exactly once.",
+   "hint": "After getting the write lock, check the key again: while you waited, another thread may have computed it."
+  },
+  {
+   "id": "r23-word-count-par",
+   "title": "Parallel word count",
+   "statement": "word_count_par(text: &str, parts: usize) → BTreeMap<String, usize>: divide the lines of the text among parts threads (in order, in blocks), each counts words (lowercase; words are letters and digits) in its own HashMap, then merge the results. The result must not depend on parts.",
+   "hint": "Each thread returns its own HashMap; the overall result is assembled in the main thread — without locks."
+  },
+  {
+   "id": "r23-par-map",
+   "title": "par_map: parallel transformation",
+   "statement": "par_map<T, U, F>(v: &[T], parts: usize, f: F) → Vec<U> where T: Sync, U: Send, F: Fn(&T) → U + Sync: apply f to all elements, splitting the slice into parts pieces across threads; the result is in the original order.",
+   "hint": "The closure f is called from several threads through a shared reference: that is why F: Sync; take &f and copy the reference into the threads."
+  },
+  {
+   "id": "r23-pipeline-channels",
+   "title": "A pipeline of threads and channels",
+   "statement": "pipeline(n: u64) → Vec<u64>: three stages in three threads, connected by mpsc channels: (1) a generator sends the numbers 1..=n; (2) squares them; (3) a filter keeps the squares divisible by 3. The main thread collects the result (the order is preserved).",
+   "hint": "Each stage owns its tx; when a stage is finished, its tx is closed — the next stage leaves its loop over rx."
+  },
+  {
+   "id": "r23-fan-in",
+   "title": "Several producers, one receiver",
+   "statement": "fan_in(producers: usize, items: usize) → Vec<(usize, usize)>: start producers threads; thread p sends the pairs (p, 0), (p, 1), …, (p, items-1) into a shared channel. The main thread collects ALL the messages and returns them sorted. To do this, clone the sender and do not forget to close the original.",
+   "hint": "drop(tx) in the main thread closes the original sender: otherwise rx.iter() never ends."
+  },
+  {
+   "id": "r23-ping-pong",
+   "title": "Ping-pong over two channels",
+   "statement": "ping_pong(rounds: u32) → Vec<String>: two threads exchange messages over two channels: «ping» from the first to the second, «pong» back, rounds times. Each thread records events in a shared log (a separate channel or a value returned from join) in the order «ping 1», «pong 1», «ping 2», …",
+   "hint": "Ping waits for the reply with recv() after every send(): that lines the events up strictly in turn."
+  },
+  {
+   "id": "r23-sync-channel",
+   "title": "Bounded channel: back pressure",
+   "statement": "bounded_sum(items: u64, capacity: usize) → (u64, bool): a producer in a thread sends the numbers 1..=items into sync_channel(capacity); the consumer in the main thread sums them. The second value is true if the consumer received the numbers strictly in order 1, 2, 3, …",
+   "hint": "sync_channel(0) is a rendezvous: send waits until the receiver takes the value."
+  },
+  {
+   "id": "r23-condvar-queue",
+   "title": "A bounded queue on Mutex and Condvar",
+   "statement": "BoundedQueue<T> { Mutex<VecDeque<T>>, Condvar not_empty, Condvar not_full, capacity }: push(&self, x) waits until there is room; pop(&self) → T waits until an element appears. Check: producers and consumers in different threads, the sum of all elements matches.",
+   "hint": "Always wait for a condition in a while loop: after waking up, the condition must be checked again."
+  },
+  {
+   "id": "r23-barrier-phases",
+   "title": "Barrier: two phases",
+   "statement": "phases(n: usize) → Vec<u64>: n threads; in phase 1, thread i writes the value (i+1)² into slot i of a shared vector; after a Barrier, in phase 2, each thread reads the sum of all slots and returns it. Thanks to the barrier, all n results are the same.",
+   "hint": "barrier.wait() blocks the thread until all n arrive; only after it is it safe to read the other slots."
+  },
+  {
+   "id": "r23-atomic-counter",
+   "title": "Atomics: fetch_add and fetch_max",
+   "statement": "atomic_stats(threads: usize, per_thread: usize) → (usize, usize, usize). The thread with number id (0..threads): increases the shared counter hits per_thread times (fetch_add); writes its id into biggest through fetch_max; tries to claim the flag first through compare_exchange(0, id + 1) — exactly one thread succeeds. Return (hits, the largest id, the number of threads that claimed the flag).",
+   "hint": "compare_exchange(0, id+1, …) succeeds for exactly one thread — there is one winner regardless of the start order."
+  },
+  {
+   "id": "r23-spinlock",
+   "title": "A spinlock on AtomicBool",
+   "statement": "SpinLock { locked: AtomicBool }: lock(&self) spins until compare_exchange(false, true, Acquire, Relaxed) succeeds (std::hint::spin_loop() in the loop); unlock(&self) writes false (Release). The driver checks that no more than one thread is inside the critical section at a time.",
+   "hint": "A successful compare_exchange(false, true) means «I took the lock»; Acquire when taking and Release when releasing link the sections."
+  },
+  {
+   "id": "r23-once-flag",
+   "title": "Run exactly once",
+   "statement": "Once { done: AtomicBool }: run(&self, f: impl FnOnce()) → bool: runs f only if nobody has started yet (compare_exchange on the flag); returns true to the one who ran it. The driver starts 16 threads: f must fire exactly once.",
+   "hint": "Only one compare_exchange(false, true) will succeed — and that thread calls f."
+  },
+  {
+   "id": "r23-thread-pool",
+   "title": "Your own thread pool",
+   "statement": "ThreadPool::new(n) starts n workers; execute(&self, job: impl FnOnce() + Send + 'static) puts a job into the channel; shutdown(self) closes the channel and waits for the workers (all the queued jobs are done). The workers take jobs from a shared Arc<Mutex<Receiver<Job>>>.",
+   "hint": "The worker: loop { let job = rx.lock().unwrap().recv(); … } — the lock is held only for the duration of recv; a closed channel → Err → we exit."
+  },
+  {
+   "id": "r23-par-double",
+   "title": "chunks_mut: change in place in parallel",
+   "statement": "par_scale(v: &mut [i64], k: i64, parts: usize): multiply every element by k, splitting the slice into parts non-overlapping mutable pieces (chunks_mut) and starting a thread for each. par_prefix_marks(v: &mut [i64]) — replace every element with its index × value (the threads get the offset of their piece).",
+   "hint": "chunks_mut gives non-overlapping &mut [T]: each piece can be handed to its own thread without locks."
+  },
+  {
+   "id": "r23-sieve-par",
+   "title": "Primes: segments across threads",
+   "statement": "count_primes(n: u64, parts: usize) → usize: how many primes are below n. The range 2..n is divided into parts segments; each thread checks the numbers of its segment by trial division. The result does not depend on parts. For n up to 200 000 the work must fit within the limit.",
+   "hint": "Segment [lo, hi): lo = 2 + p·size, hi = min(lo + size, n); the thread returns the number of primes in it."
+  },
+  {
+   "id": "r23-matrix-rows",
+   "title": "Matrix: rows across threads",
+   "statement": "matmul(a: &[Vec<i64>], b: &[Vec<i64>]) → Vec<Vec<i64>>: the product of matrices (the sizes are compatible). Each row of the result is computed in a separate thread inside a scope; the result must match the sequential computation.",
+   "hint": "Each row of the result depends only on a row of a and the whole of b — the threads do not overlap; b is taken by a shared reference."
+  },
+  {
+   "id": "r23-merge-sort-par",
+   "title": "Parallel merge sort",
+   "statement": "par_sort(v: Vec<i64>) → Vec<i64>: merge sort; the halves are sorted in different threads (thread::scope) while the length is greater than 1000, below that the ordinary sort. The result matches v.sort().",
+   "hint": "The thread gets the whole right half (split_off), the left one is sorted in the current thread; then merge the two sorted vectors."
+  },
+  {
+   "id": "r23-histogram-par",
+   "title": "Histogram: each thread has its own copy",
+   "statement": "histogram(data: &[u8], parts: usize) → [usize; 16]: the frequency of the values data[i] % 16. Each thread fills ITS OWN array [usize; 16] over its piece, then the arrays are added up. No shared counters inside the loop.",
+   "hint": "The array [usize; 16] is a Copy type, so it is easy to return from a thread; add up element by element."
+  },
+  {
+   "id": "r23-poison-recovery",
+   "title": "A poisoned mutex",
+   "statement": "poison_demo() → (bool, i32, bool): create an Arc<Mutex<i32>> with the value 10; a thread takes the lock, adds 5 and panics; then: (1) is_poisoned() of the lock, (2) the value obtained through lock().unwrap_or_else(|e| e.into_inner()), (3) whether an ordinary lock().is_ok() succeeds after clear_poison().",
+   "hint": "PoisonError::into_inner hands out the guard even for a poisoned mutex; clear_poison removes the mark."
+  },
+  {
+   "id": "r23-try-lock",
+   "title": "try_lock: without waiting",
+   "statement": "try_lock_demo() → Vec<bool>: a lock Mutex<i32>. Record is_ok() of this sequence: try_lock() on a free one; on a taken one (the guard is alive in this very thread) — in another thread through scope; in this thread after the release; then RwLock: try_write() while a reader is alive; try_read() while a reader is alive.",
+   "hint": "try_lock returns Err(WouldBlock) if the lock is taken; a live guard is a variable, not a call expression."
+  },
+  {
+   "id": "r23-cancel-flag",
+   "title": "Cancelling a thread with a flag",
+   "statement": "cancel_demo() → (bool, bool): a worker in a loop increases a shared AtomicU64 and checks an Arc<AtomicBool> «stop». The main thread waits until the counter is ≥ 1000, sets stop, and joins the worker. Return (the thread finished, the counter at the moment of join is ≥ 1000).",
+   "hint": "The cancellation flag is an AtomicBool in an Arc: the worker reads it in the loop, the main thread later sets it to true."
+  },
+  {
+   "id": "r23-send-bounds",
+   "title": "The Send and 'static bounds",
+   "statement": "run_in_thread<R, F>(f: F) → R runs a closure in a new thread and returns the result (join). Write the correct bounds: F: FnOnce() → R + Send + 'static, R: Send + 'static. run_all<R, F>(jobs: Vec<F>) → Vec<R> runs all of them in parallel and returns the results in order.",
+   "hint": "thread::spawn requires Send + 'static from the closure and Send + 'static from the result — repeat these bounds in the where clause."
+  },
+  {
+   "id": "r23-named-threads",
+   "title": "Named threads and thread_local",
+   "statement": "named_work(n: usize) → Vec<(String, u32)>: start n threads through thread::Builder with the names «worker-0», «worker-1», …; in each, a thread_local counter (Cell<u32>) is increased (i+1) times; the thread returns (its name through thread::current().name(), the value of the local counter). The results are in the order of starting.",
+   "hint": "thread_local gives each thread its own copy: changes in the workers are not visible to the main thread."
+  },
+  {
+   "id": "r23-dining-philosophers",
+   "title": "Dining philosophers",
+   "statement": "philosophers(n: usize, meals: usize) → Vec<usize>: n philosophers at a round table, n forks (Mutex<()>). Philosopher i takes forks i and (i+1)%n — BUT always the one with the smaller number first, so there is no deadlock. Each «eats» meals times (increases their own counter). Return the number of meals of each.",
+   "hint": "The fork with the smaller number first — all philosophers line up their acquisition in the same order, there is no wait cycle; with n = 1 both forks coincide."
+  }
+ ]
+}

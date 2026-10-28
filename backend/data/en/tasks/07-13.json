@@ -1,0 +1,60 @@
+{
+ "book": 7,
+ "chapter": 13,
+ "tasks": [
+  {
+   "id": "rotations",
+   "title": "Rotations",
+   "statement": "You are given a class TreeNode. Write the functions rotate_left(x) and rotate_right(x): the left and right rotation of the subtree rooted at x; return the new root of the subtree (x must have a right child for the left rotation and a left child for the right rotation; otherwise return x unchanged). The order of the keys must not be broken.",
+   "hint": "Left: y = x.right; x.right = y.left; y.left = x; return y. The right rotation is the mirror image. Three pointer assignments."
+  },
+  {
+   "id": "avl-balance",
+   "title": "AVL tree balance",
+   "statement": "You are given a class TreeNode. Write a function avl_check(root): a tuple (height of the tree, whether it is an AVL tree), that is, for every node the heights of the subtrees differ by at most 1. The height of an empty tree is 0, of a single node 1. Do one bottom-up traversal: the checker feeds a tree of 100,000 nodes, so write it iteratively or with a generous recursion limit (sys.setrecursionlimit).",
+   "hint": "You need the heights of the subtrees before the height of the node, so traverse bottom-up (post-order). Keep the heights in a dictionary keyed by node and check |hl − hr| ≤ 1 at each one."
+  },
+  {
+   "id": "avl-rebalance",
+   "title": "One AVL rebalancing step",
+   "statement": "You are given a class Node whose heights are stored in the field h. Write a function rebalance(node): if the balance of the node (left height minus right height) is +2 or −2, perform the needed rotations (cases LL, RR, LR, RL) and return the new root of the subtree, updating the h fields; otherwise just update h of the node and return it. The balance of the children is assumed to be valid. The height of an empty subtree is 0.",
+   "hint": "If the balance is +2: when the right subtree of the left child is heavier (case LR), first rotate the child left; then rotate the node right. Mirror for −2. After each rotation, update h of the node that went down first, then of the one that went up."
+  },
+  {
+   "id": "avl-tree-class",
+   "title": "AVL tree",
+   "statement": "Implement a class AVLTree: insert(x) (duplicates are ignored), contains(x), inorder(), height() (empty tree: 0) and len(t). After every insertion the tree must remain an AVL tree (rotations LL, RR, LR, RL). The checker inserts 100,000 sorted keys: a plain search tree degenerates, while yours must keep the height ≤ 1.45 log₂ n + 2. Recursion is fine: the depth is logarithmic.",
+   "hint": "A recursive insert returns the new root of the subtree; after inserting into a child, call balance(n): update the height, compute the balance, and at ±2 apply one of the four rotation cases."
+  },
+  {
+   "id": "rb-validate",
+   "title": "Checking the red-black rules",
+   "statement": "You are given a class RBNode (key, color, left, right), where color is the string 'R' or 'B'; an empty link is None (a black leaf). Write a function black_height(root): the black height of the tree (the number of black nodes on any path from the root to an empty link, the empty link not counted) if the tree satisfies the red-black rules (the root is black; a red node has black children; the black height is the same on all paths; the keys are ordered), otherwise −1. For an empty tree, 0.",
+   "hint": "A recursive function returns the black height of a subtree or −1 on a violation. Pass down the allowed key bounds and \"the parent is red\"; at a node, the heights of the children must match, and a black node adds one."
+  },
+  {
+   "id": "rb-bounds",
+   "title": "Red-black tree bounds",
+   "statement": "Write a function rb_bounds(b, n): a tuple of two numbers. The first is the smallest number of nodes in a red-black tree with black height b (b black nodes on every path to an empty link): 2**b − 1. The second is the largest possible height of a red-black tree with n nodes (in nodes, empty tree is 0): the integer part of 2·log₂(n + 1).",
+   "hint": "The minimum number of nodes is reached when all nodes are black and the tree is complete: 2^b − 1. The maximum height comes from the inequality h ≤ 2·log₂(n + 1); take the integer part."
+  },
+  {
+   "id": "rb-insert-case",
+   "title": "Insertion case",
+   "statement": "After inserting a red node, its parent turned out to be red. Write a function insert_case(parent_color, uncle_color, node_side, parent_side): a string with the needed action. Colors are 'R' or 'B' (an empty uncle is 'B'); sides are 'L' or 'R': node_side is which child of its parent our node is, parent_side is which child of the grandparent the parent is. Result: 'done' if the parent is black and nothing needs to be done; 'recolor' if the uncle is red (recoloring and moving up); 'kink' if the uncle is black and the node is in a kink (the sides differ: rotate the parent, then the grandparent); 'line' if the uncle is black and the node is on a line (the sides match: rotate the grandparent with recoloring).",
+   "hint": "Four branches in a row: black parent gives done; red uncle gives recolor; otherwise by sides: different gives kink, same gives line."
+  },
+  {
+   "id": "llrb-insert",
+   "title": "Left-leaning red-black tree",
+   "statement": "Implement a class LLRB (Sedgewick's left-leaning red-black tree): insert(x) (duplicates are ignored), contains(x), inorder(), height() and black_height_ok(), which tells whether the rules hold (the root is black, no two reds in a row, no red right links, equal black heights). Insertion is recursive: insert a red node as in a search tree, then on the way up: right link red and left black gives a left rotation; left red with a red left grandchild gives a right rotation; both links red gives a recoloring (flip_colors). After insertion the root is black.",
+   "hint": "Three steps at the end of the recursion (in this order): if the right link is red and the left is not, rotate_left; if the left and its left are red, rotate_right; if both are red, flip_colors. rotate_* moves the root's color to the node that goes up and makes the node that goes down red."
+  },
+  {
+   "id": "rb-tree-class",
+   "title": "Red-black tree",
+   "statement": "Implement a class RBTree following CLRS: nodes with a parent pointer and a shared sentinel leaf NIL (black), with methods insert(x) (duplicates are ignored), contains(x), inorder(), height() and valid(), which tells whether all the rules hold (the root is black, no two reds in a row, equal black heights, key order). Insertion: a red node, then the fix-up: red uncle means recolor and move up; black uncle means rotate the kink, then rotate the grandparent with recoloring. The checker inserts 100,000 sorted and random keys.",
+   "hint": "Insertion: as in a search tree, the node is red with NIL children. Fix up while the parent is red: red uncle, recolor the parent, uncle and grandparent and move up to the grandparent; black uncle, if it is a kink rotate the parent; then paint the parent black, the grandparent red, and rotate the grandparent. At the end the root is black."
+  }
+ ]
+}

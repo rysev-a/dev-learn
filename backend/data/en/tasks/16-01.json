@@ -1,0 +1,188 @@
+{
+ "book": 16,
+ "chapter": 1,
+ "tasks": [
+  {
+   "id": "c1-hello-return",
+   "title": "First program: output and return code",
+   "statement": "Write a function int run(void): it prints the string «Hello, C!» followed by a newline and returns the number 3 (the exit code). Don't forget to include the header that declares printf.",
+   "hint": "#include <stdio.h> at the top of the file; printf(\"...\\n\"); return 3;"
+  },
+  {
+   "id": "c1-sizes",
+   "title": "sizeof: type sizes on this platform",
+   "statement": "Write void print_sizes(void): on one line, separated by spaces, print sizeof of the types char, short, int, long, long long, float, double and void * (use %zu for size_t), with a newline at the end.",
+   "hint": "sizeof(type) returns size_t; print it with the %zu placeholder."
+  },
+  {
+   "id": "c1-sum-wrap",
+   "title": "Unsigned sum wraps around",
+   "statement": "sum8(const uint8_t *p, size_t n) → uint8_t: the sum of the bytes, result modulo 256. sum32(const uint8_t *p, size_t n) → uint32_t: the sum modulo 2³². The types from <stdint.h> are needed so the size is exactly what is required.",
+   "hint": "Accumulate the sum in a variable of the same type as the result: uint8_t arithmetic wraps around by itself."
+  },
+  {
+   "id": "c1-floor-div",
+   "title": "Division like Python: floor and remainder",
+   "statement": "In C, division rounds toward zero and % gives a remainder with the sign of the dividend. Write floor_div(a, b) and floor_mod(a, b) with Python semantics (rounding down; the remainder has the sign of the divisor). b ≠ 0.",
+   "hint": "If the remainder is nonzero and the signs of a and b differ, decrease the quotient by 1 and increase the remainder by b."
+  },
+  {
+   "id": "c1-add-checked",
+   "title": "Addition without undefined behavior",
+   "statement": "add_checked(int a, int b, int *out) → int: if a + b fits in int, store the sum in *out and return 1; otherwise return 0 and leave *out unchanged. The check must happen BEFORE the addition: signed overflow is undefined behavior. You may not use the __builtin_* functions.",
+   "hint": "If b > 0, overflow happens when a > INT_MAX - b; for b < 0, when a < INT_MIN - b. Subtraction is safe here."
+  },
+  {
+   "id": "c1-wrap-add",
+   "title": "Wrapping and casting to signed",
+   "statement": "add_wrap(uint32_t a, uint32_t b) → uint32_t is the sum modulo 2³². as_signed(uint32_t x) → int32_t is the same 32-bit word read as a signed number (two's complement). This is exactly how the processor sees the same register.",
+   "hint": "The cast (int32_t)x reinterprets the same set of bits in two's complement; gcc defines it exactly that way."
+  },
+  {
+   "id": "c1-popcount",
+   "title": "Number of set bits",
+   "statement": "popcount(uint32_t x) → int is the number of one bits. Write a loop that clears the lowest set bit each time (x &= x - 1). You may not use the __builtin_* functions.",
+   "hint": "x & (x - 1) clears the lowest set bit, so the number of iterations equals the number of ones."
+  },
+  {
+   "id": "c1-bit-ops",
+   "title": "set / clear / toggle / test",
+   "statement": "For a uint32_t x and a bit number n (0..31): set_bit, clear_bit, toggle_bit return the new value; test_bit returns 0 or 1.",
+   "hint": "Use 1u << n (an unsigned one), otherwise a shift by 31 touches the sign bit."
+  },
+  {
+   "id": "c1-bit-fields",
+   "title": "Extract and insert a bit field",
+   "statement": "get_bits(x, lo, n) → uint32_t: n bits starting at bit lo (1 ≤ n ≤ 32 − lo), shifted down to zero. set_bits(x, lo, n, v) → uint32_t: replace that field with the value v (discard the extra high bits of v). This is how processor instruction fields work.",
+   "hint": "A mask of n ones: (1u << n) - 1; for n = 32 the shift is not allowed, so handle it separately."
+  },
+  {
+   "id": "c1-pow2",
+   "title": "Powers of two",
+   "statement": "is_pow2(x) → int: 1 if x is a power of two (x > 0). next_pow2(x) → uint32_t: the smallest power of two ≥ x (return 1 for 0; values above 2³¹ are not passed). No loops over all powers: use bit tricks.",
+   "hint": "A power of two has exactly one set bit: x & (x - 1) == 0. For next_pow2, smear the top set bit to the right and add 1."
+  },
+  {
+   "id": "c1-rotate",
+   "title": "Circular shift",
+   "statement": "rotl32(x, n) and rotr32(x, n) are a circular shift of a uint32_t by n positions; n can be anything (including 0 and ≥ 32: take n mod 32). A shift by 32 positions in C is undefined behavior, so avoid it.",
+   "hint": "n &= 31; and for n == 0 return x, otherwise you would have to shift by 32."
+  },
+  {
+   "id": "c1-endian",
+   "title": "Byte order",
+   "statement": "is_little_endian(void) → int: determine the byte order by reading the first byte of the number 1 through an unsigned char pointer. bswap32(x) → uint32_t: reverse the byte order of the word (0x11223344 → 0x44332211) without __builtin_bswap32.",
+   "hint": "Access to an object's bytes is allowed through unsigned char *: the first byte of the number 1 is 1 on a little-endian machine."
+  },
+  {
+   "id": "c1-sign-extend",
+   "title": "Sign extension, like RISC-V immediates",
+   "statement": "sign_extend(uint32_t x, int bits) → int32_t: the value is stored in the low bits positions (1 ≤ bits ≤ 32) in two's complement; return it as an int32_t. This is how the 12-bit constant of an addi instruction is extended. For example, sign_extend(0xFFF, 12) = −1.",
+   "hint": "The trick: (x ^ m) - m, where m = 1 << (bits - 1); first trim the extra high bits with a mask."
+  },
+  {
+   "id": "c1-riscv-encode",
+   "title": "Assembling a RISC-V addi instruction",
+   "statement": "encode_addi(rd, rs1, imm) → uint32_t: the 32-bit word of the instruction addi rd, rs1, imm (I format): imm[11:0] in bits 31..20, rs1 in 19..15, funct3 = 0 in 14..12, rd in 11..7, opcode 0x13 in 6..0. decode_imm(instr) → int: the signed 12-bit constant of the instruction. Example: addi a0, a0, 1 = 0x00150513.",
+   "hint": "Trim the constant imm (it may be negative) with the mask 0xFFF and shift it by 20; combine the fields with |."
+  },
+  {
+   "id": "c1-printf-row",
+   "title": "printf: columns",
+   "statement": "print_row(const char *name, int n): print one line: the name left-aligned in 8 positions, then «|», the number right-aligned in 6 positions, «|», the number in hexadecimal as eight zero-padded digits, «|», the character with code n (if 32 ≤ n < 127, otherwise «.»). For example, print_row(\"abc\", 65) → «abc     |    65|00000041|A».",
+   "hint": "%-8s is left-aligned, %6d is right-aligned, %08x is zero-padded hexadecimal; pass the number as unsigned."
+  },
+  {
+   "id": "c1-show-number",
+   "title": "One number in different forms",
+   "statement": "show_number(unsigned n): print on one line, separated by spaces: decimal, hexadecimal with the 0x prefix, octal with the 0 prefix, and binary (8 digits if n < 256, otherwise no limit on width, with no leading zeros beyond 8). You will have to build the binary form yourself: printf has no placeholder for it.",
+   "hint": "%#x gives 0x…, %#o gives 0…; collect the bits into an array least significant first and print them in reverse order."
+  },
+  {
+   "id": "c1-snprintf",
+   "title": "snprintf: safe writing to a buffer",
+   "statement": "fmt_hex(char *buf, size_t cap, uint32_t v) → int: write into buf the string «0x» and eight hexadecimal digits (lowercase) using snprintf; return what snprintf returned: the length that would have been written without the cap limit (if there is not enough room, the string is truncated but stays valid).",
+   "hint": "snprintf(buf, cap, \"0x%08x\", v) returns the length of the full result even if it did not fit."
+  },
+  {
+   "id": "c1-float-compare",
+   "title": "Comparing fractional numbers",
+   "statement": "nearly_equal(double a, double b, double eps) → int: 1 if |a − b| ≤ eps · max(1, |a|, |b|) (relative precision for large numbers, absolute for small ones). Needed to check that 0.1 + 0.2 is \"equal\" to 0.3.",
+   "hint": "fabs and fmax come from <math.h>; remember that linking with the math library is already included (-lm)."
+  },
+  {
+   "id": "c1-round",
+   "title": "Rounding and truncation",
+   "statement": "round_half_up(double x) → int: the nearest integer, halves away from zero (2.5 → 3, −2.5 → −3), using only a cast to int and addition (no round from <math.h>). floor_int(double x) → int: rounding down (−2.5 → −3), also without floor. Remember that (int) drops the fractional part, that is, rounds toward zero.",
+   "hint": "For negative numbers, rounding \"away from zero\" means subtracting 0.5, and for floor remember that (int) has already rounded toward zero."
+  },
+  {
+   "id": "c1-temp-table",
+   "title": "Temperature table",
+   "statement": "print_table(void): print a table converting degrees Celsius to Fahrenheit for −40, −20, 0, …, 100 (step 20): each line is «C = %4d  F = %6.1f» (Celsius is an integer in 4 positions, Fahrenheit is fractional in 6 positions with one decimal place). F = C · 9 / 5 + 32.",
+   "hint": "Multiply by 9.0 / 5.0, not 9 / 5: integer division would give 1."
+  },
+  {
+   "id": "c1-min-branchless",
+   "title": "Minimum and maximum without branches",
+   "statement": "min_bl(int a, int b) and max_bl(int a, int b) without if or the ternary operator, using bitwise operations and the result of a comparison (0 or 1): min = b ^ ((a ^ b) & -(a < b)). The word if and the «?» character may not be used in the code.",
+   "hint": "-(a < b) is 0 or -1 (all ones), which gives a mask that selects what you need from a ^ b."
+  },
+  {
+   "id": "c1-macros",
+   "title": "Macros with correct parentheses",
+   "statement": "Define the macros (at the start of your solution): SQUARE(x) is the square; MAX(a, b) is the larger of two; KB is 1024 (as an unsigned expression), MB is KB * 1024; IS_ODD(x) is 1 for an odd number. Macros are substituted as text: SQUARE(1 + 2) must give 9, not 5; IS_ODD(7 - 2 * 4) is 1.",
+   "hint": "Wrap every parameter in parentheses, and the whole body of the macro too: ((x) * (x)).",
+   "starter": "/* your macros */\n"
+  },
+  {
+   "id": "c1-enum",
+   "title": "enum: modes and their names",
+   "statement": "Declare enum mode { MODE_OFF, MODE_ON, MODE_AUTO = 5, MODE_BOOST } and a function const char *mode_name(enum mode m) that returns «off», «on», «auto», «boost» (and «?» for any other value). The constant values are: 0, 1, 5, 6.",
+   "hint": "A switch over the enum with a return in each branch; after the switch, a return for unknown values.",
+   "starter": "/* enum and function */\n"
+  },
+  {
+   "id": "c1-mixed-compare",
+   "title": "Signed with unsigned",
+   "statement": "Two functions with tricky type conversions. less_mixed(int a, unsigned b) → int: simply return a < b (in C this comparison is unsigned: a is converted to unsigned!). less_safe(int a, unsigned b) → int: the correct comparison of the \"mathematical\" values (a negative number is always smaller). The driver will show the difference.",
+   "hint": "In less_mixed you need nothing but a < b, and that is exactly the \"surprise\"; in less_safe, first check the sign of a."
+  },
+  {
+   "id": "c1-swap-halves",
+   "title": "Swap the halves of a word",
+   "statement": "swap_halves(uint32_t x) → uint32_t: swap the high and low 16 bits. swap_bytes16(uint16_t x) → uint16_t: swap the two bytes. The result of type uint16_t must be cast correctly: the arithmetic is done in int.",
+   "hint": "In the expression x << 8 for uint16_t the calculation is done in int; the result must be cast back to uint16_t."
+  },
+  {
+   "id": "c1-checksum16",
+   "title": "Checksum: addition with carry",
+   "statement": "checksum16(const uint16_t *w, size_t n) → uint16_t: add n 16-bit words in a 32-bit variable, then fold the carry (add the high 16 bits to the low ones) as long as there is one, and invert the result. This is the bitwise complement of the sum modulo 0xFFFF.",
+   "hint": "After adding: while (s >> 16) s = (s & 0xFFFF) + (s >> 16); at the end ~s, cast to uint16_t."
+  },
+  {
+   "id": "c1-crc8",
+   "title": "CRC-8 bit by bit",
+   "statement": "crc8(const uint8_t *p, size_t n) → uint8_t: the CRC-8 checksum with polynomial 0x07, initial value 0, no reflections. For each byte: crc ^= byte; eight times: if the top bit is one, shift left and XOR with 0x07, otherwise just shift.",
+   "hint": "The result of shifting a uint8_t must be cast back to uint8_t: the calculations are done in int."
+  },
+  {
+   "id": "c1-gray",
+   "title": "Gray code",
+   "statement": "to_gray(uint32_t x) → uint32_t: x ^ (x >> 1). from_gray(uint32_t g) → uint32_t: the inverse conversion (the cumulative XOR of the shifts). Neighboring numbers in Gray code differ by one bit.",
+   "hint": "from_gray: the result is the XOR of g itself and all its right shifts."
+  },
+  {
+   "id": "c1-safe-abs",
+   "title": "abs without UB",
+   "statement": "abs(INT_MIN) is undefined behavior (the result does not exist in int). safe_abs(int x, int *out) → int: store |x| in *out and return 1; for INT_MIN return 0 and leave *out unchanged. abs_u(int x) → unsigned: the absolute value as an unsigned number, correct for INT_MIN too.",
+   "hint": "In unsigned the arithmetic is defined: 0u - (unsigned)x gives the absolute value even for INT_MIN."
+  },
+  {
+   "id": "c1-shifts",
+   "title": "Safe shifts",
+   "statement": "A shift by a number of positions ≥ the width of the type is undefined behavior. shl_safe(uint32_t x, unsigned n) → uint32_t: x << n, but 0 when n ≥ 32. asr(int32_t x, unsigned n) → int32_t: an arithmetic right shift (the sign is preserved) for any n; for n ≥ 32 it is 0 or −1 depending on the sign. Don't rely on the behavior of >> for negative numbers: implement it with division or a bit mask.",
+   "hint": "For negative x: do a logical shift, then fill the top n bits with ones using the mask ~0u << (32 - n); n == 0 is a special case."
+  }
+ ]
+}

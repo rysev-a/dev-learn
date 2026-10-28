@@ -1,0 +1,187 @@
+{
+ "book": 16,
+ "chapter": 10,
+ "tasks": [
+  {
+   "id": "c10-identifiers",
+   "title": "C identifiers: valid, keyword, reserved",
+   "statement": "is_keyword(s) → 1 for C11 keywords (auto break case char const continue default do double else enum extern float for goto if inline int long register restrict return short signed sizeof static struct switch typedef union unsigned void volatile while _Alignas _Alignof _Atomic _Bool _Complex _Generic _Imaginary _Noreturn _Static_assert _Thread_local). is_identifier(s) → 1 if s is a valid name (starts with a letter or \"_\", then letters, digits, \"_\"; ASCII) and is not a keyword. is_reserved(s) → 1 if the name is reserved for the implementation: starts with \"__\" or with \"_\" followed by a capital letter. has_prefix(s, p) → 1 if s starts with p followed by \"_\" (for example list_init and the prefix list).",
+   "hint": "The keyword list is an array of strings; reserved: s[0] == '_' and (s[1] == '_' or a capital letter)."
+  },
+  {
+   "id": "c10-include-scan",
+   "title": "Finding #include directives",
+   "statement": "struct inc { char name[32]; int system; }. scan_includes(src, out, max) → the number of #include <name> (system = 1) and #include \"name\" (system = 0) directives found, in order of appearance (at most max). A directive is a line with only spaces/tabs before the #; spaces are allowed between # and include; commented-out ones (// … and /* … */, including multi-line) do not count; a name longer than 31 characters is skipped; #include MACRO is ignored.",
+   "hint": "First strip the comments (remembering the \"inside /* … */\" state between lines), then parse the line: #, spaces, include, spaces, < or \"."
+  },
+  {
+   "id": "c10-guard-check",
+   "title": "Checking an include guard",
+   "statement": "check_guard(header, name) analyzes the header text: it skips blank lines and comments (// and /* */); the first directive must be \"#pragma once\" (→ 1, name is empty) or \"#ifndef NAME\" followed by \"#define NAME\" (→ 0, the name is copied to name); otherwise −1 (no guard); different names in #ifndef and #define → −2; the last non-empty line does not start with #endif → −3. Directives allow spaces after the #.",
+   "hint": "Reduce the text to a list of significant lines (no comments, no blanks), then check the first two and the last."
+  },
+  {
+   "id": "c10-decl-classify",
+   "title": "Classifying declarations: definition or declaration, linkage",
+   "statement": "classify(line) parses a one-line top-level declaration and returns the string \"kind status linkage\": kind is var, func, typedef, or type; status is def or decl; linkage is external, internal, or none. Examples: \"extern int x;\" → \"var decl external\"; \"int x;\" and \"int x = 5;\" → \"var def external\"; \"static int x;\" → \"var def internal\"; \"int f(void);\" → \"func decl external\"; \"int f(void) { return 0; }\" → \"func def external\"; \"static int f(void);\" → \"func decl internal\"; \"static inline int g(void) { return 1; }\" → \"func def internal\"; \"typedef int T;\" → \"typedef decl none\"; \"struct S;\" → \"type decl none\"; \"struct S { int a; };\" → \"type def none\". The function owns the returned string (a static buffer or a literal).",
+   "hint": "Order of parsing: typedef; struct/union/enum without braces and without a variable name; then whether there is a \"(\" (function) and a \"{\" (definition); treat static/extern as words."
+  },
+  {
+   "id": "c10-link-resolve",
+   "title": "Linker model: definitions and references",
+   "statement": "struct object { const char *name; const char *def[6]; int ndef; const char *undef[6]; int nundef; } is an object file: the symbols it defines and the ones it requires. link_objects(objs, n, err, errsz) → 0 if the program links; otherwise an error code and a message in err: −1 \"multiple definition of `X' in A and B\" (A is the first to define it, B the second; objects and symbols are scanned in order; definition errors are checked before references); −2 \"undefined reference to `X' in A\" (the first object, in order, whose required symbol is defined nowhere); if there are no errors but there is no symbol main, −3 \"undefined reference to `main'\".",
+   "hint": "Two checks in order: look pairwise for matching definitions (the second one found is the second party), then for each reference look for a definition among all objects."
+  },
+  {
+   "id": "c10-archive-pull",
+   "title": "Extracting objects from a static library",
+   "statement": "struct object is as in the linker model (def/undef symbols). pull_members(objs, n, lib, m, group, order, *unresolved): the set of undefined symbols starts with the requirements of objs (minus what they define themselves). The library is scanned left to right: a member is extracted if it defines at least one currently undefined symbol; its definitions close symbols, and its requirements are added (if not already defined). With group = 0 there is one scan; with group = 1 the scan repeats while anything is extracted. order[] holds the indices of extracted members in extraction order; the result is their count; *unresolved is how many symbols remain undefined.",
+   "hint": "The sets \"defined\" and \"undefined\" are small arrays of pointers; extracting a member means defining its symbols and requiring its references; repeat the library loop while group is set and something is extracted."
+  },
+  {
+   "id": "c10-section-layout",
+   "title": "Laying out sections at addresses",
+   "statement": "struct sect_obj { size_t text, data, bss, text_align, data_align, bss_align; } holds the section sizes of an object file and their alignments (powers of two). layout_sections(o, n, base, *L): all .text sections one after another, starting at base (each section aligned up to its own alignment), then .data, then .bss; the start of each region is the address after the end of the previous one, aligned up to 16 (the .text region starts at base as is). Store text_addr[i], data_addr[i], bss_addr[i] (n ≤ 8) in L, plus the overall ends end_text, end_data, end_bss (the address just past the last section of the region; for an empty region, its start). sym_addr(L, i, sect, off): the address of a symbol at offset off in section sect (0 is text, 1 is data, 2 is bss) of object i.",
+   "hint": "A cursor cur: for each section cur = up(cur, align); addr = cur; cur += size. Between regions, round up to 16."
+  },
+  {
+   "id": "c10-relocations",
+   "title": "Applying relocations",
+   "statement": "enum { R_ABS32, R_PC32, R_ABS64 }; struct reloc { size_t offset; int type; int64_t sym_addr; int64_t addend; }. apply_relocs(image, size, base, r, n) writes the values directly into the image (little-endian byte order): R_ABS32 is 4 bytes of S + A (must fit in uint32, otherwise an error); R_PC32 is 4 bytes of S + A − P, where P = base + offset (the result must fit in int32); R_ABS64 is 8 bytes of S + A. Return: 0 for success; −1 if the field falls outside the image; −2 for field overflow. On an error, stop (earlier relocations stay applied).",
+   "hint": "For PC32: value = S + A − (base + offset). Check the image bounds before writing, then the field range; write the bytes one at a time (little-endian)."
+  },
+  {
+   "id": "c10-make-parse",
+   "title": "Parsing a Makefile",
+   "statement": "struct rule { char target[32]; char deps[8][32]; int ndeps; char recipe[4][64]; int nrecipe; }. parse_make(text, rules, max) → the number of rules. Supported: comments (# to end of line; they stay in command lines), variables \"NAME = value\" and substitutions $(NAME) / ${NAME} in targets, dependencies, and commands (the automatic variables $@ $< $^ stay as they are; $$ → $; an unknown variable → empty); line continuation with a backslash at the end; a rule \"target: dependencies\" (a single target); commands are lines starting with a tab character (the tab is dropped) and belong to the last rule. Blank lines are skipped.",
+   "hint": "Read logical lines (gluing a backslash + newline), tell commands apart by the tab. Variables are a small name→value table; do the substitution in a function expand."
+  },
+  {
+   "id": "c10-make-order",
+   "title": "make: build order from the dependency graph",
+   "statement": "For rules of struct rule (as in the Makefile parser), build_order(rules, nrules, goal, exist, nexist, order, max) builds the order in which to run the rules for the target goal, assuming everything must be rebuilt: dependencies first (in the order listed), then the target; each target once. A dependency that has no rule must exist as a file (the exist list), otherwise the result is −2. A dependency cycle → −1. Otherwise the result is the number of targets in order (at most max, else −3). A goal with no rule that does not exist → −2; if it exists, the result is 0.",
+   "hint": "Depth-first traversal: an \"on the stack\" mark to detect a cycle and a \"done\" list for single occurrence; a leaf without a rule is checked against the list of existing files."
+  },
+  {
+   "id": "c10-make-run",
+   "title": "Simulating a make run: what gets rebuilt",
+   "statement": "struct ftime { char name[32]; long t; } is a file modification time (0 or absence from the list means the file does not exist). Rules are struct rule. make_run(rules, nrules, goal, files, *nfiles, maxfiles, ran, maxran) simulates make: for the goal, its dependencies (those that have rules) are built first, then the target is rebuilt if its file does not exist, or is older (t is smaller) than any dependency, or the rule has no dependencies and the file does not exist; a target listed in the \".PHONY\" rule is always rebuilt and counts as \"newer\" than everything. A rebuild means the target is added to ran (in order of execution) and its time becomes the \"clock\" (the clock starts at the maximum time in files and grows by 1 at each rebuild). A dependency with no rule and no file → result −1. Return the number of rebuilt targets.",
+   "hint": "The recursive function returns \"the target became newer\": it was rebuilt or is a phony target. A target is rebuilt if the file does not exist, is older than the newest dependency, or any dependency became newer."
+  },
+  {
+   "id": "c10-make-recipe",
+   "title": "% patterns and automatic variables",
+   "statement": "match_pattern(pat, name, stem) → 1 if the name matches a pattern with a single \"%\" (for example \"%.o\" and \"build/%.o\") and stores in stem what \"%\" stands for; otherwise 0. subst_pattern(pat, stem, out) substitutes stem for \"%\". expand_recipe(recipe, target, deps, ndeps, stem, out, cap) substitutes $@ (the target), $< (the first dependency; no dependencies → empty), $^ (all dependencies without duplicates, space-separated), $+ (all of them, with duplicates), $* (stem), $$ → $; any other \"$x\" stays as it is. Returns the length of the result, or −1 if it does not fit in cap (counting the terminating zero).",
+   "hint": "match_pattern: before the \"%\" is a prefix, after it a suffix; the name must start with the prefix and end with the suffix, and the middle is the stem. In expand_recipe count the space carefully: the last byte is for the zero."
+  },
+  {
+   "id": "c10-make-vars",
+   "title": "make variables: =, :=, += and substitutions",
+   "statement": "struct vars (up to 16 variables; name ≤ 15, value ≤ 127 characters). var_set(v, line) handles the line \"NAME = val\" (recursive: the value is stored as text and expanded on use), \"NAME := val\" (simple: substitutions are done immediately), \"NAME += val\" (append with a space; the variable's type is kept, and if it did not exist it is created as recursive), \"NAME ?= val\" (set only if not defined). Spaces around the operator and at the ends of the value are dropped. Returns 0 or −1 (bad line / no room). var_expand(v, s, out, cap) substitutes $(X) and ${X} (recursively), \"$$\" → \"$\"; an unknown variable → empty; a loop (A = $(B), B = $(A)) → −1; result does not fit → −2; otherwise the length of the result.",
+   "hint": "Keep a \"simple\" flag for each variable. When using a recursive one, expand its value with a depth limit (a loop → −1). := expands the value immediately."
+  },
+  {
+   "id": "c10-dep-file",
+   "title": "Dependency files .d (gcc -MMD)",
+   "statement": "parse_dep(text, target, deps, max) parses gcc -MMD output: \"build/main.o: src/main.c \\⏎ include/util.h include/config.h⏎\"; backslash continuations are joined; it stores the target in target (without the colon) and the dependencies in deps[][48] (up to max); returns their count, or −1 if there is no colon. Lines after the first (the dummy targets \"util.h:\" from -MP) are ignored. rebuild_set(dep_texts, n, changed, out, max) → which targets must be rebuilt if the file changed has changed (it is present in the target's dependency list), in input order; returns their count.",
+   "hint": "Join the logical line (backslash + newline → space), split off the target at the colon, split the rest on spaces."
+  },
+  {
+   "id": "c10-include-graph",
+   "title": "Include graph: what to rebuild when a header changes",
+   "statement": "struct file { const char *name; const char *inc[6]; int ninc; } is a file and what it includes directly. affected(f, n, changed, out, max) → the list of files that depend on changed directly or indirectly (including chains of headers); only translation units, that is, names ending in \".c\"; in the order of the input list; changed itself is not included; returns the count (at most max). has_cycle(f, n) → 1 if the includes contain a cycle (only files from the list count). include_depth(f, n, name) → the maximum depth of the include chain from name (a file with no includes has depth 0); with a cycle, −1.",
+   "hint": "Reachability in the include graph by depth-first search with visited marks; for a cycle, three colors (white, gray, black)."
+  },
+  {
+   "id": "c10-cmdline-split",
+   "title": "Parsing a command line with quotes and escapes",
+   "statement": "split_args(cmd, buf, cap, argv, max) parses a string like a shell: spaces separate arguments; single quotes keep everything literally; inside double quotes a backslash escapes only \\\" \\\\ and \\$; outside quotes a backslash escapes any following character; empty quotes give an empty argument. The arguments are written into buf one after another, each with a terminating zero; argv[i] point into buf; the return value is argc, −1 for an unclosed quote or a trailing backslash, −2 if it does not fit in cap or in max. quote_arg(s, out, cap) → a string for inserting into a command line: if all characters are from the set [A-Za-z0-9_@%+=:,./-], as is; an empty string → ''; otherwise in single quotes (an inner ' is replaced by '\\'' ); returns the length, or −1.",
+   "hint": "States: outside quotes, in single quotes, in double quotes; a backslash outside quotes takes the next character literally. Watch cap at every write."
+  },
+  {
+   "id": "c10-build-cmd",
+   "title": "Building a compiler command line",
+   "statement": "struct build { const char *cc, *std; int opt; int warn; const char *defs[4]; int ndefs; const char *incs[4]; int nincs; const char *srcs[4]; int nsrcs; const char *out; const char *libdirs[2]; int nlibdirs; const char *libs[3]; int nlibs; }. build_cmd(b, out, cap) → the string \"cc -std=STD -ON -Wall -Wextra -DX -Ipath sources -o out -Ldir -llib\" (parts are omitted if not set; opt < 0 means no -O, otherwise -O<opt>; warn ≠ 0 means -Wall -Wextra). The order is strict: compiler, std, optimization, warnings, -D, -I, sources, \"-o out\", -L, -l (libraries after the sources). Any argument with a space, a quote, or other special characters is wrapped in single quotes (an inner ' → '\\'' ). Return the length, or −1 if it does not fit in cap.",
+   "hint": "Accumulate the string with a function add_arg(prefix, value): it adds the space, the prefix, and quotes when needed. The -l libraries come last."
+  },
+  {
+   "id": "c10-static-state",
+   "title": "State inside functions: static and a static buffer",
+   "statement": "next_id() → 1, 2, 3, … (the counter lives in a static variable), reset_id(start): the next value returned will be start; fib_next() → 0, 1, 1, 2, 3, 5, … one number per call, fib_reset(); ordinal(n) → a pointer to a static buffer holding the ordinal (\"1st\", \"2nd\", \"3rd\", \"4th\", \"11th\", \"12th\", \"13th\", \"21st\", \"102nd\"), overwritten on the next call; ordinal_r(n, buf, size) does the same into the caller's buffer (returns buf). calls() → how many times calls itself has been called (the counter is static).",
+   "hint": "A static int counter inside the function or at file level; for ordinal use static char buf[24] and code shared with ordinal_r."
+  },
+  {
+   "id": "c10-strtok-r",
+   "title": "Splitting into words: strtok_r and strtok on static state",
+   "statement": "my_strtok_r(s, delims, save) works like strtok_r: s ≠ NULL starts a new string, s == NULL continues from *save; it skips leading delimiters and returns a pointer to the word (in the original string it replaces the delimiter after the word with a zero) or NULL when there are no more words. my_strtok(s, delims) is a variant with static internal state (built on my_strtok_r). You must not call the library's strtok and strtok_r. For nested parsing (an outer loop over lines, an inner one over words) only the _r variant works.",
+   "hint": "strspn skips the delimiters at the start, strcspn finds the end of the word. The delimiter after the word is replaced by a zero, and *save points past it."
+  },
+  {
+   "id": "c10-opaque-stack",
+   "title": "Opaque type: a stack behind an interface",
+   "statement": "The \"header\" declares only struct stack; (its layout is hidden). Implement: stack_new(), stack_push(s, v) → 0/−1, stack_pop(s, *out) → 1/0, stack_peek(s, *out) → 1/0, stack_size(s), stack_clone(s), an independent copy (with the same elements), stack_reverse(s), which reverses the order of the elements, and stack_free(s) (NULL is allowed). The layout of the structure is up to you (a dynamic array or a list). Runs under AddressSanitizer.",
+   "hint": "Define struct stack below the prototypes (for example, a dynamic array with a capacity): client code sees only the pointer.",
+   "starter": "#include <stddef.h>\n\n/* public part */\nstruct stack;\nstruct stack *stack_new(void);\nint stack_push(struct stack *s, int v);\nint stack_pop(struct stack *s, int *out);\nint stack_peek(const struct stack *s, int *out);\nsize_t stack_size(const struct stack *s);\nstruct stack *stack_clone(const struct stack *s);\nvoid stack_reverse(struct stack *s);\nvoid stack_free(struct stack *s);\n\n/* private part: define struct stack and the functions here */\n"
+  },
+  {
+   "id": "c10-semver",
+   "title": "Library versions: parsing and comparison",
+   "statement": "struct ver { int major, minor, patch; char pre[16]; }. ver_parse(s, *v) → 0 or −1: the format is \"[v]MAJOR.MINOR[.PATCH][-PRERELEASE]\" (numbers without signs or spaces, PATCH defaults to 0, the suffix consists of letters, digits, dots, and is at most 15 characters). ver_cmp(a, b) → −1/0/1 by precedence: major, minor, patch; a version with a suffix is lower than the same one without; two suffixes are compared as strings (strcmp). ver_compatible(have, want) → 1 if the library have fits the required want: the same major, have ≥ want, and (for major 0) the same minor; prerelease versions fit only if want is also a prerelease of the same version.",
+   "hint": "Parse character by character with a helper that reads a number. Comparison: the numbers, then the presence of a suffix (its absence means \"greater\"), then strcmp."
+  },
+  {
+   "id": "c10-symtab",
+   "title": "Linker symbol table: strong, weak, common",
+   "statement": "struct symtab (up to 32 symbols; name ≤ 15). Kinds: SYM_UNDEF 0, SYM_STRONG 1, SYM_WEAK 2, SYM_COMMON 3. st_add(t, name, kind, size, obj) → 0 or −1 (two strong definitions; no message needed). Rules: strong beats weak and common; weak beats common and \"undefined\"; two weak ones: the first stays; two common ones: the larger size stays (the winner's size is the larger one; if equal, the first); an undefined symbol changes nothing for one already defined (and outside the table it appears as SYM_UNDEF). st_kind(t, name) → the resulting kind, or −1 if there is no such symbol; st_size(t, name); st_owner(t, name) → obj of the winning definition; st_undefined(t, out, max) → the names that remain undefined (in order of appearance).",
+   "hint": "Priority: strong > weak > common > undef. Exceptions: two common ones go by size; two strong ones are an error; of two weak ones the first wins."
+  },
+  {
+   "id": "c10-fix-make-time",
+   "title": "Fix: make rebuilds too much and skips what it needs",
+   "statement": "needs_rebuild(target_time, dep_times, n, phony) decides whether to rebuild a target: a time ≤ 0 means the file does not exist (rebuild); a target older than any dependency (target_time < dep_time) means rebuild; with equal times, do not rebuild; phony means always rebuild. count_stale(targets, deps...) is an auxiliary function. At the moment the comparison is written wrongly (≤ instead of <), a missing file is not handled, and phony is ignored. Fix needs_rebuild; newest(dep_times, n) → the largest time (0 for an empty list) and stale_count(times, n, dep_time) → how many targets are older than the dependency must also work correctly.",
+   "hint": "Use strict \"<\"/\">\" to compare times; a missing file (time ≤ 0) and phony are separate conditions at the start. newest of an empty list must not read the array."
+  },
+  {
+   "id": "c10-fix-archive-order",
+   "title": "Fix: libraries with \"backward\" dependencies",
+   "statement": "pull_all(libs, n, undefined_in, nu, order) must pull from a set of archives all the objects needed to close the undefined symbols, even when the needed object comes earlier in the archive than the one that refers to it. An object is struct obj { name; def[4]; ndef; undef[4]; nundef } (symbol names are strings). Right now the function makes a single pass and loses such dependencies. Fix it: repeat the scan while anything is extracted. The result is the number of extracted objects, and their indices go into order in extraction order; the rest of the logic (an object is extracted if it defines at least one currently undefined symbol; its requirements are added) is already correct.",
+   "hint": "Wrap the scan in a loop do { changed = 0; … } while (changed); do not extract already extracted objects again."
+  },
+  {
+   "id": "c10-fix-static-buffer",
+   "title": "Fix: a static buffer in two calls",
+   "statement": "fmt_pair(a, b) returns the string \"(a, b)\" from a static buffer: in printf(\"%s %s\", fmt_pair(1, 2), fmt_pair(3, 4)) both substitutions show the same thing. Without changing the signature, rewrite it so that successive calls (at least four in a row) do not overwrite each other: use a ring of several static buffers. The result is a string of up to 31 characters; otherwise the behavior stays as before. size_str(bytes) → \"1.5K\", \"2.0M\", … (\"1023\", \"1.0K\", \"1.5M\", \"2.0G\") with the same restriction must also return a string from the ring.",
+   "hint": "A ring: static char ring[4][32]; static unsigned idx; each call takes ring[idx++ % 4]."
+  },
+  {
+   "id": "c10-fix-quote",
+   "title": "Fix: quotes in command-line arguments",
+   "statement": "quote_arg(s, out, cap) must return a shell-safe form of an argument: \"as is\" if all characters are from the set [A-Za-z0-9_@%+=:,./-] (and the string is not empty), otherwise in single quotes, with an inner ' written as '\\'' ; an empty string → ''. At the moment it wraps only strings containing a space in quotes and does not escape a single quote inside. Fix it. Return the length of the result, or −1 if it does not fit (counting the terminating zero).",
+   "hint": "The \"safe\" characters are a small set; everything else needs quotes. Inside single quotes the ' character closes the quote, inserts \\' and opens a new one: '\\''."
+  },
+  {
+   "id": "c10-amalgamate",
+   "title": "Merging files into one (amalgamation)",
+   "statement": "struct src { const char *name; const char *text; }. amalgamate(files, n, root, out, cap) builds a single file from root: lines of the form #include \"name\", where name is among files, are replaced by that file's contents (recursively), and each file is inserted at most once (as if under an include guard); other lines are copied; \"#pragma once\" lines are dropped; #include <…> and \"name\" not in files stay as they are. Each insertion is surrounded by the comments \"/* begin name */\" and \"/* end name */\" on separate lines; root is wrapped too. The contents end with a newline (add one if missing). Return the length of the result, or −1 if it does not fit in cap, or −2 if root is not found.",
+   "hint": "A recursive emit(file): mark the file as inserted, print begin, copy line by line or expand includes, print end. Skip the #pragma once lines."
+  },
+  {
+   "id": "c10-name-prefix",
+   "title": "Adding a prefix to a module's names",
+   "statement": "prefix_symbols(src, names, nnames, prefix, out, cap) copies the source text to out, adding prefix before every occurrence of an identifier from names (a whole word, not part of another word: init does not change init_all or reinit), but only in code, not inside string literals \"…\", character constants '…', or comments (// and /* */). Returns the length of the result, or −1 if it does not fit in cap (counting the zero).",
+   "hint": "Parse the text with a state machine: plain code, string, character, line comment, and block comment; in code read the whole word and compare it with the list."
+  },
+  {
+   "id": "c10-makefile-lint",
+   "title": "Checking a Makefile: typical mistakes",
+   "statement": "lint_make(text, msgs, max) → a list of messages (up to max, strings of ≤ 63 characters) in line order; the format is \"line N: …\": 1) a command line starts with spaces rather than a tab, right after a rule line or another command: \"line N: recipe needs TAB\"; 2) a target from the set {all, clean, test, install} not declared in \".PHONY\" (the declaration may be anywhere in the file): \"line N: add X to .PHONY\" (the message goes with the rule line); 3) use of $(NAME) / ${NAME} not defined by a line \"NAME = …\" (or :=, +=, ?=) earlier in the text and not one of the built-ins CC, CXX, RM, AR, MAKE, CFLAGS, LDFLAGS, LDLIBS: \"line N: undefined variable NAME\" (each use); 4) a repeated rule for the same target: \"line N: duplicate rule for TARGET\". Comment lines (#…) are skipped. Return the number of messages (at most max).",
+   "hint": "Go through the lines, remembering the defined variables, the targets, and whether the previous line was a rule. Check each $(…) against the lists of defined and built-in names."
+  },
+  {
+   "id": "c10-build-levels",
+   "title": "Build levels and the critical path",
+   "statement": "Rules are struct rule (target, dependencies). level_of(rules, n, target): a target without a rule is 0; a target with a rule and no dependencies is 1; otherwise 1 + the greatest level among its dependencies; a cycle → −1. critical_path(rules, n, goal, path, max) → the longest path from the target down through the dependencies: path[0] = goal, then the dependency with the greatest level (the first in the list on a tie), and so on down to a target without a rule; returns the number of path elements, −1 on a cycle. jobs_per_level(rules, n, goal, counts, max) → the number of levels L and how many distinct targets with rules lie on each level 1…L (counts[0] is level 1) among those reachable from goal (including goal); on a cycle −1.",
+   "hint": "level_of is a recursion with cycle protection by depth. For the critical path, at each step go to the dependency with the greatest level."
+  }
+ ]
+}

@@ -1,0 +1,209 @@
+{
+ "book": 10,
+ "chapter": 7,
+ "tasks": [
+  {
+   "id": "r7-tuple-basic",
+   "title": "A tuple of three",
+   "statement": "Create a tuple person = (\"Аня\", 30, 1.68). Print its elements by number, separated by spaces: «Аня 30 1.68».\n\nExpected output:\n«Аня 30 1.68»",
+   "hint": "Access the elements with person.0, person.1, person.2.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r7-tuple-destructure",
+   "title": "Destructuring a tuple",
+   "statement": "Take the tuple (10, 20, 30) apart into variables a, b, c with a single let and print their sum «60».\n\nExpected output:\n60",
+   "hint": "let (a, b, c) = (…);",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r7-tuple-debug",
+   "title": "Printing a tuple",
+   "statement": "Print the tuple (1, \"два\", 3.0) in the debug format {:?}: «(1, \"два\", 3.0)».\n\nExpected output:\n«(1, \"два\", 3.0)»",
+   "hint": "A tuple cannot be printed with {} — you need {:?}.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r7-array-sum",
+   "title": "Sum of an array",
+   "statement": "Declare the array nums = [4, 8, 15, 16, 23, 42] and compute the sum of its elements with a for loop. Print «108».\n\nExpected output:\n108",
+   "hint": "An accumulator sum and a for x in nums loop.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r7-array-len",
+   "title": "Length and elements",
+   "statement": "Declare an array of five zeros with [0; 5], then store the number 7 in a[2]. Print the length and the array itself in the {:?} format: «5» and «[0, 0, 7, 0, 0]».\n\nExpected output:\n5\n[0, 0, 7, 0, 0]",
+   "hint": "The array must be declared as let mut a to assign to an element.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r7-array-first-last",
+   "title": "First and last",
+   "statement": "For the array [3, 6, 9, 12, 15] print the first and last elements by index (the length is len()). «3» and «15».\n\nExpected output:\n3\n15",
+   "hint": "The last index is a.len() - 1.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r7-array-get",
+   "title": "A safe index",
+   "statement": "For the array [10, 20, 30] print a.get(1) and a.get(7) in the {:?} format: «Some(20)» and «None».\n\nExpected output:\nSome(20)\nNone",
+   "hint": "get returns an Option.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r7-slice-print",
+   "title": "Slices",
+   "statement": "Given the array a = [1, 2, 3, 4, 5, 6]. Print the slices &a[1..4], &a[..2] and &a[4..] with {:?}: «[2, 3, 4]», «[1, 2]», «[5, 6]».\n\nExpected output:\n[2, 3, 4]\n[1, 2]\n[5, 6]",
+   "hint": "The right bound is not included.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r7-vec-push",
+   "title": "Growing a vector",
+   "statement": "Create an empty vector v: Vec<i32> and add the numbers 1…5 to it in a for loop with the push method. Print the vector with {:?}: «[1, 2, 3, 4, 5]» and its length «5».\n\nExpected output:\n[1, 2, 3, 4, 5]\n5",
+   "hint": "Vec::new() and v.push(i).",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r7-vec-pop",
+   "title": "pop",
+   "statement": "From the vector vec![1, 2, 3] remove the last element with the pop method and print it («Some(3)»), then the remaining vector («[1, 2]»).\n\nExpected output:\nSome(3)\n[1, 2]",
+   "hint": "pop returns an Option.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r7-vec-evens",
+   "title": "Evens into a vector",
+   "statement": "Create a vector of the even numbers from 2 to 20 (a loop and push). Print the vector: «[2, 4, 6, 8, 10, 12, 14, 16, 18, 20]».\n\nExpected output:\n[2, 4, 6, 8, 10, 12, 14, 16, 18, 20]",
+   "hint": "The condition i % 2 == 0 inside the loop.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r7-vec-insert-remove",
+   "title": "insert and remove",
+   "statement": "Start with v = [1, 2, 3, 4]. Insert 99 at position 1 (insert), then delete the element with index 3 (remove). Print the result «[1, 99, 2, 4]».\n\nExpected output:\n[1, 99, 2, 4]",
+   "hint": "After insert the vector is [1, 99, 2, 3, 4]; remove(3) takes out the three.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r7-vec-iter-sum",
+   "title": "Sum and average",
+   "statement": "For v = [3, 7, 2, 9, 4] print, using iter(), the sum «25» and the arithmetic mean «5» (sum / length, integer division; type i32).\n\nExpected output:\n25\n5",
+   "hint": "v.iter().sum() and converting the length to i32.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r7-vec-max-min",
+   "title": "Largest and smallest",
+   "statement": "For v = [12, -5, 33, 0, 8] find the maximum and minimum (iter().max(), iter().min() + unwrap): «33» and «-5».\n\nExpected output:\n33\n-5",
+   "hint": "max() and min() return an Option.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r7-vec-mut-loop",
+   "title": "Double everything",
+   "statement": "Double every element of the vector [1, 2, 3, 4] with the loop for x in &mut v (*x *= 2). Print «[2, 4, 6, 8]».\n\nExpected output:\n[2, 4, 6, 8]",
+   "hint": "The asterisk is needed to change the value itself.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r7-vec-sort",
+   "title": "Sorting",
+   "statement": "Sort the vector [5, 2, 9, 1, 7] in ascending order and print «[1, 2, 5, 7, 9]», then reverse it (reverse) and print «[9, 7, 5, 2, 1]».\n\nExpected output:\n[1, 2, 5, 7, 9]\n[9, 7, 5, 2, 1]",
+   "hint": "sort() and reverse() change the vector in place.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r7-vec-contains",
+   "title": "Is the value there",
+   "statement": "For v = [10, 20, 30, 40] print v.contains(&30) and v.contains(&35): «true» and «false».\n\nExpected output:\ntrue\nfalse",
+   "hint": "contains takes a reference to the value.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r7-vec-dedup",
+   "title": "Removing duplicates",
+   "statement": "Sort the vector [3, 1, 3, 2, 1, 2, 3] and remove duplicates with the dedup method. The result is «[1, 2, 3]».\n\nExpected output:\n[1, 2, 3]",
+   "hint": "dedup removes neighboring duplicates — so sort first.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r7-vec-enumerate",
+   "title": "Indexes and values",
+   "statement": "For v = [\"a\", \"b\", \"c\"] print one line each: «0: a», «1: b», «2: c» (enumerate).\n\nExpected output:\n0: a\n1: b\n2: c",
+   "hint": "for (i, x) in v.iter().enumerate()",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r7-vec-filter-collect",
+   "title": "Filter",
+   "statement": "From the vector [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] collect into a new vector only the numbers divisible by 3 (filter + collect). «[3, 6, 9]».\n\nExpected output:\n[3, 6, 9]",
+   "hint": "v.iter().filter(|x| **x % 3 == 0).cloned().collect()",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r7-vec-map-collect",
+   "title": "Squares",
+   "statement": "Build a vector of the squares of the numbers 1…6 (map and collect): «[1, 4, 9, 16, 25, 36]».\n\nExpected output:\n[1, 4, 9, 16, 25, 36]",
+   "hint": "(1..=6).map(|x| x * x).collect()",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r7-grid-print",
+   "title": "A 3×3 grid",
+   "statement": "Declare the two-dimensional array grid = [[1, 2, 3], [4, 5, 6], [7, 8, 9]] and print it row by row: three lines «1 2 3», «4 5 6», «7 8 9».\n\nExpected output:\n1 2 3\n4 5 6\n7 8 9",
+   "hint": "Turn each row into a Vec<String> and glue it with join(\" \").",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r7-grid-diag",
+   "title": "The diagonal",
+   "statement": "For the same grid grid = [[1, 2, 3], [4, 5, 6], [7, 8, 9]] compute the sum of the main diagonal (the elements grid[i][i]): «15».\n\nExpected output:\n15",
+   "hint": "A loop over i and grid[i][i].",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r7-fn-sum-slice",
+   "title": "Sum of a slice",
+   "statement": "Write a function sum(v: &[i32]) -> i32 that returns the sum of the elements of a slice.",
+   "hint": "A slice accepts an array, a vector and part of a vector."
+  },
+  {
+   "id": "r7-fn-max",
+   "title": "Maximum of a slice",
+   "statement": "Write a function largest(v: &[i32]) -> i32 that returns the largest element (the slice is not empty).",
+   "hint": "Start with v[0] and compare with all the others."
+  },
+  {
+   "id": "r7-fn-reverse",
+   "title": "Reversing a vector",
+   "statement": "Write a function reversed(v: &[i32]) -> Vec<i32> that returns a new vector with the elements in reverse order (do not change the original).",
+   "hint": "v.to_vec() makes a copy that you are allowed to change."
+  },
+  {
+   "id": "r7-fn-count-even",
+   "title": "How many are even",
+   "statement": "Write a function count_even(v: &[i32]) -> usize: the number of even elements (including 0 and negative numbers).",
+   "hint": "x % 2 == 0 works for a reference x just as for a number."
+  },
+  {
+   "id": "r7-fn-minmax-tuple",
+   "title": "Minimum and maximum as a pair",
+   "statement": "Write a function min_max(v: &[i32]) -> (i32, i32): the pair (smallest, largest) for a non-empty slice.",
+   "hint": "Two variables lo and hi and a tuple at the end."
+  },
+  {
+   "id": "r7-fn-dot",
+   "title": "Dot product",
+   "statement": "Write a function dot(a: &[i32], b: &[i32]) -> i32: the sum of the products of corresponding elements (the slices have the same length).",
+   "hint": "A loop over indexes from 0 to a.len()."
+  },
+  {
+   "id": "r7-fix-mut-vec",
+   "title": "Fix it: a vector without mut",
+   "statement": "The program does not build: the push method changes the vector, but it is declared immutable. Fix the declaration; the result is «[1, 2, 3, 4]».\n\nExpected output:\n[1, 2, 3, 4]",
+   "hint": "Add mut: let mut v."
+  }
+ ]
+}

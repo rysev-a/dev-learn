@@ -1,0 +1,54 @@
+{
+ "book": 8,
+ "chapter": 0,
+ "tasks": [
+  {
+   "id": "u0-raw-write",
+   "title": "A system call directly",
+   "statement": "raw_write(int fd, const void *buf, size_t n) → long: write the bytes by calling the kernel DIRECTLY through syscall(SYS_write, …), without the write wrapper. Return what the kernel returned: the number of bytes written, or −errno on error (for example, −9 for a closed descriptor). raw_getpid() → long: likewise, get the process ID through SYS_getpid.",
+   "hint": "The syscall wrapper returns −1 and puts the cause in errno, like ordinary libc functions. Here you need the \"raw\" result: on error return −errno."
+  },
+  {
+   "id": "u0-pid-tid",
+   "title": "Process and thread: getpid and gettid",
+   "statement": "my_pid() → long and my_tid() → long: the process ID and the thread ID; get them with the system calls SYS_getpid and SYS_gettid (syscall). In the main thread they are equal; in another thread the thread ID differs from the process ID. pid_of_thread() → long: create a thread (pthread_create), have it call my_tid() and return the result; return that ID after pthread_join.",
+   "hint": "To the kernel, both a process and a thread are a \"task\" with its own number. getpid returns the thread group ID (what is seen as the pid), and gettid returns the ID of the particular thread."
+  },
+  {
+   "id": "u0-errno-names",
+   "title": "Kernel errors: errno and their names",
+   "statement": "open_errno(const char *path, int flags) → int: open a file (open(path, flags, 0600)); 0 if it opened (close the descriptor), otherwise the errno error number. errno_name(int e) → const char *: the constant's name for the codes 1 (EPERM), 2 (ENOENT), 9 (EBADF), 13 (EACCES), 17 (EEXIST), 21 (EISDIR), 22 (EINVAL), 32 (EPIPE); for all others return \"?\".",
+   "hint": "Every kernel error is a small positive number in errno. Remember the main ones: 2 means no such file, 13 means no permission, 17 means already exists, 21 means it's a directory."
+  },
+  {
+   "id": "u0-uname",
+   "title": "Who are you, system: uname",
+   "statement": "kernel_name(char *out, size_t n) → int: copy the kernel name into out (the sysname field of the utsname structure from uname(2)); 0 on success, −1 on error. kernel_major() → int: the kernel's major version number, the number before the first dot in the release field (for example, 6 for \"6.8.0\"), −1 on error. machine_is_known() → int: 1 if the machine field is non-empty.",
+   "hint": "The struct utsname from <sys/utsname.h> is filled by the uname call. The release field begins with the version number; atoi will read the number up to the dot. Don't go past the end of the buffer n."
+  },
+  {
+   "id": "u0-proc-status",
+   "title": "A window into the kernel: /proc/self/status",
+   "statement": "status_field(const char *name) → long: read the file /proc/self/status and return the numeric value of the field called name (for example \"Pid\" or \"Threads\"); a field is written as \"Name:<spaces/tab>number\". −1 if there is no such field. This is not a file on disk: the kernel generates it as you read.",
+   "hint": "Read the file line by line (fgets), compare the beginning of the line with name and a colon, then call strtol on the next character; it skips whitespace by itself."
+  },
+  {
+   "id": "u0-fd-count",
+   "title": "How many files a process has open",
+   "statement": "open_fd_count() → int: how many descriptors the current process has open right now. Read the directory /proc/self/fd (opendir/readdir) and count the entries, excluding \".\" and \"..\" and also excluding the descriptor that opendir itself uses to read this directory (dirfd). Error → −1.",
+   "hint": "In /proc/self/fd every open descriptor has a link whose name is its number. opendir opens one descriptor itself, and you need to exclude it."
+  },
+  {
+   "id": "u0-devices",
+   "title": "Everything is a file: /dev/zero, /dev/null, /dev/urandom",
+   "statement": "zero_fill(unsigned char *buf, size_t n) → int: read exactly n bytes from /dev/zero (with repeated reads on a partial read) and return 0, error → −1. null_sink(size_t n) → long: write n bytes to /dev/null and return what write returned (it should be n). null_eof() → long: read from /dev/null and return the result of read (end of file is 0). random_differs() → int: read 16 bytes from /dev/urandom twice; 1 if the two sequences differ.",
+   "hint": "Devices are opened just like files. read may return less than requested, so read in a loop; /dev/null gives end of file immediately on read and accepts everything on write."
+  },
+  {
+   "id": "u0-proc-count",
+   "title": "How many processes are in the system",
+   "statement": "count_processes() → int: count the processes by the /proc directory: entries whose name consists only of digits. spawn_sleepers(int k) → int: create k child processes (fork), each must wait on a read from a shared pipe. Return 0 on success. Then kill_sleepers() → int: close the write end of the pipe so the children wake up and exit, wait for all of them (waitpid) and return the number you waited for.",
+   "hint": "Every process in /proc is a directory with a number. Children sleeping in read will finish when the pipe has no writers left: close your own end too."
+  }
+ ]
+}

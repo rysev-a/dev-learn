@@ -1,0 +1,54 @@
+{
+ "book": 7,
+ "chapter": 18,
+ "tasks": [
+  {
+   "id": "dp-climb-stairs",
+   "title": "Staircase",
+   "statement": "Write a function climb(n): the number of ways to climb to the n-th step taking steps of 1 or 2 stairs. Naive recursion makes exponentially many calls: the checker feeds n = 5000 (the answer is huge, Python can handle it).",
+   "hint": "ways[i] = ways[i - 1] + ways[i - 2] is the Fibonacci numbers; keep only the last two."
+  },
+  {
+   "id": "dp-coin-change",
+   "title": "Coin Change",
+   "statement": "Write a function min_coins(coins, amount): the smallest number of coins of denominations coins (any number of each) that sum to amount; if it can't be made, return -1; for amount 0, return 0. Use dynamic programming over the amount: the checker feeds an amount of 100 000.",
+   "hint": "best[0] = 0; best[a] = min(best[a - c] + 1 over coins c <= a); infinity means it can't be made."
+  },
+  {
+   "id": "dp-knapsack-01",
+   "title": "0/1 Knapsack",
+   "statement": "Write a function knapsack(weights, values, capacity): the greatest total value of items that fit in the knapsack (each item at most once). Use a table over capacity, O(n · capacity) time and O(capacity) memory: the checker feeds 100 items and a capacity of 10 000.",
+   "hint": "dp = [0] * (capacity + 1); for each item, go over the capacity FROM LARGER TO SMALLER: dp[c] = max(dp[c], dp[c - w] + v)."
+  },
+  {
+   "id": "dp-lcs",
+   "title": "Longest Common Subsequence",
+   "statement": "Write a function lcs_length(a, b): the length of the longest common subsequence of two strings (characters in the same order, but not necessarily adjacent). Use a dynamic programming table: the checker feeds strings of 2000 characters each.",
+   "hint": "dp[i][j]: if a[i-1] == b[j-1], then dp[i-1][j-1] + 1, otherwise max(dp[i-1][j], dp[i][j-1]); two rows of the table are enough."
+  },
+  {
+   "id": "dp-edit-distance",
+   "title": "Edit Distance",
+   "statement": "Write a function edit_distance(a, b): the minimum number of operations (insert, delete, or replace one character) that turn string a into b (the Levenshtein distance). The checker feeds strings of 1500 characters each.",
+   "hint": "dp[i][j] = min(delete: dp[i-1][j] + 1, insert: dp[i][j-1] + 1, replace: dp[i-1][j-1] + (a[i-1] != b[j-1]))."
+  },
+  {
+   "id": "dp-lis-nlogn",
+   "title": "Longest Increasing Subsequence",
+   "statement": "Write a function lis_length(nums): the length of the longest strictly increasing subsequence. Solve it in O(n log n) (a list of tails and binary search with bisect): the checker feeds 100 000 numbers, and O(n²) won't finish in time.",
+   "hint": "tails[k] is the smallest possible tail of an increasing subsequence of length k + 1; for x, find bisect_left(tails, x) and replace the element or append."
+  },
+  {
+   "id": "dp-house-robber",
+   "title": "House Robber",
+   "statement": "Write a function rob(money): the greatest sum that can be collected from houses on a street without entering two adjacent ones (money[i] is the cash in the i-th house, all non-negative). Two variables are enough: the checker feeds a million houses.",
+   "hint": "take, skip = 0, 0; for x: take, skip = skip + x, max(take, skip)."
+  },
+  {
+   "id": "dp-partition-subset",
+   "title": "Partition into Two Equal Sums",
+   "statement": "Write a function can_split(nums): True if the numbers of the list (positive integers) can be divided into two groups with equal sums. This is the subset-sum problem with target total/2: keep the set of reachable sums. The checker feeds 200 numbers with sums up to 20 000.",
+   "hint": "If total is odd, return False; otherwise reachable = {0}; for each x, add s + x without exceeding total // 2, or use the bit mask bits |= bits << x."
+  }
+ ]
+}

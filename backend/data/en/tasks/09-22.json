@@ -1,0 +1,123 @@
+{
+ "book": 9,
+ "chapter": 22,
+ "tasks": [
+  {
+   "id": "d6-lag",
+   "title": "Replica lag",
+   "statement": "The table replicas(name, role, applied_lsn, alive). The leader's last write number is applied_lsn of the row with role = 'leader'. Output the live replicas (role = 'replica', alive = 1) and their lag in writes (columns: name, lag), in descending order of lag, ties by name.",
+   "hint": "Take the leader's number with a subquery; for each replica lag = the leader's lsn minus its applied_lsn.",
+   "starter": "-- live replicas and their lag\nSELECT\n"
+  },
+  {
+   "id": "d6-failover-candidate",
+   "title": "Who becomes the leader",
+   "statement": "The leader db1 went down. Choose a new one: among the live replicas, the freshest (the largest applied_lsn); on a tie, the one with the smaller name. Output one row: name.",
+   "hint": "Filter: role = 'replica' AND alive = 1; sort by applied_lsn descending, LIMIT 1.",
+   "starter": "-- candidate for new leader\nSELECT\n"
+  },
+  {
+   "id": "d6-read-eligible",
+   "title": "Replicas for reading your own writes",
+   "statement": "A client has just written data and received LSN 1199. Output the live replicas (not the leader) that have already applied this LSN (applied_lsn ≥ 1199), ordered by name: column name.",
+   "hint": "The condition applied_lsn >= 1199 plus filters on role and liveness.",
+   "starter": "-- replicas where you can read your own writes\nSELECT\n"
+  },
+  {
+   "id": "d6-apply-log",
+   "title": "A replica applies the log",
+   "statement": "The replication log is a list of records [lsn, operation, key, value]: the operation is 'set' or 'del' (for del the value is None). The replica applies them strictly in ascending lsn order, skipping records whose lsn is not greater than the one already applied. Write apply_log(state, applied_lsn, log): a pair [new state (a dictionary), new applied_lsn]; do not modify the original state.",
+   "hint": "Sort the log, skip records with lsn ≤ the already applied one, update the counter after applying."
+  },
+  {
+   "id": "d6-ack-time",
+   "title": "When a write is confirmed",
+   "statement": "The leader writes locally in local ms, replica responses arrive acks ms after the write starts (a list). Modes: 'async' — confirmation right after the local write; 'sync' — after the responses of all replicas; 'quorum' with the number k — after the k fastest responses (but not earlier than the local write). Write commit_ack_time(mode, k, local, acks): the time of confirmation to the client in ms.",
+   "hint": "Sort the response times: sync waits for the last one, quorum k for the k-th; the result is not less than local."
+  },
+  {
+   "id": "d6-read-your-writes",
+   "title": "Replicas fresh for the client",
+   "statement": "Replicas are a dictionary of \"name → applied_lsn\". The client knows the LSN of its last write. Write eligible_replicas(replicas, client_lsn): a sorted list of names of replicas whose applied_lsn ≥ client_lsn.",
+   "hint": "A simple filter over the dictionary followed by sorting the names."
+  },
+  {
+   "id": "d6-monotonic",
+   "title": "Monotonic read violations",
+   "statement": "The read log of one client is a list of [moment, version, replica]. Reads are monotonic if the version never decreases. Write monotonic_violations(reads): a list of the indexes (from zero) of reads whose version is less than the maximum of the earlier reads (go through the list in order).",
+   "hint": "Keep the maximum version seen; a read with a smaller version is a violation."
+  },
+  {
+   "id": "d6-pick-leader",
+   "title": "Choosing a new leader",
+   "statement": "Replicas are a list of [name, applied_lsn, alive (True/False)]. The new leader is the live replica with the largest applied_lsn; on a tie, the smaller name. Write pick_leader(replicas): the name, or None if no replicas are alive.",
+   "hint": "min over the pair (−lsn, name) among the live replicas gives the right order."
+  },
+  {
+   "id": "d6-lost-writes",
+   "title": "What is lost on failover",
+   "statement": "The leader's writes confirmed to clients have numbers 1..leader_lsn. The new leader applied only the writes up to new_lsn. Write lost_writes(leader_lsn, new_lsn, acked): a list of the numbers of writes that were confirmed to clients (the list acked) but are greater than new_lsn — that is, lost, in ascending order.",
+   "hint": "The lost ones are the confirmed writes with numbers from new_lsn + 1 to leader_lsn."
+  },
+  {
+   "id": "d6-fencing",
+   "title": "Fencing by epochs",
+   "statement": "The storage remembers the largest epoch seen. A write [epoch, key, value] is accepted if its epoch is not less than the largest one already seen (and then it is remembered), otherwise it is rejected. Write accept_writes(writes): a pair [dictionary of accepted values, list of the indexes (from zero) of rejected writes].",
+   "hint": "Remember the maximum epoch; reject a write with a smaller epoch and record its index."
+  },
+  {
+   "id": "d6-lww",
+   "title": "Last write wins",
+   "statement": "Two replicas store dictionaries of \"key → [time, value, node]\". Write lww_merge(a, b): a dictionary where for each key the record with the larger time is chosen; on equal times, the one with the larger node name (strings are compared lexicographically).",
+   "hint": "max by (time, node) among the records of that key from both replicas."
+  },
+  {
+   "id": "d6-quorum",
+   "title": "Quorums: what is guaranteed",
+   "statement": "Write quorum_info(n, w, r): a pair [whether a read gets the fresh value (w + r > n), whether there are no write conflicts (w > n // 2, that is, writes overlap)].",
+   "hint": "Two checks: w + r > n and w > n // 2."
+  },
+  {
+   "id": "d6-quorum-read",
+   "title": "Quorum read",
+   "statement": "Replicas are a list of [version, value] (the version is a number). The client queries the replicas with the indexes from queried and takes the value with the highest version. Write quorum_read(replicas, queried): a pair [value, version]. If several have the same version, take any (their values are equal).",
+   "hint": "Among the queried replicas, choose the one whose version is maximal."
+  },
+  {
+   "id": "d6-read-repair",
+   "title": "Read repair",
+   "statement": "Replicas are a list of [version, value]. After a read, the client finds the freshest version among the queried replicas (indexes queried) and writes it to all queried replicas whose version is lower. Write read_repair(replicas, queried): the new list of replicas (those not queried do not change).",
+   "hint": "Find the best copy among the queried ones and overwrite the lagging queried replicas with it."
+  },
+  {
+   "id": "d6-vector-clock",
+   "title": "Comparing vector clocks",
+   "statement": "A vector is a dictionary of \"node → counter\" (a missing node is 0). Write compare_vc(a, b): 'equal' if the vectors are equal; 'before' if a precedes b (all ≤ and at least one <); 'after' if b precedes a; otherwise 'concurrent'.",
+   "hint": "Check whether all components of a are ≤ b's and whether all are ≥; the combination of answers gives one of the four results."
+  },
+  {
+   "id": "d6-gcounter",
+   "title": "CRDT: a counter that merges",
+   "statement": "A growing counter on several nodes: each replica has a dictionary of \"node → how much this node incremented\". Merging takes the maximum for each node. Write merge_counters(a, b): the merged dictionary, and the value of the counter is the sum over nodes; return a pair [merged dictionary, sum].",
+   "hint": "The maximum per node loses no increments and makes the merge idempotent."
+  },
+  {
+   "id": "d6-heartbeat",
+   "title": "Failure detection by heartbeat",
+   "statement": "Nodes are a dictionary of \"name → time of last signal\". A node is considered suspected if now − last > timeout. Write suspected(last_seen, now, timeout): a sorted list of suspected nodes.",
+   "hint": "The suspected nodes are those where now − last is strictly greater than timeout."
+  },
+  {
+   "id": "d6-replica-placement",
+   "title": "Where to put the copies",
+   "statement": "Nodes are placed on a ring in the order of the list ring (already sorted by position). A key goes to the first node with position ≥ hash (the position is the second element of the pair [name, position]), and if there is none, to the first node of the ring; copies are placed on n consecutive nodes around the ring. Write replicas_for(ring, hash_value, n): a list of names.",
+   "hint": "Find the starting index, then take nodes around the circle with % len(ring)."
+  },
+  {
+   "id": "d6-log-gap",
+   "title": "Gaps in the log",
+   "statement": "A replica received log records with the numbers received (in arbitrary order, repeats are possible). Write missing_lsns(received, upto): a sorted list of the numbers from 1 to upto that are absent and must be requested again.",
+   "hint": "A set of the received numbers and a loop over 1..upto."
+  }
+ ]
+}

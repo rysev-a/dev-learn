@@ -1,0 +1,119 @@
+{
+ "book": 9,
+ "chapter": 24,
+ "tasks": [
+  {
+   "id": "d8-orphans",
+   "title": "Orphan rows",
+   "statement": "There are no foreign keys, and the data could have diverged. Find the orders that reference nonexistent customers: column id, ascending.",
+   "hint": "LEFT JOIN with the condition c.id IS NULL, or NOT EXISTS.",
+   "starter": "-- orders without a customer\nSELECT\n"
+  },
+  {
+   "id": "d8-duplicates",
+   "title": "Duplicates after redelivery",
+   "statement": "Messages were delivered \"at least once\". Output the op_id values that arrived more than once, and how many times (columns: op_id, n), ordered by op_id.",
+   "hint": "GROUP BY op_id HAVING COUNT(*) > 1.",
+   "starter": "-- duplicates by op_id\nSELECT\n"
+  },
+  {
+   "id": "d8-dedupe-delete",
+   "title": "Cleaning up duplicates",
+   "statement": "For each op_id keep only the earliest event (with the smallest id) and delete the rest. The result is checked against the table.",
+   "hint": "DELETE … WHERE id NOT IN (SELECT MIN(id) … GROUP BY op_id).",
+   "starter": "-- delete duplicates, keeping the earliest row per op_id\nDELETE\n"
+  },
+  {
+   "id": "d8-outbox",
+   "title": "Outbox in one transaction",
+   "statement": "In one transaction create an order (id 1, total 500) and add an event to outbox: topic = 'order.created', payload = '{\"id\":1}'. The result is checked against both tables: the order and one unsent event.",
+   "hint": "BEGIN; INSERT into orders; INSERT into outbox; COMMIT; the event won't be lost if the order is written.",
+   "starter": "-- order and event in one transaction\nBEGIN;\n"
+  },
+  {
+   "id": "d8-latest-per-key",
+   "title": "Latest value per key",
+   "statement": "A replica received value versions in arbitrary order. For each key output the value with the largest ts (last write wins): columns key, value; ordered by key.",
+   "hint": "A correlated subquery on MAX(ts) per key, or the window function ROW_NUMBER().",
+   "starter": "-- the latest version of each key\nSELECT\n"
+  },
+  {
+   "id": "d8-lamport",
+   "title": "Lamport clocks",
+   "statement": "Events: ['local', node], ['send', node, id] is a send (counter +1, the message with this id remembers the current value) and ['recv', node, id] is a receive (counter = max(own, message value) + 1). Node counters start at 0. Write lamport_run(events): the list of counter values after each event.",
+   "hint": "For recv, take the maximum of your own counter and the one recorded at send, then +1."
+  },
+  {
+   "id": "d8-vector-step",
+   "title": "Vector clocks of events",
+   "statement": "Events: ['local', node], ['send', node, id], ['recv', node, id]. A vector is a dictionary of node → counter. An event increases its own node's counter by 1; on send the vector is copied into the message id (after the increment); on recv, first take component-wise maxima with the message's vector, then the own node's counter +1. Write vc_events(events): the list of vectors (dictionaries) after each event.",
+   "hint": "Copy the dictionaries; on receive merge with maxima, then increment your own component."
+  },
+  {
+   "id": "d8-linearizable",
+   "title": "Is the register linearizable",
+   "statement": "Operations on a single register (initially 0): ['w', start, end, value] and ['r', start, end, read value]. An operation can take effect at any moment between start and end. A history is linearizable if there is an order of operations in which every read sees the last write before it, and if one operation ends before another starts (a.end < b.start), then a comes before b. Write is_linearizable(ops): True/False (there are at most six operations, so brute force is fine).",
+   "hint": "Try permutations: the order must respect real time, and reads must match the last written value."
+  },
+  {
+   "id": "d8-majority",
+   "title": "Majority and failures",
+   "statement": "Write majority_info(n): a pair [majority size (n // 2 + 1), how many failures the cluster survives (n − majority)].",
+   "hint": "Majority is n // 2 + 1; the remaining nodes may fail."
+  },
+  {
+   "id": "d8-available",
+   "title": "Availability during a partition",
+   "statement": "The network has split; in \"my\" part there are up nodes out of n. Mode 'cp' serves a request only if this part has a majority of the nodes; mode 'ap' serves if the part has at least one node. Write can_serve(mode, n, up): True/False.",
+   "hint": "CP needs a strict majority; AP needs just one live node."
+  },
+  {
+   "id": "d8-raft-vote",
+   "title": "Raft: whether to grant a vote",
+   "statement": "A node grants its vote to a candidate if the candidate's term is not less than its own, it has not yet voted for anyone in this term (or voted for this same candidate), and the candidate's log is not behind: the last term in the candidate's log is greater, or equal with a log length not smaller. Write grant_vote(my_term, my_voted_for, my_last, cand_id, cand_term, cand_last): True/False, where *_last is a pair [term of the last entry, log length], and my_voted_for is an identifier or None.",
+   "hint": "Three checks: the term, repeated voting, and log freshness (first the term of the last entry, then the length)."
+  },
+  {
+   "id": "d8-raft-commit",
+   "title": "Commit index",
+   "statement": "The leader knows up to which log entry each node has replicated (the list match, including the leader). An entry is committed if a majority has it. Write commit_index(match): the largest index that at least a majority of nodes have (0 if there is none).",
+   "hint": "Sort in descending order: the needed index is the element at position len // 2."
+  },
+  {
+   "id": "d8-idempotent",
+   "title": "Idempotent processing",
+   "statement": "The events are a list of [op_id, account, amount] (may contain repeated op_id values because of redelivery). Each op_id is processed only once (its first occurrence). Write process_events(events): a dictionary of account → final amount.",
+   "hint": "Keep a set of op_id values already seen: skip repeats."
+  },
+  {
+   "id": "d8-causal-delivery",
+   "title": "Causal delivery",
+   "statement": "Messages are a list of [id, depends_on or None] in arrival order. A message can be shown only if the message it depends on has already been shown. Write causal_order(msgs): the list of ids in display order; a message whose cause has not yet arrived waits and is shown right after it (in arrival order if several wait for one cause).",
+   "hint": "Keep a list of waiting messages and, after showing each message, release those that were waiting for exactly it."
+  },
+  {
+   "id": "d8-sloppy",
+   "title": "Sloppy quorum",
+   "statement": "For a write, W live nodes are chosen: first the \"home\" ones (in the order of the list home), and if there are fewer than W live home nodes, live neighbors (the list neighbors) are added in order. Write write_targets(home, neighbors, alive, w): the list of chosen nodes (may be shorter than w if there are not enough live ones).",
+   "hint": "First the live home nodes, then the live neighbors, until w are collected."
+  },
+  {
+   "id": "d8-lww-convergence",
+   "title": "Replica convergence",
+   "statement": "Three replicas received a set of writes [key, value, time] in different orders. The rule: the write with the larger time wins (on a tie, the larger value as a string). Write converge(replica_logs): a dictionary of key → value that all replicas will arrive at after an exchange, if the writes of all replicas are merged.",
+   "hint": "For each key keep the best write by the pair (time, value)."
+  },
+  {
+   "id": "d8-clock-skew",
+   "title": "Waiting out the clock error",
+   "statement": "A node's clock shows now with an error of ±eps. To claim that an event at moment ts definitely happened in the past, you must wait until now − eps > ts. Write safe_after(ts, now, eps): how much longer to wait (in the same units, not less than zero).",
+   "hint": "You need now − eps > ts, that is, wait until now reaches ts + eps."
+  },
+  {
+   "id": "d8-pacelc",
+   "title": "PACELC: what to choose",
+   "statement": "Write choose_mode(partitioned, prefer): partitioned says whether the network is partitioned (True/False), prefer is 'consistency' or 'availability' (for an unpartitioned network, 'consistency' or 'latency'). Return a string: during a partition 'CP' or 'AP', without a partition 'EC' (consistency) or 'EL' (latency).",
+   "hint": "Four combinations, by two conditions."
+  }
+ ]
+}

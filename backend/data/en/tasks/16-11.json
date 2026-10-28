@@ -1,0 +1,186 @@
+{
+ "book": 16,
+ "chapter": 11,
+ "tasks": [
+  {
+   "id": "c11-fix-off-by-one",
+   "title": "Fix: array access one past the end",
+   "statement": "sum_array, max_array and count_equal walk an array of n elements with a loop that has an extra iteration (i <= n) and read one element beyond the bounds. Under AddressSanitizer the program stops. Fix the loops; for n = 0 the functions must work without reading anything: the sum is 0, max_array(…, 0) → INT_MIN, count_equal → 0.",
+   "hint": "The loop continuation condition is i < n. An array of n elements has indices 0 … n − 1."
+  },
+  {
+   "id": "c11-fix-strcpy-nul",
+   "title": "Fix: forgotten terminating zero in malloc",
+   "statement": "dup_string(s) and join(a, sep, b) allocate memory without room for the terminating zero, so strcpy/strcat write one byte past the block. Fix them: dup_string returns a copy of the string; join returns «a» + sep + «b» in a new string; repeat(s, k) returns the string s repeated k times (k ≥ 0, for k = 0 an empty string). The caller frees all results.",
+   "hint": "Always add +1 for the terminating zero. For repeat the size is the length of s · k + 1; for k = 0 you still need one byte."
+  },
+  {
+   "id": "c11-fix-uaf-list",
+   "title": "Fix: reading a node after free",
+   "statement": "struct node { int v; struct node *next; }. list_free(h) frees the whole list, and list_remove_all(h, v) removes all nodes with the value v from the list and returns the new head. Right now both functions read the next field of a node that has already been freed. Fix them. Under AddressSanitizer.",
+   "hint": "Before free(node), save its next in a variable; when removing, first redirect the pointer, then free."
+  },
+  {
+   "id": "c11-fix-double-free",
+   "title": "Fix: double free on the error path",
+   "statement": "process(text, *result) parses a string of space-separated numbers (for example «1 2 3») and returns 0 on success (*result is a malloc'ed array of long, their count is in *count) or an error code (−1 out of memory is not modelled; −2 the text contains a non-number; −3 empty text); on error *result is not touched. On the error path the buffer is freed twice (in the error branch and in the common cleanup). Fix it so that each block is freed exactly once. Under AddressSanitizer.",
+   "hint": "Free only in the common cleanup block (done), and only once: remove free(buf) from the error branches."
+  },
+  {
+   "id": "c11-fix-leak",
+   "title": "Fix: leak on early exits",
+   "statement": "load_pair(text, *out) parses «name:value» into struct pair { char *name; int value; } (the name is copied into malloc'ed memory) and returns 0 on success, otherwise −1 (no colon), −2 (empty name), −3 (the value is not a number). On the error paths the allocated memory is lost. Fix it. pair_free(p) frees the fields. Under AddressSanitizer (LeakSanitizer catches leaks at exit).",
+   "hint": "Allocate memory after all the checks, then there is nothing to free on early exits. Or free on every exit."
+  },
+  {
+   "id": "c11-fix-uninit",
+   "title": "Fix: reading uninitialized variables",
+   "statement": "count_positive(a, n), mean(a, n) → double (0.0 for n = 0), first_negative(a, n) → the index of the first negative element or −1, and histogram(a, n, bins) fill in their result using local variables with no initial value. The driver \"dirties\" the stack beforehand, so the result is random. Initialize the variables (and the bins array with zeros) so that the result is always correct. histogram(a, n, bins[4]): bins[0] is the number of values < 0, bins[1] from 0 to 9, bins[2] from 10 to 99, bins[3] the rest (≥ 100).",
+   "hint": "int cnt = 0; double sum = 0; int idx = −1; and zero bins before accumulating."
+  },
+  {
+   "id": "c11-fix-return-local",
+   "title": "Fix: returning the address of a local variable",
+   "statement": "day_name(d) returns the name of a day of the week (0 — Mon … 6 — Sun, otherwise «???»), month_name(m) the name of a month (1 — Jan … 12 — Dec, otherwise «???»), make_range_label(lo, hi) → the string «lo..hi» (memory from malloc). Right now they return pointers to local arrays. Fix them: day_name and month_name return pointers to string constants, make_range_label returns a string on the heap (the caller frees it).",
+   "hint": "The names go in a static const array of pointers to strings (it lives for the whole program). Copy the label from the local buffer into malloc'ed memory."
+  },
+  {
+   "id": "c11-fix-midpoint",
+   "title": "Fix: overflow when computing the midpoint",
+   "statement": "midpoint(lo, hi) → the midpoint of the segment (lo + hi) / 2 rounded down toward lo (for lo ≤ hi, any int values, including INT_MIN and INT_MAX); first_true(lo, hi, pred) → the smallest x in [lo, hi) for which pred(x) ≠ 0, provided pred is monotonic (false first, then true), or hi if there is no true; avg_int(a, b) → the average of two ints rounded toward −∞. Right now the computations via (lo + hi) / 2 overflow and the program stops under UBSan.",
+   "hint": "Compute in a wider type (long long) or via lo + (hi − lo) / 2 with an unsigned difference. Rounding down for negative sums is a separate case."
+  },
+  {
+   "id": "c11-fix-shifts",
+   "title": "Fix: shifts on negative and large values",
+   "statement": "scale_pow2(x, k) → x · 2^k for k ≥ 0 and x / 2^|k| rounded toward −∞ for k < 0 (|k| < 31 is allowed; for k < −30 → 0 or −1 depending on the sign of x; for k > 30 with x ≠ 0 the result is not defined, so return INT_MAX or INT_MIN by sign; x = 0 → 0). get_bits(v, lo, n) → n bits starting at lo (n from 0 to 32, lo + n ≤ 32); set_bits(v, lo, n, val) → v with the field replaced. Right now the shifts are undefined (negative values, width 32, left shift of a negative number).",
+   "hint": "A shift by 32 is undefined: for n = 32 the mask is a separate case. Do not pass negative values to shifts — compute with multiplication/division in long long."
+  },
+  {
+   "id": "c11-fix-null-order",
+   "title": "Fix: checking a pointer after dereferencing it",
+   "statement": "struct str { const char *data; size_t len; }. str_len(s) → the length (NULL → 0), str_first(s) → the first character or 0 for an empty/NULL string, str_equal(a, b) → 1 for equal strings (two NULLs are equal, NULL equals the empty string), get_or(p, dflt) → *p or dflt for NULL. Right now the fields are read BEFORE the pointer is checked for NULL — the program stops under UBSan (and the optimizer is entitled to delete the check). Fix the order.",
+   "hint": "Any access to s->… only after checking s. For str_equal first compute the lengths taking NULL into account."
+  },
+  {
+   "id": "c11-fix-misaligned",
+   "title": "Fix: misaligned reads through pointer casts",
+   "statement": "read_u32(buf, off), read_u16(buf, off) and write_u32(buf, off, v) read and write numbers at an arbitrary place in a byte buffer (byte order as on the platform) by casting the pointer to uint32_t * — this violates alignment. Rewrite them with memcpy. checksum32(buf, n) is the sum of all uint32_t words in order from the byte buffer (the trailing incomplete bytes are ignored), also without pointer casts.",
+   "hint": "uint32_t v; memcpy(&v, buf + off, sizeof v); — the compiler will itself produce a safe read of the right width."
+  },
+  {
+   "id": "c11-fix-div-zero",
+   "title": "Fix: division by zero and INT_MIN / −1",
+   "statement": "safe_div(a, b, *out) → 0 and the quotient if the division is defined; otherwise −1 for b = 0 and −2 for INT_MIN / −1 (*out is not changed). safe_mod(a, b, *out) is the same for the remainder (INT_MIN % −1 is also UB in C). percent(part, total) → an integer percentage rounded to the nearest (half rounds up), or −1 if total = 0; average(a, n) → the mean of an array (rounding toward zero), 0 for n = 0. Right now the functions divide without checking.",
+   "hint": "Check the divisor and the INT_MIN / −1 case before dividing; in percent use long long for part · 100."
+  },
+  {
+   "id": "c11-fix-array-index",
+   "title": "Fix: index beyond a static array",
+   "statement": "For the table static int table[8] = {2, 3, 5, 7, 11, 13, 17, 19}: lookup(i) → table[i] or −1 if the index is outside 0…7; update(i, v) → 0 on success or −1 (bad index); prime_at(n) → the n-th prime (counting from 1) from the table or −1; next_slot(cur) → (cur + 1) cyclically (after 7 comes 0, for an invalid cur → −1). Right now the check allows i == 8 (≤) and negative indices.",
+   "hint": "Valid indices: 0 ≤ i ≤ 7 (that is, i < 8). For prime_at the index is n − 1."
+  },
+  {
+   "id": "c11-fix-stack-overflow",
+   "title": "Fix: stack buffer overflow",
+   "statement": "format_id(id, out, cap) writes into out the string «ID-» followed by a number with at least four digits and leading zeros (like «ID-%04d»), returning the length of the full result, as snprintf does; hexify(bytes, n, out, cap) → lowercase hexadecimal pairs «aabbcc…»: pairs are never split — as many whole pairs as fit together with the terminating zero are written (nothing is written when cap = 0); fill_pattern(out, n) → writes n characters cycling through «abc…» and a terminating zero (out is sized for n + 1 bytes). Right now the functions build the result in a fixed-size local buffer without checks — long data causes a stack-buffer-overflow. Fix it.",
+   "hint": "Write straight into out respecting cap (snprintf), with no fixed-size intermediate buffers. In hexify watch the remainder cap − k."
+  },
+  {
+   "id": "c11-fix-realloc-dangling",
+   "title": "Fix: pointer to an element after realloc",
+   "statement": "struct vec { int *data; size_t len, cap; }. vec_push_get(v, x) appends x and returns a pointer to the appended element; vec_first_after_push(v, x) → the value of the first element of the vector after appending x (it must be read after a possible reallocation); vec_extend(v, other) appends all the elements of other (which may be the same vector: v.extend(v) doubles the contents). Right now the pointers are taken before realloc and used after it — use-after-free. Fix it.",
+   "hint": "Take addresses inside the buffer after grow(); for v.extend(v) copy the element count and the value before the buffer grows."
+  },
+  {
+   "id": "c11-fix-memcpy-overlap",
+   "title": "Fix: memcpy on overlapping regions",
+   "statement": "erase_range(s, from, n) removes n characters starting at from (the tail shifts left, the string gets shorter); insert_gap(s, at, n, cap) inserts n spaces at position at (the tail shifts right; everything must fit in cap, otherwise −1 and the string is unchanged); rotate_left(s, k) rotates the string left by k cyclically (k may be larger than the length). They use memcpy on overlapping regions — UB (ASan catches memcpy-param-overlap). Fix it.",
+   "hint": "memmove is for regions that may overlap (a shift inside one array); memcpy only for non-overlapping ones."
+  },
+  {
+   "id": "c11-fix-string-literal",
+   "title": "Fix: modifying a string literal",
+   "statement": "make_greeting() returns the string «hello, world», which the caller then modifies (capitalizes the first letter and appends «!» by replacing the period); title_case(s) uppercases the first letters of words in place; default_name() → the default string «anonymous», which the caller may edit. Right now the functions return pointers to string literals — writing to them crashes. Fix it: return a new copy on the heap (the caller frees it).",
+   "hint": "A string literal must not be modified. Allocate memory with malloc(strlen + 1) and copy the text; the caller will free the block."
+  },
+  {
+   "id": "c11-fix-promotion",
+   "title": "Fix: integer promotion causes signed overflow",
+   "statement": "mul16(a, b) → a · b as uint32_t for 16-bit a, b; shl16(a) → a << 16 as uint32_t; pack32(a, b, c, d) → (a << 24) | (b << 16) | (c << 8) | d for bytes; sq16(x) → x · x (uint32_t); neg8(x) → the complement (uint8_t)(−x). Operands smaller than int are promoted to signed int, so 65535 · 65535 and 0xFF << 24 overflow int — undefined behavior (UBSan stops the program). Fix it by casting the operands to uint32_t before the operation.",
+   "hint": "(uint32_t)a * b: once one operand is cast, the other becomes uint32_t too; cast bytes and 16-bit values to uint32_t before shifting."
+  },
+  {
+   "id": "c11-fix-vla",
+   "title": "Fix: variable length array with a wrong length",
+   "statement": "sum_prefix(a, n, k) → the sum of the first k elements; reverse_copy(a, n, out) copies an array in reverse order through a temporary VLA; max_window(a, n, w) → the largest sum of a window of w consecutive elements (or −1 if w < 1 or w > n). Right now the VLA is created with a length ≤ 0 or too large (the stack!). Fix it: check the lengths, and do not use a VLA for potentially large data (use malloc).",
+   "hint": "A VLA length must be positive and small. For large n use malloc/free. For the window: a sliding sum without an array of sums."
+  },
+  {
+   "id": "c11-fix-eval-order",
+   "title": "Fix: several modifications of one variable in an expression",
+   "statement": "fill_index(a, n) must write a[i] = i for i = 0…n−1; pair_sum(p) → the sum of *p (after which *p is increased by 1) and *p again (after which *p is increased by 1): for *p = 5 → 5 + 6 = 11, final *p = 7; make_code(counter) → (the first counter value) · 100 + (the second counter value), increasing the counter each time: for *counter = 3 → 3 · 100 + 4 = 304, final *counter = 5; next_two(it, out) → writes the next two counter values of it into out[0] and out[1] (the 1st, then the 2nd). Right now a variable is modified several times in one expression without sequencing — the result is undefined. Split the expressions into separate statements.",
+   "hint": "Each modification of a variable is a separate statement with a temporary variable: int first = (*p)++; int second = (*p)++; return first + second;"
+  },
+  {
+   "id": "c11-checked-vector",
+   "title": "A vector with bounds checking and a violation handler",
+   "statement": "struct cvec { int *data; size_t len, cap; void (*on_violation)(const char *what, size_t index, size_t len); size_t violations; }. cvec_init(v, handler) (handler may be NULL); cvec_push(v, x) → 0/−1; cvec_get(v, i, *out) → 0, or −1 if i ≥ len (the handler is called with «get», the index and the length, violations grows by 1, *out is not changed); cvec_set(v, i, x) is the same with «set»; cvec_remove(v, i) removes an element and shifts the tail, the violation is «remove»; cvec_pop(v, *out) → 0 or −1 («pop», index = 0). cvec_free(v). Under AddressSanitizer.",
+   "hint": "A single violate() function increments the counter, calls the handler (if set) and returns −1. Check i >= len before any access to data."
+  },
+  {
+   "id": "c11-alloc-tracker",
+   "title": "Your own \"LeakSanitizer\": tracking memory allocations",
+   "statement": "tmalloc(n), tcalloc(k, size), trealloc(p, n), tfree(p) are wrappers over malloc/calloc/realloc/free that keep track of blocks (up to 64 simultaneously live history records). tfree → 0 on success, −1 for a double free (the block was freed earlier), −2 for a pointer not from this tracking; tfree(NULL) → 0. t_live_blocks(), t_live_bytes(), t_total_allocs() (the number of successful allocations over all time; realloc counts as a new allocation), t_peak_bytes() — the maximum number of bytes in use at once. t_report(buf, cap) → for every live block a line of the form «leak #<allocation number>: <n> bytes», in allocation order (one line per block, with \\\\n), and returns the length. t_reset() frees all live blocks and zeroes the statistics. Under AddressSanitizer.",
+   "hint": "A log of {ptr, size, id, live} structures. tfree looks up the record: none — −2, no longer live — −1, otherwise frees it. realloc: allocate a new block, copy, free the old one and record it as a new allocation."
+  },
+  {
+   "id": "c11-redzones",
+   "title": "Your own AddressSanitizer: red zones around blocks",
+   "statement": "gmalloc(n) allocates a block and returns a pointer to the n user bytes; before and after them are red zones of 8 bytes each, filled with 0xAB; the user part is filled with 0xCD. gcheck(p) → 0 — the zones are intact, 1 — the front one is corrupted, 2 — the back one, 3 — both. gfree(p) → the same as gcheck, and frees the block; gsize(p) → n; gfree(NULL) → 0. After freeing, access is not checked. Under AddressSanitizer (your own code must not go out of bounds).",
+   "hint": "Allocate raw = malloc(header + 8 + n + 8) and lay it out: size, zone, data, zone. Read the size with memcpy from below the user pointer minus the zone."
+  },
+  {
+   "id": "c11-poison-pool",
+   "title": "A pool that poisons freed blocks",
+   "statement": "A pool of 8 blocks of 32 bytes in a static array. pool_alloc() → a pointer to a block (all 32 bytes zeroed) or NULL if the pool is empty; pool_free(p) → 0 on success, −1 if the block is already free (double free), −2 for a pointer not from the pool (including one not on a block boundary); a freed block is filled with 0xDD. pool_is_poisoned(p) → 1 if all 32 bytes of the block equal 0xDD and the block is free. pool_live() is the number of occupied blocks; pool_index(p) → the block number 0…7 or −1. Blocks are handed out in increasing order of number (the first free one).",
+   "hint": "The occupancy state is an array of flags; the block number is (address − start) / 32, and only on an exact boundary match. On free — memset(…, 0xDD, 32)."
+  },
+  {
+   "id": "c11-assert-lib",
+   "title": "A checks library: ASSERT, REQUIRE, UNREACHABLE",
+   "statement": "Write counters and macros that do not stop the program: ASSERT(cond) — on a violation increments chk_failed and saves the text of the condition in chk_last (a 64-byte buffer, truncated); REQUIRE(cond, retval) — on a violation does the same and returns retval from the function; ASSERT_EQ(a, b) — an equality check (long long values), chk_last gets «a == b (X != Y)»; IN_RANGE_ASSERT(x, lo, hi) — checks lo ≤ x ≤ hi; UNREACHABLE() — increments chk_unreachable and saves «unreachable»; chk_reset() resets everything; chk_passed counts successful checks. Each expression is evaluated once.",
+   "hint": "Each macro is do { … } while (0). In ASSERT_EQ and IN_RANGE_ASSERT store the values in temporary long long variables: an argument is evaluated once."
+  },
+  {
+   "id": "c11-canary-model",
+   "title": "A stack protection model: the canary",
+   "statement": "A frame is modelled by an array uint8_t frame[32]: the buffer is bytes 0…15, the canary is bytes 16…19 (a little-endian uint32), the \"saved return address\" is bytes 20…27, the rest (28…31) is other data. frame_init(frame, canary, ret) fills the frame: the buffer with zeros, the canary and the return address (uint64) in little-endian, the rest with 0xEE. frame_write(frame, off, data, n) → writes the data from position off with no check inside the frame (like an unsafe strcpy), but does not go beyond 32 bytes (the excess is dropped), and returns the number of bytes written. frame_check(frame, canary) → 0 — everything intact; 1 — the canary is corrupted; 2 — the canary is intact but the return address is corrupted; 3 — both are corrupted. frame_safe_write(frame, data, n) → writes at most 16 bytes into the buffer and returns the number written.",
+   "hint": "The canary is 4 little-endian bytes at offset 16; the return address is 8 bytes at offset 20. frame_write is a memcpy limited by the 32-byte boundary."
+  },
+  {
+   "id": "c11-ddmin",
+   "title": "Minimizing a failing input (delta debugging)",
+   "statement": "minimize(buf, n, fails) → the new length: buf keeps the smallest subsequence of the original bytes on which fails(buf, len) still returns a non-zero value (initially fails(buf, n) ≠ 0). The algorithm: as long as anything can be removed — for chunk sizes from n/2 down to 1 try removing one chunk at a time (left to right) and keep the removal if the failure persists. The result must be 1-minimal: removing any single byte makes the failure unreproducible. calls_made() → how many times fails was called over all time (minimize keeps the counter itself); reset_calls().",
+   "hint": "For each chunk size try removing chunks left to right; after a successful removal do not advance start (the next chunk has taken its place). Repeat passes while something is being removed."
+  },
+  {
+   "id": "c11-bisect",
+   "title": "Binary search for the first bad version",
+   "statement": "first_bad(lo, hi, is_bad, *tests) → the smallest version v in [lo, hi] for which is_bad(v) ≠ 0, assuming the versions go \"good, … good, bad, … bad\" (monotonic); if is_bad(hi) == 0 the result is −1. *tests is the number of calls to is_bad; there must be no more than ⌈log₂(hi − lo + 1)⌉ + 1 of them. Versions are ints in any range (including close to INT_MAX); is_bad is called only for versions in [lo, hi]. culprit(commits, n, is_bad_commit) is the same over an array of commits (names) and a function that takes a name: → the index of the first bad one or −1.",
+   "hint": "mid = lo + (hi − lo) / 2 (in long long, so as not to overflow). First check hi: if it is \"good\", there are no bad ones."
+  },
+  {
+   "id": "c11-hexdiff",
+   "title": "Comparing buffers: the first difference and a report",
+   "statement": "first_diff(a, b, n) → the offset of the first differing byte or −1. diff_count(a, b, n) → the number of differing bytes. diff_report(a, b, n, out, cap) → writes a report: for each difference (at most 5) a line «@<offset>: 0x<A> '<c>' != 0x<B> '<c>'» (bytes as two lowercase hexadecimal digits, the character itself if ASCII 32…126, otherwise «.»; the offset in decimal), then a summary line «N differences» (or «identical» when they match; if there are more than five differences, a line «… and K more» before the summary). All lines end with \\\\n. Returns the length of the report or −1 if it does not fit.",
+   "hint": "Report order: up to five difference lines, then (if there are more than five) «… and K more», then the summary. Check the size of the result before each write."
+  },
+  {
+   "id": "c11-trace-ring",
+   "title": "The \"black box\": a ring log of events",
+   "statement": "A ring of 8 records of 31 characters each. trace(fmt, …) adds a record (printf formatting, truncated to 31 characters) with a monotonic number 1, 2, 3…; when full, the oldest one is overwritten. trace_count() → the number of records in the ring (≤ 8), trace_total() → how many records have been added in total, trace_dump(out, cap) → lines «#<number> <text>\\\\n» from oldest to newest (the length of the result, or −1 if there is not enough room; for cap = 0 → −1), trace_last(k, out) → the k-th record from the end (0 is the last) → 1 and the text in out (≥ 32 bytes), or 0 if there is none. trace_clear() clears the ring (the number counter is not reset).",
+   "hint": "Record number k is stored in cell (k − 1) % 8; when dumping, go from the oldest remaining one (total − count + 1) to the last."
+  }
+ ]
+}

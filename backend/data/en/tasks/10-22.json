@@ -1,0 +1,193 @@
+{
+ "book": 10,
+ "chapter": 22,
+ "tasks": [
+  {
+   "id": "r22-fix-visibility",
+   "title": "Fix it: a private function of a module",
+   "statement": "In the module bank the functions new_account and deposit are not marked pub, and the code outside the module does not build (E0603). Open to the outside exactly what the driver needs: new_account and deposit. Leave the field balance private: the balance can be read only through audit.",
+   "hint": "The word pub before fn: new_account and deposit become visible from outside the module."
+  },
+  {
+   "id": "r22-fix-field",
+   "title": "Private fields: constructor and getters",
+   "statement": "The fields of Rect are private, so from outside the struct can be neither built nor read. Write new(w, h) → Result<Rect, String> (the sides must be > 0, otherwise the error «сторона должна быть положительной»), width(), height(), area() and scale(&self, k: u32) → Rect.",
+   "hint": "The constructor is the only way to get a Rect from outside; so inside it you can guarantee w > 0 and h > 0."
+  },
+  {
+   "id": "r22-fix-use-trait",
+   "title": "Fix it: the trait is not in scope",
+   "statement": "The trait Shout is implemented for str in the module text, but the method shout() cannot be called in the function loud: the trait name is not imported (E0599). Fix it with a single use line.",
+   "hint": "Trait methods are available only if the trait itself is imported: use text::Shout;"
+  },
+  {
+   "id": "r22-reexport",
+   "title": "pub use: a flat public interface",
+   "statement": "The types Circle and Rect lie deep: shapes::circle::Circle and shapes::rect::Rect, and the trait Shape is in shapes::Shape. Make Circle, Rect and Shape available from the crate root (pub use), and also a module prelude with the same three names.",
+   "hint": "In the root: pub use shapes::circle::Circle; and so on; prelude is a module with pub use crate::{…}.",
+   "starter": "mod shapes {\n    pub trait Shape {\n        fn area(&self) -> f64;\n    }\n\n    pub mod circle {\n        pub struct Circle(pub f64);\n        impl super::Shape for Circle {\n            fn area(&self) -> f64 {\n                3.0 * self.0 * self.0\n            }\n        }\n    }\n\n    pub mod rect {\n        pub struct Rect(pub f64, pub f64);\n        impl super::Shape for Rect {\n            fn area(&self) -> f64 {\n                self.0 * self.1\n            }\n        }\n    }\n}\n\n// pub use and mod prelude\n"
+  },
+  {
+   "id": "r22-paths-super",
+   "title": "Paths: crate, self, super",
+   "statement": "Three nested modules. util::double(x) → x * 2. engine::run(x) → util::double(x) + 1 (a path from the root). engine::fast::run(x) → engine::run(x) through super, and fast::twice(x) → self::step(x) * 2. Implement the functions using exactly these paths: crate::, super::, self::.",
+   "hint": "Three different path beginnings: crate::util::double, super::run, self::step — once each."
+  },
+  {
+   "id": "r22-fmt-write",
+   "title": "use std::fmt::Write for String",
+   "statement": "render_table(rows: &[(&str, i32)]) → String: lines of the form name<padded with spaces to 8>|<number right-aligned to width 5> with a newline; at the end a line «итого» with the sum. Build the result with writeln! directly into the String (for this you need to import the trait std::fmt::Write).",
+   "hint": "writeln!(out, \"...\") is available on String only if use std::fmt::Write is imported; the result needs unwrap() or ?."
+  },
+  {
+   "id": "r22-invariant-ctor",
+   "title": "An invariant in the constructor: Kelvin",
+   "statement": "In the module temp the type Kelvin(f64) with a private field. new(k) → Result<Kelvin, String> (the error «ниже абсолютного нуля: K»), from_celsius(c) → Result, kelvin(), celsius(), add(&self, delta: f64) → Result<Kelvin, String> (the sum must not go below zero). From outside it is impossible to get a value below zero.",
+   "hint": "Every way to create a value goes through new: that is where the check k >= 0 lives."
+  },
+  {
+   "id": "r22-builder",
+   "title": "A builder with validation in build()",
+   "statement": "Config { host, port, tls, timeout_ms }. ConfigBuilder::new(host) with defaults (port 80, tls false, timeout 1000); the methods port(self, p), tls(self, on), timeout_ms(self, t) return Self; build(self) → Result<Config, String>: errors «пустой хост», «порт 0», «таймаут больше 60000»; if tls = true and the port is 80, the port automatically becomes 443.",
+   "hint": "The setting methods return self, and all checks are gathered in build."
+  },
+  {
+   "id": "r22-default-config",
+   "title": "Default and struct update",
+   "statement": "Config { name, retries, verbose, ratio, tags }. Implement Default by hand: name \"app\", retries 3, verbose false, ratio 0.5, tags empty. overridden(base, retries: Option<u32>, verbose: Option<bool>) → Config — put the given values on top of base (None — keep as it was).",
+   "hint": "Config { retries: …, verbose: …, ..base } — the other fields are taken from base (including the string and the vector — they move)."
+  },
+  {
+   "id": "r22-fromstr-version",
+   "title": "Version: parsing, ordering, output",
+   "statement": "Version { major, minor, patch } (u32). Implement FromStr for \"1.2.3\" (exactly three numbers, otherwise Err with the word «формат»; a non-number → Err «число: <часть>», with the offending part), Display \"1.2.3\" and ordering (derive Ord over the fields major, minor, patch). Then sort() and max() work.",
+   "hint": "split('.') and a length check; parse the numbers in a closure with map_err and the ? operator.",
+   "starter": "use std::fmt;\nuse std::str::FromStr;\n\n#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]\nstruct Version {\n    major: u32,\n    minor: u32,\n    patch: u32,\n}\n\n// impl FromStr and Display\n"
+  },
+  {
+   "id": "r22-semver-req",
+   "title": "Version requirements: ^, ~, =, >=",
+   "statement": "Req::parse(s) → Option<Req> and matches(&self, v: &Version) → bool. \"^1.2.3\": ≥1.2.3 and <2.0.0 (for 0.x: \"^0.2.3\" — <0.3.0, \"^0.0.3\" — only 0.0.3); \"~1.2.3\": ≥1.2.3 and <1.3.0; \"=1.2.3\" — exactly; \">=1.2.3\"; \"*\" — any. Version and version parsing are already done.",
+   "hint": "For the caret there are three cases: major > 0 — major matches; otherwise minor > 0 — 0 and minor match; otherwise — only the exact version."
+  },
+  {
+   "id": "r22-semver-bump",
+   "title": "Bumping a version and compatibility",
+   "statement": "bump(v: Version, kind: &str) → Option<Version>: \"major\" (minor and patch → 0), \"minor\" (patch → 0), \"patch\"; any other word — None. breaking(old, new) → bool: true if major grew, or major = 0 and minor grew. sort_desc(Vec<Version>) → Vec<Version> — from newest to oldest.",
+   "hint": "The struct update Version { patch: …, ..v } changes only the listed fields."
+  },
+  {
+   "id": "r22-cargo-toml-parse",
+   "title": "Parsing Cargo.toml",
+   "statement": "parse_manifest(text) → Result<Manifest, String>. Manifest { name, version, deps: BTreeMap<String, String> }. Sections [package] (name, version — in quotes) and [dependencies] (name = \"version\" or name = { version = \"version\", … }). Skip \"#\" comments and empty lines; ignore other sections. A missing name or version → Err(\"нет name\") / Err(\"нет version\").",
+   "hint": "Remember the current section in a variable; get a quoted value with strip_prefix('\"') and strip_suffix('\"')."
+  },
+  {
+   "id": "r22-dep-graph",
+   "title": "Crate build order",
+   "statement": "build_order(deps: &[(&str, &[&str])]) → Result<Vec<String>, String>: each pair is a crate and its dependencies. Dependencies are built first; among the crates ready to build take them alphabetically. A dependency that is not in the list is considered external and is ignored. A cycle → Err(\"цикл: a b c\") with the remaining crates in alphabetical order.",
+   "hint": "BTreeMap keys go alphabetically — the first crate with no remaining dependencies is the next one."
+  },
+  {
+   "id": "r22-features-closure",
+   "title": "Features: the closure of enabled ones",
+   "statement": "resolve(features: &[(&str, &[&str])], requested: &[&str]) → Result<Vec<String>, String>. Each feature enables others. The result is all enabled features alphabetically (including nested ones); \"default\" is always enabled if it is described. An unknown name in requested or in a dependency → Err(\"нет feature X\").",
+   "hint": "Traverse with a stack and a set of already enabled ones; on an unknown name return the error at once."
+  },
+  {
+   "id": "r22-lockfile-diff",
+   "title": "Comparing Cargo.lock",
+   "statement": "diff(old, new: &[(&str, &str)]) → Vec<String> — pairs (crate, version). In alphabetical order of crates: \"+ name version\" — appeared; \"- name version\" — disappeared; \"~ name old -> new\" — the version changed. Do not output unchanged ones.",
+   "hint": "Merge the names of both lists into a BTreeSet — you get alphabetical order; then match on the pair of Options."
+  },
+  {
+   "id": "r22-cfg-info",
+   "title": "cfg!: what is known at build time",
+   "statement": "build_info() → String of the form \"mode=<debug|release> os=<linux|other> ptr=<32|64> endian=<little|big> unix=<yes|no>\". Use the cfg! macro (debug_assertions, target_os = \"linux\", target_pointer_width, target_endian, unix). The check is built with optimization.",
+   "hint": "cfg!(condition) is an ordinary boolean expression evaluated at build time; pairs like target_os = \"linux\"."
+  },
+  {
+   "id": "r22-atomic-oncelock",
+   "title": "Global state: AtomicUsize and OnceLock",
+   "statement": "static NEXT: AtomicUsize — next_id() hands out 1, 2, 3, … (fetch_add), reset_ids() zeroes it, peek_id() shows the next one without handing it out. static NAME: OnceLock<String> — init_name(s) → bool: true if this is the first initialization; name() → Option<&'static str>.",
+   "hint": "fetch_add returns the previous value; OnceLock::set returns Err if the value is already set."
+  },
+  {
+   "id": "r22-const-fn",
+   "title": "const fn: tables at build time",
+   "statement": "const fn fact(n: u32) → u64 (a while loop inside const fn is allowed). const FACTS: [u64; 11] — the factorials 0..=10, filled at build time through a const block. const fn gcd(a, b) → u64 (Euclid). const fn is_pow2(x: u32) → bool. The table and the functions are evaluated by the compiler.",
+   "hint": "In const fn there is no for or closures — only while, let mut and arithmetic; a const block fills the table."
+  },
+  {
+   "id": "r22-doc-extractor",
+   "title": "Mini rustdoc: extract documentation",
+   "statement": "extract_docs(src: &str) → Vec<(String, String)>: for each function (fn name(… or pub fn name(…) collect the text of the \"///\" lines before it (without \"///\" and the space after it, joined with a space). Skip functions without documentation. Keep the order of the source.",
+   "hint": "Accumulate /// lines in a vector; on a line with fn — save and clear; an attribute #[...] between the documentation and the function does not reset it."
+  },
+  {
+   "id": "r22-mini-test-runner",
+   "title": "A mini test runner",
+   "statement": "type TestFn = fn() → Result<(), String>. run_tests(tests: &[(&str, TestFn)]) → (usize, usize, Vec<String>): the number passed, the number failed, and report lines \"test <name> ... ok\" / \"test <name> ... FAILED: <message>\". A panic inside a test is also a failure: \"FAILED: panicked\" (catch it with std::panic::catch_unwind). The runner itself must not crash.",
+   "hint": "catch_unwind(*t) returns Result<Result<(), String>, Box<dyn Any + Send>>: three cases — ok, Err and panic."
+  },
+  {
+   "id": "r22-assert-helpers",
+   "title": "Your own checks that return Result",
+   "statement": "check_eq<T: PartialEq + Debug>(left, right) → Result<(), String> \"left: <l:?>, right: <r:?>\" when not equal. check_close(a, b, eps) → Result<(), String> \"|a-b| = <d> > <eps>\". check_sorted<T: PartialOrd + Debug>(v) → Result<(), String> «не отсортировано на позиции <i>: <a:?> > <b:?>» (the index of the first violating pair). All checks are functions and do not panic.",
+   "hint": "Build the message with format! and {:?}; windows(2) gives the index of the first violation."
+  },
+  {
+   "id": "r22-write-tests-abs",
+   "title": "Write tests: abs and its mutants",
+   "statement": "You need to write failures_abs(f: &dyn Fn(i32) → i32) → usize — a set of checks for the absolute value function: return the number of failed checks. The driver runs your set on a correct implementation (it must give 0 failures) and on five broken ones — each must be caught by at least one failure.",
+   "hint": "Check zero, plus and minus one, ordinary numbers of both signs and very large ones in absolute value — each mutant breaks at its own boundary.",
+   "starter": "fn failures_abs(f: &dyn Fn(i32) -> i32) -> usize {\n    let mut fails = 0;\n    // add checks: if f(input) != expected { fails += 1; }\n    fails\n}\n"
+  },
+  {
+   "id": "r22-write-tests-leap",
+   "title": "Write tests: leap year",
+   "statement": "failures_leap(f: &dyn Fn(i32) → bool) → usize — checks for is_leap_year. The correct implementation: divisible by 4, except multiples of 100, except multiples of 400. The driver checks that the correct implementation gives 0 failures and that all four mutants are caught.",
+   "hint": "You need years of different kinds: an ordinary leap year, an ordinary non-leap year, a multiple of 100, a multiple of 400 and a multiple of 200 but not 400.",
+   "starter": "fn failures_leap(f: &dyn Fn(i32) -> bool) -> usize {\n    let mut fails = 0;\n    // if f(year) != expected { fails += 1; }\n    fails\n}\n"
+  },
+  {
+   "id": "r22-write-tests-clamp",
+   "title": "Write tests: clamp(x, lo, hi)",
+   "statement": "failures_clamp(f: &dyn Fn(i32, i32, i32) → i32) → usize — checks for clamp(x, lo, hi) = x clipped to [lo, hi] (assume lo ≤ hi). The correct implementation gives 0 failures; the four mutants must be caught.",
+   "hint": "Check inside the range, exactly on both boundaries, beyond each boundary, the degenerate range lo = hi and negative boundaries.",
+   "starter": "fn failures_clamp(f: &dyn Fn(i32, i32, i32) -> i32) -> usize {\n    let mut fails = 0;\n    // if f(x, lo, hi) != expected { fails += 1; }\n    fails\n}\n"
+  },
+  {
+   "id": "r22-write-tests-stack",
+   "title": "Write tests: stack implementations",
+   "statement": "The trait StackLike: new() → Self, push(&mut self, i32), pop(&mut self) → Option<i32>, peek(&self) → Option<i32>, len(&self) → usize. Write failures<S: StackLike>() → usize: checks for any implementation. The driver supplies a correct stack and three broken ones (a queue instead of a stack; pop does not decrease the length; peek removes the element) — all must be caught.",
+   "hint": "Check LIFO order on several elements, the length after each operation, an empty stack, and that peek removes nothing.",
+   "starter": "trait StackLike {\n    fn new() -> Self;\n    fn push(&mut self, x: i32);\n    fn pop(&mut self) -> Option<i32>;\n    fn peek(&self) -> Option<i32>;\n    fn len(&self) -> usize;\n}\n\nfn failures<S: StackLike>() -> usize {\n    let mut fails = 0;\n    // let mut s = S::new(); ... if condition_violated { fails += 1; }\n    fails\n}\n"
+  },
+  {
+   "id": "r22-parse-duration",
+   "title": "Parsing \"1h30m15s\": a table of cases",
+   "statement": "parse_duration(s) → Option<u64> — seconds: the units h (3600), m (60), s (1), each at most once and in the order h, m, s; the number is unsigned and non-empty. \"90s\" → 90, \"1h30m15s\" → 5415, \"2h\" → 7200. An empty string, a number without a unit, an unknown unit, a repeat or a wrong order → None.",
+   "hint": "Accumulate digits in a string; on meeting a letter, turn the accumulated number into seconds and check the order of units."
+  },
+  {
+   "id": "r22-error-api",
+   "title": "Library errors: enum, Display, Error, From",
+   "statement": "ConfigError: Missing(String) — a missing key, BadNumber { key: String, source: ParseIntError }. Implement Display («нет ключа X» / «ключ X: неверное число») and std::error::Error with the method source (for BadNumber — the cause, for Missing — None). load(text) → Result<Settings, ConfigError>: lines key=value; port and workers are required (numbers u16 and u8).",
+   "hint": "source() returns Some(source) as &dyn Error; for u16 and u8 the numbers 70000 and 256 are already a parse error.",
+   "starter": "use std::error::Error;\nuse std::fmt;\nuse std::num::ParseIntError;\n\n#[derive(Debug)]\nenum ConfigError {\n    Missing(String),\n    BadNumber { key: String, source: ParseIntError },\n}\n\n#[derive(Debug, PartialEq)]\nstruct Settings {\n    port: u16,\n    workers: u8,\n}\n\n// impl Display and Error for ConfigError\n\nfn load(text: &str) -> Result<Settings, ConfigError> {\n    todo!()\n}\n"
+  },
+  {
+   "id": "r22-module-tree",
+   "title": "A module tree from paths",
+   "statement": "render_tree(paths: &[&str]) → String: paths like \"net::tcp::connect\" are assembled into a tree; each level is on a separate line indented by two spaces per depth, children alphabetically, duplicates merged. An empty list gives an empty string.",
+   "hint": "The tree is nested BTreeMaps (or a node with a BTreeMap of children); entry(...).or_default() creates the missing levels."
+  },
+  {
+   "id": "r22-public-surface",
+   "title": "The public surface: what is visible outside",
+   "statement": "An item is described by a path and the visibility of each segment: Item { path: &str (separated by ::), vis: Vec<Vis> } with Vis ∈ {Private, Crate, Pub} (the lengths are equal). surface(items) → (Vec<String>, Vec<String>): the first is items visible to other crates (all segments Pub), the second is visible only inside the crate (no Private, but at least one Crate). Both lists alphabetical.",
+   "hint": "An item is visible from outside only if all segments of the path are open: one private parent is enough to hide a descendant."
+  }
+ ]
+}

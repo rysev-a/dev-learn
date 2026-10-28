@@ -1,0 +1,72 @@
+{
+ "book": 8,
+ "chapter": 8,
+ "tasks": [
+  {
+   "id": "u8-mutex-counter",
+   "title": "A mutex protects a shared counter",
+   "statement": "run_counter(int threads, int iters) → the final value of a shared counter: start threads threads (pthread_create), each increments a shared variable iters times; access is protected by a pthread_mutex_t. Without the lock the result would be less than threads · iters. Wait for all threads (pthread_join). Return the counter value (−1 if a thread could not be created).",
+   "hint": "The critical section is between lock and unlock; the pthread_mutex_t itself must be shared by all threads (a global variable)."
+  },
+  {
+   "id": "u8-atomics",
+   "title": "Atomic operations without a lock",
+   "statement": "run_atomic(int threads, int iters) → the result of an atomic counter (stdatomic: atomic_fetch_add). run_max(int threads, const int *values, int n) → the maximum of the values: the threads split the array evenly and update a shared maximum atomically in an atomic_compare_exchange_weak loop (no mutex). The result is deterministic.",
+   "hint": "In the CAS loop, on failure atomic_compare_exchange_weak writes the current value into cur: compare again and retry."
+  },
+  {
+   "id": "u8-spinlock",
+   "title": "A spinlock on atomic_flag",
+   "statement": "struct spin { atomic_flag f; }. spin_init(s), spin_lock(s) — spin in a loop on atomic_flag_test_and_set_explicit(…, memory_order_acquire), spin_unlock(s) — atomic_flag_clear_explicit(…, memory_order_release), spin_trylock(s) → 1/0. The lock protects a shared counter in the driver, and the total must match the number of increments.",
+   "hint": "test_and_set returns the previous value of the flag: while it was set, the lock is taken and we keep spinning; success is when it returned 0."
+  },
+  {
+   "id": "u8-ticket-lock",
+   "title": "Ticket lock: a fair queue",
+   "statement": "struct ticket { atomic_uint next, owner; }. tk_init, tk_lock (take a ticket with atomic_fetch_add(&next, 1) and wait until owner == ticket), tk_unlock (owner++). The lock grants access strictly in the order the tickets were taken. tk_waiters(s) → the number of waiters (next − owner − 1 if the lock is held, otherwise 0). The driver checks mutual exclusion and the order.",
+   "hint": "Each thread gets a unique number next++ and waits until owner reaches it; unlock increments owner, and the next one in line enters."
+  },
+  {
+   "id": "u8-bounded-queue",
+   "title": "Bounded queue: a mutex and condition variables",
+   "statement": "struct bq { int buf[8]; int head, tail, count; pthread_mutex_t m; pthread_cond_t not_empty, not_full; int closed; }. bq_init, bq_push(q, x) (waits while there is no room; −1 after close), bq_pop(q, *out) → 1 / 0 (queue closed and empty; waits for data), bq_close(q) — wakes everyone. Every wait is in a while loop on the condition (protection against spurious wakeups). The driver runs two producers and two consumers, and the sums match.",
+   "hint": "Check the wait condition in a while loop under the mutex; after close, an empty queue does not block but returns 0."
+  },
+  {
+   "id": "u8-semaphore",
+   "title": "A semaphore limits parallelism",
+   "statement": "run_limited(int tasks, int limit) → the maximum number of tasks that were inside the critical section at the same time: tasks threads, each calls sem_wait on a semaphore with initial value limit before entering, pauses 2 ms inside, and calls sem_post on exit; keep an \"inside\" counter atomically and remember its maximum. The result must not exceed limit (and must reach limit when tasks ≥ limit).",
+   "hint": "sem_wait decrements the semaphore value (blocking at zero), sem_post increments it; the maximum of the \"inside\" count is bounded by the initial value."
+  },
+  {
+   "id": "u8-deadlock",
+   "title": "Deadlock and locking order",
+   "statement": "struct acct { pthread_mutex_t m; long balance; }. transfer(from, to, amount): take the two locks in order of ADDRESSES (the lower address first), so that opposing transfers cannot deadlock; move amount if there is enough money (otherwise return −1), and unlock both; the same account — return −2 (do not lock twice). The driver runs opposing transfers from many threads; the total is preserved and the program finishes.",
+   "hint": "If one thread takes A then B and another takes B then A, they block each other; a single locking order (by address) rules out a wait cycle."
+  },
+  {
+   "id": "u8-rwlock",
+   "title": "Readers and a writer: pthread_rwlock",
+   "statement": "struct table { pthread_rwlock_t lock; int a, b; } holds a pair of numbers with the invariant a + b = 100. update(t, delta) — the writer, under wrlock: a += delta, b −= delta. read_sum(t) → a + b under rdlock (must always be 100). The driver starts one writer and several readers and counts invariant violations; your implementation must protect the pair so that readers never see a \"half-written\" state. Also snapshot(t, *a, *b) — a consistent pair under rdlock.",
+   "hint": "The writer takes wrlock for the whole time it changes both variables, the reader takes rdlock for the whole read; then the inserted sched_yield() cannot expose an intermediate state."
+  },
+  {
+   "id": "u8-barrier",
+   "title": "A barrier on a mutex and a condition variable",
+   "statement": "Implement a reusable barrier (the bar_t structure in the starter). bar_init(b, n): n participants. bar_wait(b) → int: blocks the caller until all n have arrived, then releases everyone; for exactly ONE participant in each group it returns 1 (the \"last to arrive\"), for the others 0. The barrier must work many times in a row: a fast participant must not slip into the next round before the slow ones (use the generation number gen).",
+   "hint": "Participants wait on the condition variable not for \"the counter to become n\" but for \"the generation to change\": that way a fast thread coming back to the barrier for the next round will not confuse it with the one that has already finished. The last to arrive resets the counter and wakes everyone."
+  },
+  {
+   "id": "u8-rcu-lite",
+   "title": "Simplified RCU: readers do not wait, the writer does",
+   "statement": "Implement three functions of a user-space \"RCU\" based on a reader counter: rcu_read_lock() — atomically increment a global reader counter; rcu_read_unlock() — decrement it; synchronize_rcu() — wait (a loop with sched_yield) until the counter becomes zero. The writer replaces the pointer to the data with a new copy, calls synchronize_rcu, and only then \"frees\" the old one (in the test it corrupts it). A reader must always see a whole, uncorrupted version. The counter in the starter: static int readers; use atomic operations.",
+   "hint": "A reader first announces itself (counter +1), and only then takes the pointer. The writer first swaps the pointer and then waits for zero: anyone who saw the old copy is already counted and holds it until rcu_read_unlock. Real RCU counts readers per processor and does not suffer from writer starvation, but the idea is the same."
+  },
+  {
+   "id": "u8-seqlock",
+   "title": "Seqlock: readers without a lock",
+   "statement": "Implement a seqlock for a record of twenty-four numbers (the seqrec_t structure in the starter; the writer always sets all the numbers to the same value). sr_write(r, x): the single writer increments seq (it becomes odd), writes x to all v[i], and increments seq again (even). sr_read(r, out): the reader retries while seq is odd or changed between the start and the end of the read; in the end it copies a consistent set into out[0..23]. Memory barriers are needed: use __atomic_* operations with __ATOMIC_ACQUIRE/RELEASE (or a fence).",
+   "hint": "An odd seq means \"the writer is inside\". The reader remembers seq before reading and checks it after: if the number changed or is odd, the data could have changed in the middle of the read, and the read must be retried. Such a lock neither waits for nor blocks the writer."
+  }
+ ]
+}

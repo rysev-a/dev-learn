@@ -1,0 +1,186 @@
+{
+ "book": 16,
+ "chapter": 5,
+ "tasks": [
+  {
+   "id": "c5-dynarray",
+   "title": "Dynamic array",
+   "statement": "struct vec { int *data; size_t len, cap; }. vec_init(v) — empty; vec_push(v, x) → 0/−1: append to the end (capacity doubles, initial capacity is 4); vec_pop(v, *out) → 1/0; vec_get(v, i, *out) → 1/0 (bounds-checked); vec_free(v) — free the buffer and zero the fields. The program runs with AddressSanitizer: a leak or an out-of-bounds access will stop it.",
+   "hint": "Check len == cap before writing; put the result of realloc into a temporary variable t."
+  },
+  {
+   "id": "c5-vec-ops",
+   "title": "Insert and erase in the middle of a vector",
+   "statement": "struct vec as in the previous task (provided). vec_insert(v, at, x) → 0/−1: insert x at position at ≤ len, shifting the tail (memmove). vec_erase(v, at) → 0/−1: remove the element at < len. vec_reserve(v, n) → 0/−1: guarantee capacity ≥ n. vec_shrink(v): reduce capacity to len (for len = 0 — free the buffer).",
+   "hint": "To insert, shift with memmove(data + at + 1, data + at, (len - at) * sizeof *data); the regions overlap, so memmove is needed."
+  },
+  {
+   "id": "c5-str-alloc",
+   "title": "Strings on the heap: dup, concat, repeat, join",
+   "statement": "my_strdup(s) → a new copy; concat(a, b) → a new string a+b; repeat(s, n) → s repeated n times (n = 0 — empty string); join(parts, n, sep) → strings joined with a separator. All functions return memory from malloc (NULL on error); the caller frees it. Run with AddressSanitizer.",
+   "hint": "The buffer size is the length + 1 for the terminating zero; use memcpy for copying, since you know the lengths."
+  },
+  {
+   "id": "c5-fix-leak",
+   "title": "Fix: leak on the error path",
+   "statement": "make_pair(a, b) allocates two buffers and returns 0, but when the second step fails (when b is empty) it returns −1 and forgets to free the first one. Fix it so that no memory leaks on any exit (checked by LeakSanitizer). On success the buffers are handed out through out1 and out2.",
+   "hint": "Free x on all error paths — it is convenient to use a common goto fail label at the end of the function."
+  },
+  {
+   "id": "c5-fix-double-free",
+   "title": "Fix: double free",
+   "statement": "list_clear(head) frees a list, but calls free twice for the last node. AddressSanitizer will stop the program. Fix the loop: each node is freed exactly once, and next is read before free.",
+   "hint": "After the loop p is already NULL, and head is freed inside the loop: both extra free calls must be removed."
+  },
+  {
+   "id": "c5-fix-uaf",
+   "title": "Fix: read after free",
+   "statement": "sum_and_free(head) must return the sum of the list values and free all nodes. The starter reads p->next after free(p). Fix the order of actions.",
+   "hint": "Save p->next in a local variable before free(p)."
+  },
+  {
+   "id": "c5-fix-realloc-stale",
+   "title": "Fix: pointer after realloc",
+   "statement": "append_all(base, n, extra, m) grows an array and copies extra to the end, but keeps using the old pointer after realloc (the block may have moved). Fix the function: it returns the new pointer (NULL on error — the old block stays with the caller).",
+   "hint": "After a successful realloc work only with the new pointer p: the old one may have been freed."
+  },
+  {
+   "id": "c5-list-basic",
+   "title": "Singly linked list: basics",
+   "statement": "struct node { int v; struct node *next; }. push_front(&head, x), push_back(&head, x), pop_front(&head, *out) → 1/0, list_len(head), list_free(&head) — free and zero the head. push_* return 0/−1 on allocation failure.",
+   "hint": "push_back is convenient to write with a pointer to a pointer: walk along &(*pp)->next until *pp becomes NULL."
+  },
+  {
+   "id": "c5-list-reverse",
+   "title": "Reversing a list and finding the middle",
+   "statement": "list_reverse(head) → the new head (nodes are rearranged, not created). list_middle(head) → the second of the two middle nodes for an even length (NULL for an empty list), in one pass with two pointers. nth_from_end(head, k) → the k-th node from the end (k = 1 is the last) or NULL.",
+   "hint": "For the middle use a \"fast\" and a \"slow\" pointer; for the k-th from the end, first move the \"leading\" pointer k nodes ahead."
+  },
+  {
+   "id": "c5-list-cycle",
+   "title": "Cycle in a list: Floyd's algorithm",
+   "statement": "has_cycle(head) → 1/0 in O(n) time and O(1) memory (two pointers of different speeds). cycle_start(head) → the first node of the cycle or NULL. cycle_length(head) → the length of the cycle (0 if there is none).",
+   "hint": "When the slow and fast pointers meet, put one of them at the head: moving both one step at a time, they meet at the start of the cycle."
+  },
+  {
+   "id": "c5-list-remove",
+   "title": "Removing from a list via a pointer to a pointer",
+   "statement": "remove_all(&head, x) → how many nodes with v == x were removed and freed; remove_dups_sorted(head) — remove duplicates in a sorted list (free the extra nodes); insert_sorted(&head, x) — insert x keeping ascending order (before equal ones). No special cases for the head.",
+   "hint": "In remove_all the pointer pp walks over \"slots\" (the head and the next fields): on removal the slot is overwritten, on skipping pp = &(*pp)->next."
+  },
+  {
+   "id": "c5-list-sort",
+   "title": "Merge sort of a list",
+   "statement": "list_sort(head) → the new head: sort a singly linked list in ascending order in O(n log n) (stable), without allocating new nodes — by splitting in half (slow/fast pointers) and merging. A list of 200 000 nodes must not be processed with \"insertions in O(n²)\".",
+   "hint": "Split the list into two halves, sort each recursively, then merge with a dummy node at the start of the result."
+  },
+  {
+   "id": "c5-dlist",
+   "title": "Doubly linked list with a sentinel node",
+   "statement": "struct dnode { int v; struct dnode *prev, *next; }; the list is a ring with a sentinel node (head.prev/next point to itself if empty). dl_init(h), dl_push_front(h, x), dl_push_back(h, x) → 0/−1, dl_remove(n) — cut the node out and free it, dl_pop_front(h, *out) → 1/0, dl_move_to_front(h, n), dl_free(h) — free all nodes.",
+   "hint": "The sentinel node removes all NULL checks: insertion and removal are the same four assignments anywhere."
+  },
+  {
+   "id": "c5-lru",
+   "title": "LRU cache on a doubly linked list",
+   "statement": "A cache of cap (key, value) pairs. lru_new(cap), lru_get(c, key, *out) → 1/0 (a hit makes the entry the most recent), lru_put(c, key, value) (on overflow the least recent is evicted), lru_size(c), lru_free(c). Linear search through the list is fine; recent entries go at the front. Allocate entries with malloc, free everything in lru_free.",
+   "hint": "The list goes from recent to old: on access the entry moves to the front, on overflow the last one is removed."
+  },
+  {
+   "id": "c5-stack-balance",
+   "title": "Stack: brackets and reverse Polish notation",
+   "statement": "A dynamic stack of characters is not provided — use your own array/list. balanced(const char *s) → 1/0: the brackets (), [], {} are placed correctly (other characters are ignored). eval_rpn(const char *s, long *out) → 1/0: an expression of numbers and + − * / separated by spaces (a value stack on the heap); 0 on error (too few operands, division by zero, extra numbers, unknown token).",
+   "hint": "For brackets push the opening ones onto the stack and match them against the closing ones; at the end the stack must be empty."
+  },
+  {
+   "id": "c5-ring",
+   "title": "Ring buffer queue",
+   "statement": "struct ring { int *buf; size_t cap, head, count; }. ring_init(r, cap) → 0/−1 (buffer from malloc), ring_push(r, x) → 1 / 0 if full, ring_pop(r, *out) → 1/0 if empty, ring_peek, ring_free. Indices wrap modulo cap; the count counter tells empty from full.",
+   "hint": "The write position is (head + count) % cap; reading uses head, then head = (head + 1) % cap."
+  },
+  {
+   "id": "c5-two-stack-queue",
+   "title": "Queue from two stacks",
+   "statement": "struct queue { int *in, *out; size_t nin, nout, cap; } — two dynamic stacks. q_init(q), q_push(q, x) → 0/−1 (pushes onto the input stack), q_pop(q, *out) → 1/0 (if the output stack is empty — move everything from the input one, reversing the order), q_len(q), q_free(q). Each element is moved at most once: a million operations must run fast.",
+   "hint": "The output stack holds elements in \"reverse\" order; move the input stack to the output only when the output is empty."
+  },
+  {
+   "id": "c5-bst-basic",
+   "title": "Search tree: insert, find, height",
+   "statement": "struct tnode { int key; struct tnode *l, *r; }. bst_insert(&root, key) → 1 if added, 0 if the key already exists (duplicates are not stored), −1 on memory error; bst_find(root, key) → the node or NULL; bst_height(root) → the height (empty — 0, one node — 1); bst_size(root); bst_min/bst_max(root) → the node or NULL; bst_free(root) — free all nodes; recursion with depth proportional to the number of nodes is not required.",
+   "hint": "Insertion is convenient to write with a pointer to a pointer: go down until the slot becomes NULL and write the new node into it."
+  },
+  {
+   "id": "c5-bst-walk",
+   "title": "Tree traversals: in/pre/post-order and by level",
+   "statement": "The tree is built by the driver. inorder(root, out) → n keys written (ascending); preorder and postorder — likewise; levelorder(root, out) — by levels left to right (use a queue on an array of pointers). All four fill an array out of sufficient length and return the number of keys.",
+   "hint": "For level order: a queue of pointers, read a node from the head and append its children to the tail."
+  },
+  {
+   "id": "c5-bst-delete",
+   "title": "Deleting from a search tree",
+   "statement": "bst_delete(&root, key) → 1 if the key was found and the node removed (three cases: no children, one child, two — replace the key with the minimum of the right subtree and remove that one), otherwise 0. is_bst(root) → 1 if for every node all left keys are smaller and all right keys are larger (bounds check). Memory is freed correctly (run with AddressSanitizer).",
+   "hint": "For a node with two children find the minimum of the right subtree, copy its key into the node, and delete the minimum (it has no left child)."
+  },
+  {
+   "id": "c5-heap",
+   "title": "Binary heap on an array",
+   "statement": "struct heap { int *a; size_t len, cap; } — the minimum is at the root. heap_init, heap_push(h, x) → 0/−1 (sift-up), heap_pop(h, *out) → 1/0 (sift-down), heap_peek, heap_free. heap_sort(int *a, size_t n) — sort an array in ascending order using the heap (500 000 elements must sort fast).",
+   "hint": "The parent of element i is (i − 1) / 2, the children are 2i + 1 and 2i + 2. On pop the last element is placed at the root and \"sifted\" down."
+  },
+  {
+   "id": "c5-hash-table",
+   "title": "Hash table: string → number",
+   "statement": "struct ht — a table with chaining (buckets are singly linked lists), keys are copies of strings (malloc). ht_new() → a table (initially 8 buckets), ht_put(t, key, val) → 1 new key / 0 update / −1 error, ht_get(t, key, *out) → 1/0, ht_del(t, key) → 1/0, ht_count(t), ht_free(t). When there are more entries than 3/4 of the bucket count, the table doubles and the entries are redistributed. The hash is FNV-1a (32 bits). 200 000 insertions must run fast.",
+   "hint": "At high load create an array twice as large and move the chain nodes (do not copy the strings). Free both the key and the entry."
+  },
+  {
+   "id": "c5-word-freq",
+   "title": "Word frequencies with a hash table",
+   "statement": "word_freq(text) uses its own hash table (a fixed-size table of 4096 buckets with chains is enough): words are sequences of ASCII letters, case-insensitive. Functions: wf_new(), wf_add(wf, text) — count all words of the text, wf_count(wf, word) → the number of occurrences, wf_unique(wf), wf_top(wf, k, out_words, out_counts) → write the k most frequent (ties broken alphabetically), wf_free(wf).",
+   "hint": "Hash the word in lowercase; when adding, check the bucket's chain for an existing word."
+  },
+  {
+   "id": "c5-arena",
+   "title": "Arena: allocation by bumping a pointer",
+   "statement": "struct arena { unsigned char *base; size_t cap, used; }. arena_init(a, buf, cap) — an arena on top of someone else's buffer. arena_alloc(a, n, align) → a pointer aligned to align (a power of two), or NULL if there is no room; arena_reset(a) — free everything at once; arena_used(a). Allocations go one after another with the minimal padding for alignment.",
+   "hint": "Align the address: aligned = (cur + align − 1) & ~(align − 1); check the space without overflowing size_t."
+  },
+  {
+   "id": "c5-pool",
+   "title": "Pool of equal-size blocks",
+   "statement": "struct pool { void *mem; size_t blk, n; void *free_list; }. pool_init(p, mem, blk, n) — split mem (n blocks of blk ≥ sizeof(void *) bytes each, aligned) into a free list; pool_get(p) → a block or NULL; pool_put(p, blk) — return a block; pool_free_count(p) → how many blocks are free. The free list is stored inside the blocks themselves.",
+   "hint": "A free block stores in its first bytes a pointer to the next free one: pool_get takes the head of the list, pool_put puts the block at the head."
+  },
+  {
+   "id": "c5-generic-vec",
+   "title": "Generic vector on void *",
+   "statement": "struct gvec { void *data; size_t elem, len, cap; }. gv_init(v, elem_size), gv_push(v, const void *x) → 0/−1 (copies elem bytes), gv_at(v, i) → a pointer to the element or NULL, gv_pop(v, void *out) → 1/0, gv_remove(v, i) — remove an element with a shift, gv_free(v). Works the same for int, structs, and string pointers.",
+   "hint": "Element i is at the address (unsigned char *)data + i * elem; copy and shift blocks with memcpy / memmove."
+  },
+  {
+   "id": "c5-matrix-dyn",
+   "title": "Dynamic matrix in two ways",
+   "statement": "mat_new_rows(r, c) → int **: an array of row pointers, each row allocated separately (zeros); mat_free_rows(m, r). mat_new_flat(r, c) → int * as a single block (zeros), accessed as m[i * c + j]. mat_transpose_flat(m, r, c) → a new c × r matrix in a single block. The caller frees; checked with AddressSanitizer.",
+   "hint": "For the array of rows, if allocation fails on row i, free the rows already allocated and the pointer array itself."
+  },
+  {
+   "id": "c5-string-builder",
+   "title": "String builder",
+   "statement": "struct sb { char *buf; size_t len, cap; }. sb_init(sb), sb_append(sb, s) → 0/−1, sb_appendc(sb, c), sb_appendf(sb, fmt, ...) → 0/−1 (via vsnprintf, determine the length with two calls), sb_str(sb) → const char * (always NUL-terminated, even when empty), sb_free(sb). The buffer doubles; ten thousand appends must not copy everything each time.",
+   "hint": "vsnprintf(NULL, 0, fmt, ap) returns the required length; for the second call copy the va_list with va_copy."
+  },
+  {
+   "id": "c5-sieve-bitmap",
+   "title": "Sieve of Eratosthenes on a bitmap",
+   "statement": "count_primes(unsigned n) → the number of primes ≤ n (n up to 50 000 000), using a bitmap on the heap (calloc, one bit per number; even numbers need not be stored). nth_prime(unsigned k) → the k-th prime (k = 1 → 2); choose the sieve size yourself (k up to 2 000 000). It must run in seconds.",
+   "hint": "For the n-th prime the upper bound k · (ln k + ln ln k) works for k ≥ 6."
+  },
+  {
+   "id": "c5-intrusive",
+   "title": "Intrusive list and the owner_of macro",
+   "statement": "struct link { struct link *next, *prev; } is embedded in any structure. The macro owner_of(ptr, type, member) gives a pointer to the enclosing structure from a pointer to its field (via offsetof). Implement a ring list with a sentinel node: link_init(h), link_add_tail(h, n), link_del(n), link_empty(h). The driver embeds link in structures of different sizes and walks the list via owner_of.",
+   "hint": "owner_of: subtract from the field's address its offset inside the structure, offsetof(type, member); do the arithmetic on char *."
+  }
+ ]
+}

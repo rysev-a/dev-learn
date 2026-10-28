@@ -1,0 +1,189 @@
+{
+ "book": 10,
+ "chapter": 15,
+ "tasks": [
+  {
+   "id": "r15-drop-impl",
+   "title": "Drop: cleaning up after ourselves",
+   "statement": "The type Guard stores a name. Implement Drop for it so that on destruction the line «drop <name>» is printed. The compiler does the rest: it inserts the calls at the closing braces, in reverse order.",
+   "hint": "It is enough to write println!(\"drop {}\", self.name); in drop; you do not need to call it yourself."
+  },
+  {
+   "id": "r15-scope-order",
+   "title": "Destruction order: directing the output",
+   "statement": "The type Guard is already written: new prints «make <name>», and on destruction «drop <name>» is printed. Write the function scenario() so that the program prints exactly these lines: make a, make b, drop b, mid, make c, drop c, end, drop a. Hint: something has to be destroyed by hand, and something by the closing brace of a block.",
+   "hint": "drop(b) destroys b immediately; an inner block { … } destroys c at its brace; a lives until the end of the function.",
+   "starter": "struct Guard(&'static str);\n\nimpl Guard {\n    fn new(name: &'static str) -> Guard {\n        println!(\"make {name}\");\n        Guard(name)\n    }\n}\n\nimpl Drop for Guard {\n    fn drop(&mut self) {\n        println!(\"drop {}\", self.0);\n    }\n}\n\nfn scenario() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r15-move-fix",
+   "title": "Fix it: a value used after a move",
+   "statement": "The code does not compile: let upper = name; moves the string, and name cannot be used afterwards. Fix describe so that the function returns «<original> -> <uppercase>»: for example, «rust -> RUST».",
+   "hint": "You need two independent strings, so create one of them with .clone()."
+  },
+  {
+   "id": "r15-return-ownership",
+   "title": "Returning ownership: a tuple and a chain",
+   "statement": "The functions take a string by value. exclaim(s) appends «!» to the end and returns the string. measure(s) returns a pair (the string, its length in bytes) so that the caller does not lose ownership.",
+   "hint": "A parameter that gets modified is declared as mut s. Take the length before you hand s over into the tuple."
+  },
+  {
+   "id": "r15-array-copy",
+   "title": "Arrays and tuples are copied",
+   "statement": "The array [i32; 4] and the tuple (i32, i32) lie entirely on the stack and are copied bitwise. Write doubled(a), an array with its elements doubled, and swapped(p), a tuple with its two numbers swapped. After the call the original values stay available.",
+   "hint": "A parameter mut a is a local copy; the caller's original array is not changed."
+  },
+  {
+   "id": "r15-derive-copy",
+   "title": "Fix it: make Point copyable",
+   "statement": "The code does not compile: Point moves into shift and is then used again. The type consists of two i32, so it can be made Copy. Change only the derive attribute above the struct (Debug is needed for printing).",
+   "hint": "#[derive(Debug, Clone, Copy)] — Copy requires Clone as well."
+  },
+  {
+   "id": "r15-two-clones",
+   "title": "Exactly two clones",
+   "statement": "Write triple(s) → (String, String, String): three identical strings. Condition: the code has exactly two calls to .clone() — the third string is obtained by moving s itself. Every extra clone is an extra malloc and memcpy.",
+   "hint": "Order matters: clones first, and last comes s itself, which moves into the tuple."
+  },
+  {
+   "id": "r15-box-new",
+   "title": "Box: a value on the heap",
+   "statement": "Write boxed_sum(a, b) → Box<i32> with the sum placed on the heap, and unbox_double(b: Box<i32>) → i32: the doubled value taken out of the box (the star dereferences a Box).",
+   "hint": "Box::new(value) puts the value on the heap; *b takes it back out."
+  },
+  {
+   "id": "r15-box-list",
+   "title": "A list on Box: a recursive type",
+   "statement": "The enum List stores a head and a tail in a Box. Write range_list(from, to), the list from, from+1, …, to (inclusive; empty if from > to), sum(list), the sum, and to_vec(list), the elements in list order. The functions take the list by value.",
+   "hint": "*rest takes the list out of the box and transfers ownership; the recursion ends at Nil."
+  },
+  {
+   "id": "r15-recursive-fix",
+   "title": "Fix it: a type of infinite size",
+   "statement": "The expression type Expr contains other expressions directly inside itself — such a type has infinite size, and the code does not build. Fix the enum definition (the function eval and its *a, *b are already written for Box).",
+   "hint": "Recursive fields must be put into Box<Expr>: then the size is determined by the pointer."
+  },
+  {
+   "id": "r15-field-order",
+   "title": "Field order is drop order",
+   "statement": "The fields of a struct are destroyed in order of declaration. Right now, when a Pair is destroyed, «drop right» is printed first. Change the struct definition (do not touch the constructor new) so that «drop left» comes first, and then «drop right».",
+   "hint": "The fields of a struct are released from top to bottom, as written in the definition."
+  },
+  {
+   "id": "r15-option-take",
+   "title": "Option::take: take out and leave None",
+   "statement": "The struct Slot stores an optional string. Implement put(&mut self, s), which stores a string and returns the previous one (Option<String>), take(&mut self), which takes the string and leaves None, and is_empty(&self). Hint: Option has the methods replace and take. The references &self and &mut self are the topic of the next chapter: for now, treat them as permission to read or change the Slot in place.",
+   "hint": "self.item.replace(s) and self.item.take() return the old value without copying it."
+  },
+  {
+   "id": "r15-mem-swap",
+   "title": "mem::swap and mem::take",
+   "statement": "rotate(a, b, c) shifts the values in a circle: a gets the value of b, b gets the value of c, c gets the old value of a. You may not copy the strings — use std::mem::swap. drain(log) returns the contents of a string and leaves it empty (std::mem::take).",
+   "hint": "Two swaps in a row: first (a, b), then (b, c). mem::take leaves String::default(), that is, an empty string."
+  },
+  {
+   "id": "r15-rc-count",
+   "title": "Rc: many owners of one value",
+   "statement": "Write share(s, n) → Vec<Rc<String>> (n ≥ 1): a vector of n owners of ONE string on the heap. The data must not be copied: create one Rc and obtain the others through Rc::clone.",
+   "hint": "Rc::clone(&first) increases the counter and does not copy the string; the last owner is first itself."
+  },
+  {
+   "id": "r15-rc-drop",
+   "title": "Rc: destruction at the last owner",
+   "statement": "Guard prints «drop shared» when it is destroyed. Write fan_out(g, n) → Vec<Rc<Guard>> (n ≥ 1): n owners of one Guard, with the original g moved inside (a clone creates one more owner, a move does not).",
+   "hint": "The value is destroyed exactly once — when the counter reaches zero. There must be no extra clones."
+  },
+  {
+   "id": "r15-loop-move",
+   "title": "Fix it: the value moved in the first iteration",
+   "statement": "The function repeat must return n copies of the string. The compiler complains: s was moved into push on the first iteration of the loop. Fix it with a minimal change.",
+   "hint": "Each cell needs its own string: push(s.clone())."
+  },
+  {
+   "id": "r15-index-move",
+   "title": "Fix it: you cannot take an element by index",
+   "statement": "split_first(names) → (String, Vec<String>): the first name and the remaining ones. names[0] does not compile — you cannot move ownership out of a vector by index. Fix it without using clone: Vec has a method that removes an element and hands it to its new owner.",
+   "hint": "remove(0) removes the element and returns it — ownership passes to you."
+  },
+  {
+   "id": "r15-pipeline",
+   "title": "Pipeline: ownership flows from function to function",
+   "statement": "Write three functions that take a vector and return it: append(v, x) — add to the end; dedup_sorted(v) — sort ascending and remove duplicates; top(v, k) — keep the k largest in descending order.",
+   "hint": "A parameter with mut can be changed inside; after changing it, return it, and ownership moves on down the chain."
+  },
+  {
+   "id": "r15-struct-update",
+   "title": "Struct: rebuild with a new field",
+   "statement": "Config owns a string. with_name(c, name) returns a configuration with a new name and the other fields unchanged — use the struct update syntax «..c». into_parts(c) takes the configuration apart into (name, number of retries).",
+   "hint": "Config { name: ..., ..c } takes the missing fields from c; the old name is simply destroyed."
+  },
+  {
+   "id": "r15-shadow-drop",
+   "title": "RAII: a lock releases itself",
+   "statement": "Lock imitates a lock: Lock::acquire(name) prints «lock <name>» and returns a value, and on destruction «unlock <name>» is printed. Implement acquire and Drop. Watch out for shadowing: the second let l does not destroy the first lock.",
+   "hint": "Shadowing hides the name but does not destroy the value: A lives until the end of the function and is released last."
+  },
+  {
+   "id": "r15-underscore",
+   "title": "The underscore: _ and _name",
+   "statement": "Guard prints «make <name>» on creation and «drop <name>» on destruction. Write probe() so that the output is: make temp, drop temp, make keep, body, drop keep. A value assigned to a bare «_» is destroyed immediately; a value in the variable _keep lives until the end of the block.",
+   "hint": "let _ = … creates no binding, so the value dies on that same line; let _keep = … does create a binding.",
+   "starter": "struct Guard(&'static str);\n\nimpl Guard {\n    fn new(name: &'static str) -> Guard {\n        println!(\"make {name}\");\n        Guard(name)\n    }\n}\n\nimpl Drop for Guard {\n    fn drop(&mut self) {\n        println!(\"drop {}\", self.0);\n    }\n}\n\nfn probe() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r15-sizes",
+   "title": "Copy or not: three types",
+   "statement": "Describe three types. Meters(f64) is copyable. Segment { from: Meters, to: Meters } is copyable too. Label { text: String } is not copyable (it owns heap memory). Add the necessary derive attributes to the definitions. The program will check Copy and print the sizes: 8, 24 and 16 bytes.",
+   "hint": "Copy is possible only for a type whose fields are all Copy; Copy also needs Clone: #[derive(Clone, Copy)]."
+  },
+  {
+   "id": "r15-capacity",
+   "title": "Capacity grows: String::push",
+   "statement": "Write capacity_trace(n) → Vec<usize>: create an empty String::new(), append the character 'x' n times, and return all the distinct capacity values in order of appearance, starting with the initial one. You can see how the buffer on the heap grows in jumps, not on every character.",
+   "hint": "Remember the last capacity you saw and add a new one only if it has changed."
+  },
+  {
+   "id": "r15-move-ptr",
+   "title": "A move does not touch the heap",
+   "statement": "as_ptr() returns the address of the buffer on the heap. move_keeps_buffer(s) moves the string into a new variable and returns whether the buffer address stayed the same (true). clone_new_buffer(s) clones the string and returns whether the address of the copy differs from the original's (true).",
+   "hint": "Remember s.as_ptr() before the move and compare it with as_ptr() of the new variable."
+  },
+  {
+   "id": "r15-stack-list",
+   "title": "A stack on a linked list of Boxes",
+   "statement": "Implement a stack on a singly linked list. Stack::new() is empty; push(v) puts a value at the front; pop() removes and returns an Option<i32>; peek(&self) shows the top without removing it. The head is stored as Option<Box<Node>>: in push, take the old head via take().",
+   "hint": "push: let old = self.head.take(); then self.head = Some(Box::new(Node { val: v, next: old })). pop: take() and move n.next into head."
+  },
+  {
+   "id": "r15-reverse-list",
+   "title": "Reversing a list by moves",
+   "statement": "Write reverse(head) → Option<Box<Node>>: reverse a singly linked list without creating new nodes and without cloning — only by rearranging pointers (ownership of the nodes passes along the chain). Condition: not a single .clone().",
+   "hint": "Walk the list: detach the tail via node.next.take(), point next at the already reversed part, and node becomes the new head."
+  },
+  {
+   "id": "r15-bst-insert",
+   "title": "A binary tree on Option<Box<…>>",
+   "statement": "A tree node owns its left and right subtrees through Option<Box<TNode>>. Write insert(link, key) → Link: insertion into a search tree (duplicates are ignored); the function takes the tree and returns it back; and in_order(link, out) — a left-to-right traversal writing the keys into out. Hint: before recursing, take the subtree via take().",
+   "hint": "Some(mut n) → compare the keys, overwrite n.left or n.right with the result of insert(n.left.take(), key) and return Some(n)."
+  },
+  {
+   "id": "r15-rc-tail",
+   "title": "Rc: a shared tail for two lists",
+   "statement": "A Cons list whose tail lives in an Rc. Write shared_tail() → (Rc<List>, Rc<List>, Rc<List>): the tail [10] and two lists a = 1 → tail, b = 2 → tail that share one tail without copying (return the tuple (tail, a, b)). And sum(&List), the sum of the elements.",
+   "hint": "Create the tail once and give each of the two lists Rc::clone(&tail): the tail's counter becomes 3."
+  },
+  {
+   "id": "r15-sizeof",
+   "title": "Type sizes: stack and heap",
+   "statement": "Write sizes() → [usize; 7]: std::mem::size_of for the types u8, i32, Box<i32>, String, Vec<u8>, Option<Box<i32>>, Option<i32> — in exactly this order. Note the 24 bytes of String and Vec (three words) and that Option<Box<i32>> is no thicker than a pointer.",
+   "hint": "size_of::<Type>() is a generic function from std::mem; the type goes in angle brackets."
+  },
+  {
+   "id": "r15-moved-args",
+   "title": "Fix it: the arguments moved into longest",
+   "statement": "report returns «<longest> (из <a> и <b>)» (the words «из» and «и» are printed exactly like this, in Russian). But longest takes both strings, and they are no longer there in format!. Fix report: you need exactly two clones, and longest does not need to change.",
+   "hint": "longest(a.clone(), b.clone()) hands copies to the function, and the originals stay with report.",
+   "starter": "fn longest(a: String, b: String) -> String {\n    if a.len() >= b.len() { a } else { b }\n}\n\nfn report(a: String, b: String) -> String {\n    let winner = longest(a, b);\n    format!(\"{winner} (из {a} и {b})\")\n}\n"
+  }
+ ]
+}

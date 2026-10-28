@@ -1,0 +1,90 @@
+{
+ "book": 7,
+ "chapter": 10,
+ "tasks": [
+  {
+   "id": "tree-max-depth",
+   "title": "Tree height",
+   "statement": "You are given a class TreeNode. Write a function max_depth(root): the number of nodes on the longest path from the root to a leaf (0 for an empty tree). Use level-order breadth-first traversal: the checker feeds in a chain of 100,000 nodes.",
+   "hint": "A queue (deque) with levels: process all nodes of the current level, collect their children, depth += 1."
+  },
+  {
+   "id": "tree-path-sum",
+   "title": "Path with a given sum",
+   "statement": "You are given a class TreeNode. Write a function has_path_sum(root, target): True if there is a path from the root to a LEAF whose values add up to target. An empty tree gives False.",
+   "hint": "Decrease target by val; at a leaf (no children) check that the remainder is zero."
+  },
+  {
+   "id": "tree-preorder-iter",
+   "title": "Preorder without recursion",
+   "statement": "You are given a class TreeNode (val, left, right). Write a function preorder(root): the list of values in preorder (node, left, right) without recursion, using your own stack. The checker feeds in a chain of 100,000 nodes.",
+   "hint": "A stack with the root. Pop a node, record its value, push the right child, then the left child, so that the left one comes out first."
+  },
+  {
+   "id": "tree-inorder-iter",
+   "title": "Inorder without recursion",
+   "statement": "You are given a class TreeNode (val, left, right). Write a function inorder(root): the list of values in inorder (left subtree, node, right subtree), WITHOUT recursion: a manual stack. The checker feeds in a degenerate tree of depth 100,000, on which recursion crashes.",
+   "hint": "stack = []; cur = root; while cur or stack: go left, pushing nodes onto the stack; then pop, record the value, and move right."
+  },
+  {
+   "id": "tree-postorder-iter",
+   "title": "Postorder without recursion",
+   "statement": "You are given a class TreeNode. Write a function postorder(root): the values in postorder (left, right, node) without recursion. Hint: postorder is \"node, right, left\" reversed. The checker feeds in a chain of 100,000 nodes.",
+   "hint": "The same stack as for preorder, but push the children in the opposite order (the left one first), and reverse the resulting list at the end."
+  },
+  {
+   "id": "tree-level-order",
+   "title": "Level-order traversal",
+   "statement": "You are given a class TreeNode. Write a function level_order(root): a list of lists of values, one list per level, from left to right. For an empty tree, return [].",
+   "hint": "On each iteration of the loop take exactly len(queue) nodes: that is one level."
+  },
+  {
+   "id": "tree-zigzag",
+   "title": "Zigzag traversal",
+   "statement": "You are given a class TreeNode. Write a function zigzag(root): a list of levels, where the first level goes left to right, the second right to left, the third left to right again, and so on. An empty tree gives [].",
+   "hint": "An ordinary level-order traversal, but the list of values of every second level is reversed."
+  },
+  {
+   "id": "tree-right-view",
+   "title": "Right view",
+   "statement": "You are given a class TreeNode. Write a function right_view(root): the values of the nodes visible when looking at the tree from the right, one per level (the rightmost node of the level), from top to bottom. An empty tree gives [].",
+   "hint": "A level-order traversal from left to right: the last node of the current level's list is the one visible from the right."
+  },
+  {
+   "id": "tree-symmetric",
+   "title": "Symmetric tree",
+   "statement": "You are given a class TreeNode. Write a function is_symmetric(root): True if the tree is a mirror image of itself about the root (the left subtree is the reflection of the right one). An empty tree is symmetric. Solve it iteratively, with a queue of node pairs: the checker feeds in a symmetric tree made of chains of 50,000 nodes.",
+   "hint": "Put into a queue or stack the pairs (left, right) that must be mirror images: their values are equal, and their children are pushed crosswise, (a.left, b.right) and (a.right, b.left)."
+  },
+  {
+   "id": "tree-invert",
+   "title": "Invert a tree",
+   "statement": "You are given a class TreeNode. Write a function invert(root): swap the left and right child of every node and return the root. Solve it without recursion: the checker feeds in a chain of 100,000 nodes.",
+   "hint": "Traverse the tree in any way with your own stack and swap left and right at every node."
+  },
+  {
+   "id": "tree-diameter",
+   "title": "Tree diameter",
+   "statement": "You are given a class TreeNode. Write a function diameter(root): the length (in edges) of the longest path between any two nodes; the path may avoid the root. One traversal: compute the subtree heights in the same pass.",
+   "hint": "dfs(node) returns the height; along the way update best = max(best, h_left + h_right)."
+  },
+  {
+   "id": "tree-lca",
+   "title": "Common ancestor",
+   "statement": "You are given a class TreeNode (values are unique). Write a function lca(root, p, q): the value of the deepest node that is an ancestor of both the node with value p and the node with value q (a node counts as an ancestor of itself).",
+   "hint": "Recursively: if the node is None or equals p or q, return it; if something was found on both the left and the right, this node is the answer; otherwise return whatever was found."
+  },
+  {
+   "id": "tree-build-pre-in",
+   "title": "Tree from two traversals",
+   "statement": "You are given the preorder (pre) and inorder (ino) traversals of a binary tree with distinct values. Write a function build_tree(pre, ino): rebuild the tree and return the root. Finding the root in inorder must take O(1): make a dictionary from value to position. The checker feeds in 100,000 nodes.",
+   "hint": "The first element of pre is the root. Its position m in ino splits the inorder: on the left the left subtree (m − lo nodes), on the right the right one. Walk the preorder with a single iterator: first the left subtree is built, then the right one."
+  },
+  {
+   "id": "trie-class",
+   "title": "Prefix tree",
+   "statement": "Implement a class Trie: insert(word); search(word) tells whether the whole word is present; starts_with(prefix) tells whether there is a word with this beginning; count_prefix(prefix) is how many inserted words (counting repeated insertions) start with prefix. A node is a dictionary of children plus a counter. All operations are O(word length). The checker feeds in 100,000 words.",
+   "hint": "A node stores a dictionary of children, a counter of words that passed through the node, and a counter of words that ended here. count_prefix is the passed-through counter of the node reached by walking down the prefix."
+  }
+ ]
+}

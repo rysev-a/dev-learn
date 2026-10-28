@@ -1,0 +1,72 @@
+{
+ "book": 8,
+ "chapter": 14,
+ "tasks": [
+  {
+   "id": "u14-modules",
+   "title": "Kernel modules: dependencies and use count",
+   "statement": "A module manager model. struct modinfo { const char *name; int ndeps; const char *deps[4]; }; mod_init(const struct modinfo *tab, int n) sets the table of available modules and resets the state. mod_load(name, order) → the number of modules loaded by this call, or −1 (no such module) / −2 (dependency cycle): dependencies are loaded first (already loaded ones are skipped), and the names are written to order in load order; each dependency's use count goes up. mod_unload(name) → 0, −1 (not loaded) or −16 (EBUSY: other loaded modules reference it); on unload, the counts of its dependencies go down. mod_loaded(name) → 1/0.",
+   "hint": "Loading is a depth-first walk: dependencies first, then the module itself; an \"in progress\" mark detects a cycle. A dependency's count grows for each loaded module that depends on it."
+  },
+  {
+   "id": "u14-fops",
+   "title": "Device operations table: struct file_operations",
+   "statement": "struct fops { int (*open)(void); long (*read)(char *buf, long n); long (*write)(const char *buf, long n); int (*release)(void); }. Implement three \"devices\": null (read → 0 bytes, write accepts everything), zero (read fills with zeros, write → −1), counter (read returns in buf a decimal counter of the number of previous opens as «N\\n», write resets the counter if «0» is written; open increments the counter). dev_register(major, const struct fops *) → 0 / −1 (taken), and dev_read(major, buf, n), dev_write(major, buf, n), dev_open(major), dev_close(major) call the operations through pointers (no such operation → −38 ENOSYS, no such device → −19 ENODEV). The operation tables null_fops, zero_fops, counter_fops are global.",
+   "hint": "An operations table is a structure of function pointers: the dispatcher simply calls f->read(...) and turns a missing operation (NULL) into −ENOSYS."
+  },
+  {
+   "id": "u14-ioctl",
+   "title": "ioctl codes: direction, size, type, number",
+   "statement": "An ioctl command code is 32 bits: number nr (bits 0–7), type type (8–15), size size (16–29), direction dir (30–31: 0 no data, 1 write userspace→kernel, 2 read kernel→userspace, 3 both). ioc(dir, type, nr, size) → the code; ioc_dir/ioc_type/ioc_nr/ioc_size(code) → the fields; ioc_describe(code, out, cap): the string «type=’X’ nr=N dir=read size=S» (dir: none/write/read/rw). It is checked against the real macros _IO, _IOR, _IOW, _IOWR from <sys/ioctl.h>.",
+   "hint": "The fields are packed with shifts: dir << 30, size << 16, type << 8, nr takes the low 8 bits; when parsing, apply masks of the matching width."
+  },
+  {
+   "id": "u14-klog",
+   "title": "Kernel ring buffer: printk and dmesg",
+   "statement": "struct klog is a ring of 8 entries (level 0..7, text up to 31 characters, increasing number seq starting from 1). klog_init, klog_printk(l, level, text): writes to the ring; when the ring is full, the oldest entry is overwritten (the dropped counter grows). klog_read(l, from_seq, max_level, out, cap) → the number of lines written to out as «[seq] LEVEL: text\\n», only for entries with seq ≥ from_seq and level ≤ max_level (a smaller number is more important). klog_dropped(l), klog_next_seq(l) → the next number.",
+   "hint": "The ring keeps head (the oldest entry) and count; on overflow, a new entry overwrites head and moves it forward, and dropped grows."
+  },
+  {
+   "id": "u14-tracepoint",
+   "title": "Tracepoints: a list of handlers",
+   "statement": "typedef void (*probe_fn)(const char *name, long arg, void *ctx). tp_register(name, fn, ctx) → 0 / −1 (up to 4 handlers per name and up to 8 names; a duplicate (name, fn) pair is also −1); tp_unregister(name, fn) → 1/0; tp_fire(name, arg) → the number of handlers called: they are called in registration order. tp_count(name) → how many handlers the point has. A handler may remove itself during the call, so the traversal must withstand that.",
+   "hint": "Before calling, copy the handler list into a local array: then removing a handler inside a call will not break the traversal."
+  },
+  {
+   "id": "u14-vmstat",
+   "title": "/proc/vmstat: counter increments",
+   "statement": "A snapshot is text of \"key value\" lines. snap_get(const char *text, const char *key, long long *v) → 1/0. delta(const char *a, const char *b, const char *key) → the value in b minus the value in a (if the key is missing from either snapshot, 0). rate_per_sec(a, b, key, double seconds) → the increment per second. top_growth(a, b, char *out, size_t cap) writes the name of the key with the largest growth (on a tie, the first in b), or an empty string if the snapshots are empty.",
+   "hint": "A key is the word up to the space: compare it whole, not by prefix (pgfault and pgfault_x are different counters)."
+  },
+  {
+   "id": "u14-maps",
+   "title": "/proc/self/maps: where an address lies",
+   "statement": "find_mapping(unsigned long addr, char perms[5], char *name, size_t cap) → 1/0: read /proc/self/maps (lines \"start-end perms offset dev inode [path]\", addresses in hexadecimal) and find the region that contains addr; write its permissions (for example «r-xp») and its name (a path, or «[heap]», «[stack]»; an empty string for an anonymous one). The second function: count_exec_maps(void) → the number of regions with the execute permission (\"x\" in the permissions).",
+   "hint": "The line format is: start-end perms offset device inode path; sscanf with \"%n\" shows where the path starts (it may be absent)."
+  },
+  {
+   "id": "u14-rusage",
+   "title": "getrusage: CPU time and context switches",
+   "statement": "struct usage { long utime_us, stime_us, nvcsw, nivcsw, maxrss_kb; }. usage_now(struct usage *u) → 0 / −1 via getrusage(RUSAGE_SELF). busy(int ms) spins a counter in a loop until ms milliseconds have passed by CLOCK_MONOTONIC. cpu_ms_for_busy(int ms) → the growth of utime+stime (in ms) over busy(ms); cpu_ms_for_sleep(int ms) → the growth over nanosleep(ms) (it must be almost zero); voluntary_switches_for_sleep(int ms) → the growth of nvcsw over the sleep.",
+   "hint": "getrusage(RUSAGE_SELF) returns time in a struct timeval (seconds and microseconds); while asleep, a process spends no CPU time but does make a voluntary context switch."
+  },
+  {
+   "id": "u14-loadavg-parse",
+   "title": "Parsing /proc/loadavg",
+   "statement": "parse_loadavg(const char *text, double load[3], int *running, int *total, int *lastpid) → int: parse a line in the /proc/loadavg format, for example «0.52 0.41 0.30 2/345 12345»: three load averages over 1, 5, and 15 minutes, \"running/total\" tasks, and the last process number issued. Return 0 on success, −1 on a bad format (for example, no slash or too few fields). load_per_cpu(const char *text, int cpus) → int: the 1-minute load per core in percent, rounded to an integer (load1 × 100 / cpus); on a parse error or cpus ≤ 0, −1.",
+   "hint": "sscanf can read numbers and the format's separators: \"%d/%d\" will parse \"2/345\". A load of 100% per core means that on average one task per core is ready to run; more than that is a queue."
+  },
+  {
+   "id": "u14-meminfo",
+   "title": "Parsing /proc/meminfo: how much memory is used",
+   "statement": "meminfo_kib(const char *text, const char *name) → long: find the line \"Name:  number kB\" in text in the /proc/meminfo format and return the number (in KiB), or −1 if there is no such line. The name must match entirely (not \"Mem\" inside \"MemTotal\"). mem_used_kib(const char *text) → long: used = MemTotal − MemAvailable (real usage without the cache that can be given back), −1 if one of the fields is missing. swap_used_kib(const char *text) → long: SwapTotal − SwapFree, −1 if the fields are missing.",
+   "hint": "MemFree is untouched memory, while MemAvailable is an estimate of how much can be handed to programs without pushing the system into swap: it accounts for the page cache, which the kernel returns on first demand. That is why \"used\" is computed from MemAvailable."
+  },
+  {
+   "id": "u14-sigprof",
+   "title": "Sampling profiler: ITIMER_PROF",
+   "statement": "profile_samples(int busy_ms) → int: install a SIGPROF handler (sigaction) that increments a counter, enable setitimer(ITIMER_PROF) with a 10 ms period (the timer ticks only while the process is running on the CPU), then burn CPU time in a loop until clock_gettime(CLOCK_PROCESS_CPUTIME_ID) has grown by busy_ms; disable the timer and return the number of signals that fired; restore the handler. sleep_samples(int sleep_ms) → int: the same, but instead of working the process sleeps for sleep_ms (nanosleep): no CPU time passes during sleep, so there are almost no samples.",
+   "hint": "ITIMER_PROF ticks on the process's CPU time, so 300 ms of work yields about 30 samples, and 300 ms of sleep none. This is how sampling profilers work: the more samples land in a function, the more CPU time it has spent."
+  }
+ ]
+}

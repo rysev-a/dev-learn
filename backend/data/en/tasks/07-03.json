@@ -1,0 +1,126 @@
+{
+ "book": 7,
+ "chapter": 3,
+ "tasks": [
+  {
+   "id": "ll-length-sum",
+   "title": "Length and sum",
+   "statement": "You are given a class ListNode (val, next). Write a function length_and_sum(head) that returns a tuple (number of nodes, sum of values). For an empty list (head is None), return (0, 0).",
+   "hint": "One loop: while head: update the counters and head = head.next."
+  },
+  {
+   "id": "ll-singly-class",
+   "title": "Your own singly linked list",
+   "statement": "Implement a class SinglyLinkedList on nodes Node (val, next): fields head and tail, methods push_front(x), push_back(x) in O(1) (a tail pointer is needed), pop_front() (the value of the first node; IndexError if empty), find(x) (the index of the first occurrence or −1), remove(x) (delete the first occurrence; True/False) and to_list(); len(s) is the number of nodes. Watch tail when deleting the last node and when the list becomes empty. The check appends 200,000 elements to the tail: without tail it won't finish in time.",
+   "hint": "push_back: if tail is None, the head and tail are the new node, otherwise tail.next = node; tail = node. In remove, the stored prev is needed both for ordinary deletion and for updating tail."
+  },
+  {
+   "id": "reverse-linked-list",
+   "title": "Reverse a linked list",
+   "statement": "You are given a class ListNode (val, next). Write a function reverse_list(head) that reverses a singly linked list by rearranging the next references and returns the new head. Create no new nodes and use no recursion (a list may have 100,000 nodes).",
+   "hint": "prev = None; while head: nxt = head.next; head.next = prev; prev = head; head = nxt; return prev."
+  },
+  {
+   "id": "middle-node",
+   "title": "Middle of a list",
+   "statement": "You are given a class ListNode. Write a function middle(head) that returns the value of the middle node in ONE pass (slow and fast pointers). For a list of even length, return the second of the two middle nodes.",
+   "hint": "slow = fast = head; while fast and fast.next: slow = slow.next; fast = fast.next.next."
+  },
+  {
+   "id": "has-cycle",
+   "title": "Is there a cycle",
+   "statement": "You are given a class ListNode. Write a function has_cycle(head) that returns True if you can follow the next references forever (the list has a cycle). Use Floyd's algorithm: two pointers with different speeds, O(1) memory.",
+   "hint": "Move slow by 1 and fast by 2; if they meet, there is a cycle; if fast runs into None, there isn't."
+  },
+  {
+   "id": "cycle-start",
+   "title": "Where the cycle starts",
+   "statement": "You are given a class ListNode. Write a function detect_cycle(head) that returns the node where the cycle begins, or None if there is no cycle. Memory is O(1), using Floyd's algorithm in two phases (the meeting, then one pointer goes back to the head).",
+   "hint": "The first loop is as in has_cycle; when slow is fast, set slow = head and move both one step at a time until they coincide."
+  },
+  {
+   "id": "remove-nth-from-end",
+   "title": "Remove the n-th from the end",
+   "statement": "You are given a class ListNode. Write a function remove_nth_from_end(head, n) that removes the n-th node from the end (n = 1 is the last) and returns the head. Do it in one pass: two pointers at distance n from each other. The head itself may be removed too; a sentinel node will help.",
+   "hint": "dummy → head. fast goes n steps ahead, then fast and slow move together to the end; slow.next = slow.next.next."
+  },
+  {
+   "id": "merge-sorted-lists",
+   "title": "Merge two sorted lists",
+   "statement": "You are given a class ListNode. Write a function merge_lists(a, b) that merges two linked lists sorted in ascending order into one sorted list, reusing the nodes, and returns the head. Time O(n + m), no recursion.",
+   "hint": "A dummy node and a pointer tail: at each step attach the smaller of the two current nodes."
+  },
+  {
+   "id": "delete-duplicates-sorted",
+   "title": "Duplicates in a sorted list",
+   "statement": "You are given a class ListNode. The list is sorted. Write a function delete_duplicates(head) that leaves one node of each value in the list (the first) and returns the head. Do not create new nodes.",
+   "hint": "While cur.next exists: if the values are equal, skip the extra node (cur.next = cur.next.next), otherwise step forward."
+  },
+  {
+   "id": "remove-all-value",
+   "title": "Remove all of a value",
+   "statement": "You are given a class ListNode. Write a function remove_value(head, val) that removes all nodes with the value val from the list and returns the new head. The head may also have to be removed; use a sentinel node.",
+   "hint": "prev = dummy; while prev.next: if prev.next.val == val: prev.next = prev.next.next (prev stays), otherwise prev = prev.next."
+  },
+  {
+   "id": "palindrome-list",
+   "title": "Palindrome in a list",
+   "statement": "You are given a class ListNode. Write a function is_palindrome_list(head) that returns True if the values read the same in both directions. An empty list and a list of one node are palindromes. The best solution uses O(1) extra memory: find the middle, reverse the second half, and compare the halves.",
+   "hint": "Fast and slow pointers find the middle; reverse the second half (as in reverse_list) and walk with two pointers from the edges."
+  },
+  {
+   "id": "add-two-numbers",
+   "title": "Adding numbers in lists",
+   "statement": "You are given a class ListNode. Two non-negative numbers are written as lists of digits in reverse order (the least significant digit is in the head). Write a function add_two_numbers(a, b) that returns a list with the sum in the same form. This is column addition: digits and carry. The digits of each number have no leading zeros, except for the number 0 itself.",
+   "hint": "The loop runs while at least one of these exists: a node in a, a node in b, a carry. The digit of the sum is s % 10, the new carry is s // 10."
+  },
+  {
+   "id": "partition-list",
+   "title": "Partition a list",
+   "statement": "You are given a class ListNode and a number x. Write a function partition(head, x) that rearranges the nodes so that all nodes with a value less than x come first, then all the others; the order inside each group is preserved. Return the head. Two chains with sentinels and then joining them.",
+   "hint": "Two chains (the smaller ones and the rest), each with its own sentinel. Don't forget to clear the tail of the second chain: b.next = None."
+  },
+  {
+   "id": "reorder-list",
+   "title": "Reorder a list",
+   "statement": "You are given a class ListNode. Write a function reorder(head) that rearranges a list L0 → L1 → … → Ln into the order L0 → Ln → L1 → Ln−1 → L2 → … in place, without changing the node values. Nothing needs to be returned. Middle, reversal of the second half, alternating merge.",
+   "hint": "Three steps: find the middle and cut off the second half; reverse it; then take nodes alternately from the first and the second half."
+  },
+  {
+   "id": "sort-list",
+   "title": "Merge sort of a list",
+   "statement": "You are given a class ListNode. Write a function sort_list(head) that sorts the list in ascending order and returns the head, using merge sort by rearranging references: you may not change the values in the nodes (the check verifies that every node kept its value). Time O(n log n); the check feeds 100,000 nodes.",
+   "hint": "Find the middle with the fast and slow pointers; slow.next = None cuts the list; sort the halves recursively and merge (as in merge_two_lists)."
+  },
+  {
+   "id": "list-intersection",
+   "title": "Intersection of lists",
+   "statement": "You are given a class ListNode. Two lists may converge into a common tail (the very same node, not nodes with equal values). Write a function get_intersection(a, b) that returns the first common node or None. O(n + m) time and O(1) memory. The check: lists of hundreds of thousands of nodes, nested loops will not finish in time.",
+   "hint": "The trick: each pointer, upon reaching the end, jumps to the head of the other list. After n + m steps they either meet at the common node or both become None."
+  },
+  {
+   "id": "doubly-linked-class",
+   "title": "Your own doubly linked list",
+   "statement": "Implement a class DoublyLinkedList on nodes DNode (val, prev, next) with two sentinels head and tail: push_front(x) and push_back(x) (they return the created node as a \"handle\"), pop_front() and pop_back() (the value; IndexError if empty), remove(node) to delete a node by its handle in O(1), move_to_front(node), len(d), iteration for v in d (from head to tail) and reversed_values() (a list of values from tail to head). The check deletes 100,000 nodes by handles: searching by value will not finish in time.",
+   "hint": "With sentinels, insertion and deletion are the same for all nodes: _insert_after(left, node) and remove(node) take four assignments each. move_to_front = cut the node out and insert it after head."
+  },
+  {
+   "id": "circular-queue",
+   "title": "Circular queue",
+   "statement": "Implement a class CircularQueue(k), a queue of fixed capacity k on an array (a ring buffer): enqueue(x) returns True if there was room, otherwise False; dequeue() returns True if there was something to remove, otherwise False; front() and rear() return the first and last element, or −1 if the queue is empty; is_empty() and is_full(). The storage is a list of length k that does not grow; the indexes go around the circle.",
+   "hint": "head is the index of the first element, size is how many are occupied. The place to write is (head + size) % k. The size counter tells an empty queue from a full one."
+  },
+  {
+   "id": "queue-two-stacks",
+   "title": "Queue from two stacks",
+   "statement": "Implement a class MyQueue on two lists used as stacks (only append and pop() from the end are allowed): push(x), pop() (the first element, IndexError on an empty queue), peek() (look at the first, IndexError on an empty queue) and empty(). Removal must cost an amortized constant: pour from the input stack into the output stack only when the output stack is empty.",
+   "hint": "The input stack accepts push. When you need to remove and the output stack is empty, move everything from the input stack to the output stack: the order reverses and the oldest ends up on top."
+  },
+  {
+   "id": "min-stack",
+   "title": "Stack with a minimum",
+   "statement": "Implement a class MinStack: push(x), pop() (the value; IndexError on an empty stack), top() and get_min(), the minimum element of the stack in O(1) (IndexError on an empty stack). Think about what to store next to each element.",
+   "hint": "Along with the value, push the minimum \"as of this moment\": m = min(x, previous minimum). get_min is the minimum at the top."
+  }
+ ]
+}

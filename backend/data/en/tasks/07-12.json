@@ -1,0 +1,96 @@
+{
+ "book": 7,
+ "chapter": 12,
+ "tasks": [
+  {
+   "id": "heap-indices",
+   "title": "Indices and heap check",
+   "statement": "A heap is stored in a list: the root is a[0]. Write the functions parent(i), left(i), right(i) (indices of the parent and the children) and first_violation(a): for a min-heap, return the tuple (parent index, child index) of the first pair where the parent is GREATER than the child (children scanned in increasing index order), or None if the heap property holds.",
+   "hint": "parent(i) = (i − 1) // 2; left(i) = 2i + 1; right(i) = 2i + 2. It is enough to check the heap property for every i ≥ 1: a[parent(i)] ≤ a[i]."
+  },
+  {
+   "id": "heap-sift-up",
+   "title": "Sift up",
+   "statement": "Write a function sift_up(a, i): the element a[i] rises through a min-heap while it is SMALLER than its parent (swap with the parent). The list is changed in place; return the number of swaps made.",
+   "hint": "While i > 0: p = (i − 1) // 2; if a[i] < a[p], swap them and set i = p; otherwise stop. Equal elements are not swapped (strictly less)."
+  },
+  {
+   "id": "heap-sift-down",
+   "title": "Sift down",
+   "statement": "Write a function sift_down(a, i, n): the element a[i] sinks through a min-heap made of the first n elements of the list (do not touch a[n:]). Child choice: c = the left child; if the right child exists (< n) and is STRICTLY smaller than the left, c = the right child; if a[c] < a[i], swap and continue with c, otherwise stop. The list is changed in place; return the number of swaps.",
+   "hint": "Choosing the child: c = 2i + 1; if c + 1 < n and a[c + 1] < a[c], then c += 1. If a[c] < a[i], swap and go down, otherwise exit. The heap boundary is n: do not look at a[n:]."
+  },
+  {
+   "id": "heap-push",
+   "title": "Heap insertion",
+   "statement": "Write a function heap_push(a, x): add x to the min-heap a (the list is changed in place): append, then sift up. The test pushes 200,000 numbers.",
+   "hint": "a.append(x), then i = len(a) − 1 and a sift-up loop (as in sift_up)."
+  },
+  {
+   "id": "heap-pop",
+   "title": "Extracting the minimum",
+   "statement": "Write a function heap_pop(a): remove and return the smallest element of the min-heap a (in place): the last element moves to the root and sifts down (child choice as in sift_down: the left one, the right one if strictly smaller). For an empty heap raise IndexError. The test pops 100,000 numbers.",
+   "hint": "top = a[0]; last = a.pop(); if the heap is not empty, set a[0] = last and sift down (n = len(a)). Do not forget to return top."
+  },
+  {
+   "id": "heapify-linear",
+   "title": "Building a heap in O(n)",
+   "statement": "Write a function heapify(a): turn the list into a min-heap in place by sifting down from the last parent to the root. The test counts element comparisons on 100,000 numbers in descending order (the worst case): at most 3n, so building by repeated insertion will not pass.",
+   "hint": "for start in range(n // 2 − 1, −1, −1): sift down the element at start (sift_down). Leaves (indices from n // 2) are already heaps."
+  },
+  {
+   "id": "heap-sort",
+   "title": "Heapsort",
+   "statement": "Write a function heap_sort(a): sort the list in ascending order in place using heapsort: build a max-heap, then N times swap the root with the last element of the unsorted part and sift the new root down. The built-in sort/sorted/heapq are forbidden in spirit. The test sorts 100,000 numbers.",
+   "hint": "A max-heap: sift down with the condition \"child is GREATER\". Swap the root with a[end], then sift the root down in a heap of size end."
+  },
+  {
+   "id": "heap-pushpop-replace",
+   "title": "pushpop and replace",
+   "statement": "Write two functions for a min-heap a (a list, in place): heap_pushpop(a, x) is \"push x, then pop the minimum\": if the heap is empty or x is not greater than a[0], return x without touching the heap; otherwise return the old root, put x in its place and sift down. heap_replace(a, x) is \"pop the minimum, then push x\": it always returns the old root, puts x in its place and sifts down; for an empty heap raise IndexError.",
+   "hint": "pushpop: if x is not greater than the root, it is the minimum and the heap does not change. Otherwise the root leaves, x takes its place and sinks. replace differs in that the root is always returned."
+  },
+  {
+   "id": "max-heap-class",
+   "title": "Max-heap",
+   "statement": "Implement a class MaxHeap(key=None), a max-heap on a list: push(x), pop() returns the element with the largest key(x) (IndexError when empty), peek(), len(h). Without key, elements are compared directly. Write the sifting yourself; do not use the heapq module. The test pushes 100,000 elements.",
+   "hint": "The same as heap_push/heap_pop, but with the comparison inverted and done by key(x): the heap stores the elements themselves but orders them by key."
+  },
+  {
+   "id": "stable-priority-queue",
+   "title": "A priority queue with order",
+   "statement": "Implement a class PriorityQueue: push(priority, item), pop() returns the item with the smallest priority; for equal priorities, in the order added (FIFO). Items may be incomparable (dictionaries, objects): put an increasing counter in the second field of the stored record. Write your own sifting, without heapq. pop on an empty queue raises IndexError. The test pushes 100,000 records.",
+   "hint": "Store tuples (priority, counter, item) in the heap. Compare only the first two fields (priority and counter): the counter is unique, so the comparison never reaches the items themselves."
+  },
+  {
+   "id": "my-heapq",
+   "title": "Your own heapq module",
+   "statement": "Implement the functions of the heapq module for a min-heap on a list: heappush(h, x), heappop(h), heapify(h), heappushpop(h, x), heapreplace(h, x), nsmallest(n, it, key=None), nlargest(n, it, key=None) and merge(*iterables, key=None) (returns an iterator over the merged sorted sequence). Do not use the heapq module or sorted inside. The test compares your results with the real heapq on hundreds of thousands of operations.",
+   "hint": "The basis is two functions: _up (sift up) and _down (sift down). heappush = append + _up, heappop = last to root + _down, heapify = _down from n // 2 − 1 to 0. nsmallest can use a heap of the n best; merge uses a heap of \"heads\" with the sequence number."
+  },
+  {
+   "id": "kth-largest-stream",
+   "title": "The k-th largest in a stream",
+   "statement": "Implement a class KthLargest(k, nums): the constructor takes k and an initial list of numbers, and the method add(val) adds a number and returns the k-th largest element among all those added. It is guaranteed that there are enough elements after the first add. Use a min-heap of size k (the heapq module is allowed). The test: 300,000 additions.",
+   "hint": "A heap of size k: the root is the k-th largest. While the size is below k, use heappush; otherwise, if val is greater than the root, use heapreplace."
+  },
+  {
+   "id": "merge-k-sorted",
+   "title": "Merging k sorted lists",
+   "statement": "Write a function merge_k_lists(lists): merge k sorted lists into one sorted list. Use a heap of \"heads\" (heapq): O(N log k) time. The test: 200 lists of 2000 numbers each.",
+   "hint": "The heap holds triples (value, list number, position). Pop the minimum, write it down and push the next element of the same list (heapreplace); if the list is exhausted, use heappop."
+  },
+  {
+   "id": "median-stream",
+   "title": "Median of a stream",
+   "statement": "Implement a class MedianFinder: add_num(x) and find_median(), the median of all numbers added so far (for an even count, the average of the two middle ones, a float). Two heaps (heapq): the lower half in a max-heap, the upper half in a min-heap. The test: 300,000 additions, so insertion into a sorted list will not be fast enough.",
+   "hint": "The lower half is a max-heap (negated numbers), the upper half is a min-heap. After every insertion the sizes differ by at most 1 and the lower half is not smaller than the upper."
+  },
+  {
+   "id": "min-meeting-rooms",
+   "title": "How many meeting rooms",
+   "statement": "You are given a list of meetings, pairs [start, end) (the end is not included: a meeting that ends at time t does not conflict with one that starts at t). Write a function min_rooms(intervals): the smallest number of meeting rooms. Sort by start and keep a heap of end times (heapq). The test: 300,000 meetings.",
+   "hint": "Go through the meetings in order of start. The heap holds the end times of occupied rooms. Remove the freed ones (end ≤ start), push the new meeting; the maximum heap size is the answer."
+  }
+ ]
+}

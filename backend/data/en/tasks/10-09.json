@@ -1,0 +1,194 @@
+{
+ "book": 10,
+ "chapter": 9,
+ "tasks": [
+  {
+   "id": "r9-shadowing",
+   "title": "Shadowing: changing the type under the same name",
+   "statement": "Write fn double_text(input: &str) -> i32: trim the whitespace at both ends (trim), parse the number (parse) and return it multiplied by 2. Use shadowing: three times let input = ... with one name, the type changes from &str to i32. The input is always valid (you can unwrap).",
+   "hint": "let input: i32 = input.parse().unwrap(); — on the right is still the old &str, on the left already the new i32."
+  },
+  {
+   "id": "r9-overflow-modes",
+   "title": "Overflow: four ways",
+   "statement": "Write fn add_modes(a: u8, b: u8) -> (u8, Option<u8>, u8, (u8, bool)): the result of addition under four rules — wrapping, checked (None on overflow), saturating and overflowing (the value and a flag). Python knows nothing about overflow, but the processor does.",
+   "hint": "Integers have the methods wrapping_add, checked_add, saturating_add, overflowing_add."
+  },
+  {
+   "id": "r9-casts",
+   "title": "The as cast: chopping off bits",
+   "statement": "Write fn casts(x: i32) -> (u8, i8, u16, f64): the value x cast with as to u8, i8 and u16, and x as f64 divided by 2. See how as chops off the high bits (two's complement from the chapter on numbers) — there are no exceptions.",
+   "hint": "x as u8 takes the low 8 bits; x as i8 interprets them as a signed number."
+  },
+  {
+   "id": "r9-popcount",
+   "title": "Counting ones by hand",
+   "statement": "Write fn popcount(mut n: u32) -> u32 — the number of one bits — with a loop using a shift and a mask (n & 1, n >> 1). You may not use the count_ones method: the checker looks for it in your code.",
+   "hint": "while n != 0 { count += n & 1; n >>= 1; } — a right shift drops the lowest bit."
+  },
+  {
+   "id": "r9-pydivmod",
+   "title": "Division like in Python",
+   "statement": "Write fn py_divmod(a: i32, b: i32) -> (i32, i32): integer division and remainder by Python rules (a // b, a % b): the quotient is rounded down, the remainder has the sign of the divisor. By default Rust rounds toward zero, and the remainder takes the sign of the dividend.",
+   "hint": "If the remainder is nonzero and its sign differs from the sign of b, decrease the quotient by 1 and add b to the remainder."
+  },
+  {
+   "id": "r9-float-eq",
+   "title": "Comparing floats with a tolerance",
+   "statement": "Write fn approx_eq(a: f64, b: f64) -> bool: the numbers are equal if |a − b| is at most 1e-9 · max(1, |a|, |b|). The exact comparison 0.1 + 0.2 == 0.3 is false in any language — recall the chapter on numbers.",
+   "hint": "f64 has the methods abs() and max(): (a - b).abs() <= 1e-9 * scale."
+  },
+  {
+   "id": "r9-tuple-minmax",
+   "title": "A tuple as a result",
+   "statement": "Write fn min_max(a: i32, b: i32, c: i32) -> (i32, i32): the smallest and the largest of three. The result is taken apart: let (lo, hi) = min_max(...).",
+   "hint": "The methods min and max can be chained: a.min(b).min(c)."
+  },
+  {
+   "id": "r9-array-reverse",
+   "title": "An array on the stack: a copy, not a reference",
+   "statement": "Write fn reversed(a: [i32; 5]) -> [i32; 5] — a new array in reverse order (indexes and a for loop). An array of known size is copied whole: walk over the cells and make sure the original did not change.",
+   "hint": "let mut out = [0; 5]; — an array of five zeros; out[4 - i] = a[i]."
+  },
+  {
+   "id": "r9-text-stats",
+   "title": "Characters and bytes",
+   "statement": "Write fn text_stats(s: &str) -> (usize, usize): (length in bytes, number of characters). In Python len(s) counts characters; in Rust len() counts bytes, and characters are counted with chars().count().",
+   "hint": "s.len() is bytes, s.chars().count() is characters."
+  },
+  {
+   "id": "r9-utf8-hex",
+   "title": "UTF-8 bytes in hexadecimal",
+   "statement": "Write fn hex_bytes(s: &str) -> String: the bytes of the string in UTF-8, each as two hexadecimal digits, separated by spaces. Check against the chapter on characters: «Ж» is d0 96.",
+   "hint": "s.bytes() gives u8; format!(\"{b:02x}\") — two hex digits; join(\" \") glues them together."
+  },
+  {
+   "id": "r9-endianness",
+   "title": "Byte order in a number",
+   "statement": "Write fn byte_orders(n: u32) -> (String, String): the bytes of the number n in little-endian and big-endian order, in hex separated by spaces. Use the methods u32::to_le_bytes and to_be_bytes.",
+   "hint": "to_le_bytes() returns [u8; 4] — an array on the stack; walk over it with the .iter() iterator."
+  },
+  {
+   "id": "r9-twos-complement",
+   "title": "Two's complement by hand",
+   "statement": "Write fn to_bits(n: i8) -> String (the 8 binary digits of two's complement: cast n as u8 and print it with {:08b}) and fn from_bits(bits: &str) -> i8 (parse the string with u8::from_str_radix(bits, 2) and cast as i8).",
+   "hint": "as between integers of the same width computes nothing — it changes the interpretation of the same eight bits."
+  },
+  {
+   "id": "r9-sizes",
+   "title": "Type sizes in memory",
+   "statement": "Write fn sizes() -> Vec<(&'static str, usize)>: pairs (type name, std::mem::size_of) for: u8, i32, u64, char, bool, (u8, u32), [u16; 5], &str, usize — in exactly this order. Note the alignment of the tuple and that &str is two words (a pointer and a length).",
+   "hint": "size_of::<T>() is a compile-time function. The tuple (u8, u32) takes 8 bytes: u32 is aligned to four."
+  },
+  {
+   "id": "r9-stack-direction",
+   "title": "Which way the stack grows",
+   "statement": "The driver calls nested functions and writes the addresses of their local variables into the slice addrs (from the outer call to the inner one). Write fn grows_down(addrs: &[usize]) -> bool: true if each next address is strictly smaller than the previous one (the stack grows toward smaller addresses, as in the chapter on the processor).",
+   "hint": "A &[usize] slice is a view of an array of numbers: iterate over the indexes 1..addrs.len()."
+  },
+  {
+   "id": "r9-recursion-limit",
+   "title": "Deep recursion vs the stack",
+   "statement": "The recursive sum_to(n) builds a frame for every step and overflows the stack for n = 20 million (in Python this would be a RecursionError at a thousand). Rewrite sum_to as a loop with the same result.",
+   "hint": "Each recursive call is a new frame on the stack; a loop uses a single frame."
+  },
+  {
+   "id": "r9-calendar",
+   "title": "Leap year and days in a month",
+   "statement": "Write fn is_leap(year: u32) -> bool and fn days_in_month(year: u32, month: u32) -> u32 (a match on the month number; in February take leap years into account). For a month outside 1..=12 call panic!(\"bad month\") — a panic is like ValueError in Python, but it cannot be caught.",
+   "hint": "The pattern 1 | 3 | 5 combines several values in one match arm."
+  },
+  {
+   "id": "r9-gcd-lcm",
+   "title": "GCD, LCM and overflow protection",
+   "statement": "Write fn gcd(a: u64, b: u64) -> u64 (the Euclidean algorithm in a loop) and fn lcm(a: u64, b: u64) -> Option<u64>: the least common multiple, or None if the result does not fit into u64 (use checked_mul).",
+   "hint": "lcm = a / gcd * b; check the multiplication with checked_mul — it returns None on overflow."
+  },
+  {
+   "id": "r9-to-base",
+   "title": "A number in any numeral system",
+   "statement": "Write fn to_base(mut n: u32, base: u32) -> String: the representation of n in a system with base 2..=36, digits 0-9 and a-z. For 0 return \"0\". Python has format(n, 'b') and int(s, base); here you write it yourself (char::from_digit).",
+   "hint": "The remainders come out from the lowest digit to the highest — collect them into a Vec and reverse it with rev()."
+  },
+  {
+   "id": "r9-getsizeof",
+   "title": "Sizes instead of getsizeof",
+   "statement": "In Python sys.getsizeof(5) returns 28. Using size_of, print the sizes in bytes for i8, i16, i32, i64, i128, f32, f64, bool, char, (u8, u32), [i32; 10] — on one line separated by spaces: «1 2 4 8 16 4 8 1 4 8 40».\n\nExpected output:\n1 2 4 8 16 4 8 1 4 8 40",
+   "hint": "use std::mem::size_of; size_of::<T>().",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r9-div-modes",
+   "title": "Four results of division",
+   "statement": "For a = -7 and b = 2 print four lines: a / b, a % b, a.div_euclid(b), a.rem_euclid(b). Expected: «-3», «-1», «-4», «1» (in Python: -7 // 2 = -4 and -7 % 2 = 1).\n\nExpected output:\n-3\n-1\n-4\n1",
+   "hint": "div_euclid and rem_euclid match Python's // and % when the divisor is positive.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r9-u128-factorial",
+   "title": "Factorial of 30 without bigint",
+   "statement": "In Python 30! is computed without any trouble. In Rust it fits into u128. Compute 30! with a loop and print «265252859812191058636308480000000».\n\nExpected output:\n265252859812191058636308480000000",
+   "hint": "The u128 type: let mut f: u128 = 1;",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r9-fact-checked",
+   "title": "Factorial with overflow checking",
+   "statement": "Write the function fact(n: u32) -> Option<u64>: n!, or None if the result does not fit into u64 (use checked_mul).",
+   "hint": "checked_mul returns an Option; the ? operator returns None from the function."
+  },
+  {
+   "id": "r9-py-round",
+   "title": "Rounding like in Python",
+   "statement": "Write the function py_round(x: f64) -> i64: rounding to the nearest integer, with halves going to the even number (like round in Python: 0.5 → 0, 1.5 → 2, 2.5 → 2, −0.5 → 0, −1.5 → −2).",
+   "hint": "x.round() rounds halves away from zero; if the result is odd and x is exactly a half, step back by one toward zero."
+  },
+  {
+   "id": "r9-py-index",
+   "title": "Negative indexes",
+   "statement": "Write the function py_get(v: &[i32], i: i32) -> Option<i32>: like v[i] in Python — a negative index counts from the end, going out of bounds gives None.",
+   "hint": "Cast len to i32, add it to the negative index and check the bounds."
+  },
+  {
+   "id": "r9-to-bytes",
+   "title": "to_bytes by hand",
+   "statement": "Write the functions to_le(n: u32) -> [u8; 4] and from_le(b: [u8; 4]) -> u32 without to_le_bytes — using the shifts >> and << and the mask 0xFF.",
+   "hint": "The lowest byte is n & 0xFF; the next one is (n >> 8) & 0xFF."
+  },
+  {
+   "id": "r9-struct-layout",
+   "title": "Struct size",
+   "statement": "Declare two structs with the attribute #[repr(C)]: A { a: u8, b: u32, c: u8 } and B { b: u32, a: u8, c: u8 }. Print size_of::<A>() and size_of::<B>(): «12» and «8» — because of the padding between fields.\n\nExpected output:\n12\n8",
+   "hint": "#[repr(C)] fixes the field order; the order affects the size.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r9-strings-len",
+   "title": "len in bytes and in characters",
+   "statement": "For the words «привет», «hello», «日本語», «😀» print one line each: the word, the number of bytes and the number of characters, separated by spaces: «привет 12 6», «hello 5 5», «日本語 9 3», «😀 4 1».\n\nExpected output (each line is shown in «», the quotes themselves are not printed):\n«привет 12 6»\n«hello 5 5»\n«日本語 9 3»\n«😀 4 1»",
+   "hint": "len() is bytes, chars().count() is characters.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r9-copy-vs-clone",
+   "title": "Copying a string",
+   "statement": "Create a = String::from(\"раст\"), a clone b = a.clone(), append the string \"!\" to b and print both: «раст» and «раст!». In Python you would have to call copy for this.\n\nExpected output (each line is shown in «», the quotes themselves are not printed):\n«раст»\n«раст!»",
+   "hint": "clone() makes a full copy, so a stays intact.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r9-bool-sum",
+   "title": "bool is not a number",
+   "statement": "In Python sum([True, False, True]) = 2. In Rust you cannot add bools. Count the number of true values in the vector [true, false, true, true, false] in two ways: with a filter (iter().filter(|b| **b).count()) and with a cast (b as i32). Print two lines «3» and «3».\n\nExpected output:\n3\n3",
+   "hint": "true as i32 == 1; *x dereferences a reference.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  },
+  {
+   "id": "r9-mixed-average",
+   "title": "Average without mixing types",
+   "statement": "In Python sum(v) / len(v) just works. For v = [3, 4, 4, 6] of i32, print the average as a float with two decimals: «4.25».\n\nExpected output:\n4.25",
+   "hint": "Cast both the sum and the length to f64.",
+   "starter": "fn main() {\n    // your code\n}\n"
+  }
+ ]
+}
