@@ -2,7 +2,7 @@ name: Выкладка релиза
 
 # Создали релиз на GitHub — сайт обновился. Образы собираются НА СЕРВЕРЕ (бэкенд зависит от закрытых библиотек, которых нет у GitHub-раннера),
 #
-# Нужно один раз настроить (см. docs/deploy.md, «Выкладка по релизу»):
+# Нужно один раз настроить (см. docs/deploy.md, "Release deployment"):
 #   secrets.DEPLOY_SSH_KEY   — закрытый ключ, которому на сервере разрешён только deploy/server/release.sh
 #   vars.DEPLOY_HOST, vars.DEPLOY_USER, vars.DEPLOY_HOST_KEY (строка из known_hosts), vars.SITE_URL
 on:

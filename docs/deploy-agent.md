@@ -1,128 +1,128 @@
-# Инструкция для агента: развернуть «cs-core» на сервере с docker compose
+# Agent instructions: deploy "cs-core" on a server with docker compose
 
-Это пошаговая инструкция для агента (или человека), который разворачивает сервис на **одной машине, где есть только Docker с compose-плагином**
-(ни Rust, ни Python, ни Node на хосте не нужны). Выбор схемы и порядок работ — в `docs/deploy.md`.
+This is a step-by-step guide for an agent (or a human) deploying the service on **a single machine that has only Docker with the compose plugin**
+(no Rust, Python or Node is needed on the host). Choosing a scheme and the order of work are covered in `docs/deploy.md`.
 
-Состав стека (`deploy/docker-compose.yml`, проект `cs-core`):
+Stack composition (`deploy/docker-compose.yml`, project `cs-core`):
 
-| Сервис | Что это |
+| Service | What it is |
 |---|---|
-| `traefik` | точка входа: порты 80/443, маршруты в `deploy/traefik/http.yml` (разработка) или `tls.yml` (домен и HTTPS) (`/api` → `api`, остальное → `proxy`); сокет Docker не монтируется |
-| `proxy` | frontend: Caddy со статикой Leptos (`frontend/`, trunk собирает wasm внутри образа); наружу не опубликован, `/internal` отдаёт 404 |
-| `api` | бэкенд на axum (`backend/`): при старте сидит содержимое курса в SurrealDB, ведёт очередь проверок и API воркеров |
-| `surrealdb` | база (том `surreal-data`, порт 8000 только внутри сети; для разработки опубликован `127.0.0.1:18000`) |
-| `worker` | (профиль `checks`) воркер проверки кода: забирает задания у `api` и запускает песочницы |
-| `dind` | (профиль `checks`) **отдельный** Docker-демон (`privileged`) только для песочниц; образы лежат в томе `dind-data` |
-| `backup` | раз в сутки экспорт SurrealDB (`surreal export` по HTTP, файлы `cs-core-*.surql`) в том `backups` (хранятся 14 последних) |
-| `images` | разовая задача (профиль `setup`): заливает образы песочниц в `dind` |
+| `traefik` | entry point: ports 80/443, routes in `deploy/traefik/http.yml` (development) or `tls.yml` (domain and HTTPS) (`/api` → `api`, everything else → `proxy`); the Docker socket is not mounted |
+| `proxy` | frontend: Caddy serving the Leptos static files (`frontend/`, trunk builds the wasm inside the image); not published externally, `/internal` returns 404 |
+| `api` | axum backend (`backend/`): on startup it seeds the course content into SurrealDB, runs the check queue and the worker API |
+| `surrealdb` | database (volume `surreal-data`, port 8000 only inside the network; `127.0.0.1:18000` is published for development) |
+| `worker` | (profile `checks`) code-check worker: takes jobs from `api` and runs sandboxes |
+| `dind` | (profile `checks`) a **separate** Docker daemon (`privileged`) used only for sandboxes; images live in the `dind-data` volume |
+| `backup` | once a day exports SurrealDB (`surreal export` over HTTP, files `cs-core-*.surql`) to the `backups` volume (the 14 latest are kept) |
+| `images` | one-off task (profile `setup`): loads the sandbox images into `dind` |
 
-Проверено локально: сборка всех образов, запуск, регистрация, закрытый `/internal`, воркер подключается, проверка кода проходит через всю цепочку
-(`api` → очередь → `worker` → `dind` → результат), e2e-тесты идут против готового стека (`e2e/README.md`, «Против готового стека»). Сборка образа `cs-core-rust-crates:1`
-и проверка Rust/C/JS-задач долгие — проверьте на сервере (шаг 6).
-
----
-
-## 0. Правила (нарушать нельзя)
-
-1. **Не монтируйте `/var/run/docker.sock` хоста ни в один контейнер** и не публикуйте порт `2375` `dind` наружу: код учеников исполняется в `dind`, сокет хоста = root на машине.
-2. **Не задавайте `DEMO_USER_*`/`DEMO_ADMIN_*`** (демо-пользователи без политики паролей — только для разработки): на сервере администратор — `ADMIN_EMAIL`/`ADMIN_PASSWORD`.
-3. **Секреты не коммитите**: `deploy/.env` в git не попадает (`.dockerignore` и `.gitignore`-правила), токен — только в нём.
-4. У `api` нет Docker и встроенного воркера: код проверяет только отдельный `worker`. Не добавляйте `api` доступ к docker.
-5. Не удаляйте тома `surreal-data` (база с прогрессом пользователей) и `backups` без явного указания владельца. `docker compose down -v` стирает **все** тома — не использовать на рабочем сервере.
-6. Аудио не синтезируем и не генерируем (правило проекта, см. AGENTS.md): в образ `api` аудио не кладётся.
-7. Что-то непонятное, ломающее или необратимое (удаление данных, открытие портов, смена домена с уже выданным сертификатом) — остановитесь и спросите владельца.
+Verified locally: building all images, startup, registration, closed `/internal`, the worker connects, code checking works through the whole chain
+(`api` → queue → `worker` → `dind` → result), and the e2e tests run against a ready stack (`e2e/README.md`, "Against a ready stack"). Building the `cs-core-rust-crates:1` image
+and checking Rust/C/JS tasks take a long time — verify them on the server (step 6).
 
 ---
 
-## 1. Что нужно узнать у владельца до начала
+## 0. Rules (must not be violated)
 
-- **Домен** сайта (например `cs-core.example.com`) и что его DNS `A`/`AAAA` указывает на сервер. Без домена можно проверить по HTTP: `CS_CORE_SITE=:80`.
-- **Свободны ли порты 80 и 443** на сервере. Если их уже держит другой прокси (Traefik/nginx) — см. шаг 3, вариант «за существующим прокси».
-- **Сколько ядер и памяти** отдать песочницам (`CS_CORE_SANDBOX_CPUS`, `CS_CORE_SANDBOX_MEM`): это потолок всех проверок кода сразу. Рекомендация: 50–70% ядер и памяти, остальное остаётся сайту.
-- Как получить код: репозиторий `git@github.com:rysev-a/dev-learn.git` (ветка `main`); нужен доступ (deploy key или токен). Уточните, где хранить код (например `/opt/cs-core`).
+1. **Do not mount the host's `/var/run/docker.sock` into any container** and do not publish `dind` port `2375` externally: student code runs in `dind`, and the host socket means root on the machine.
+2. **Do not set `DEMO_USER_*`/`DEMO_ADMIN_*`** (demo users without a password policy — for development only): on the server the administrator is set via `ADMIN_EMAIL`/`ADMIN_PASSWORD`.
+3. **Do not commit secrets**: `deploy/.env` stays out of git (`.dockerignore` and `.gitignore` rules); the token lives only there.
+4. `api` has no Docker and no built-in worker: code is checked only by the separate `worker`. Do not give `api` access to docker.
+5. Do not delete the `surreal-data` volume (the database with user progress) or `backups` without an explicit instruction from the owner. `docker compose down -v` wipes **all** volumes — do not use it on a production server.
+6. We do not synthesize or generate audio (project rule, see AGENTS.md): no audio goes into the `api` image.
+7. If anything is unclear, breaking or irreversible (deleting data, opening ports, changing the domain after a certificate has already been issued) — stop and ask the owner.
 
-## 2. Проверка сервера
+---
+
+## 1. What to find out from the owner before starting
+
+- The site's **domain** (for example `cs-core.example.com`) and whether its DNS `A`/`AAAA` records point to the server. Without a domain you can verify over HTTP: `CS_CORE_SITE=:80`.
+- **Whether ports 80 and 443 are free** on the server. If another proxy (Traefik/nginx) already holds them — see step 3, the "behind an existing proxy" option.
+- **How many cores and how much memory** to give the sandboxes (`CS_CORE_SANDBOX_CPUS`, `CS_CORE_SANDBOX_MEM`): this is the ceiling for all code checks combined. Recommendation: 50–70% of cores and memory, the rest stays for the site.
+- How to get the code: repository `git@github.com:rysev-a/dev-learn.git` (branch `main`); access is required (a deploy key or a token). Ask where to keep the code (for example `/opt/cs-core`).
+
+## 2. Check the server
 
 ```bash
 docker version && docker compose version     # compose v2+
-nproc; free -h; df -h /var/lib/docker       # ядра, память, место (образы песочниц ≈ 5–8 ГБ, rust-образ с крейтами — больше всего)
-docker info | grep -iE "storage driver|cgroup"   # overlay2, cgroup v2 желательно
+nproc; free -h; df -h /var/lib/docker       # cores, memory, disk space (sandbox images ≈ 5–8 GB, the rust image with crates is the largest)
+docker info | grep -iE "storage driver|cgroup"   # overlay2, cgroup v2 preferred
 ```
 
-Нужно: Docker 25+, compose v2, свободно ≥ 20 ГБ на диске Docker, `privileged`-контейнеры разрешены (rootful Docker). Rootless Docker и «песочницы без привилегий»
-для `dind` не подходят. Если `privileged` запрещён политикой сервера — остановитесь и спросите владельца (альтернатива — отдельная машина под воркер, схема B в `docs/deploy.md`).
+Required: Docker 25+, compose v2, ≥ 20 GB free on the Docker disk, `privileged` containers allowed (rootful Docker). Rootless Docker and "unprivileged sandboxes"
+do not work for `dind`. If server policy forbids `privileged` — stop and ask the owner (the alternative is a separate machine for the worker, scheme B in `docs/deploy.md`).
 
-## 3. Подготовка
+## 3. Preparation
 
 ```bash
-git clone git@github.com:rysev-a/dev-learn.git /opt/cs-core && cd /opt/cs-core     # путь уточните у владельца
+git clone git@github.com:rysev-a/dev-learn.git /opt/cs-core && cd /opt/cs-core     # confirm the path with the owner
 cp deploy/.env.example deploy/.env
 ```
 
-Заполните `deploy/.env`:
+Fill in `deploy/.env`:
 
 ```bash
-# токен (общий секрет API и воркера)
+# token (shared secret between the API and the worker)
 sed -i "s/^CS_CORE_WORKER_TOKEN=.*/CS_CORE_WORKER_TOKEN=$(openssl rand -hex 32)/" deploy/.env
 ```
 
-И вручную: `SURREAL_PASS` (пароль root SurrealDB), `ADMIN_EMAIL` и `ADMIN_PASSWORD` (начальный администратор, вход по email, пароль ≥ 8 символов),
-при необходимости `SMTP_*`/`MAIL_FROM` (без `SMTP_HOST` письма подтверждения никуда не уходят), `CS_CORE_SITE` (домен), `CS_CORE_SANDBOX_CPUS`, `CS_CORE_SANDBOX_MEM`, `CS_CORE_LIGHT_SLOTS`/`CS_CORE_HEAVY_SLOTS` (слоты не больше `CS_CORE_SANDBOX_CPUS`; обычно `light = ядра`, `heavy = ядра/2`).
+And by hand: `SURREAL_PASS` (the SurrealDB root password), `ADMIN_EMAIL` and `ADMIN_PASSWORD` (the initial administrator, login by email, password ≥ 8 characters),
+if needed `SMTP_*`/`MAIL_FROM` (without `SMTP_HOST` confirmation emails go nowhere), `CS_CORE_SITE` (domain), `CS_CORE_SANDBOX_CPUS`, `CS_CORE_SANDBOX_MEM`, `CS_CORE_LIGHT_SLOTS`/`CS_CORE_HEAVY_SLOTS` (slots must not exceed `CS_CORE_SANDBOX_CPUS`; usually `light = cores`, `heavy = cores/2`).
 
-**Порты и HTTPS.** Вход — Traefik из этого же compose: он слушает `CS_CORE_HTTP_PORT` (по умолчанию 80) и `CS_CORE_HTTPS_PORT` (443). Если на машине эти порты уже заняты чужим прокси,
-задайте другие и направьте тот прокси на `127.0.0.1:<CS_CORE_HTTP_PORT>` (HTTPS и сертификат тогда делает он). Пока домена нет, сайт работает по HTTP на адресе машины; с доменом — `CS_CORE_DOMAIN`, `CS_CORE_TRAEFIK_CONFIG=./traefik/tls.yml`
-(сертификат Let's Encrypt получается сам) — `docs/deploy.md`, раздел «HTTPS». Сервис `proxy` (frontend) наружу не публикуется.
+**Ports and HTTPS.** The entry point is the Traefik from this same compose: it listens on `CS_CORE_HTTP_PORT` (80 by default) and `CS_CORE_HTTPS_PORT` (443). If those ports on the machine are already taken by someone else's proxy,
+set different ones and point that proxy at `127.0.0.1:<CS_CORE_HTTP_PORT>` (it then handles HTTPS and the certificate). While there is no domain, the site works over HTTP at the machine's address; with a domain — `CS_CORE_DOMAIN`, `CS_CORE_TRAEFIK_CONFIG=./traefik/tls.yml`
+(the Let's Encrypt certificate is obtained automatically) — `docs/deploy.md`, section "HTTPS". The `proxy` service (frontend) is not published externally.
 
-**Токен реестра crates.** Общие библиотеки лежат в приватном реестре `lab` (gitness); без токена бэкенд не соберётся. Токен выдаёт владелец (в `~/.cargo/credentials.toml`
-у него — строка `[registries.lab] token = "Bearer …"`), он передаётся **только** в окружении на время сборки (`LAB_TOKEN=<токен без слова Bearer>`), в файлы и git не пишется.
+**Crates registry token.** Shared libraries live in the private `lab` registry (gitness); without a token the backend will not build. The owner provides the token (in `~/.cargo/credentials.toml`
+on their machine there is a line `[registries.lab] token = "Bearer …"`); it is passed **only** through the environment during the build (`LAB_TOKEN=<token without the word Bearer>`) and is never written to files or git.
 
-**Нет сети до реестра `lab`** (ошибка `Failed to connect to git.service-lab.dev`): подложите зависимости готовым каталогом. На машине, где реестр доступен (или
-есть кэш cargo): `cd backend && cargo vendor --locked /путь/vendor-backend`, затем положите в каталог файл `.cargo-config.toml` (замена источников на `/vendor`:
+**No network access to the `lab` registry** (error `Failed to connect to git.service-lab.dev`): supply the dependencies as a ready-made directory. On a machine where the registry is reachable (or
+the cargo cache exists): `cd backend && cargo vendor --locked /path/vendor-backend`, then put a `.cargo-config.toml` file into that directory (source replacement with `/vendor`:
 `[source.crates-io] replace-with`, `[source."sparse+https://git.service-lab.dev/pkg/lab/lab_crates/cargo/index/"] registry = … replace-with = "vendored-sources"`,
-`[source.vendored-sources] directory = "/vendor"`) и укажите `CS_CORE_VENDOR_DIR=/путь/vendor-backend` в `deploy/.env`. По умолчанию (`deploy/no-vendor`) работает реестр с токеном.
+`[source.vendored-sources] directory = "/vendor"`) and set `CS_CORE_VENDOR_DIR=/path/vendor-backend` in `deploy/.env`. By default (`deploy/no-vendor`) the registry with a token is used.
 
-Проверьте конфигурацию:
+Check the configuration:
 
 ```bash
 docker compose -f deploy/docker-compose.yml --env-file deploy/.env config -q && echo OK
 ```
 
-## 4. Первый запуск
+## 4. First launch
 
 ```bash
 LAB_TOKEN=… docker compose -f deploy/docker-compose.yml --env-file deploy/.env up -d --build
 docker compose -f deploy/docker-compose.yml --env-file deploy/.env ps
 ```
 
-Первая сборка долгая (10–20 минут: бэкенд с SurrealDB-клиентом и wasm-фронтенд). `api` при первом старте сидит курс в SurrealDB (≈ 5–15 с) — до этого он `starting`, `proxy` и `worker` ждут его.
-Ожидаемо: все сервисы `Up`, `api`, `dind` — `healthy`.
+The first build is long (10–20 minutes: the backend with the SurrealDB client and the wasm frontend). On first start `api` seeds the course into SurrealDB (≈ 5–15 s) — until then it is `starting`, and `proxy` and `worker` wait for it.
+Expected: all services `Up`, `api` and `dind` are `healthy`.
 
-## 5. Образы песочниц (один раз)
+## 5. Sandbox images (once)
 
-Проверка кода не работает, пока в `dind` нет образов. Они хранятся в томе `dind-data` и переживают перезапуск.
+Code checking does not work until `dind` has the images. They are stored in the `dind-data` volume and survive restarts.
 
 ```bash
 docker compose -f deploy/docker-compose.yml --env-file deploy/.env --profile checks --profile setup run --rm images
 ```
 
-Скачиваются `python:3.13-slim`, `rust:1.97-slim`, `node:22-alpine` и **собирается `cs-core-rust-crates:1`** (tokio, axum, sqlx, PostgreSQL — долго, 15–40 минут и несколько ГБ; нужен выход в интернет у `dind`).
-Если сборка упала — прочитайте вывод (обычно сеть/DNS или нехватка места) и повторите; уже скачанные слои сохранены.
+This pulls `python:3.13-slim`, `rust:1.97-slim`, `node:22-alpine` and **builds `cs-core-rust-crates:1`** (tokio, axum, sqlx, PostgreSQL — long, 15–40 minutes and several GB; `dind` needs internet access).
+If the build failed — read the output (usually network/DNS or lack of space) and repeat; already downloaded layers are kept.
 
-Проверьте: `docker compose -f deploy/docker-compose.yml --env-file deploy/.env exec dind docker image ls`.
+Verify: `docker compose -f deploy/docker-compose.yml --env-file deploy/.env exec dind docker image ls`.
 
-## 6. Проверка работы (обязательно, после каждой выкладки)
+## 6. Verify operation (mandatory, after every release)
 
-Подставьте свой адрес (`https://<домен>` или `http://<адрес машины>:<CS_CORE_HTTP_PORT>`):
+Substitute your own address (`https://<domain>` or `http://<machine address>:<CS_CORE_HTTP_PORT>`):
 
 ```bash
 BASE=https://cs-core.example.com
-curl -s -o /dev/null -w "главная %{http_code}\n" $BASE/                    # 200
+curl -s -o /dev/null -w "home %{http_code}\n" $BASE/                    # 200
 curl -s -o /dev/null -w "api     %{http_code}\n" $BASE/api/books           # 200
-curl -s -o /dev/null -w "internal %{http_code}\n" $BASE/internal/worker/jobs   # 404 — API воркеров наружу закрыт
+curl -s -o /dev/null -w "internal %{http_code}\n" $BASE/internal/worker/jobs   # 404 — the worker API is closed to the outside
 curl -s $BASE/api/exercises/runner/status                                  # {"queued":0,"running":0,"workers":1,"available":true}
 ```
 
-`workers: 1` и `available: true` — воркер подключился. Затем сквозная проверка кода (вход и регистрация — по **email**, дальше заголовок `Authorization: Bearer <token>`):
+`workers: 1` and `available: true` mean the worker has connected. Then an end-to-end code check (login and registration are by **email**, afterwards use the `Authorization: Bearer <token>` header):
 
 ```bash
 J='content-type: application/json'
@@ -133,59 +133,59 @@ ID=$(echo "$RES" | python3 -c "import sys,json; print(json.load(sys.stdin)['id']
 sleep 5; curl -s -H "Authorization: Bearer $TOKEN" $BASE/api/exercises/run/$ID      # "state":"done" ... "solved":true
 ```
 
-Регистрации ограничены по частоте (429) — это норма. Затем проверьте по одной задаче каждого режима (после шага 5): JS (книга 11), C (книга 16), Rust (книга 10, глава 1);
-эталонные решения лежат в `backend/data/sql/tasks/*.sql` (поле `spec`). Ту же проверку делают e2e-тесты книг (`e2e/README.md`).
+Registrations are rate-limited (429) — this is normal. Then check one task of each mode (after step 5): JS (book 11), C (book 16), Rust (book 10, chapter 1);
+the reference solutions are in `backend/data/sql/tasks/*.sql` (the `spec` field). The e2e book tests perform the same check (`e2e/README.md`).
 
-Также: откройте сайт в браузере, зарегистрируйтесь, откройте любую главу, слайды и упражнение (если есть доступ к браузеру).
+Also: open the site in a browser, register, open any chapter, the slides and an exercise (if you have browser access).
 
-## 7. Обновление
+## 7. Updating
 
 ```bash
 cd /opt/cs-core && git pull
 LAB_TOKEN=… docker compose -f deploy/docker-compose.yml --env-file deploy/.env up -d --build
 ```
 
-Нужен `LAB_TOKEN` (или `CS_CORE_VENDOR_DIR`). `api` при старте пересеивает содержимое курса, только если изменился хеш исходников; прогресс пользователей не затрагивается.
-Бэкенд должен работать **одним экземпляром** (очередь проверок под замком процесса). Образы песочниц обновлять нужно, только если менялся
-`worker/docker/rust-crates` или версии образов в `worker/runner.py` (тогда повторите шаг 5; кэш проверок хранится в базе и протухает за 7 дней сам).
-После выкладки повторите шаг 6.
+`LAB_TOKEN` (or `CS_CORE_VENDOR_DIR`) is required. On startup `api` re-seeds the course content only if the source hash has changed; user progress is not affected.
+The backend must run as a **single instance** (the check queue is guarded by a process lock). Sandbox images need updating only if
+`worker/docker/rust-crates` or the image versions in `worker/runner.py` changed (then repeat step 5; the check cache is stored in the database and expires on its own after 7 days).
+After the release, repeat step 6.
 
-## 8. Бэкапы и восстановление
+## 8. Backups and restore
 
-Раз в сутки сервис `backup` кладёт экспорт SurrealDB в том `backups` (`cs-core-YYYYMMDD-HHMMSS.surql`, последние 14). Этого **недостаточно**: том живёт на той же машине. Договоритесь с владельцем о копии наружу (cron + `rsync`/объектное хранилище).
+Once a day the `backup` service puts a SurrealDB export into the `backups` volume (`cs-core-YYYYMMDD-HHMMSS.surql`, the latest 14). This is **not enough**: the volume lives on the same machine. Agree with the owner on an off-site copy (cron + `rsync`/object storage).
 
-Достать копию из тома:
+Get a copy out of the volume:
 
 ```bash
 docker run --rm -v cs-core_backups:/b -v "$PWD":/out alpine sh -c 'cp "$(ls -t /b/cs-core-*.surql | head -1)" /out/cs-core-latest.surql'
 ```
 
-Восстановить: остановить `api`, `surreal import` в чистую базу (пространство `stack`, база `cs-core`), запустить `api`. Данные курса восстанавливать не нужно — сид пересоздаёт их из файлов;
-в копии важны пользователи и прогресс.
+Restore: stop `api`, run `surreal import` into a clean database (namespace `stack`, database `cs-core`), start `api`. Course data does not need to be restored — the seed recreates it from files;
+what matters in the copy is users and progress.
 
-## 9. Журналы и диагностика
+## 9. Logs and diagnostics
 
 ```bash
 docker compose -f deploy/docker-compose.yml --env-file deploy/.env logs --tail 100 api worker dind proxy
 ```
 
-| Симптом | Причина и что делать |
+| Symptom | Cause and what to do |
 |---|---|
-| `dind` не становится `healthy` | Нужен `privileged` и rootful Docker; проверьте `docker compose logs dind` (часто — нет `overlay`/cgroup или мало места). Не заменяйте на монтирование сокета хоста |
-| `api` долго `starting` | идёт первый сид (`start_period: 180s`) или нет связи с `surrealdb`; смотрите `logs api surrealdb`. `DB_STRICT=1`: без базы бэкенд не стартует |
-| В `status` `workers: 0`, проверка отвечает 503 | воркер не подключился: `logs worker` (неверный `CS_CORE_WORKER_TOKEN`, `api` не `healthy`, нет связи с `dind`); токен в `.env` одинаков для `api` и `worker` — после правки пересоздайте оба (`up -d`) |
-| Проверка зависает в «В очереди» | нет свободных слотов (`CS_CORE_LIGHT_SLOTS`/`CS_CORE_HEAVY_SLOTS`) или образа в `dind`: выполните шаг 5 |
-| В песочнице «файл не найден» / пустой каталог | не совпал путь каталога песочниц: воркер должен иметь `TMPDIR=/sandboxes`, а том `sandboxes` — смонтирован в `worker` и `dind` по пути `/sandboxes` (так в compose; не меняйте) |
-| сайт не открывается снаружи | `docker compose ps`: `traefik` должен быть `healthy`; порты `CS_CORE_HTTP_PORT`/`CS_CORE_HTTPS_PORT` свободны и открыты в файрволе; маршруты — `deploy/traefik/http.yml` или `tls.yml` |
-| Сборка `api` падает на `git.service-lab.dev` | нет токена или сети до реестра: `LAB_TOKEN` либо `CS_CORE_VENDOR_DIR` (шаг 3) |
-| Нужно остановить всё | `docker compose -f deploy/docker-compose.yml --env-file deploy/.env stop` (тома сохраняются) |
+| `dind` does not become `healthy` | `privileged` and rootful Docker are required; check `docker compose logs dind` (often no `overlay`/cgroup or low disk space). Do not replace it with mounting the host socket |
+| `api` stays `starting` for a long time | the first seed is running (`start_period: 180s`) or there is no connection to `surrealdb`; look at `logs api surrealdb`. With `DB_STRICT=1` the backend does not start without a database |
+| `status` shows `workers: 0`, checks return 503 | the worker has not connected: `logs worker` (wrong `CS_CORE_WORKER_TOKEN`, `api` not `healthy`, no connection to `dind`); the token in `.env` is the same for `api` and `worker` — after editing, recreate both (`up -d`) |
+| A check hangs in "Queued" | no free slots (`CS_CORE_LIGHT_SLOTS`/`CS_CORE_HEAVY_SLOTS`) or no image in `dind`: run step 5 |
+| In the sandbox "file not found" / empty directory | the sandbox directory path does not match: the worker must have `TMPDIR=/sandboxes`, and the `sandboxes` volume must be mounted in both `worker` and `dind` at `/sandboxes` (as in compose; do not change it) |
+| the site does not open from outside | `docker compose ps`: `traefik` must be `healthy`; ports `CS_CORE_HTTP_PORT`/`CS_CORE_HTTPS_PORT` must be free and open in the firewall; routes are in `deploy/traefik/http.yml` or `tls.yml` |
+| The `api` build fails on `git.service-lab.dev` | no token or no network to the registry: `LAB_TOKEN` or `CS_CORE_VENDOR_DIR` (step 3) |
+| Need to stop everything | `docker compose -f deploy/docker-compose.yml --env-file deploy/.env stop` (volumes are kept) |
 
-Лимиты ресурсов для всех песочниц сразу задаёт `dind` (`CS_CORE_SANDBOX_CPUS`/`CS_CORE_SANDBOX_MEM`). Если сайт тормозит во время проверок — уменьшите их и слоты, перезапустите `dind` и `worker`.
+Resource limits for all sandboxes at once are set by `dind` (`CS_CORE_SANDBOX_CPUS`/`CS_CORE_SANDBOX_MEM`). If the site slows down during checks — reduce them and the slots, then restart `dind` and `worker`.
 
-## 10. Что сообщить владельцу после развёртывания
+## 10. What to report to the owner after deployment
 
-- адрес сайта и что вы проверили из шага 6 (с результатами команд);
-- какие образы песочниц залиты и какие режимы (`python`, `js`, `c`, `rust`, `sql`) реально проверены сквозной проверкой;
-- выбранные лимиты и слоты (`.env` без секретов), где лежит код и тома;
-- что **не** сделано: внешняя копия бэкапов, мониторинг, лимиты на регистрацию и вход по IP (`docs/deploy.md`, чек-лист — до открытой регистрации они обязательны);
-- любые отступления от этой инструкции и их причины.
+- the site address and which checks from step 6 you ran (with the command results);
+- which sandbox images are loaded and which modes (`python`, `js`, `c`, `rust`, `sql`) were actually verified by an end-to-end check;
+- the chosen limits and slots (`.env` without secrets), where the code and the volumes are;
+- what is **not** done: off-site backup copy, monitoring, rate limits on registration and login by IP (`docs/deploy.md`, the checklist — they are mandatory before registration is opened to the public);
+- any deviations from this guide and the reasons for them.

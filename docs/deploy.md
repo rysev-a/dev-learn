@@ -1,52 +1,52 @@
-# Как деплоить «cs-core»
+# How to deploy "cs-core"
 
-Операционная инструкция для того, кто разворачивает сервис, — `docs/deploy-agent.md`; здесь — выбор схемы и порядок работ.
+The operational guide for whoever sets the service up is `docs/deploy-agent.md`; this document covers choosing a setup and the order of work.
 
-## Что запускается
+## What runs
 
-| Часть | Образ | Что нужно | Состояние |
+| Part | Image | Requirements | State |
 |---|---|---|---|
-| вход | `traefik:v3.3` (маршруты — `deploy/traefik/http.yml` для разработки и `tls.yml` для сервера, сокет Docker не монтируется) | порты 80/443 | без состояния |
-| сайт | `cs-core-proxy` (frontend: Caddy со статикой wasm, ≈120 МБ, наружу не опубликован) | — | без состояния |
-| бэкенд | `cs-core-api` (axum, ≈400 МБ) | ≈1 ГБ памяти; **ровно один экземпляр** (очередь проверок под замком процесса) | без состояния, всё в базе |
-| база | `surrealdb/surrealdb:v3` | диск под `surrealkv`, ≈1 ГБ памяти | **единственное хранилище**: пользователи, прогресс, очередь |
-| воркер | `cs-core-worker` (Python, ≈260 МБ) | выход на бэкенд по HTTPS | без состояния |
-| песочницы | `dind` (отдельный Docker-демон, `privileged`) + образы `python`, `rust`, `node`, `cs-core-rust-crates` (≈5–8 ГБ) | ядра и память под проверки (`CS_CORE_SANDBOX_CPUS`, `CS_CORE_SANDBOX_MEM`) | образы в томе `dind-data` |
-| копии | `backup` (раз в сутки `surreal export`) | том `backups` | последние 14 файлов `.surql` |
+| entry point | `traefik:v3.3` (routes: `deploy/traefik/http.yml` for development and `tls.yml` for the server; the Docker socket is not mounted) | ports 80/443 | stateless |
+| site | `cs-core-proxy` (frontend: Caddy serving the wasm static files, ≈120 MB, not published externally) | — | stateless |
+| backend | `cs-core-api` (axum, ≈400 MB) | ≈1 GB of memory; **exactly one instance** (the check queue is guarded by a process-level lock) | stateless, everything is in the database |
+| database | `surrealdb/surrealdb:v3` | disk for `surrealkv`, ≈1 GB of memory | **the only storage**: users, progress, queue |
+| worker | `cs-core-worker` (Python, ≈260 MB) | outbound HTTPS access to the backend | stateless |
+| sandboxes | `dind` (a separate Docker daemon, `privileged`) + the `python`, `rust`, `node`, `cs-core-rust-crates` images (≈5–8 GB) | cores and memory for checks (`CS_CORE_SANDBOX_CPUS`, `CS_CORE_SANDBOX_MEM`) | images in the `dind-data` volume |
+| backups | `backup` (`surreal export` once a day) | the `backups` volume | the last 14 `.surql` files |
 
-Содержимое курса (тексты, слайды, SQL упражнений и квизов, лаборатории) **запекается в образ `cs-core-api`** и пересеивается в базу при старте, если изменился хеш исходников. Поэтому правка текста = новая сборка `cs-core-api`; пользовательские данные при этом не трогаются.
+The course content (texts, slides, exercise and quiz SQL, labs) is **baked into the `cs-core-api` image** and re-seeded into the database at startup if the hash of the sources has changed. So editing a text means a new build of `cs-core-api`; user data is not touched.
 
-Нагрузка на сайт небольшая: статика и короткие JSON-запросы. Дорогая часть — проверка кода: каждая проверка занимает ядро на секунды (Python, JS, SQL) или десятки секунд (Rust, C). Очередь и слоты (`CS_CORE_LIGHT_SLOTS`, `CS_CORE_HEAVY_SLOTS`) защищают сайт от перегрузки; кэш результатов по хешу решения снимает повторы.
+The load on the site is small: static files and short JSON requests. The expensive part is code checking: each check occupies a core for seconds (Python, JS, SQL) or tens of seconds (Rust, C). The queue and slots (`CS_CORE_LIGHT_SLOTS`, `CS_CORE_HEAVY_SLOTS`) protect the site from overload; the result cache keyed by the solution hash removes repeats.
 
-## Главный риск: чужой код
+## The main risk: other people's code
 
-Песочница изолирует код учеников (`--network none`, лимиты, `--cap-drop ALL`, `nobody`, `--read-only`), но живёт в `privileged`-контейнере `dind`. Побег из песочницы + `privileged` = root на хосте, а на хосте — база с пользователями. Отсюда порядок схем.
+The sandbox isolates students' code (`--network none`, limits, `--cap-drop ALL`, `nobody`, `--read-only`), but it lives inside the `privileged` `dind` container. A sandbox escape + `privileged` = root on the host, and the host holds the database with users. This is what drives the order of the setups.
 
-## Схемы
+## Setups
 
-**A. Всё на одной машине (compose) — старт.** Подходит для закрытого запуска и первых пользователей. VPS 4 vCPU / 8 ГБ / 80 ГБ диска, rootful Docker 25+. Плюс: одна команда, ничего больше не нужно. Минус: риск выше — чужой код рядом с базой. Смягчение: регистрация закрыта или по приглашениям, небольшие слоты, образ песочниц не обновляется «на лету», копии базы наружу.
+**A. Everything on one machine (compose) — the start.** Suitable for a closed launch and the first users. A VPS with 4 vCPU / 8 GB / 80 GB of disk, rootful Docker 25+. Pro: one command, nothing else needed. Con: higher risk — other people's code next to the database. Mitigation: registration is closed or invitation-only, small slots, the sandbox image is not updated "on the fly", database backups are kept off the machine.
 
-**B. Сайт и база на VPS, воркер на отдельной машине (VM дома или второй VPS) — целевая схема.** Воркер сам ходит на бэкенд по HTTPS, баз и секретов пользователей у него нет, его можно откатывать к снимку. Код уже готов (`worker/worker.py --server https://…`, `docs/code-runner.md`). Нужно одно изменение конфигурации: Caddy сейчас закрывает `/internal/*` для всех снаружи. Варианты: (1) отдельный адрес/порт для воркеров с allowlist по IP и токеном; (2) закрытая сеть между машинами (WireGuard/Tailscale) — тогда воркер ходит прямо на `api:8000` по туннелю, а Caddy остаётся как есть (рекомендуется).
+**B. Site and database on a VPS, worker on a separate machine (a VM at home or a second VPS) — the target setup.** The worker connects to the backend over HTTPS on its own, has no databases or user secrets, and can be rolled back to a snapshot. The code is already in place (`worker/worker.py --server https://…`, `docs/code-runner.md`). One configuration change is needed: Caddy currently blocks `/internal/*` for everyone outside. Options: (1) a separate address/port for workers with an IP allowlist and a token; (2) a private network between the machines (WireGuard/Tailscale) — then the worker goes straight to `api:8000` through the tunnel and Caddy stays as is (recommended).
 
-**C. Kubernetes, управляемые сервисы** — пока избыточно: бэкенд обязан быть в одном экземпляре, песочницам нужен привилегированный Docker. Возвращаться к этому при росте.
+**C. Kubernetes, managed services** — overkill for now: the backend must run as a single instance, and the sandboxes need a privileged Docker. Come back to this as the service grows.
 
-Рекомендация: **стартовать с A на закрытой регистрации и сразу готовить B**, потому что переход — это перенос сервиса `worker`+`dind` на другую машину и смена `--server`; данные и образы `cs-core-api`/`cs-core-proxy` не меняются.
+Recommendation: **start with A on closed registration and prepare B right away**, because the move is just transferring the `worker`+`dind` services to another machine and changing `--server`; the data and the `cs-core-api`/`cs-core-proxy` images do not change.
 
-## Порядок работ
+## Order of work
 
-1. **Подготовка.** Домен (A/AAAA на сервер), VPS, SMTP для писем подтверждения (без `SMTP_HOST` письма видны только в задачах админки), секреты: `openssl rand -hex 32` для `CS_CORE_WORKER_TOKEN`, пароли `SURREAL_PASS`, `ADMIN_PASSWORD`.
-2. **Сборка образов.** Бэкенд собирается долго (10–20 минут) и требует закрытых библиотек (реестр автора: токен `LAB_TOKEN` или готовый каталог `cargo vendor` — `CS_CORE_VENDOR_DIR`). Сейчас образы собираются
-   на самом сервере скриптом `deploy/server/release.sh` (см. «Выкладка по релизу» ниже); вручную то же делают `docker build` для трёх Dockerfile'ов с тегом `cs-core-api|proxy|worker:<тег>`
-   и `docker compose … up -d --no-build`. Тег образа (`CS_CORE_TAG` в `.env`) — это и версия, и точка отката. Если нужен внешний реестр, имена задаются `CS_CORE_REGISTRY` (с косой чертой на конце) и `CS_CORE_TAG`.
-3. **Первый запуск** по `docs/deploy-agent.md`: `.env`, `up -d`, один раз `--profile checks --profile setup run --rm images` (образы песочниц, 15–40 минут), сквозная проверка кода по каждому режиму.
-4. **Проверка снаружи:** e2e-тесты умеют работать против готового стека (`e2e/README.md`, «Против готового стека»): вход под тестовым пользователем, обход глав, лаборатории.
-5. **Эксплуатация:** мониторинг доступности `/api/exercises/runner/status` (`workers` ≥ 1, `available: true`) и главной; журналы `docker compose logs`; копии базы **выносить с машины** (`rsync`/объектное хранилище): том `backups` на той же машине бэкапом не считается; раз в квартал проверять восстановление (`surreal import` в чистую базу).
-6. **Обновления:** новая сборка → `pull` → `up -d`. Бэкенд один, поэтому обновление — перерыв на десятки секунд, пока он стартует и проверяет хеш сида; воркер переподключается сам. Образы песочниц обновляются отдельно (меняется `worker/docker/rust-crates` или версии в `worker/runner.py` → шаг с `images` повторить).
-7. **Схема B:** поднять `worker`+`dind` на второй машине (`docker-compose` с этими двумя сервисами, `--server` на адрес бэкенда через туннель), убрать их из основного стека.
+1. **Preparation.** A domain (A/AAAA records pointing to the server), a VPS, SMTP for confirmation emails (without `SMTP_HOST`, emails are visible only in the admin tasks), secrets: `openssl rand -hex 32` for `CS_CORE_WORKER_TOKEN`, passwords `SURREAL_PASS`, `ADMIN_PASSWORD`.
+2. **Building the images.** The backend takes a long time to build (10–20 minutes) and requires private libraries (the author's registry: the `LAB_TOKEN` token or a ready-made `cargo vendor` directory — `CS_CORE_VENDOR_DIR`). Currently the images are built
+   on the server itself by the `deploy/server/release.sh` script (see "Release deployment" below); by hand the same is done with `docker build` for the three Dockerfiles, tagged `cs-core-api|proxy|worker:<tag>`,
+   and `docker compose … up -d --no-build`. The image tag (`CS_CORE_TAG` in `.env`) is both the version and the rollback point. If an external registry is needed, the names are set with `CS_CORE_REGISTRY` (with a trailing slash) and `CS_CORE_TAG`.
+3. **First launch** following `docs/deploy-agent.md`: `.env`, `up -d`, run `--profile checks --profile setup run --rm images` once (the sandbox images, 15–40 minutes), an end-to-end code check for each mode.
+4. **External verification:** the e2e tests can run against a ready-made stack (`e2e/README.md`, "Against a ready-made stack"): logging in as a test user, walking through the chapters, the labs.
+5. **Operations:** monitor the availability of `/api/exercises/runner/status` (`workers` ≥ 1, `available: true`) and of the home page; logs via `docker compose logs`; database backups must be **moved off the machine** (`rsync`/object storage): the `backups` volume on the same machine does not count as a backup; once a quarter, test the restore (`surreal import` into a clean database).
+6. **Updates:** new build → `pull` → `up -d`. There is a single backend, so an update is an interruption of tens of seconds while it starts and checks the seed hash; the worker reconnects on its own. The sandbox images are updated separately (when `worker/docker/rust-crates` or the versions in `worker/runner.py` change → repeat the `images` step).
+7. **Setup B:** bring up `worker`+`dind` on a second machine (`docker-compose` with these two services, `--server` pointing to the backend address through the tunnel), and remove them from the main stack.
 
 ## HTTPS
 
-По умолчанию Traefik отдаёт сайт только по HTTP (`traefik/http.yml`: разработка и доступ по адресу машины). Рабочий режим включается тремя строками в `deploy/.env`:
+By default Traefik serves the site over HTTP only (`traefik/http.yml`: development and access by the machine's address). The production mode is enabled with three lines in `deploy/.env`:
 
 ```
 CS_CORE_DOMAIN=cs-core.example.com
@@ -54,46 +54,46 @@ CS_CORE_TRAEFIK_CONFIG=./traefik/tls.yml
 CS_CORE_URL=https://cs-core.example.com
 ```
 
-Условия: A-запись домена (и `www`) указывает на сервер, порты 80 и 443 открыты снаружи. Traefik сам получает сертификат Let's Encrypt (TLS-ALPN, том `traefik-acme`) и обновляет его;
-HTTP перенаправляется на HTTPS, `www` — на домен без `www`, добавлен заголовок HSTS. По адресу машины без домена сайт в этом режиме не открывается. `ACME_EMAIL` (необязательно) —
-адрес для уведомлений Let's Encrypt.
+Requirements: the domain's A record (and `www`) points to the server, and ports 80 and 443 are open to the outside. Traefik obtains a Let's Encrypt certificate itself (TLS-ALPN, the `traefik-acme` volume) and renews it;
+HTTP is redirected to HTTPS, `www` to the domain without `www`, and the HSTS header is added. In this mode the site does not open by the machine's address without a domain. `ACME_EMAIL` (optional) is
+the address for Let's Encrypt notifications.
 
-## Выкладка по релизу (GitHub Actions)
+## Release deployment (GitHub Actions)
 
-Создали релиз на GitHub (не черновик и не pre-release) — через несколько минут сайт обновлён. Workflow — `.github/workflows/release.yml`; тесты крейтов и фронтенда на каждый push и PR — `ci.yml`.
+Create a release on GitHub (not a draft and not a pre-release) — and a few minutes later the site is updated. The workflow is `.github/workflows/release.yml`; tests of the crates and the frontend on every push and PR are in `ci.yml`.
 
-Как это устроено:
+How it works:
 
-1. Actions берёт исходники по тегу релиза (`git archive`) и по SSH отправляет их на сервер. Ключ Actions — отдельный, и в `~/.ssh/authorized_keys` ему разрешён **только** `~/cs-core/release.sh`
-   (`restrict,command="…"`): ни оболочки, ни проброса портов. Скрипт лежит в репозитории — `deploy/server/release.sh`; его копия на сервере обновляется вручную (при смене скрипта).
-2. Образы собираются **на сервере**: бэкенд зависит от закрытых библиотек (реестр автора), которых нет у GitHub-раннера; их исходники лежат на сервере в `~/cs-core-vendor`.
-3. Скрипт запускает стек с новым тегом (`CS_CORE_TAG` в `~/cs-core/shared/.env`), ждёт, пока сайт ответит по `https://домен/` и `/api/books`; если нет — **возвращает прежний тег** и завершается с ошибкой (workflow красный).
-4. Хранятся три последние версии (каталоги `~/cs-core/releases/<тег>` и образы `cs-core-*:<тег>`). Откат вручную: `CS_CORE_TAG=<прежний тег>` в `shared/.env` и `docker compose … up -d --no-build`
-   (или создать/перевыпустить релиз со старым тегом, либо запустить workflow вручную: Actions → «Выкладка релиза» → Run workflow → тег).
+1. Actions takes the sources by the release tag (`git archive`) and sends them to the server over SSH. The Actions key is dedicated, and in `~/.ssh/authorized_keys` it is allowed to run **only** `~/cs-core/release.sh`
+   (`restrict,command="…"`): no shell and no port forwarding. The script is in the repository — `deploy/server/release.sh`; its copy on the server is updated manually (when the script changes).
+2. The images are built **on the server**: the backend depends on private libraries (the author's registry) that the GitHub runner does not have; their sources are on the server in `~/cs-core-vendor`.
+3. The script starts the stack with the new tag (`CS_CORE_TAG` in `~/cs-core/shared/.env`) and waits until the site responds at `https://domain/` and `/api/books`; if it does not, it **restores the previous tag** and exits with an error (the workflow turns red).
+4. The three latest versions are kept (the `~/cs-core/releases/<tag>` directories and the `cs-core-*:<tag>` images). Manual rollback: set `CS_CORE_TAG=<previous tag>` in `shared/.env` and run `docker compose … up -d --no-build`
+   (or create/re-publish a release with the old tag, or run the workflow manually: Actions → "Release deployment" → Run workflow → tag).
 
-Настроено один раз: секрет `DEPLOY_SSH_KEY` (закрытый ключ) и переменные `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_HOST_KEY` (отпечаток хоста: строка из `known_hosts`), `SITE_URL` в Settings → Secrets and variables → Actions.
-Чтобы выкладка ждала подтверждения, добавьте в Settings → Environments → `production` обязательных ревьюеров. Смена сервера — новые значения переменных и новый ключ (`ssh-keygen -t ed25519`, публичная часть в `authorized_keys` с теми же ограничениями).
+Configured once: the `DEPLOY_SSH_KEY` secret (the private key) and the `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_HOST_KEY` (the host fingerprint: a line from `known_hosts`), `SITE_URL` variables in Settings → Secrets and variables → Actions.
+To make a deployment wait for approval, add required reviewers in Settings → Environments → `production`. Changing the server means new variable values and a new key (`ssh-keygen -t ed25519`, the public part in `authorized_keys` with the same restrictions).
 
-Ограничения: между собой выкладки не пересекаются (`concurrency`); тесты бэкенда в Actions не идут (закрытые библиотеки) — перед релизом прогоняйте `cd backend && cargo test` и e2e локально; пользовательские данные и настройки
-(`shared/.env`, том SurrealDB) выкладка не трогает.
+Limitations: deployments do not overlap (`concurrency`); backend tests do not run in Actions (private libraries) — before a release, run `cd backend && cargo test` and the e2e tests locally; user data and settings
+(`shared/.env`, the SurrealDB volume) are not touched by a deployment.
 
-## Публикация образов в Docker Hub
+## Publishing images to Docker Hub
 
-Образы для запуска «у себя» (README, «Запуск у себя») лежат в Docker Hub, пространство `alexeirysev`: `cs-core-api`, `cs-core-proxy`, `cs-core-worker`, теги `<версия>` и `latest`, архитектуры `linux/amd64` и `linux/arm64`.
-Выкладывает их `deploy/publish.sh <версия> <тег образов на сервере>` **с компьютера на Apple Silicon**: `arm64` собирается там (бэкенду нужны закрытые библиотеки — каталог `vendor`, которого нет в CI),
-`amd64` забирается с сервера, где собран релиз, затем один multi-arch тег. Нужны `docker login` в Docker Hub и ssh-доступ к серверу. После выкладки релиза на сайт запустите скрипт с тем же тегом, чтобы образы совпадали с сайтом.
-Первая публикация создаёт репозитории публичными; образ бэкенда содержит скомпилированный код закрытых библиотек (исходников в нём нет).
+The images for running it yourself (README, "Running it yourself") are hosted on Docker Hub under the `alexeirysev` namespace: `cs-core-api`, `cs-core-proxy`, `cs-core-worker`, with the tags `<version>` and `latest`, for the `linux/amd64` and `linux/arm64` architectures.
+They are published by `deploy/publish.sh <version> <image tag on the server>` **from an Apple Silicon computer**: `arm64` is built there (the backend needs private libraries — the `vendor` directory, which CI does not have),
+`amd64` is pulled from the server where the release was built, and then a single multi-arch tag is created. You need `docker login` to Docker Hub and ssh access to the server. After deploying a release to the site, run the script with the same tag so the images match the site.
+The first publication creates the repositories as public; the backend image contains the compiled code of the private libraries (no sources in it).
 
-## Чек-лист перед открытием регистрации
+## Checklist before opening registration
 
-- пароль администратора и токен воркера сгенерированы, `DEMO_*` не заданы;
-- HTTPS работает, заголовки безопасности на месте (middleware `secure` в `deploy/traefik/tls.yml`), `/internal/*` снаружи отвечает 404;
-- письма подтверждения доходят (SMTP проверен реальным ящиком);
-- ограничение частоты регистрации включено (429 при серии); подумать об ограничении проверок кода по IP;
-- песочницы проверены на побег: `--network none` и лимиты (`docs/code-runner.md`), `dind` не опубликован наружу, сокет хоста не монтируется нигде;
-- копии базы уходят за пределы машины, восстановление проверено;
-- запас по диску для образов (`dind-data` растёт при обновлении образов песочниц).
+- the administrator password and the worker token are generated, `DEMO_*` are not set;
+- HTTPS works, the security headers are in place (the `secure` middleware in `deploy/traefik/tls.yml`), `/internal/*` returns 404 from outside;
+- confirmation emails arrive (SMTP verified with a real mailbox);
+- registration rate limiting is on (429 on a burst); consider limiting code checks per IP;
+- the sandboxes are checked for escapes: `--network none` and the limits (`docs/code-runner.md`), `dind` is not published externally, the host socket is not mounted anywhere;
+- database backups leave the machine, and restoring has been tested;
+- disk headroom for images (`dind-data` grows when the sandbox images are updated).
 
-## Что не проверено
+## What has not been verified
 
-Реальный сервер и домен; публикация образов в реестр; схема B (воркер через туннель); нагрузочные испытания; восстановление базы из копии на чистой машине.
+A real server and domain; publishing images to the registry; setup B (the worker through a tunnel); load testing; restoring the database from a backup on a clean machine.
