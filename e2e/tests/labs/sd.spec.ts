@@ -17,9 +17,9 @@ import {
   type LabTaskData,
 } from "../../support/labs";
 
-/* Лаборатория «Системный дизайн» (книга 18): схема сервиса на поле, расчёт в wasm и перепроверка решения сервером. */
+/* System Design lab (book 18): a service diagram on the field, wasm computation and server re-verification of the solution. */
 
-// поле схемы небольшое по высоте: страница должна вместить его целиком, чтобы мышь попадала в порты
+// the diagram field is small in height: the page must fit it entirely so the mouse hits the ports
 test.use({ viewport: { width: 1500, height: 1600 } });
 
 interface SdNode {
@@ -35,7 +35,7 @@ interface SdState {
 const startOf = (t: LabTaskData) => t.spec.start as SdState;
 const solutionOf = (t: LabTaskData) => reference(t) as SdState;
 
-// --- помощники интерфейса -------------------------------------------------------------------------
+// --- UI helpers -------------------------------------------------------------------------
 
 const goalsList = (page: Page) => page.locator(".sd-goals li");
 const nodes = (page: Page) => page.locator(".sd-node:not(.ghost)");
@@ -47,11 +47,11 @@ const metric = (page: Page, name: string) => page.locator(".sd-metrics dl > div"
 async function box(l: Locator) {
   await l.scrollIntoViewIfNeeded();
   const b = await l.boundingBox();
-  if (!b) throw new Error("у элемента нет рамки");
+  if (!b) throw new Error("the element has no bounding box");
   return b;
 }
 
-/** Порт компонента: вход — у левого края рамки, выход — у правого, по середине высоты. */
+/** A component port: the input at the left edge of the frame, the output at the right one, at mid height. */
 async function port(node: Locator, side: "in" | "out") {
   const b = await box(node.locator("rect").first());
   return { x: side === "out" ? b.x + b.width : b.x, y: b.y + b.height / 2 };
@@ -62,14 +62,14 @@ async function center(l: Locator) {
   return { x: b.x + b.width / 2, y: b.y + b.height / 2 };
 }
 
-/** Одиночное нажатие мышью (без сдвига). */
+/** A single mouse press (without movement). */
 async function clickAt(page: Page, p: { x: number; y: number }) {
   await page.mouse.move(p.x, p.y);
   await page.mouse.down();
   await page.mouse.up();
 }
 
-/** Протяжка мышью из одной точки в другую. */
+/** Mouse drag from one point to another. */
 async function dragTo(page: Page, from: { x: number; y: number }, to: { x: number; y: number }) {
   await page.mouse.move(from.x, from.y);
   await page.mouse.down();
@@ -78,10 +78,10 @@ async function dragTo(page: Page, from: { x: number; y: number }, to: { x: numbe
   await page.mouse.up();
 }
 
-/** Поле карточки параметров по подписи. */
+/** A parameter card field by its label. */
 const field = (page: Page, label: string) => page.locator(".sd-float .sd-field", { has: page.locator("span", { hasText: new RegExp(`^${label.replace(/[()]/g, "\\$&")}$`) }) });
 
-/** Все цели выполнены: ни одной ✗, итоговая плашка на месте. */
+/** All goals are met: no ✗, the summary banner is in place. */
 async function expectAllGoalsDone(page: Page, total: number) {
   await expect(goalsList(page)).toHaveCount(total);
   await expect(page.locator(".sd-goals li.bad")).toHaveCount(0);
@@ -89,9 +89,9 @@ async function expectAllGoalsDone(page: Page, total: number) {
   await expect(page.locator(".sd-goals .lab-alert.ok .lab-alert-title")).toHaveText("Все цели выполнены");
 }
 
-// --- 1. эталон из данных → черновик → интерфейс → сервер ----------------------------------------------
+// --- 1. reference from the data → draft → UI → server ----------------------------------------------
 
-/** Упражнения для проверки конвейера: по одному из разных глав, включая итоговые проекты и экзамены. */
+/** Exercises for checking the pipeline: one from different chapters, including final projects and exams. */
 const PIPELINE: [number, string][] = [
   [1, "sd01-fleet"],
   [2, "sd02-horizontal"],
@@ -107,9 +107,9 @@ const PIPELINE: [number, string][] = [
   [24, "sd24-exam"],
 ];
 
-test.describe("эталон из файла данных, положенный черновиком, засчитывается", () => {
+test.describe("a reference from the data file, put in as a draft, is accepted", () => {
   for (const [chapter, id] of PIPELINE) {
-    test(`глава ${chapter}: ${id}`, async ({ page, request, guard }) => {
+    test(`chapter ${chapter}: ${id}`, async ({ page, request, guard }) => {
       const task = labTask("sd", chapter, id);
       const { token } = await loginFresh(page, request, "sd");
       await putDraft(request, token, "sd", chapter, id, JSON.stringify(reference(task)));
@@ -120,10 +120,10 @@ test.describe("эталон из файла данных, положенный �
       await expect(listItem(page, task.title)).toHaveClass(/\bok\b/);
       await expect(listItem(page, task.title).locator(".pr-mark")).toHaveText("✓");
       await expect(progressLabel(page)).toHaveText(`Решено 1 из ${labTasks("sd", chapter).length}`);
-      // сервер принял решение самостоятельно: интерфейс отправил его, как только цели сошлись
+      // the server accepted the solution on its own: the UI sent it as soon as the goals were met
       await expectStatusOk(request, token, "sd", chapter, id);
 
-      // после перезагрузки решение уже записано: плашка говорит «уже было решено»
+      // after a reload the solution is already recorded: the banner says it was already solved
       await page.reload();
       await expect(page.locator(".sd-goals .lab-alert-text")).toHaveText("Упражнение уже было решено.");
       guard.assertClean();
@@ -131,7 +131,7 @@ test.describe("эталон из файла данных, положенный �
   }
 });
 
-test("эталон засчитывается и при открытии из другого упражнения главы (список ✓ только у решённого)", async ({ page, request, guard }) => {
+test("the reference is accepted when opened from another chapter exercise (the ✓ list only for the solved one)", async ({ page, request, guard }) => {
   const chapter = 2;
   const list = labTasks("sd", chapter);
   const solved = list[1]!;
@@ -150,13 +150,13 @@ test("эталон засчитывается и при открытии из д
   guard.assertClean();
 });
 
-// --- 2. исходное состояние не засчитывается ----------------------------------------------------------
+// --- 2. the initial state is not accepted ----------------------------------------------------------
 
-test.describe("исходная схема не засчитывается", () => {
-  // первое упражнение каждой главы: цели не выполнены, решения на сервере нет
+test.describe("the initial diagram is not accepted", () => {
+  // the first exercise of every chapter: goals not met, no solution on the server
   for (const chapter of labChapters("sd")) {
     const task = labTasks("sd", chapter)[0]!;
-    test(`глава ${chapter}: ${task.id}`, async ({ page, request, guard }) => {
+    test(`chapter ${chapter}: ${task.id}`, async ({ page, request, guard }) => {
       const { token } = await loginFresh(page, request, "sd");
       await openTask(page, request, "sd", chapter, task.id);
       await expect(goalsList(page)).toHaveCount((task.spec.goals as unknown[]).length);
@@ -172,11 +172,11 @@ test.describe("исходная схема не засчитывается", () 
   }
 });
 
-test("черновик с неполной схемой не засчитывается; повреждённый черновик открывает исходную схему", async ({ page, request, guard }) => {
+test("a draft with an incomplete diagram is not accepted; a corrupted draft opens the initial diagram", async ({ page, request, guard }) => {
   const [chapter, id] = [2, "sd02-vertical"];
   const task = labTask("sd", chapter, id);
   const { token } = await loginFresh(page, request, "sd");
-  // схема эталона без базы данных: цели не сходятся
+  // the reference diagram without a database: the goals do not match
   const broken = clone(solutionOf(task));
   broken.nodes = broken.nodes.filter((n) => n.kind !== "db");
   broken.edges = broken.edges.filter((e) => e.to !== "db");
@@ -187,7 +187,7 @@ test("черновик с неполной схемой не засчитыва�
   await expect(page.locator(".sd-goals li.bad").first()).toBeVisible();
   await expect(page.locator(".sd-goals .lab-alert")).toHaveCount(0);
 
-  await putDraft(request, token, "sd", chapter, id, "{не json");
+  await putDraft(request, token, "sd", chapter, id, "{not json");
   await page.reload();
   await expect(nodes(page)).toHaveCount(startOf(task).nodes.length);
   await expect(page.locator(".sd-goals li.bad").first()).toBeVisible();
@@ -196,9 +196,9 @@ test("черновик с неполной схемой не засчитыва�
   guard.assertClean();
 });
 
-// --- 3. отказ сервера ------------------------------------------------------------------------------------
+// --- 3. server rejection ------------------------------------------------------------------------------------
 
-test("сервер отклоняет исходную схему и мусор с причиной (422)", async ({ page, request }) => {
+test("the server rejects the initial diagram and garbage with a reason (422)", async ({ page, request }) => {
   const [chapter, id] = [2, "sd02-vertical"];
   const task = labTask("sd", chapter, id);
   const { token } = await loginFresh(page, request, "sd");
@@ -208,11 +208,11 @@ test("сервер отклоняет исходную схему и мусор 
   expect(start.detail).toContain("цель не выполнена");
   expect(start.detail).toContain("80%");
 
-  const junk = await putSolved(request, token, "sd", chapter, id, "не json");
+  const junk = await putSolved(request, token, "sd", chapter, id, "not json");
   expect(junk.status).toBe(422);
   expect(junk.detail).toContain("неверный JSON");
 
-  // схема, в которой подменён параметр вне справочника, и компонент, которого нет в палитре упражнения
+  // a diagram with a parameter outside the reference substituted, and a component absent from the exercise palette
   const forged = clone(solutionOf(task));
   forged.nodes.find((n) => n.kind === "app")!.params.size = "XXL";
   const bad = await putSolved(request, token, "sd", chapter, id, JSON.stringify(forged));
@@ -220,22 +220,22 @@ test("сервер отклоняет исходную схему и мусор 
   expect(bad.detail).not.toBe("");
 
   const outside = clone(solutionOf(task));
-  outside.nodes.push({ id: "cache1", kind: "cache", name: "Кэш", params: {} });
+  outside.nodes.push({ id: "cache1", kind: "cache", name: "Cache", params: {} });
   const out = await putSolved(request, token, "sd", chapter, id, JSON.stringify(outside));
   expect(out.status).toBe(422);
 
   expect(await statusOf(request, token, "sd", chapter, id)).toBeUndefined();
-  // эталон принимается (204), и повторная отправка тоже
+  // the reference is accepted (204), and so is a repeated submission
   expect((await putSolved(request, token, "sd", chapter, id, JSON.stringify(reference(task)))).status).toBe(204);
   expect(await statusOf(request, token, "sd", chapter, id)).toBe("ok");
 });
 
-test("интерфейс показывает причину отказа сервера, если ему подменили решение", async ({ page, request, guard }) => {
+test("the UI shows the server rejection reason when the solution was tampered with", async ({ page, request, guard }) => {
   const [chapter, id] = [2, "sd02-vertical"];
   const task = labTask("sd", chapter, id);
   const { token } = await loginFresh(page, request, "sd");
   await putDraft(request, token, "sd", chapter, id, JSON.stringify(reference(task)));
-  // решение, которое клиент отправит, подменяется исходной схемой — как будто интерфейс ошибся в расчёте
+  // the solution the client will send is replaced by the initial diagram — as if the UI made a computation mistake
   await page.route("**/api/exercises/18/2/sd02-vertical/solved", async (route) => {
     await route.continue({ postData: JSON.stringify({ solution: JSON.stringify(startOf(task)) }) });
   });
@@ -245,18 +245,18 @@ test("интерфейс показывает причину отказа сер
   const error = page.locator(".pr-main p.error");
   await expect(error).toContainText("Решение не принято");
   await expect(error).toContainText("цель не выполнена");
-  // интерфейс считает цели выполненными, но сервер ничего не записал
+  // the UI considers the goals met, but the server recorded nothing
   await expect(page.locator(".sd-goals .lab-alert-title")).toHaveText("Все цели выполнены");
   await expect(page.locator(".sd-goals .lab-alert-text")).toHaveText("Проверяю решение на сервере…");
   await expect(page.locator(".pr-head .pr-badge")).toHaveText("не решено");
   expect(await statusOf(request, token, "sd", chapter, id)).toBeUndefined();
-  // консоль охраняет 422: ошибка загрузки ресурса — штатный ответ сервера, а не сбой страницы
+  // the console guard lets 422 through: a resource load error is a normal server response, not a page failure
   expect(guard.errors.filter((e) => !/422/.test(e))).toEqual([]);
 });
 
-// --- 4. реальные действия на поле ---------------------------------------------------------------------
+// --- 4. real actions on the field ---------------------------------------------------------------------
 
-test.describe("действия на поле", () => {
+test.describe("actions on the field", () => {
   const OPEN: [number, string] = [2, "sd02-vertical"];
 
   async function setup(page: Page, request: Parameters<typeof openTask>[1], who = "sd") {
@@ -266,7 +266,7 @@ test.describe("действия на поле", () => {
     return user;
   }
 
-  test("палитра: клик добавляет компонент, карточка показывает его параметры, × закрывает", async ({ page, request, guard }) => {
+  test("palette: a click adds a component, the card shows its parameters, × closes it", async ({ page, request, guard }) => {
     const { token } = await setup(page, request);
     await expect(page.locator(".sd-float")).toHaveCount(0);
     await page.getByRole("button", { name: "+ База данных" }).click();
@@ -276,7 +276,7 @@ test.describe("действия на поле", () => {
     await expect(field(page, "Реплики на шард").locator("input")).toHaveValue("0");
     await page.getByRole("button", { name: "Закрыть" }).click();
     await expect(page.locator(".sd-float")).toHaveCount(0);
-    // новая схема сохранена черновиком на сервере
+    // the new diagram is saved as a draft on the server
     await expect
       .poll(async () => {
         const raw = (await chapterState(request, token, "sd", OPEN[0])).drafts[OPEN[1]];
@@ -286,16 +286,16 @@ test.describe("действия на поле", () => {
     guard.assertClean();
   });
 
-  test("перетаскивание из палитры ставит компонент туда, где отпустили кнопку", async ({ page, request, guard }) => {
+  test("dragging from the palette puts the component where the button was released", async ({ page, request, guard }) => {
     await setup(page, request);
     const svg = await box(page.locator(".sd-board"));
-    // пустое место поля — нижняя часть
+    // an empty place of the field — the lower part
     const drop = { x: svg.x + svg.width * 0.5, y: svg.y + svg.height * 0.85 };
     const from = await center(page.getByRole("button", { name: "+ Сервер приложения" }));
     await page.mouse.move(from.x, from.y);
     await page.mouse.down();
     await page.mouse.move(drop.x, drop.y, { steps: 8 });
-    // пока тащим, под курсором виден «призрак» компонента
+    // while dragging, a ghost of the component is visible under the cursor
     await expect(page.locator(".sd-node.ghost")).toHaveCount(1);
     await page.mouse.up();
     await expect(page.locator(".sd-node.ghost")).toHaveCount(0);
@@ -305,7 +305,7 @@ test.describe("действия на поле", () => {
     const c = await center(added.locator("rect").first());
     expect(Math.abs(c.x - drop.x)).toBeLessThan(40);
     expect(Math.abs(c.y - drop.y)).toBeLessThan(40);
-    // отпустили вне поля — компонент не добавляется
+    // released outside the field — the component is not added
     await page.mouse.move(from.x, from.y);
     await page.mouse.down();
     await page.mouse.move(from.x + 5, svg.y - 120, { steps: 5 });
@@ -314,12 +314,12 @@ test.describe("действия на поле", () => {
     guard.assertClean();
   });
 
-  test("связь двумя кликами по портам и протяжкой; недопустимую связь поле отклоняет с причиной", async ({ page, request, guard }) => {
+  test("a link by two clicks on ports and by dragging; the field rejects an invalid link with a reason", async ({ page, request, guard }) => {
     await setup(page, request);
     await expect(edges(page)).toHaveCount(2);
     const app = kindNode(page, "app");
 
-    // двумя кликами: выход сервера → вход новой базы данных
+    // by two clicks: the server output → the new database input
     await page.getByRole("button", { name: "+ База данных" }).click();
     await expect(nodes(page)).toHaveCount(4);
     await page.getByRole("button", { name: "Закрыть" }).click();
@@ -328,7 +328,7 @@ test.describe("действия на поле", () => {
     await clickAt(page, await port(db2, "in"));
     await expect(edges(page)).toHaveCount(3);
 
-    // протяжкой: ещё один компонент, провод от его входа к выходу сервера (от входа к выходу тоже можно)
+    // by dragging: one more component, a wire from its input to the server output (input to output also works)
     await page.getByRole("button", { name: "+ База данных" }).click();
     await expect(nodes(page)).toHaveCount(5);
     await page.getByRole("button", { name: "Закрыть" }).click();
@@ -336,28 +336,28 @@ test.describe("действия на поле", () => {
     await dragTo(page, await port(app, "out"), await center(db3.locator("rect").first()));
     await expect(edges(page)).toHaveCount(4);
 
-    // недопустимо: у пользователей нет входа
+    // invalid: users have no input
     await dragTo(page, await port(app, "out"), await center(kindNode(page, "clients").locator("rect").first()));
     await expect(edges(page)).toHaveCount(4);
     await expect(page.locator(".sd-notice")).not.toHaveText("");
     guard.assertClean();
   });
 
-  test("связь и компонент выбираются и удаляются кнопкой «Удалить» и клавишей Delete", async ({ page, request, guard }) => {
+  test("a link and a component are selected and deleted with the Delete button and the Delete key", async ({ page, request, guard }) => {
     await setup(page, request);
     await expect(page.getByRole("button", { name: "Удалить" })).toBeDisabled();
-    // связь: выбрана → подсказка под полем → удалена
+    // link: selected → a hint under the field → deleted
     await page.locator(".sd-edge .hit").first().dispatchEvent("click");
     await expect(page.locator(".sd-edge.on")).toHaveCount(1);
     await expect(page.locator(".sd-boardcard .sd-hint")).toContainText("выбрана");
     await page.getByRole("button", { name: "Удалить" }).click();
     await expect(edges(page)).toHaveCount(1);
 
-    // компонент: выбран кликом, удаляется вместе со связями; пользователей удалять нельзя
+    // component: selected by a click, deleted together with its links; users cannot be deleted
     await clickAt(page, await center(kindNode(page, "clients").locator("rect").first()));
     await expect(page.getByRole("button", { name: "Удалить" })).toBeDisabled();
     await clickAt(page, await center(kindNode(page, "db").locator("rect").first()));
-    await expect(page.locator(".sd-float h4")).toHaveText("База данных");
+    await expect(page.locator(".sd-float h4")).toHaveText("Database");
     await page.keyboard.press("Delete");
     await expect(kindNode(page, "db")).toHaveCount(0);
     await expect(edges(page)).toHaveCount(0);
@@ -365,17 +365,17 @@ test.describe("действия на поле", () => {
     guard.assertClean();
   });
 
-  test("смена параметра в карточке пересчитывает цели и метрики; отказ и «Отключить» меняют метрики", async ({ page, request, guard }) => {
+  test("changing a parameter in the card recomputes goals and metrics; a failure and Disable change the metrics", async ({ page, request, guard }) => {
     await setup(page, request);
     await expect(metric(page, "Успешных ответов")).toHaveText("30.0%");
     await clickAt(page, await center(kindNode(page, "app").locator("rect").first()));
-    await expect(page.locator(".sd-float h4")).toHaveText("Сервер приложения");
+    await expect(page.locator(".sd-float h4")).toHaveText("App server");
     await expect(page.locator(".sd-float .sd-load")).toContainText("Нагрузка:");
     await field(page, "Размер").locator("select").selectOption("L");
     await expect(metric(page, "Успешных ответов")).toHaveText(/^100(\.0+)?%$/);
     await expect(kindNode(page, "app").locator(".sd-sub")).toContainText("L");
 
-    // отказ зоны: при размещении «одна зона» схема не переживает его
+    // zone failure: with the one-zone placement the diagram does not survive it
     const heading = page.locator(".sd-metrics h4");
     await expect(heading).not.toContainText("·");
     await page.locator(".sd-fail select").selectOption("zone");
@@ -384,14 +384,14 @@ test.describe("действия на поле", () => {
     await page.locator(".sd-fail select").selectOption("");
     await expect(heading).not.toContainText("·");
     await expect(metric(page, "Успешных ответов")).toHaveText(/^100(\.0+)?%$/);
-    // отказ вида компонента: список содержит виды, которые есть на схеме
+    // component kind failure: the list contains the kinds present on the diagram
     await expect(page.locator(".sd-fail select option")).toContainText(["отказ региона", "выкладка новой версии", "падает сервер приложения"]);
     await page.locator(".sd-fail select").selectOption("app");
     await expect(heading).toContainText("падает сервер приложения");
     await expect(metric(page, "Успешных ответов")).toHaveText(/^0(\.0+)?%$/);
     await page.locator(".sd-fail select").selectOption("");
 
-    // «Отключить» компонент вручную
+    // disable a component by hand
     await field(page, "Отключить (проверить отказ)").locator("input").check();
     await expect(page.locator(".sd-node.app")).toHaveClass(/\bdown\b/);
     await expect(kindNode(page, "app").locator(".sd-sub")).toHaveText("отключён");
@@ -401,7 +401,7 @@ test.describe("действия на поле", () => {
     guard.assertClean();
   });
 
-  test("подсказка, справка «?», «во весь экран» и Esc", async ({ page, request, guard }) => {
+  test("hint, the ? help, full screen and Esc", async ({ page, request, guard }) => {
     await setup(page, request);
     const task = labTask("sd", OPEN[0], OPEN[1]);
     await expect(page.locator(".sd-boardcard > .sd-hint")).toHaveCount(0);
@@ -422,7 +422,7 @@ test.describe("действия на поле", () => {
     await expect(page.locator(".sd.fs")).toHaveCount(0);
     await page.getByRole("button", { name: "На весь экран", exact: true }).click();
     await expect(page.locator(".sd.fs")).toBeVisible();
-    // в полном экране рядом с полем те же цели и метрики, а «лапки» высоты нет
+    // in full screen the same goals and metrics are next to the field, and there is no height grip
     await expect(page.locator(".sd.fs .sd-goals li").first()).toBeVisible();
     await expect(page.locator(".sd.fs .sd-metrics")).toBeVisible();
     await expect(page.locator(".sd.fs .sd-resize")).toHaveCount(0);
@@ -430,7 +430,7 @@ test.describe("действия на поле", () => {
     await page.keyboard.press("Escape");
     await expect(page.locator(".sd.fs")).toHaveCount(0);
     await expect(nodes(page)).toHaveCount(3);
-    // и кнопкой «Свернуть»
+    // and with the Collapse button
     await page.getByRole("button", { name: "На весь экран", exact: true }).click();
     await expect(page.locator(".sd.fs")).toBeVisible();
     await page.getByRole("button", { name: "Свернуть", exact: true }).click();
@@ -438,7 +438,7 @@ test.describe("действия на поле", () => {
     guard.assertClean();
   });
 
-  test("масштаб: кнопки, Ctrl+колесо, «100%» и «вписать»; сдвиг пустого места", async ({ page, request, guard }) => {
+  test("zoom: buttons, Ctrl+wheel, \"100%\" and fit; panning the empty space", async ({ page, request, guard }) => {
     await setup(page, request);
     const pct = async () => Number((await zoomPct(page).innerText()).replace("%", ""));
     const fit = await pct();
@@ -451,7 +451,7 @@ test.describe("действия на поле", () => {
     await zoom.getByRole("button", { name: "−" }).click();
     await zoom.getByRole("button", { name: "−" }).click();
     await expect.poll(pct).toBeLessThan(fit);
-    // Ctrl + колесо над полем
+    // Ctrl + wheel over the field
     const before = await pct();
     const c = await center(page.locator(".sd-board"));
     await page.mouse.move(c.x, c.y);
@@ -462,12 +462,12 @@ test.describe("действия на поле", () => {
     // 100 %
     await zoomPct(page).click();
     await expect(zoomPct(page)).toHaveText("100%");
-    // «вписать»: появилась после смены вида, возвращает схему в окно (масштаб как при открытии)
+    // fit: appeared after the view changed, returns the diagram into the window (zoom as on opening)
     await zoom.getByRole("button", { name: "⌖" }).click();
     await expect(zoomPct(page)).toHaveText(`${fit}%`);
     await expect(zoom.getByRole("button", { name: "⌖" })).toHaveCount(0);
 
-    // сдвиг: тянем пустое место поля
+    // pan: drag the empty place of the field
     const v0 = await vb();
     const box0 = await box(page.locator(".sd-board"));
     await dragTo(page, { x: box0.x + 60, y: box0.y + 40 }, { x: box0.x + 160, y: box0.y + 90 });
@@ -476,7 +476,7 @@ test.describe("действия на поле", () => {
     guard.assertClean();
   });
 
-  test("«лапка» меняет высоту поля, двойной клик возвращает; высота запоминается", async ({ page, request, guard }) => {
+  test("the grip changes the field height, a double click restores it; the height is remembered", async ({ page, request, guard }) => {
     await setup(page, request);
     const viewport = page.locator(".sd-viewport");
     const h0 = (await box(viewport)).height;
@@ -485,7 +485,7 @@ test.describe("действия на поле", () => {
     await expect(viewport).toHaveClass(/\bsized\b/);
     await expect.poll(async () => (await box(viewport)).height).toBeGreaterThan(h0 + 80);
     expect(await page.evaluate(() => window.localStorage.getItem("cs-core-sd-board-h"))).not.toBeNull();
-    // выбранная высота переживает перезагрузку
+    // the chosen height survives a reload
     await page.reload();
     await expect(viewport).toHaveClass(/\bsized\b/);
     await page.locator(".sd-resize").dblclick();
@@ -495,7 +495,7 @@ test.describe("действия на поле", () => {
     guard.assertClean();
   });
 
-  test("«Сбросить» возвращает исходную схему и цели, черновик на сервере тоже", async ({ page, request, guard }) => {
+  test("Reset restores the initial diagram and goals, and the draft on the server too", async ({ page, request, guard }) => {
     const { token } = await setup(page, request);
     const task = labTask("sd", OPEN[0], OPEN[1]);
     await page.getByRole("button", { name: "+ Сервер приложения" }).click();
@@ -518,7 +518,7 @@ test.describe("действия на поле", () => {
     guard.assertClean();
   });
 
-  test("предел числа компонентов: лишний не добавляется, поле объясняет почему", async ({ page, request, guard }) => {
+  test("component count limit: an extra one is not added, the field explains why", async ({ page, request, guard }) => {
     await setup(page, request);
     const add = page.getByRole("button", { name: "+ Сервер приложения" });
     for (let i = 0; i < 40 && (await page.locator(".sd-notice").count()) === 0; i++) await add.click();
@@ -530,9 +530,9 @@ test.describe("действия на поле", () => {
   });
 });
 
-// --- 5. решение руками -----------------------------------------------------------------------------------
+// --- 5. a hand-made solution -----------------------------------------------------------------------------------
 
-test("sd02-vertical решается руками: размер сервера L — цели ✓, сервер принимает", async ({ page, request, guard }) => {
+test("sd02-vertical is solved by hand: server size L — goals ✓, the server accepts", async ({ page, request, guard }) => {
   const [chapter, id] = [2, "sd02-vertical"];
   const task = labTask("sd", chapter, id);
   const { token } = await loginFresh(page, request, "sd");
@@ -549,17 +549,17 @@ test("sd02-vertical решается руками: размер сервера L
   await expect(listItem(page, task.title).locator(".pr-mark")).toHaveText("✓");
   await expect(page.getByRole("button", { name: "Дальше" })).toBeVisible();
   await expectStatusOk(request, token, "sd", chapter, id);
-  // сохранённое решение — схема с сервером L
+  // the saved solution is a diagram with an L server
   const saved = JSON.parse((await chapterState(request, token, "sd", chapter)).drafts[id]!) as SdState;
   expect(saved.nodes.find((n) => n.kind === "app")?.params.size).toBe("L");
 
-  // «Дальше» ведёт к следующему упражнению главы
+  // Next leads to the next exercise of the chapter
   await page.getByRole("button", { name: "Дальше" }).click();
   await expect(page.locator(".pr-head h3")).toContainText(labTasks("sd", chapter)[1]!.title);
   guard.assertClean();
 });
 
-test("sd01-wire решается руками: две связи — одна протяжкой, другая двумя кликами по портам", async ({ page, request, guard }) => {
+test("sd01-wire is solved by hand: two links — one by dragging, the other by two clicks on ports", async ({ page, request, guard }) => {
   const [chapter, id] = [1, "sd01-wire"];
   const task = labTask("sd", chapter, id);
   const { token } = await loginFresh(page, request, "sd");

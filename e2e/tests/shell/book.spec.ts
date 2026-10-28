@@ -1,9 +1,9 @@
 import { expect, loginFresh, test } from "../../support/fixtures";
 import { assertCleanBut404, bookList, courseOf, DM1, loadChapter, PY0, type SectionDto } from "../../support/shell";
 
-/* Страница книги: разделы и карточки глав, переход в главу, вкладки главы по содержимому и их адреса. */
+/* Book page: sections and chapter cards, opening a chapter, chapter tabs by content and their addresses. */
 
-test("страница книги: разделы и карточки глав как в API", async ({ page, request, guard }) => {
+test("book page: sections and chapter cards as in the API", async ({ page, request, guard }) => {
   await loginFresh(page, request);
   const course = await courseOf(request, 12);
   await page.goto("/book/12");
@@ -14,25 +14,25 @@ test("страница книги: разделы и карточки глав �
     await expect(cards).toHaveCount(sec.chapters.length);
     await expect(cards.locator(".topic-name")).toHaveText(sec.chapters.map((c) => c.title));
     await expect(cards.locator(".topic-num")).toHaveText(sec.chapters.map((c) => String(c.num).padStart(2, "0")));
-    // число слайдов — из данных главы
+    // the slide count comes from the chapter data
     await expect(cards.locator(".topic-meta")).toHaveText(sec.chapters.map((c) => `${c.parts_count} слайдов`));
   }
   guard.assertClean();
 });
 
-test("число глав и слайдов в разделах сходится с карточкой книги", async ({ page, request }) => {
+test("chapter and slide counts in the sections match the book card", async ({ page, request }) => {
   await loginFresh(page, request);
   for (const b of await bookList(request)) {
     const course = await courseOf(request, b.id);
-    expect(course.length, `разделов в «${b.title}»`).toBeGreaterThan(0);
-    expect(course.flatMap((s) => s.chapters).length, `глав в «${b.title}»`).toBe(b.lessons_count);
-    expect(course.flatMap((s) => s.chapters).reduce((n, c) => n + c.parts_count, 0), `слайдов в «${b.title}»`).toBe(b.parts_count);
+    expect(course.length, `sections in "${b.title}"`).toBeGreaterThan(0);
+    expect(course.flatMap((s) => s.chapters).length, `chapters in "${b.title}"`).toBe(b.lessons_count);
+    expect(course.flatMap((s) => s.chapters).reduce((n, c) => n + c.parts_count, 0), `slides in "${b.title}"`).toBe(b.parts_count);
   }
   await page.goto("/book/13");
   await expect(page.locator(".topic-card")).toHaveCount((await bookList(request)).find((b) => b.id === 13)!.lessons_count);
 });
 
-test("слева в разделе — меню уроков со всеми главами; клик открывает главу", async ({ page, request }) => {
+test("on the left of a section there is a lesson menu with all chapters; a click opens the chapter", async ({ page, request }) => {
   await loginFresh(page, request);
   const course = await courseOf(request, 12);
   const all = course.flatMap((s) => s.chapters);
@@ -45,12 +45,12 @@ test("слева в разделе — меню уроков со всеми г�
   await menu.locator(".slide-fs-toc-item", { hasText: all[1]!.title }).click();
   await expect(page).toHaveURL(new RegExp(`/book/12/chapter/${all[1]!.id}$`));
   await expect(page.locator("h2")).toHaveText(`Урок ${all[1]!.num}. ${all[1]!.title}`);
-  // в главе тот же пункт меню подсвечен
+  // in the chapter the same menu item is highlighted
   await expect(menu.locator(".slide-fs-toc-item.on")).toHaveCount(1);
   await expect(menu.locator(".slide-fs-toc-item.on .slide-fs-toc-name")).toHaveText(all[1]!.title);
 });
 
-test("клик по карточке главы открывает её теорию: заголовок, раздел, слайды", async ({ page, request, guard }) => {
+test("clicking a chapter card opens its theory: title, section, slides", async ({ page, request, guard }) => {
   await loginFresh(page, request);
   const ch = await loadChapter(request, DM1);
   await page.goto("/book/12");
@@ -64,7 +64,7 @@ test("клик по карточке главы открывает её теор
   assertCleanBut404(guard);
 });
 
-test("вкладки главы: Теория, Вопросы с числом вопросов, Практика со счётчиком задач", async ({ page, request }) => {
+test("chapter tabs: Теория, Вопросы with the question count, Практика with the task counter", async ({ page, request }) => {
   await loginFresh(page, request);
   const ch = await loadChapter(request, PY0);
   await page.goto(`/book/13/chapter/${ch.id}`);
@@ -74,10 +74,10 @@ test("вкладки главы: Теория, Вопросы с числом в
   await expect(tabs.nth(1)).toContainText("Вопросы");
   await expect(tabs.nth(1).locator(".ch-tab-badge")).toHaveText("5");
   await expect(tabs.nth(2)).toContainText("Практика");
-  await expect(tabs.nth(2).locator(".ch-tab-badge")).toHaveText("0/6"); // решено 0 из 6
+  await expect(tabs.nth(2).locator(".ch-tab-badge")).toHaveText("0/6"); // 0 of 6 solved
 });
 
-test("у главы с упражнениями на ввод ответа вкладка «Практика» без счётчика", async ({ page, request }) => {
+test("a chapter with typed-answer exercises has the \"Практика\" tab without a counter", async ({ page, request }) => {
   await loginFresh(page, request);
   const ch = await loadChapter(request, DM1);
   await page.goto(`/book/12/chapter/${ch.id}`);
@@ -86,7 +86,7 @@ test("у главы с упражнениями на ввод ответа вк�
   await expect(page.locator(".ch-tab").nth(2).locator(".ch-tab-badge")).toHaveCount(0);
 });
 
-test("набор вкладок определяется содержимым главы (по одной главе каждой книги)", async ({ page, request }) => {
+test("the tab set is determined by the chapter content (one chapter of each book)", async ({ page, request }) => {
   await loginFresh(page, request);
   const quizzes = (await (await request.get("/api/quizzes")).json()) as Record<string, Record<string, number>>;
   const answers = (await (await request.get("/api/answers")).json()) as Record<string, Record<string, number>>;
@@ -94,7 +94,7 @@ test("набор вкладок определяется содержимым г
   for (const b of await bookList(request)) {
     const sec: SectionDto | undefined = (await courseOf(request, b.id))[0];
     const first = sec?.chapters[0];
-    if (!first) throw new Error(`в книге ${b.id} нет глав`);
+    if (!first) throw new Error(`book ${b.id} has no chapters`);
     const tasks = await request.get(`/api/exercises/${b.id}/${first.num}`);
     const taskCount = tasks.ok() ? ((await tasks.json()) as { tasks: unknown[] }).tasks.length : 0;
     const expected: string[] = [];
@@ -106,12 +106,12 @@ test("набор вкладок определяется содержимым г
     await expect(page.locator("h2")).toContainText(`Урок ${first.num}.`);
     await expect(async () => {
       const names = (await page.locator(".ch-tab").allInnerTexts()).map((t) => t.split("\n")[0]);
-      expect(names, `вкладки ${b.id}:${first.num}`).toEqual(expected);
+      expect(names, `tabs ${b.id}:${first.num}`).toEqual(expected);
     }).toPass();
   }
 });
 
-test("адреса вкладок: теория без суффикса, /questions, /exercises; активная подсвечена", async ({ page, request }) => {
+test("tab addresses: theory without a suffix, /questions, /exercises; the active one is highlighted", async ({ page, request }) => {
   await loginFresh(page, request);
   const ch = await loadChapter(request, DM1);
   const base = `/book/12/chapter/${ch.id}`;
@@ -138,7 +138,7 @@ test("адреса вкладок: теория без суффикса, /questi
   await expect(page.locator(".slide-panel")).toBeVisible();
 });
 
-test("прямой заход на адрес вкладки открывает её; перезагрузка не сбрасывает вкладку", async ({ page, request }) => {
+test("going straight to a tab address opens it; a reload does not reset the tab", async ({ page, request }) => {
   await loginFresh(page, request);
   const ch = await loadChapter(request, DM1);
   for (const [sub, name] of [["questions", "Вопросы"], ["exercises", "Практика"]] as const) {
@@ -150,7 +150,7 @@ test("прямой заход на адрес вкладки открывает 
   }
 });
 
-test("вкладка «Вопросы» показывает пять вопросов главы", async ({ page, request }) => {
+test("the \"Вопросы\" tab shows five chapter questions", async ({ page, request }) => {
   await loginFresh(page, request);
   const ch = await loadChapter(request, DM1);
   await page.goto(`/book/12/chapter/${ch.id}/questions`);
@@ -160,7 +160,7 @@ test("вкладка «Вопросы» показывает пять вопро
   await expect(page.locator(".quiz-lang")).toHaveText("теория");
 });
 
-test("несуществующая глава: «Урок не найден»; несуществующая страница: «Страница не найдена»", async ({ page, request }) => {
+test("nonexistent chapter: \"Урок не найден\"; nonexistent page: \"Страница не найдена\"", async ({ page, request }) => {
   await loginFresh(page, request);
   await page.goto("/book/12/chapter/999999");
   await expect(page.locator(".content")).toContainText("Урок не найден");

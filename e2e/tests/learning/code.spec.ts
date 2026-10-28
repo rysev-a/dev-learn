@@ -17,16 +17,16 @@ import {
   type RealWorker,
 } from "../../support/learning";
 
-/* Практика с кодом: список и выбор упражнений, редактор, черновик, подсказка, очередь проверки, результаты, история попыток,
-   виджет «База данных» у SQL-задач. Очередью управляет подставной воркер (без Docker); настоящая песочница — при E2E_WORKER=1. */
+/* Code practice: exercise list and selection, editor, draft, hint, check queue, results, attempt history,
+   the "База данных" widget for SQL tasks. The queue is driven by a fake worker (no Docker); the real sandbox runs with E2E_WORKER=1. */
 
-const PY = { book: 13, num: 0 }; // 6 упражнений: stdout и func
-const SQL = { book: 9, num: 1 }; // 41 SQL-упражнение на учебной базе «магазин»
+const PY = { book: 13, num: 0 }; // 6 exercises: stdout and func
+const SQL = { book: 9, num: 1 }; // 41 SQL exercises on the "shop" training database
 
 const pyTasks = codeTasks(PY.book, PY.num);
 const sqlTasks = codeTasks(SQL.book, SQL.num);
 
-// --- локаторы и действия ------------------------------------------------------------------------
+// --- locators and actions ------------------------------------------------------------------------
 
 const items = (page: Page): Locator => page.locator(".pr-item");
 const editor = (page: Page): Locator => page.locator("textarea.rs-input");
@@ -41,24 +41,24 @@ async function open(page: Page, request: APIRequestContext, target = PY, task?: 
   await expect(page.locator(".pr-main")).toBeVisible();
 }
 
-/** Подменить текст решения: уникальный комментарий исключает попадание в кэш результатов. */
+/** Replace the solution text: a unique comment avoids hitting the result cache. */
 async function typeCode(page: Page, code: string): Promise<string> {
   const full = `${code}\n${unique()}\n`;
   await editor(page).fill(full);
   return full;
 }
 
-/** Ждёт, пока черновик уйдёт на сервер. */
+/** Waits until the draft is sent to the server. */
 async function savedDraft(page: Page, action: () => Promise<void>): Promise<void> {
   const sent = page.waitForResponse((r) => r.request().method() === "PUT" && r.url().includes("/draft"));
   await action();
   expect((await sent).status()).toBe(204);
 }
 
-/** Один круг проверки подставным воркером: ждёт появления задания и возвращает результат. */
+/** One check round by the fake worker: waits for the job to appear and returns the result. */
 async function serve(worker: FakeWorker, answer: Parameters<FakeWorker["complete"]>[1]) {
   const job = await worker.claim();
-  expect(job, "задание дошло до воркера").not.toBeNull();
+  expect(job, "the job reached the worker").not.toBeNull();
   await worker.complete(job!, answer);
   return job!;
 }
@@ -66,11 +66,11 @@ async function serve(worker: FakeWorker, answer: Parameters<FakeWorker["complete
 const STARTER_OF = (t: CodeTask) => t.starter;
 
 // ==================================================================================================
-// Интерфейс практики (проверка кода не нужна)
+// Practice interface (no code checking needed)
 // ==================================================================================================
 
-test.describe("список и выбор упражнений", () => {
-  test("список со статусами, шапка, условие и заготовка первого упражнения", async ({ page, request, guard }) => {
+test.describe("exercise list and selection", () => {
+  test("list with statuses, header, statement and starter of the first exercise", async ({ page, request, guard }) => {
     await loginFresh(page, request);
     await open(page, request);
     await expect(page.locator(".pr-top-label").first()).toHaveText(`Решено 0 из ${pyTasks.length}`);
@@ -91,12 +91,12 @@ test.describe("список и выбор упражнений", () => {
     await expect(page.locator(".pr-statement")).toHaveText(first.statement);
     await expect(editor(page)).toHaveValue(STARTER_OF(first));
     await expect(result(page)).toContainText("Нажмите «Проверить»");
-    await expect(page.locator(".pr-hist")).toHaveCount(0); // попыток ещё не было
-    await expect(page.locator(".sx")).toHaveCount(0); // виджет базы данных только у SQL-задач
+    await expect(page.locator(".pr-hist")).toHaveCount(0); // no attempts yet
+    await expect(page.locator(".sx")).toHaveCount(0); // the database widget exists only for SQL tasks
     guard.assertClean();
   });
 
-  test("выбор упражнения: адрес ?task=, заголовок, условие, заготовка; прямая ссылка; неизвестный id — первое", async ({ page, request, guard }) => {
+  test("exercise selection: ?task= address, title, statement, starter; direct link; unknown id falls back to the first", async ({ page, request, guard }) => {
     await loginFresh(page, request);
     await open(page, request);
     const t = pyTasks[2]!;
@@ -107,19 +107,19 @@ test.describe("список и выбор упражнений", () => {
     await expect(page.locator(".pr-head h3")).toHaveText(`3. ${t.title}`);
     await expect(page.locator(".pr-statement")).toHaveText(t.statement);
     await expect(editor(page)).toHaveValue(STARTER_OF(t));
-    // выбор заменяет запись в истории браузера: «Назад» уходит со страницы практики, а не по задачам
-    // прямая ссылка на упражнение
+    // selection replaces the browser history entry: Back leaves the practice page instead of walking through tasks
+    // direct link to an exercise
     const last = pyTasks[pyTasks.length - 1]!;
     await open(page, request, PY, last.id);
     await expect(page.locator(".pr-head h3")).toHaveText(`${pyTasks.length}. ${last.title}`);
     await expect(items(page).last()).toHaveClass(/\bon\b/);
-    // неизвестный id → первое
-    await open(page, request, PY, "нет-такого");
+    // unknown id -> the first one
+    await open(page, request, PY, "no-such-id");
     await expect(page.locator(".pr-head h3")).toHaveText(`1. ${pyTasks[0]!.title}`);
     guard.assertClean();
   });
 
-  test("при открытии и при смене упражнения фокус в редакторе, курсор в конце", async ({ page, request }) => {
+  test("on opening and on switching exercises the editor has focus and the cursor is at the end", async ({ page, request }) => {
     await loginFresh(page, request);
     await open(page, request);
     await expect(editor(page)).toBeFocused();
@@ -131,7 +131,7 @@ test.describe("список и выбор упражнений", () => {
     expect(await caretAtEnd()).toBe(true);
   });
 
-  test("подсказка: показать и скрыть, у каждого упражнения своя", async ({ page, request }) => {
+  test("hint: show and hide, each exercise has its own", async ({ page, request }) => {
     await loginFresh(page, request);
     await open(page, request);
     const toggle = page.getByRole("button", { name: /подсказку$|^Подсказка$/ });
@@ -141,42 +141,42 @@ test.describe("список и выбор упражнений", () => {
     await expect(page.locator(".pr-main .ex-hint")).toHaveText(pyTasks[0]!.hint);
     await items(page).nth(1).click();
     await expect(page.locator(".pr-head h3")).toContainText(pyTasks[1]!.title);
-    await expect(page.locator(".pr-main .ex-hint")).toHaveCount(0); // у второго подсказка закрыта
+    await expect(page.locator(".pr-main .ex-hint")).toHaveCount(0); // the second one has its hint closed
     await expect(page.getByRole("button", { name: "Подсказка", exact: true })).toBeVisible();
     await items(page).first().click();
-    await expect(page.locator(".pr-main .ex-hint")).toHaveText(pyTasks[0]!.hint); // первая осталась открытой
+    await expect(page.locator(".pr-main .ex-hint")).toHaveText(pyTasks[0]!.hint); // the first one stayed open
     await page.getByRole("button", { name: "Скрыть подсказку" }).click();
     await expect(page.locator(".pr-main .ex-hint")).toHaveCount(0);
   });
 });
 
-test.describe("редактор кода", () => {
-  test("ввод, подсветка Python и Tab: отступ вместо смены фокуса", async ({ page, request, guard }) => {
+test.describe("code editor", () => {
+  test("input, Python highlighting and Tab: indent instead of changing focus", async ({ page, request, guard }) => {
     await loginFresh(page, request);
     await open(page, request, PY, "intro-parity");
-    // у заготовки с def подсвечены ключевые слова, у комментария — приглушённый цвет
-    await editor(page).fill("# заметка\ndef f(n):\n    return 1\n");
+    // in a starter with def the keywords are highlighted, a comment gets the muted color
+    await editor(page).fill("# note\ndef f(n):\n    return 1\n");
     const shade = page.locator(".rs-shade");
     await expect(shade.locator(".rs-line")).toHaveCount(4);
-    await expect(shade.locator("span", { hasText: /^def$/ })).toHaveAttribute("style", /color: var\(--s-/);
-    await expect(shade.locator("span", { hasText: /^return$/ })).toHaveAttribute("style", /color: var\(--s-/);
-    await expect(shade.locator("span", { hasText: "# заметка" })).toHaveAttribute("style", /--s-muted/);
-    // Tab в конце строки: четыре пробела, фокус остаётся
+    await expect(shade.locator("span", { hasText: /^def$/ })).toHaveAttribute("style", /color: var\(--(s|syn)-/);
+    await expect(shade.locator("span", { hasText: /^return$/ })).toHaveAttribute("style", /color: var\(--(s|syn)-/);
+    await expect(shade.locator("span", { hasText: "# note" })).toHaveAttribute("style", /--s-muted/);
+    // Tab at the end of a line: four spaces, focus stays
     await editor(page).fill("ab");
     await editor(page).press("Tab");
     await expect(editor(page)).toHaveValue("ab    ");
     await expect(editor(page)).toBeFocused();
-    // Tab в начале: отступ слева, текст не теряется
+    // Tab at the start: indent on the left, text is not lost
     await editor(page).press("Home");
     await editor(page).press("Tab");
     await expect(editor(page)).toHaveValue("    ab    ");
-    // Shift+Tab не вставляет отступ (уводит фокус как обычно)
+    // Shift+Tab inserts no indent (moves focus as usual)
     await editor(page).press("Shift+Tab");
     await expect(editor(page)).toHaveValue("    ab    ");
     guard.assertClean();
   });
 
-  test("поле растёт с числом строк, длинные строки не ломают разметку", async ({ page, request }) => {
+  test("the field grows with the line count, long lines do not break the layout", async ({ page, request }) => {
     await loginFresh(page, request);
     await open(page, request);
     const rows = async () => Number(await editor(page).getAttribute("rows"));
@@ -188,18 +188,18 @@ test.describe("редактор кода", () => {
     expect(await rows()).toBe(6);
   });
 
-  test("подсветка SQL и Rust выбирается по режиму задачи", async ({ page, request }) => {
+  test("SQL and Rust highlighting is chosen by the task mode", async ({ page, request }) => {
     await loginFresh(page, request);
     await open(page, request, SQL);
     await expect(editor(page)).toHaveValue(sqlTasks[0]!.starter);
     await editor(page).fill("SELECT name FROM customers WHERE id > 1;");
-    await expect(page.locator(".rs-shade span", { hasText: /^SELECT$/ })).toHaveAttribute("style", /color: var\(--s-/);
-    await expect(page.locator(".rs-shade span", { hasText: /^WHERE$/ })).toHaveAttribute("style", /color: var\(--s-/);
+    await expect(page.locator(".rs-shade span", { hasText: /^SELECT$/ })).toHaveAttribute("style", /color: var\(--(s|syn)-/);
+    await expect(page.locator(".rs-shade span", { hasText: /^WHERE$/ })).toHaveAttribute("style", /color: var\(--(s|syn)-/);
   });
 });
 
-test.describe("черновик", () => {
-  test("набранный код уходит на сервер и возвращается после перезагрузки", async ({ page, request }) => {
+test.describe("draft", () => {
+  test("typed code is sent to the server and returns after a reload", async ({ page, request }) => {
     const { token } = await loginFresh(page, request);
     await open(page, request);
     const code = "year = 1991\nprint(year)\n";
@@ -209,12 +209,12 @@ test.describe("черновик", () => {
     expect(state.status).toEqual({});
     await page.reload();
     await expect(editor(page)).toHaveValue(code);
-    // другие упражнения остались с заготовками
+    // other exercises kept their starters
     await items(page).nth(1).click();
     await expect(editor(page)).toHaveValue(pyTasks[1]!.starter);
   });
 
-  test("у каждого упражнения свой черновик, переключение его не теряет", async ({ page, request }) => {
+  test("each exercise has its own draft, switching does not lose it", async ({ page, request }) => {
     await loginFresh(page, request);
     await open(page, request);
     await editor(page).fill("one = 1\n");
@@ -228,23 +228,23 @@ test.describe("черновик", () => {
     await expect(editor(page)).toHaveValue("two = 2\n");
   });
 
-  test("уход со страницы сохраняет черновик сразу, без паузы", async ({ page, request }) => {
+  test("leaving the page saves the draft immediately, without a pause", async ({ page, request }) => {
     await loginFresh(page, request);
     await open(page, request);
     const sent = page.waitForResponse((r) => r.request().method() === "PUT" && r.url().includes("/draft"));
     await editor(page).fill("quick = 1\n");
-    // не ждём паузы: переходим на теорию — страница практики размонтируется и сбрасывает черновик
+    // no waiting: switch to theory; the practice page unmounts and flushes the draft
     await page.locator(".ch-tab", { hasText: "Теория" }).click();
     expect((await sent).status()).toBe(204);
     await page.goBack();
     await expect(editor(page)).toHaveValue("quick = 1\n");
   });
 
-  test("«Сбросить» возвращает заготовку и сохраняет её как черновик", async ({ page, request }) => {
+  test("\"Сбросить\" restores the starter and saves it as the draft", async ({ page, request }) => {
     const { token } = await loginFresh(page, request);
     await open(page, request);
     const t = pyTasks[0]!;
-    await savedDraft(page, () => editor(page).fill("print('чужой код')\n"));
+    await savedDraft(page, () => editor(page).fill("print('foreign code')\n"));
     await savedDraft(page, () => page.getByRole("button", { name: "Сбросить" }).click());
     await expect(editor(page)).toHaveValue(t.starter);
     const state = (await (await request.get(`/api/exercises/${PY.book}/${PY.num}/state`, { headers: bearer(token) })).json()) as { drafts: Record<string, string> };
@@ -254,8 +254,8 @@ test.describe("черновик", () => {
   });
 });
 
-test.describe("API упражнений", () => {
-  test("список задач без тестов и эталонов, статистика по главам, чужие данные закрыты", async ({ page, request }) => {
+test.describe("exercises API", () => {
+  test("task list without tests and references, per-chapter stats, other users' data closed", async ({ page, request }) => {
     const raw = await (await request.get(`/api/exercises/${PY.book}/${PY.num}`)).text();
     const body = JSON.parse(raw) as { tasks: Record<string, unknown>[] };
     expect(body.tasks.map((t) => t.id)).toEqual(pyTasks.map((t) => t.id));
@@ -269,38 +269,38 @@ test.describe("API упражнений", () => {
     const counts = (await (await request.get("/api/exercises")).json()) as Record<string, Record<string, number>>;
     expect(counts[String(PY.book)]?.[String(PY.num)]).toBe(pyTasks.length);
     expect((await request.get("/api/exercises/13/9999")).status()).toBe(404);
-    // состояние, черновик, попытки и запуск — только для вошедшего
+    // state, draft, attempts and run are for signed-in users only
     expect((await request.get(`/api/exercises/${PY.book}/${PY.num}/state`)).status()).toBe(401);
     expect((await request.put(`/api/exercises/${PY.book}/${PY.num}/${pyTasks[0]!.id}/draft`, { data: { code: "x" } })).status()).toBe(401);
     expect((await request.get(`/api/exercises/${PY.book}/${PY.num}/${pyTasks[0]!.id}/attempts`)).status()).toBe(401);
     expect((await request.post("/api/exercises/run", { data: { book: PY.book, chapter: PY.num, task: pyTasks[0]!.id, code: "print(1)" } })).status()).toBe(401);
     expect((await request.get("/api/exercises/run/abc")).status()).toBe(401);
-    // воркерский API закрыт токеном
+    // the worker API is closed by a token
     expect((await request.post("/internal/worker/ping", { data: { name: "x", lanes: ["light"] } })).status()).toBe(401);
     expect((await request.post("/internal/worker/ping", { headers: { Authorization: "Bearer nope" }, data: { name: "x", lanes: ["light"] } })).status()).toBe(401);
     const { token } = await loginFresh(page, request);
     const h = bearer(token);
-    expect((await request.put(`/api/exercises/${PY.book}/${PY.num}/нет-такой/draft`, { headers: h, data: { code: "x" } })).status()).toBe(404);
-    expect((await request.get(`/api/exercises/${PY.book}/${PY.num}/нет-такой/attempts`, { headers: h })).status()).toBe(404);
-    expect((await request.post("/api/exercises/run", { headers: h, data: { book: PY.book, chapter: PY.num, task: "нет-такой", code: "print(1)" } })).status()).toBe(404);
-    expect((await request.get("/api/exercises/run/нет-такого", { headers: h })).status()).toBe(404);
-    // упражнение-лаборатория в песочнице не проверяется, решённым его вручную не объявить
+    expect((await request.put(`/api/exercises/${PY.book}/${PY.num}/no-such-task/draft`, { headers: h, data: { code: "x" } })).status()).toBe(404);
+    expect((await request.get(`/api/exercises/${PY.book}/${PY.num}/no-such-task/attempts`, { headers: h })).status()).toBe(404);
+    expect((await request.post("/api/exercises/run", { headers: h, data: { book: PY.book, chapter: PY.num, task: "no-such-task", code: "print(1)" } })).status()).toBe(404);
+    expect((await request.get("/api/exercises/run/no-such-id", { headers: h })).status()).toBe(404);
+    // a lab exercise is not checked in the sandbox and cannot be declared solved by hand
     expect((await request.put(`/api/exercises/${PY.book}/${PY.num}/${pyTasks[0]!.id}/solved`, { headers: h, data: { solution: "x" } })).status()).toBe(404);
   });
 });
 
 // ==================================================================================================
-// Проверка без воркера: очередь недоступна. Идёт первой — позже подставные воркеры оставляют сервер «живым» на 30 секунд.
+// Check without a worker: the queue is unavailable. Runs first, because later fake workers keep the server "alive" for 30 seconds.
 // ==================================================================================================
 
-test.describe("проверка без воркера", () => {
-  test("статус проверки: воркеров нет, очередь пуста", async ({ request }) => {
+test.describe("check without a worker", () => {
+  test("check status: no workers, empty queue", async ({ request }) => {
     await waitNoWorkers(request);
     const status = await (await request.get("/api/exercises/runner/status")).json();
     expect(status).toEqual({ queued: 0, running: 0, workers: 0, available: false });
   });
 
-  test("Ctrl+Enter и кнопка: сообщение о недоступности, статус и история не меняются, код остаётся", async ({ page, request }) => {
+  test("Ctrl+Enter and the button: an unavailable message, status and history unchanged, the code stays", async ({ page, request }) => {
     const guard = learningGuard(page);
     await waitNoWorkers(request);
     const { token } = await loginFresh(page, request);
@@ -316,14 +316,14 @@ test.describe("проверка без воркера", () => {
     await expect(result(page)).toContainText("Тесты не запускались");
     await expect(result(page).locator(".pr-res-sum")).toHaveCount(0);
     expect(posts).toEqual([503]);
-    // ничего не засчитано и не записано
+    // nothing counted or recorded
     await expect(badge(page)).toHaveText("не решено");
     await expect(items(page).first().locator(".pr-mark")).toHaveText("1");
     await expect(page.locator(".pr-hist")).toHaveCount(0);
     await expect(mainBtn(page)).toHaveText("Проверить");
     await expect(mainBtn(page)).toBeEnabled();
     await expect(editor(page)).toHaveValue(code);
-    // кнопка делает то же самое
+    // the button does the same
     await mainBtn(page).click();
     await expect.poll(() => posts.length).toBe(2);
     await expect(unavailable).toContainText("временно недоступна");
@@ -332,7 +332,7 @@ test.describe("проверка без воркера", () => {
     guard.assertClean();
   });
 
-  test("окно о перегрузке: сервис в стадии развития, закрытие, не навязывается повторно", async ({ page, request }) => {
+  test("overload notice: service under development, closing, not imposed again", async ({ page, request }) => {
     const guard = learningGuard(page);
     await waitNoWorkers(request);
     await loginFresh(page, request);
@@ -346,7 +346,7 @@ test.describe("проверка без воркера", () => {
     await expect(notice).toContainText("в стадии развития");
     await expect(notice).toContainText("не выдерживает большую нагрузку");
     await expect(notice.getByRole("link")).toHaveCount(0);
-    // закрыли — следующий отказ в ближайшую минуту окно не возвращает, сообщение в результатах остаётся
+    // closed: the next refusal within a minute does not bring the notice back, the message in results stays
     await notice.getByRole("button", { name: "Понятно" }).click();
     await expect(notice).toHaveCount(0);
     await mainBtn(page).click();
@@ -355,19 +355,19 @@ test.describe("проверка без воркера", () => {
     guard.assertClean();
   });
 
-  test("пустой код не уходит в очередь: сервер отвечает сообщением", async ({ page, request }) => {
+  test("empty code does not enter the queue: the server answers with a message", async ({ page, request }) => {
     const guard = learningGuard(page);
     await waitNoWorkers(request);
     await loginFresh(page, request);
     await open(page, request);
     await editor(page).fill("   \n");
     await editor(page).press("Control+Enter");
-    await expect(result(page).locator(".cx-error")).toContainText("Empty code");
+    await expect(result(page).locator(".cx-error")).toContainText("Пустой код");
     await expect(page.locator(".pr-hist")).toHaveCount(0);
     guard.assertClean();
   });
 
-  test("слишком длинное решение отклоняется", async ({ page, request }) => {
+  test("a too long solution is rejected", async ({ page, request }) => {
     const { token } = await loginFresh(page, request);
     const res = await request.post("/api/exercises/run", { headers: bearer(token), data: { book: PY.book, chapter: PY.num, task: pyTasks[0]!.id, code: "x".repeat(20_001) } });
     expect(res.status()).toBe(422);
@@ -375,7 +375,7 @@ test.describe("проверка без воркера", () => {
 });
 
 // ==================================================================================================
-// Виджет «База данных» у SQL-задач
+// The "База данных" widget for SQL tasks
 // ==================================================================================================
 
 interface Col {
@@ -397,15 +397,15 @@ interface Dataset {
 async function datasetOf(request: APIRequestContext, target = SQL): Promise<Dataset> {
   const body = (await (await request.get(`/api/exercises/${target.book}/${target.num}`)).json()) as { tasks: { dataset?: string }[]; datasets: Record<string, Dataset> };
   const key = body.tasks.find((t) => t.dataset)?.dataset;
-  expect(key, "у SQL-задачи есть набор данных").toBeTruthy();
+  expect(key, "an SQL task has a dataset").toBeTruthy();
   return body.datasets[key!]!;
 }
 
-test.describe("SQL: виджет «База данных»", () => {
+test.describe("SQL: the \"База данных\" widget", () => {
   const tableBox = (page: Page, name: string) => page.locator(".sx-tbl", { has: page.locator(".sx-name", { hasText: new RegExp(`^${name}$`) }) });
   const transform = (loc: Locator) => loc.getAttribute("transform");
 
-  test("ERD: таблицы со столбцами и связями, подпись с числом таблиц", async ({ page, request, guard }) => {
+  test("ERD: tables with columns and relations, caption with the table count", async ({ page, request, guard }) => {
     await loginFresh(page, request);
     const data = await datasetOf(request);
     await open(page, request, SQL);
@@ -430,7 +430,7 @@ test.describe("SQL: виджет «База данных»", () => {
     guard.assertClean();
   });
 
-  test("вкладка «Данные»: таблица на вкладку, строки и столбцы как на сервере", async ({ page, request }) => {
+  test("\"Данные\" tab: one table per tab, rows and columns as on the server", async ({ page, request }) => {
     await loginFresh(page, request);
     const data = await datasetOf(request);
     await open(page, request, SQL);
@@ -449,19 +449,19 @@ test.describe("SQL: виджет «База данных»", () => {
       await expect(page.locator(".sx-grid thead th").first()).toContainText(t.columns[0]!.name);
       if (t.total > t.rows.length) await expect(page.locator(".sx-more")).toContainText(`из ${t.total}`);
     }
-    // NULL показан отдельно от пустой строки (у клиентов есть без e-mail и без города)
+    // NULL is shown separately from an empty string (some customers have no e-mail and no city)
     await tabs.first().click();
     await expect(page.locator(".sx-grid .sx-null").first()).toHaveText("NULL");
   });
 
-  test("клик по таблице на диаграмме открывает её данные; перетаскивание сдвигает, но данные не открывает", async ({ page, request }) => {
+  test("clicking a table on the diagram opens its data; dragging moves it but does not open the data", async ({ page, request }) => {
     await loginFresh(page, request);
     const data = await datasetOf(request);
     await open(page, request, SQL);
     const target = data.tables[1]!;
     const box = tableBox(page, target.name);
     const before = await transform(box);
-    // перетаскивание: таблица смещается, вид остаётся ERD
+    // dragging: the table moves, the view stays ERD
     const rect = (await box.locator(".sx-frame").boundingBox())!;
     const [x, y] = [rect.x + rect.width / 2, rect.y + 12];
     await page.mouse.move(x, y);
@@ -471,16 +471,16 @@ test.describe("SQL: виджет «База данных»", () => {
     const moved = await transform(box);
     expect(moved).not.toBe(before);
     await expect(page.locator(".sx-seg button.on")).toHaveText("ERD");
-    // «расставить заново» возвращает раскладку
+    // "расставить заново" restores the layout
     await page.getByRole("button", { name: "расставить заново" }).click();
     expect(await transform(box)).toBe(before);
-    // клик без сдвига: вкладка «Данные» этой таблицы
+    // click without moving: the "Данные" tab of this table
     await box.locator(".sx-frame").click();
     await expect(page.locator(".sx-seg button.on")).toHaveText("Данные");
     await expect(page.locator(".sx-tab.on")).toContainText(target.name);
   });
 
-  test("наведение подсвечивает связанные таблицы", async ({ page, request }) => {
+  test("hovering highlights related tables", async ({ page, request }) => {
     await loginFresh(page, request);
     const data = await datasetOf(request);
     await open(page, request, SQL);
@@ -495,25 +495,25 @@ test.describe("SQL: виджет «База данных»", () => {
     expect(data.relations.length).toBeGreaterThan(0);
   });
 
-  test("свернуть и вид помнятся между перезагрузками", async ({ page, request }) => {
+  test("collapsed state and view are remembered across reloads", async ({ page, request }) => {
     await loginFresh(page, request);
     await open(page, request, SQL);
     await page.locator(".sx-seg button", { hasText: "Данные" }).click();
     await page.reload();
-    await expect(page.locator(".sx-seg button.on")).toHaveText("Данные"); // вид запомнен
+    await expect(page.locator(".sx-seg button.on")).toHaveText("Данные"); // view is remembered
     await page.locator(".sx-fold").click();
     await expect(page.locator(".sx-fold")).toHaveAttribute("aria-expanded", "false");
     await expect(page.locator(".sx-data, .sx-erd")).toHaveCount(0);
     await page.reload();
     await expect(page.locator(".sx-fold")).toHaveAttribute("aria-expanded", "false");
     await expect(page.locator(".sx-data, .sx-erd")).toHaveCount(0);
-    // выбор вида при свёрнутом виджете разворачивает его
+    // choosing a view while the widget is collapsed expands it
     await page.locator(".sx-seg button", { hasText: "ERD" }).click();
     await expect(page.locator(".sx-fold")).toHaveAttribute("aria-expanded", "true");
     await expect(page.locator(".sx-erd")).toBeVisible();
   });
 
-  test("виджет есть у каждой SQL-задачи главы и пропадает у задач без базы", async ({ page, request }) => {
+  test("the widget exists for every SQL task of the chapter and disappears for tasks without a database", async ({ page, request }) => {
     await loginFresh(page, request);
     await open(page, request, SQL, sqlTasks[9]!.id);
     await expect(page.locator(".sx")).toBeVisible();
@@ -525,25 +525,25 @@ test.describe("SQL: виджет «База данных»", () => {
 });
 
 // ==================================================================================================
-// Очередь и результаты: подставной воркер
+// Queue and results: fake worker
 // ==================================================================================================
 
-test.describe("очередь и результаты (подставной воркер)", () => {
-  test("«в очереди» → «выполняется» → не пройдено: тест с ожидаемым и полученным, история, статус ✗", async ({ page, request, guard }) => {
+test.describe("queue and results (fake worker)", () => {
+  test("\"в очереди\" -> \"выполняется\" -> failed: a test with expected and received, history, status cross", async ({ page, request, guard }) => {
     const { token } = await loginFresh(page, request);
     const worker = new FakeWorker(request);
     await worker.ping();
     const t = pyTasks[2]!; // intro-parity, func
     await open(page, request, PY, t.id);
-    const code = await typeCode(page, "def parity(n):\n    return 'чётное'");
+    const code = await typeCode(page, "def parity(n):\n    return 'even'");
     await mainBtn(page).click();
-    // заявка в очереди: кнопка и панель результата сообщают об этом, кнопка недоступна
+    // the request is queued: the button and the result panel say so, the button is disabled
     await expect(mainBtn(page)).toHaveText("В очереди…");
     await expect(mainBtn(page)).toBeDisabled();
     await expect(result(page)).toContainText("В очереди…");
     const status = await (await request.get("/api/exercises/runner/status")).json();
     expect(status).toMatchObject({ queued: 1, available: true });
-    // воркер забрал задание: решение и задача дошли без искажений
+    // the worker took the job: the solution and the task arrived undistorted
     const job = await worker.claim();
     expect(job!.task.id).toBe(t.id);
     expect(job!.code).toBe(code);
@@ -552,12 +552,12 @@ test.describe("очередь и результаты (подставной во
     await worker.complete(job!, {
       status: "ok",
       results: [
-        { ok: true, args: "[4]", expected: "чётное", got: "чётное" },
-        { ok: false, args: "[7]", expected: "нечётное", got: "чётное" },
+        { ok: true, args: "[4]", expected: "even", got: "even" },
+        { ok: false, args: "[7]", expected: "odd", got: "even" },
       ],
       stdout: "",
     });
-    // результат
+    // result
     await expect(result(page).locator(".pr-res-sum")).toHaveText("1 из 2");
     await expect(result(page).locator(".pr-res-sum")).toHaveClass(/\bbad\b/);
     await expect(result(page).locator(".pr-test")).toHaveCount(2);
@@ -566,12 +566,12 @@ test.describe("очередь и результаты (подставной во
     const bad = result(page).locator(".pr-test.bad");
     await expect(bad).toContainText("тест 2");
     await expect(bad).toContainText("вызов [7]");
-    await expect(bad.locator(".pr-diff > div").nth(0)).toContainText("нечётное"); // ожидалось
+    await expect(bad.locator(".pr-diff > div").nth(0)).toContainText("odd"); // expected
     await expect(bad.locator(".pr-diff > div").nth(0).locator(".s-label")).toHaveText("ожидалось");
     await expect(bad.locator(".pr-diff > div").nth(1).locator(".s-label")).toHaveText("получено");
-    await expect(bad.locator(".pr-diff > div").nth(1).locator("pre")).toHaveText("чётное");
+    await expect(bad.locator(".pr-diff > div").nth(1).locator("pre")).toHaveText("even");
     await expect(result(page)).toContainText("программа ничего не вывела");
-    // статус «не пройдено», кнопка снова «Проверить»
+    // status "не пройдено", the button is "Проверить" again
     await expect(badge(page)).toHaveText("не пройдено");
     await expect(badge(page)).toHaveClass(/\bbad\b/);
     await expect(items(page).nth(2)).toHaveClass(/\bbad\b/);
@@ -579,7 +579,7 @@ test.describe("очередь и результаты (подставной во
     await expect(page.locator(".pr-top-label").first()).toHaveText(`Решено 0 из ${pyTasks.length}`);
     await expect(mainBtn(page)).toHaveText("Проверить");
     await expect(mainBtn(page)).toBeEnabled();
-    // история: одна неудачная попытка с этим кодом
+    // history: one failed attempt with this code
     await expect(history(page)).toHaveCount(1);
     await expect(history(page).first()).toHaveClass(/\bbad\b/);
     await expect(history(page).first().locator(".pr-hist-n")).toHaveText("#1");
@@ -588,13 +588,13 @@ test.describe("очередь и результаты (подставной во
     await expect(history(page).first().locator(".pr-hist-code")).toHaveText("def parity(n):");
     await expect(history(page).first()).toHaveClass(/\bon\b/);
     await expect(page.locator(".pr-hist .pr-res-time")).toHaveText("1");
-    // и на сервере
+    // and on the server
     const state = (await (await request.get(`/api/exercises/${PY.book}/${PY.num}/state`, { headers: bearer(token) })).json()) as { status: Record<string, string> };
     expect(state.status[t.id]).toBe("bad");
     guard.assertClean();
   });
 
-  test("решено: ✓, «выполнено», «Решено 1 из N», «Дальше →»; правка кода возвращает «Проверить»", async ({ page, request, guard }) => {
+  test("solved: check mark, \"выполнено\", \"Решено 1 из N\", \"Дальше →\"; editing the code brings back \"Проверить\"", async ({ page, request, guard }) => {
     const { token } = await loginFresh(page, request);
     const worker = new FakeWorker(request);
     await worker.ping();
@@ -614,22 +614,22 @@ test.describe("очередь и результаты (подставной во
     await expect(page.locator(".pr-bar i")).toHaveAttribute("style", new RegExp(`width: ${Math.floor(100 / pyTasks.length)}%`));
     await expect(page.locator(".ch-tab", { hasText: "Практика" }).locator(".ch-tab-badge")).toHaveText(`1/${pyTasks.length}`);
     await expect(page.locator(".rs-editor")).toHaveClass(/\bright\b/);
-    // принятое решение: вместо «Проверить» — «Дальше →» и «Проверить ещё раз»
+    // accepted solution: "Дальше →" and "Проверить ещё раз" instead of "Проверить"
     await expect(mainBtn(page)).toHaveText("Дальше →");
     await expect(page.getByRole("button", { name: "Проверить ещё раз" })).toBeVisible();
     await expect(history(page)).toHaveCount(1);
     await expect(history(page).first()).toHaveClass(/\bok\b/);
     await expect(history(page).first().locator(".pr-hist-mark")).toHaveText("✓");
-    // правка принятого решения: «Проверить», зелёная рамка уходит; статус «выполнено» остаётся
+    // editing an accepted solution: "Проверить", the green frame goes away; the "выполнено" status stays
     await editor(page).press("End");
     await editor(page).pressSequentially(" ");
     await expect(mainBtn(page)).toHaveText("Проверить");
     await expect(page.locator(".rs-editor")).not.toHaveClass(/\bright\b/);
     await expect(badge(page)).toHaveText("выполнено");
-    // вернули прежний текст — снова «Дальше →»
+    // restored the old text: "Дальше →" again
     await editor(page).fill(code);
     await expect(mainBtn(page)).toHaveText("Дальше →");
-    // сервер: статус, попытка с кодом
+    // server: status, attempt with the code
     const state = (await (await request.get(`/api/exercises/${PY.book}/${PY.num}/state`, { headers: bearer(token) })).json()) as { status: Record<string, string> };
     expect(state.status[t.id]).toBe("ok");
     const attempts = (await (await request.get(`/api/exercises/${PY.book}/${PY.num}/${t.id}/attempts`, { headers: bearer(token) })).json()) as { attempts: { code: string; status: string; passed: number; total: number }[] };
@@ -638,7 +638,7 @@ test.describe("очередь и результаты (подставной во
     guard.assertClean();
   });
 
-  test("решённое остаётся решённым: после перезагрузки статусы, счётчики, черновик и история на месте; провал решённое не отменяет", async ({ page, request, guard }) => {
+  test("solved stays solved: after a reload statuses, counters, draft and history are in place; a failure does not undo it", async ({ page, request, guard }) => {
     const { token } = await loginFresh(page, request);
     const worker = new FakeWorker(request);
     await worker.ping();
@@ -648,7 +648,7 @@ test.describe("очередь и результаты (подставной во
     await mainBtn(page).click();
     await serve(worker, passing("1991\n"));
     await expect(badge(page)).toHaveText("выполнено");
-    // новая неудачная попытка статус не откатывает
+    // a new failed attempt does not roll the status back
     const worse = await typeCode(page, "print(1990)");
     await mainBtn(page).click();
     await serve(worker, failing("1991\n", "1990\n"));
@@ -659,32 +659,32 @@ test.describe("очередь и результаты (подставной во
     await expect(history(page).nth(0).locator(".pr-hist-n")).toHaveText("#2");
     await expect(history(page).nth(0).locator(".pr-hist-mark")).toHaveText("✗");
     await expect(history(page).nth(1).locator(".pr-hist-mark")).toHaveText("✓");
-    // черновик (последний набранный код) уже на сервере
+    // the draft (the last typed code) is already on the server
     await expect
       .poll(async () => ((await (await request.get(`/api/exercises/${PY.book}/${PY.num}/state`, { headers: bearer(token) })).json()) as { drafts: Record<string, string> }).drafts[t.id])
       .toBe(worse);
-    // перезагрузка
+    // reload
     await page.reload();
     await expect(page.locator(".pr-top-label").first()).toHaveText(`Решено 1 из ${pyTasks.length}`);
     await expect(items(page).first()).toHaveClass(/\bok\b/);
     await expect(badge(page)).toHaveText("выполнено");
-    await expect(editor(page)).toHaveValue(worse); // черновик — последний набранный код
+    await expect(editor(page)).toHaveValue(worse); // the draft is the last typed code
     await expect(history(page)).toHaveCount(2);
     await expect(page.locator(".ch-tab", { hasText: "Практика" }).locator(".ch-tab-badge")).toHaveText(`1/${pyTasks.length}`);
-    // клик по принятой попытке возвращает её код в редактор и включает «Дальше →»
+    // a click on an accepted attempt returns its code to the editor and enables "Дальше →"
     await history(page).nth(1).click();
     await expect(editor(page)).toHaveValue(good);
     await expect(history(page).nth(1)).toHaveClass(/\bon\b/);
     await expect(history(page).nth(0)).not.toHaveClass(/\bon\b/);
     await expect(mainBtn(page)).toHaveText("Дальше →");
-    // …а на неудачную — обратно
+    // ...and a click on the failed one goes back
     await history(page).nth(0).click();
     await expect(editor(page)).toHaveValue(worse);
     await expect(mainBtn(page)).toHaveText("Проверить");
     guard.assertClean();
   });
 
-  test("очередь: место «перед вами N», одна проверка на пользователя, порядок выдачи воркеру", async ({ page, request, browser }) => {
+  test("queue: position \"перед вами N\", one check per user, order of handing out to the worker", async ({ page, request, browser }) => {
     const tokenA = (await loginFresh(page, request)).token;
     const other = await browser.newContext();
     const pageB = await other.newPage();
@@ -697,19 +697,19 @@ test.describe("очередь и результаты (подставной во
     const codeB = await typeCode(pageB, "print(2)");
     await mainBtn(page).click();
     await expect(result(page)).toContainText("В очереди…");
-    // повторная постановка того же пользователя, пока проверка идёт, отклоняется
+    // a repeated submission by the same user while a check is running is rejected
     const dup = await request.post("/api/exercises/run", { headers: bearer(tokenA), data: { book: PY.book, chapter: PY.num, task: pyTasks[0]!.id, code: "print(3)" } });
     expect(dup.status()).toBe(429);
-    expect(await dup.text()).toContain("Предыдущая проверка ещё идёт");
-    // повторные нажатия не ставят вторую заявку: кнопка заблокирована
+    expect(await dup.text()).toContain("The previous check is still running");
+    // repeated clicks do not queue a second request: the button is disabled
     await expect(mainBtn(page)).toBeDisabled();
     await editor(page).press("Control+Enter");
-    // второй пользователь — следом за первым
+    // the second user goes right after the first
     await mainBtn(pageB).click();
     await expect(result(pageB)).toContainText("В очереди (перед вами 1)…");
     const queued = await (await request.get("/api/exercises/runner/status")).json();
     expect(queued).toMatchObject({ queued: 2, running: 0 });
-    // воркер получает заявки по порядку постановки
+    // the worker receives requests in submission order
     const first = await worker.claim();
     expect(first!.code).toBe(codeA);
     await expect(result(page)).toContainText("Выполняется в песочнице…");
@@ -721,13 +721,13 @@ test.describe("очередь и результаты (подставной во
     expect(second!.code).toBe(codeB);
     await worker.complete(second!, failing("1991\n", "2\n"));
     await expect(pageB.locator(".pr-res-sum")).toHaveText("0 из 1");
-    // у каждого свой результат, статус и история
+    // each has own result, status and history
     await expect(badge(pageB)).toHaveText("не пройдено");
     await expect(badge(page)).toHaveText("выполнено");
     await other.close();
   });
 
-  test("результат из кэша: то же решение другого пользователя принимается сразу, не дожидаясь воркера", async ({ page, request, browser }) => {
+  test("cached result: the same solution from another user is accepted at once, without waiting for the worker", async ({ page, request, browser }) => {
     await loginFresh(page, request);
     const worker = new FakeWorker(request);
     await worker.ping();
@@ -736,7 +736,7 @@ test.describe("очередь и результаты (подставной во
     await mainBtn(page).click();
     await serve(worker, passing("1991\n"));
     await expect(badge(page)).toHaveText("выполнено");
-    // другой пользователь присылает точно такой код: ответ готов сразу, воркер не нужен
+    // another user submits exactly the same code: the answer is ready at once, no worker needed
     const other = await browser.newContext();
     const { token } = await loginFresh(await other.newPage(), other.request);
     const res = await request.post("/api/exercises/run", { headers: bearer(token), data: { book: PY.book, chapter: PY.num, task: pyTasks[0]!.id, code } });
@@ -744,21 +744,21 @@ test.describe("очередь и результаты (подставной во
     expect(await res.json()).toMatchObject({ state: "done", solved: true, passed: 1, total: 1 });
     expect(await (await request.get("/api/exercises/runner/status")).json()).toMatchObject({ queued: 0, running: 0 });
     await other.close();
-    // тот же код с другой задачей кэш не берёт: ключ — задача и код
+    // the same code with another task misses the cache: the key is task plus code
     const { token: t2 } = await loginFresh(page, request);
     const other2 = await request.post("/api/exercises/run", { headers: bearer(t2), data: { book: PY.book, chapter: PY.num, task: pyTasks[1]!.id, code } });
     expect(other2.status()).toBe(202);
     expect(await other2.json()).toMatchObject({ state: "queued" });
     const job = await worker.claim();
-    await worker.complete(job!, failing("int\n", "1991\n")); // освобождаем очередь
+    await worker.complete(job!, failing("int\n", "1991\n")); // free the queue
   });
 
-  test("результаты разных видов: ошибка выполнения, лимит времени, вывод программы", async ({ page, request, guard }) => {
+  test("results of different kinds: runtime error, time limit, program output", async ({ page, request, guard }) => {
     await loginFresh(page, request);
     const worker = new FakeWorker(request);
     await worker.ping();
     await open(page, request, PY, "intro-loop");
-    // ошибка до запуска тестов: traceback в логах, тестов нет
+    // error before the tests run: traceback in the logs, no tests
     await typeCode(page, "for i in range(3)\n    print(i)");
     await mainBtn(page).click();
     await serve(worker, { status: "error", results: [], stdout: "", stderr: "SyntaxError: expected ':'" });
@@ -766,13 +766,13 @@ test.describe("очередь и результаты (подставной во
     await expect(result(page).locator(".cx-error")).toHaveText("SyntaxError: expected ':'");
     await expect(result(page).locator(".pr-res-sum")).toHaveCount(0);
     await expect(badge(page)).toHaveText("не пройдено");
-    // лимит времени
+    // time limit
     await typeCode(page, "while True:\n    pass");
     await mainBtn(page).click();
     await serve(worker, { status: "timeout", results: [], stdout: "", stderr: "" });
     await expect(result(page)).toContainText("Проверка не уложилась в лимит времени");
     await expect(result(page)).not.toContainText("Тесты не запускались");
-    // вывод программы (режим stdout): виден в логах, расхождение — «ожидалось/получено»
+    // program output (stdout mode): visible in the logs, a mismatch shows "ожидалось/получено"
     await typeCode(page, "for i in range(1, 4):\n    print(i)");
     await mainBtn(page).click();
     await serve(worker, { status: "ok", results: [{ ok: false, expected: "1\n2\n3\n4\n5\n", got: "1\n2\n3\n" }], stdout: "1\n2\n3\n" });
@@ -783,7 +783,7 @@ test.describe("очередь и результаты (подставной во
     guard.assertClean();
   });
 
-  test("SQL: неверный результат показан двумя таблицами с подсветкой различий", async ({ page, request, guard }) => {
+  test("SQL: a wrong result is shown as two tables with highlighted differences", async ({ page, request, guard }) => {
     await loginFresh(page, request);
     const worker = new FakeWorker(request);
     await worker.ping();
@@ -798,10 +798,10 @@ test.describe("очередь и результаты (подставной во
           kind: "rows",
           ordered: false,
           got_cols: ["id", "name"],
-          got_rows: [[1, "Анна"], [2, "Борис"], [9, "Лишний"]],
+          got_rows: [[1, "Anna"], [2, "Boris"], [9, "Extra"]],
           got_total: 3,
           exp_cols: ["id", "name"],
-          exp_rows: [[1, "Анна"], [2, "Борис"], [3, "Вера"]],
+          exp_rows: [[1, "Anna"], [2, "Boris"], [3, "Vera"]],
           exp_total: 3,
         },
       ],
@@ -812,19 +812,19 @@ test.describe("очередь и результаты (подставной во
     await expect(diff.locator(".sd-side")).toHaveCount(2);
     await expect(diff.locator(".sd-side.got .sd-count")).toHaveText("3 строки");
     await expect(diff.locator(".sd-side.exp .sd-count")).toHaveText("3 строки");
-    // совпавшие строки без подсветки, лишняя у ученика и недостающая у эталона отмечены
+    // matching rows are not highlighted; the extra row of the student and the missing row of the reference are marked
     await expect(diff.locator(".sd-side.got .sd-ok")).toHaveCount(2);
     await expect(diff.locator(".sd-side.exp .sd-ok")).toHaveCount(2);
     await expect(diff.locator(".sd-side.got tr.sd-diff, .sd-side.got tr.sd-extra")).toHaveCount(1);
     await expect(diff.locator(".sd-side.exp tr.sd-diff, .sd-side.exp tr.sd-missing")).toHaveCount(1);
-    await expect(diff.locator(".sd-side.got td.extra").first()).toContainText(/Лишний|9/);
-    await expect(diff.locator(".sd-side.exp td.missing").first()).toContainText(/Вера|3/);
+    await expect(diff.locator(".sd-side.got td.extra").first()).toContainText(/Extra|9/);
+    await expect(diff.locator(".sd-side.exp td.missing").first()).toContainText(/Vera|3/);
     await expect(diff.locator(".sd-legend")).toContainText("лишнее или неверное значение у вас");
     await expect(badge(page)).toHaveText("не пройдено");
     guard.assertClean();
   });
 
-  test("после решения Ctrl+Enter открывает следующее упражнение (и по кнопке «Дальше →»)", async ({ page, request }) => {
+  test("after solving, Ctrl+Enter opens the next exercise (and so does the \"Дальше →\" button)", async ({ page, request }) => {
     await loginFresh(page, request);
     const worker = new FakeWorker(request);
     await worker.ping();
@@ -837,7 +837,7 @@ test.describe("очередь и результаты (подставной во
     await expect(page).toHaveURL(new RegExp(`task=${pyTasks[1]!.id}$`));
     await expect(page.locator(".pr-head h3")).toHaveText(`2. ${pyTasks[1]!.title}`);
     await expect(editor(page)).toBeFocused();
-    // решаем второе и уходим по кнопке
+    // solve the second one and leave by the button
     await typeCode(page, 'print(type(5).__name__)');
     await mainBtn(page).click();
     await serve(worker, passing("int\n"));
@@ -848,13 +848,13 @@ test.describe("очередь и результаты (подставной во
 });
 
 // ==================================================================================================
-// Настоящая песочница: E2E_WORKER=1, Docker и образ python:3.13-slim
+// Real sandbox: E2E_WORKER=1, Docker and the python:3.13-slim image
 // ==================================================================================================
 
-test.describe("настоящая проверка в песочнице", () => {
+test.describe("real check in the sandbox", () => {
   test.describe.configure({ mode: "serial", timeout: 180_000 });
-  test.skip(!realWorkerRequested, "E2E_WORKER=1 не задан: настоящая проверка выключена");
-  test.skip(realWorkerRequested && !dockerReady(), "Docker недоступен или нет образа python:3.13-slim");
+  test.skip(!realWorkerRequested, "E2E_WORKER=1 is not set: the real check is disabled");
+  test.skip(realWorkerRequested && !dockerReady(), "Docker is unavailable or the python:3.13-slim image is missing");
 
   let worker: RealWorker | undefined;
   test.beforeAll(async () => {
@@ -871,7 +871,7 @@ test.describe("настоящая проверка в песочнице", () =>
 
   const verdict = (page: Page, text: string) => expect(badge(page)).toHaveText(text, { timeout: 150_000 });
 
-  test("Python, режим stdout: верное решение принято, неверное — с ожидаемым и полученным", async ({ page, request, guard }) => {
+  test("Python, stdout mode: a correct solution is accepted, a wrong one shows expected and received", async ({ page, request, guard }) => {
     await loginFresh(page, request);
     await open(page, request, PY, "intro-variable");
     await editor(page).fill("year = 1990\nprint(year)\n");
@@ -890,7 +890,7 @@ test.describe("настоящая проверка в песочнице", () =>
     guard.assertClean();
   });
 
-  test("Python, режим func: все тесты верного решения; у ошибочного — провалы с аргументами вызова", async ({ page, request }) => {
+  test("Python, func mode: all tests pass for a correct solution; a wrong one fails with call arguments", async ({ page, request }) => {
     await loginFresh(page, request);
     await open(page, request, PY, "intro-parity");
     await editor(page).fill("def parity(n):\n    return 'чётное'\n");
@@ -905,10 +905,10 @@ test.describe("настоящая проверка в песочнице", () =>
     await expect(result(page).locator(".pr-res-sum")).toHaveText("4 из 4");
   });
 
-  test("пустая заготовка не проходит, бесконечный цикл упирается в лимит времени", async ({ page, request }) => {
+  test("an empty starter fails, an infinite loop hits the time limit", async ({ page, request }) => {
     await loginFresh(page, request);
     await open(page, request, PY, "intro-loop");
-    await mainBtn(page).click(); // заготовка — один комментарий
+    await mainBtn(page).click(); // the starter is a single comment
     await verdict(page, "не пройдено");
     await expect(result(page).locator(".pr-test.bad")).toHaveCount(1);
     await editor(page).fill("while True:\n    pass\n");
@@ -916,7 +916,7 @@ test.describe("настоящая проверка в песочнице", () =>
     await expect(result(page)).toContainText("Проверка не уложилась в лимит времени", { timeout: 150_000 });
   });
 
-  test("SQL: верный запрос принят, чужая таблица — две таблицы с различиями", async ({ page, request }) => {
+  test("SQL: a correct query is accepted, a foreign table gives two tables with differences", async ({ page, request }) => {
     await loginFresh(page, request);
     await open(page, request, SQL, "s01-01");
     await editor(page).fill("SELECT * FROM products;\n");

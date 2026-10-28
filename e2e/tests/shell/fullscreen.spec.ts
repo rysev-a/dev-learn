@@ -2,7 +2,7 @@ import type { Page } from "@playwright/test";
 import { expect, loginFresh, test } from "../../support/fixtures";
 import { assertCleanBut404, controlClock, courseOf, DM1, loadChapter, type ChapterDto } from "../../support/shell";
 
-/* Полноэкранный режим главы: оболочка `.slide-fs` (дерево, шапка с вкладками, содержимое), состояние в адресе `?fs=1`. */
+/* Chapter fullscreen mode: the `.slide-fs` shell (tree, header with tabs, content), state in the `?fs=1` address. */
 
 const fsRoot = (page: Page) => page.locator(".slide-fs");
 const items = (page: Page) => fsRoot(page).locator(".fst-slide");
@@ -10,7 +10,7 @@ const onItem = (page: Page) => fsRoot(page).locator(".fst-slide.on");
 const head = (page: Page) => fsRoot(page).locator(".slide-fs-head");
 const search = (page: Page) => new URL(page.url()).search;
 
-/** Открывает главу сразу в полном экране и ждёт, пока вкладка положит пункты в дерево. */
+/** Opens a chapter straight in fullscreen and waits until the tab puts its items into the tree. */
 async function openFs(page: Page, ch: ChapterDto, query = "") {
   await page.goto(`/book/12/chapter/${ch.id}?fs=1${query}`);
   await expect(fsRoot(page)).toBeVisible();
@@ -19,7 +19,7 @@ async function openFs(page: Page, ch: ChapterDto, query = "") {
 
 const pageNum = (ch: ChapterDto, n: number) => `${String(n).padStart(2, "0")} / ${String(ch.lessons.length).padStart(2, "0")}`;
 
-test("кнопка «Весь экран» открывает оболочку: адрес ?fs=1, нативный полный экран, дерево и шапка", async ({ page, request, guard }) => {
+test("the \"Весь экран\" button opens the shell: ?fs=1 address, native fullscreen, tree and header", async ({ page, request, guard }) => {
   await loginFresh(page, request);
   const ch = await loadChapter(request, DM1);
   await page.goto(`/book/12/chapter/${ch.id}`);
@@ -32,26 +32,26 @@ test("кнопка «Весь экран» открывает оболочку: 
   await expect(fsRoot(page).locator(".slide-fs-toc")).toBeVisible();
   await expect(head(page).locator(".slide-fs-caption")).toHaveText(`Урок ${ch.num}. ${ch.title}`);
   await expect(head(page).getByRole("button", { name: "Свернуть" })).toBeVisible();
-  // в полном экране кнопки «Весь экран» нет
+  // there is no "Весь экран" button in fullscreen
   await expect(fsRoot(page).locator(".ch-expand")).toHaveCount(0);
   assertCleanBut404(guard);
 });
 
-test("заход по адресу ?fs=1 сразу показывает оболочку со вкладками", async ({ page, request }) => {
+test("visiting the ?fs=1 address shows the shell with tabs at once", async ({ page, request }) => {
   await loginFresh(page, request);
   const ch = await loadChapter(request, DM1);
   await openFs(page, ch);
   await expect(fsRoot(page).locator(".ch-tab")).toHaveCount(3);
   await expect(fsRoot(page).locator(".ch-tab.on")).toHaveText("Теория");
-  // ссылки вкладок сохраняют ?fs=1
+  // tab links keep ?fs=1
   const base = `/book/12/chapter/${ch.id}`;
   await expect(fsRoot(page).locator(".ch-tab", { hasText: "Теория" })).toHaveAttribute("href", `${base}?fs=1`);
   await expect(fsRoot(page).locator(".ch-tab", { hasText: "Вопросы" })).toHaveAttribute("href", `${base}/questions?fs=1`);
   await expect(fsRoot(page).locator(".ch-tab", { hasText: "Практика" })).toHaveAttribute("href", `${base}/exercises?fs=1`);
 });
 
-test.describe("дерево разделов и глав", () => {
-  test("разделы книги; раздел текущей главы раскрыт, остальные свёрнуты; текущая глава отмечена", async ({ page, request }) => {
+test.describe("tree of sections and chapters", () => {
+  test("book sections; the section of the current chapter is expanded, the rest are collapsed; the current chapter is marked", async ({ page, request }) => {
     await loginFresh(page, request);
     const course = await courseOf(request, 12);
     const ch = await loadChapter(request, DM1);
@@ -61,17 +61,17 @@ test.describe("дерево разделов и глав", () => {
     await expect(heads).toHaveText(course.map((s) => new RegExp(s.title, "i")));
     await expect(heads.nth(0)).toHaveAttribute("aria-expanded", "true");
     for (let i = 1; i < course.length; i++) await expect(heads.nth(i)).toHaveAttribute("aria-expanded", "false");
-    // главы раскрытого раздела видны, текущая отмечена
+    // chapters of the expanded section are visible, the current one is marked
     const first = course[0]!.chapters;
     const sec0 = fsRoot(page).locator(".fst-sec").nth(0);
     await expect(sec0.locator(".slide-fs-toc-item")).toHaveCount(first.length);
     await expect(sec0.locator(".slide-fs-toc-item.on")).toHaveCount(1);
     await expect(sec0.locator(".slide-fs-toc-item.on .slide-fs-toc-name")).toHaveText(ch.title);
-    // у свёрнутого раздела главы скрыты
+    // chapters of a collapsed section are hidden
     await expect(fsRoot(page).locator(".fst-sec").nth(1).locator(".slide-fs-toc-item").first()).toBeHidden();
   });
 
-  test("заголовок раздела раскрывает и сворачивает его главы", async ({ page, request }) => {
+  test("a section heading expands and collapses its chapters", async ({ page, request }) => {
     await loginFresh(page, request);
     const course = await courseOf(request, 12);
     const ch = await loadChapter(request, DM1);
@@ -87,7 +87,7 @@ test.describe("дерево разделов и глав", () => {
     await expect(second.locator(".slide-fs-toc-item").first()).toBeHidden();
   });
 
-  test("под текущей главой — пункты слайдов с названиями, текущий слайд отмечен", async ({ page, request }) => {
+  test("under the current chapter there are slide items with titles, the current slide is marked", async ({ page, request }) => {
     await loginFresh(page, request);
     const ch = await loadChapter(request, DM1);
     await openFs(page, ch);
@@ -95,11 +95,11 @@ test.describe("дерево разделов и глав", () => {
     await expect(onItem(page)).toHaveCount(1);
     await expect(onItem(page).locator(".fst-slide-num")).toHaveText("01");
     for (const name of await items(page).locator(".fst-slide-name").allInnerTexts()) expect(name.trim()).not.toBe("");
-    // пункты лежат в дереве под своей главой
+    // items sit in the tree under their chapter
     await expect(fsRoot(page).locator(".fst-sec").nth(0).locator(".fst-slide")).toHaveCount(ch.lessons.length);
   });
 
-  test("клик по пункту слайда показывает его: номер, ?slide= в адресе, отметка", async ({ page, request }) => {
+  test("clicking a slide item shows it: number, ?slide= in the address, mark", async ({ page, request }) => {
     await loginFresh(page, request);
     const ch = await loadChapter(request, DM1);
     await openFs(page, ch);
@@ -110,7 +110,7 @@ test.describe("дерево разделов и глав", () => {
     await expect(page.locator(".slide-fs-stage .s-title")).toBeVisible();
   });
 
-  test("клик по другой главе открывает её теорию в полном экране", async ({ page, request }) => {
+  test("clicking another chapter opens its theory in fullscreen", async ({ page, request }) => {
     await loginFresh(page, request);
     const course = await courseOf(request, 12);
     const [c1, c2] = course[0]!.chapters;
@@ -127,7 +127,7 @@ test.describe("дерево разделов и глав", () => {
     expect(c1!.id).toBe(ch.id);
   });
 
-  test("переход к другой главе из вкладки «Вопросы» открывает «Теорию»", async ({ page, request }) => {
+  test("going to another chapter from the \"Вопросы\" tab opens \"Теория\"", async ({ page, request }) => {
     await loginFresh(page, request);
     const course = await courseOf(request, 12);
     const c2 = course[0]!.chapters[1]!;
@@ -139,7 +139,7 @@ test.describe("дерево разделов и глав", () => {
     await expect(fsRoot(page).locator(".ch-tab.on")).toHaveText("Теория");
   });
 
-  test("раскрытые разделы переживают переход к другой главе", async ({ page, request }) => {
+  test("expanded sections survive moving to another chapter", async ({ page, request }) => {
     await loginFresh(page, request);
     const course = await courseOf(request, 12);
     const c2 = course[0]!.chapters[1]!;
@@ -154,7 +154,7 @@ test.describe("дерево разделов и глав", () => {
     await expect(fsRoot(page).locator(".fst-sec").nth(0).locator(".fst-sec-head")).toHaveAttribute("aria-expanded", "true");
   });
 
-  test("переход в главу другого раздела раскрывает её раздел", async ({ page, request }) => {
+  test("going to a chapter of another section expands that section", async ({ page, request }) => {
     await loginFresh(page, request);
     const course = await courseOf(request, 12);
     const target = course[1]!.chapters[0]!;
@@ -168,8 +168,8 @@ test.describe("дерево разделов и глав", () => {
   });
 });
 
-test.describe("вкладки в полном экране", () => {
-  test("переключение вкладок сохраняет ?fs=1 и оболочку; пункты дерева — вопросы", async ({ page, request, guard }) => {
+test.describe("tabs in fullscreen", () => {
+  test("switching tabs keeps ?fs=1 and the shell; tree items are questions", async ({ page, request, guard }) => {
     await loginFresh(page, request);
     const ch = await loadChapter(request, DM1);
     await openFs(page, ch);
@@ -180,7 +180,7 @@ test.describe("вкладки в полном экране", () => {
     await expect(page).toHaveURL(new RegExp(`${base}/questions\\?fs=1$`));
     await expect(fsRoot(page)).toBeVisible();
     await expect(tab("Вопросы")).toHaveClass(/\bon\b/);
-    await expect(items(page)).toHaveCount(5); // по пункту на вопрос
+    await expect(items(page)).toHaveCount(5); // one item per question
     await expect(fsRoot(page).locator(".quiz-q")).toHaveCount(5);
 
     await tab("Практика").click();
@@ -194,27 +194,27 @@ test.describe("вкладки в полном экране", () => {
     assertCleanBut404(guard);
   });
 
-  test("в шапке вкладки «Теория» — номер слайда, время и «Играть»", async ({ page, request }) => {
+  test("the \"Теория\" tab header has the slide number, time and \"Играть\"", async ({ page, request }) => {
     await loginFresh(page, request);
     const ch = await loadChapter(request, DM1);
     await openFs(page, ch);
     await expect(head(page).locator(".slide-panel-num")).toHaveText(pageNum(ch, 1));
     await expect(head(page).locator(".s-time-mono")).toContainText("0:00 / ");
     await expect(head(page).getByRole("button", { name: "Играть" })).toBeVisible();
-    // на других вкладках этих кнопок в шапке нет
+    // on other tabs the header has no such buttons
     await fsRoot(page).locator(".ch-tab", { hasText: "Вопросы" }).click();
     await expect(head(page).locator(".slide-panel-num")).toHaveCount(0);
   });
 });
 
-test.describe("листание стрелками", () => {
-  test("→ и ↓ вперёд, ← и ↑ назад, на краях главы стоим", async ({ page, request }) => {
+test.describe("arrow-key paging", () => {
+  test("right and down go forward, left and up go back, at chapter edges we stay", async ({ page, request }) => {
     await loginFresh(page, request);
     const ch = await loadChapter(request, DM1);
     await openFs(page, ch);
     const num = head(page).locator(".slide-panel-num");
     await page.keyboard.press("ArrowLeft");
-    await expect(num).toHaveText(pageNum(ch, 1)); // раньше первого не идём
+    await expect(num).toHaveText(pageNum(ch, 1)); // we do not go before the first one
     await page.keyboard.press("ArrowRight");
     await expect(num).toHaveText(pageNum(ch, 2));
     await page.keyboard.press("ArrowDown");
@@ -225,8 +225,8 @@ test.describe("листание стрелками", () => {
     await expect(num).toHaveText(pageNum(ch, 1));
     await expect(onItem(page).locator(".fst-slide-num")).toHaveText("01");
 
-    // до конца и дальше конца
-    // каждое нажатие ждёт применения прежнего: адрес меняется асинхронно, и нажатия «без пауз» схлопываются
+    // to the end and beyond
+    // each press waits for the previous one to apply: the address changes asynchronously and presses without pauses collapse
     for (let i = 1; i < ch.lessons.length; i++) {
       await page.keyboard.press("ArrowRight");
       await expect(num).toHaveText(pageNum(ch, i + 1));
@@ -237,7 +237,7 @@ test.describe("листание стрелками", () => {
     await expect(onItem(page)).toHaveCount(1);
   });
 
-  test("стрелки в обычном режиме страницы слайды не листают", async ({ page, request }) => {
+  test("arrows do not page slides in the normal page mode", async ({ page, request }) => {
     await loginFresh(page, request);
     const ch = await loadChapter(request, DM1);
     await page.goto(`/book/12/chapter/${ch.id}`);
@@ -247,8 +247,8 @@ test.describe("листание стрелками", () => {
   });
 });
 
-test.describe("выход из полного экрана", () => {
-  test("«Свернуть» закрывает оболочку и убирает ?fs=1, слайд и вкладка остаются", async ({ page, request }) => {
+test.describe("leaving fullscreen", () => {
+  test("\"Свернуть\" closes the shell and removes ?fs=1, the slide and tab stay", async ({ page, request }) => {
     await loginFresh(page, request);
     const ch = await loadChapter(request, DM1);
     await openFs(page, ch);
@@ -261,7 +261,7 @@ test.describe("выход из полного экрана", () => {
     await expect.poll(() => page.evaluate(() => document.fullscreenElement?.tagName ?? null)).toBeNull();
   });
 
-  test("Esc закрывает оболочку; вкладка «Вопросы» остаётся открытой", async ({ page, request }) => {
+  test("Esc closes the shell; the \"Вопросы\" tab stays open", async ({ page, request }) => {
     await loginFresh(page, request);
     const ch = await loadChapter(request, DM1);
     await page.goto(`/book/12/chapter/${ch.id}/questions?fs=1`);
@@ -274,7 +274,7 @@ test.describe("выход из полного экрана", () => {
     await expect(page.locator(".quiz-q")).toHaveCount(5);
   });
 
-  test("после выхода можно войти в полный экран снова", async ({ page, request }) => {
+  test("after leaving, fullscreen can be entered again", async ({ page, request }) => {
     await loginFresh(page, request);
     const ch = await loadChapter(request, DM1);
     await page.goto(`/book/12/chapter/${ch.id}`);
@@ -287,7 +287,7 @@ test.describe("выход из полного экрана", () => {
     await expect(page).toHaveURL(/\?fs=1$/);
   });
 
-  test("перезагрузка в полном экране возвращает в него же, на тот же слайд", async ({ page, request }) => {
+  test("a reload in fullscreen returns to it, on the same slide", async ({ page, request }) => {
     await loginFresh(page, request);
     const ch = await loadChapter(request, DM1);
     await openFs(page, ch);
@@ -300,7 +300,7 @@ test.describe("выход из полного экрана", () => {
   });
 });
 
-test("в полном экране плеер читает по виртуальным часам, окно «За кадром» стоит по центру области оболочки", async ({ page, request }) => {
+test("in fullscreen the player reads by virtual clock, the \"За кадром\" window is centered in the shell area", async ({ page, request }) => {
   await loginFresh(page, request);
   const ch = await loadChapter(request, DM1);
   await controlClock(page);
@@ -308,7 +308,7 @@ test("в полном экране плеер читает по виртуаль
   const pop = page.locator(".voice-pop");
   await expect(pop).toBeVisible();
   await expect(pop.locator(".voice-pop-tag")).toHaveText("За кадром");
-  // центр окна совпадает с центром колонки `.slide-fs-main`
+  // the window center matches the center of the `.slide-fs-main` column
   const main = (await fsRoot(page).locator(".slide-fs-main").boundingBox())!;
   const box = (await pop.boundingBox())!;
   expect(Math.abs(box.x + box.width / 2 - (main.x + main.width / 2))).toBeLessThan(4);

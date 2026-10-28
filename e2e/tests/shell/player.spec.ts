@@ -2,8 +2,8 @@ import type { Page } from "@playwright/test";
 import { expect, loginFresh, test } from "../../support/fixtures";
 import { assertCleanBut404, controlClock, DM1, loadChapter, mmss, progressOf, seconds, stored, words, type ChapterDto } from "../../support/shell";
 
-/* Плеер «озвучки без звука»: абзацы читаются по виртуальным часам (14 символов в секунду, не меньше трёх секунд). Часы страницы
-   остановлены и идут только по `page.clock.runFor`, поэтому тесты не ждут настоящих минут. */
+/* The "voice-over without sound" player: paragraphs are read on a virtual clock (14 characters per second, at least three seconds). The page clock
+   is stopped and advances only via `page.clock.runFor`, so tests never wait real minutes. */
 
 const num = (page: Page) => page.locator(".slide-panel-num");
 const clockText = (page: Page) => page.locator(".s-time-mono");
@@ -11,8 +11,8 @@ const play = (page: Page) => page.locator(".slide-panel-head .slide-btn");
 const voice = (page: Page) => page.locator(".voice-pop-text");
 const dot = (page: Page, i: number) => page.locator(".slide-dot").nth(i);
 /**
- * Клик по точке слайда. Часы страницы остановлены, а ручной выбор слайда уходит в адрес (`?slide=`) через таймер роутера,
- * поэтому после клика даём часам тронуться на долю секунды.
+ * Click a slide dot. The page clock is stopped, and a manual slide choice goes into the URL (`?slide=`) via a router timer,
+ * so after the click we let the clock advance a fraction of a second.
  */
 const pick = async (page: Page, i: number) => {
   await dot(page, i).click();
@@ -20,14 +20,14 @@ const pick = async (page: Page, i: number) => {
 };
 const pageNum = (ch: ChapterDto, n: number) => `${String(n).padStart(2, "0")} / ${String(ch.lessons.length).padStart(2, "0")}`;
 
-/** Секунды из `м:сс` левой части «позиция / длина». */
+/** Seconds from the `m:ss` left part of "position / length". */
 async function position(page: Page): Promise<number> {
   const text = (await clockText(page).innerText()).split("/")[0]!.trim();
   const [m, s] = text.split(":").map(Number) as [number, number];
   return m * 60 + s;
 }
 
-/** Номер подсвеченного («читаемого») слова в окне «За кадром»; -1, если слова не подсвечены. */
+/** Index of the highlighted ("being read") word in the voice-over window; -1 if no word is highlighted. */
 const nowWord = (page: Page) => page.locator(".voice-pop-text span").evaluateAll((els) => els.findIndex((e) => e.classList.contains("now")));
 
 async function open(page: Page, ch: ChapterDto, query = "") {
@@ -44,7 +44,7 @@ const setup = async (page: Page, request: import("@playwright/test").APIRequestC
   return { ch, durs, total: durs.reduce((a, b) => a + b, 0) };
 };
 
-test("исходное состояние: первый слайд, время 0:00 из длины главы, «Играть», слова не подсвечены", async ({ page, request, guard }) => {
+test("initial state: first slide, time 0:00 of the chapter length, Play, no words highlighted", async ({ page, request, guard }) => {
   const { ch, total } = await setup(page, request);
   await open(page, ch);
   await expect(num(page)).toHaveText(pageNum(ch, 1));
@@ -56,7 +56,7 @@ test("исходное состояние: первый слайд, время 0
   assertCleanBut404(guard);
 });
 
-test("«Играть» запускает чтение: «Пауза», время идёт, слова подсвечиваются по порядку", async ({ page, request }) => {
+test("Play starts reading: Pause shown, time runs, words are highlighted in order", async ({ page, request }) => {
   const { ch } = await setup(page, request);
   await open(page, ch);
   await play(page).click();
@@ -70,12 +70,12 @@ test("«Играть» запускает чтение: «Пауза», врем
   await page.clock.runFor(10_000);
   const later = await nowWord(page);
   expect(later).toBeGreaterThan(early);
-  // слова до читаемого — прочитанные, после — ожидающие
+  // words before the current one are read, after it are pending
   await expect(page.locator(".voice-pop-text .past")).toHaveCount(later);
   await expect(page.locator(".voice-pop-text .next")).toHaveCount(wordCount - later - 1);
 });
 
-test("слайды сменяются сами: по концу абзаца — следующий слайд и его текст", async ({ page, request }) => {
+test("slides advance on their own: at the end of a paragraph, the next slide and its text", async ({ page, request }) => {
   const { ch, durs } = await setup(page, request);
   await open(page, ch);
   await play(page).click();
@@ -86,18 +86,18 @@ test("слайды сменяются сами: по концу абзаца —
   await expect(voice(page)).toHaveText(words(ch.lessons[1]!.text));
   await expect(dot(page, 1)).toHaveClass(/\bon\b/);
   await expect(dot(page, 0)).not.toHaveClass(/\bon\b/);
-  // позиция в главе — сумма прочитанного абзаца и времени внутри нового
+  // position in the chapter is the sum of the finished paragraph and the time inside the new one
   const pos = await position(page);
   expect(pos).toBeGreaterThanOrEqual(Math.floor(durs[0]!));
   expect(pos).toBeLessThanOrEqual(Math.ceil(durs[0]! + 2));
   await expect(play(page)).toHaveText("Пауза");
-  // и дальше: ещё абзац
+  // and on: another paragraph
   await page.clock.runFor(durs[1]! * 1000);
   await expect(num(page)).toHaveText(pageNum(ch, 3));
   await expect(voice(page)).toHaveText(words(ch.lessons[2]!.text));
 });
 
-test("«Пауза» останавливает чтение, «Играть» продолжает без учёта времени паузы", async ({ page, request }) => {
+test("Pause stops reading, Play resumes ignoring the paused time", async ({ page, request }) => {
   const { ch } = await setup(page, request);
   await open(page, ch);
   await play(page).click();
@@ -108,20 +108,20 @@ test("«Пауза» останавливает чтение, «Играть» �
   const w = await nowWord(page);
   expect(t).toBeGreaterThanOrEqual(4);
   await page.clock.runFor(120_000);
-  await expect(num(page)).toHaveText(pageNum(ch, 1)); // слайд не меняется
+  await expect(num(page)).toHaveText(pageNum(ch, 1)); // the slide does not change
   expect(await position(page)).toBe(t);
   expect(await nowWord(page)).toBe(w);
-  await expect(page.locator(".voice-pop-text .now")).toHaveCount(1); // чтение «на месте»
+  await expect(page.locator(".voice-pop-text .now")).toHaveCount(1); // reading stays in place
   await play(page).click();
   await expect(play(page)).toHaveText("Пауза");
   await page.clock.runFor(1000);
   const after = await position(page);
   expect(after - t).toBeGreaterThanOrEqual(0);
-  expect(after - t).toBeLessThanOrEqual(3); // а не 120 секунд паузы
+  expect(after - t).toBeLessThanOrEqual(3); // not the 120 seconds of pause
   await expect(num(page)).toHaveText(pageNum(ch, 1));
 });
 
-test("клик по слайду при остановленном плеере показывает слайд и не запускает чтение", async ({ page, request }) => {
+test("clicking a slide while the player is stopped shows the slide and does not start reading", async ({ page, request }) => {
   const { ch, durs } = await setup(page, request);
   await open(page, ch);
   await pick(page, 4);
@@ -132,11 +132,11 @@ test("клик по слайду при остановленном плеере 
   const before = durs.slice(0, 4).reduce((a, b) => a + b, 0);
   await expect(clockText(page)).toContainText(`${mmss(before)} / `);
   await page.clock.runFor(60_000);
-  await expect(num(page)).toHaveText(pageNum(ch, 5)); // сам не листается
+  await expect(num(page)).toHaveText(pageNum(ch, 5)); // does not turn pages by itself
   await expect(page.locator(".voice-pop-text .now")).toHaveCount(0);
 });
 
-test("«Играть» после ручного выбора начинает чтение с выбранного слайда", async ({ page, request }) => {
+test("Play after a manual choice starts reading from the chosen slide", async ({ page, request }) => {
   const { ch, durs } = await setup(page, request);
   await open(page, ch);
   await pick(page, 4);
@@ -152,7 +152,7 @@ test("«Играть» после ручного выбора начинает �
   await expect(page.locator(".voice-pop-text .now")).toHaveCount(1);
 });
 
-test("клик по слайду во время чтения начинает чтение с него «с начала абзаца»", async ({ page, request }) => {
+test("clicking a slide during reading starts reading from the start of its paragraph", async ({ page, request }) => {
   const { ch, durs } = await setup(page, request);
   await open(page, ch);
   await play(page).click();
@@ -163,7 +163,7 @@ test("клик по слайду во время чтения начинает �
   await expect(num(page)).toHaveText(pageNum(ch, 9));
   await expect(voice(page)).toHaveText(words(ch.lessons[8]!.text));
   await expect(play(page)).toHaveText("Пауза");
-  await expect(page.locator(".voice-pop-text .past")).toHaveCount(0); // чтение идёт с первого слова
+  await expect(page.locator(".voice-pop-text .past")).toHaveCount(0); // reading goes from the first word
   const start = durs.slice(0, 8).reduce((a, b) => a + b, 0);
   expect(await position(page)).toBeGreaterThanOrEqual(Math.floor(start));
   expect(await position(page)).toBeLessThanOrEqual(Math.ceil(start + 1));
@@ -171,7 +171,7 @@ test("клик по слайду во время чтения начинает �
   await expect(num(page)).toHaveText(pageNum(ch, 10));
 });
 
-test("клик по текущему слайду на паузе возобновляет чтение", async ({ page, request }) => {
+test("clicking the current slide while paused resumes reading", async ({ page, request }) => {
   const { ch } = await setup(page, request);
   await open(page, ch);
   await play(page).click();
@@ -182,11 +182,11 @@ test("клик по текущему слайду на паузе возобно
   await pick(page, 0);
   await expect(play(page)).toHaveText("Пауза");
   await page.clock.runFor(1000);
-  expect(await position(page)).toBeGreaterThanOrEqual(t); // с места паузы, не с начала
+  expect(await position(page)).toBeGreaterThanOrEqual(t); // from the paused position, not from the start
   await expect(num(page)).toHaveText(pageNum(ch, 1));
 });
 
-test("окно «За кадром» показывает абзац текущего слайда на любом слайде главы", async ({ page, request }) => {
+test("the voice-over window shows the current slide's paragraph on any slide of the chapter", async ({ page, request }) => {
   const { ch } = await setup(page, request);
   await open(page, ch);
   await expect(page.locator(".voice-pop")).toHaveCount(1);
@@ -200,7 +200,7 @@ test("окно «За кадром» показывает абзац текущ�
   }
 });
 
-test("окно «За кадром» закреплено у нижнего края и стоит по центру колонки главы", async ({ page, request }) => {
+test("the voice-over window is pinned to the bottom edge and centred on the chapter column", async ({ page, request }) => {
   const { ch } = await setup(page, request);
   await open(page, ch);
   const pop = (await page.locator(".voice-pop").boundingBox())!;
@@ -208,12 +208,12 @@ test("окно «За кадром» закреплено у нижнего кр
   const viewport = page.viewportSize()!;
   expect(Math.abs(pop.x + pop.width / 2 - (content.x + content.width / 2))).toBeLessThan(4);
   expect(viewport.height - (pop.y + pop.height)).toBeLessThan(40);
-  // полная высота окна доступна плееру и полям страницы
+  // the full window height is available to the player and page margins
   const varPx = await page.evaluate(() => parseFloat(document.documentElement.style.getPropertyValue("--voice-h")));
   expect(Math.abs(varPx - pop.height)).toBeLessThan(2);
 });
 
-test("высота окна «За кадром»: двойной клик по «лапке» возвращает по умолчанию, перетаскивание запоминает", async ({ page, request }) => {
+test("voice-over window height: double-clicking the handle restores the default, dragging is remembered", async ({ page, request }) => {
   const { ch } = await setup(page, request);
   await page.addInitScript(() => window.localStorage.setItem("cs-core-voice-h", "100"));
   await open(page, ch);
@@ -233,7 +233,7 @@ test("высота окна «За кадром»: двойной клик по 
   expect(Number(saved)).toBeGreaterThan(0);
 });
 
-test("адрес ?slide=: ручной выбор попадает в адрес, перезагрузка возвращает на тот же слайд", async ({ page, request }) => {
+test("?slide= URL: a manual choice goes into the URL, reload returns to the same slide", async ({ page, request }) => {
   const { ch } = await setup(page, request);
   await open(page, ch);
   expect(new URL(page.url()).searchParams.get("slide")).toBeNull();
@@ -246,7 +246,7 @@ test("адрес ?slide=: ручной выбор попадает в адрес
   await expect(play(page)).toHaveText("Играть");
 });
 
-test("адрес ?slide=: заход по ссылке, выход за границы и мусор в значении", async ({ page, request }) => {
+test("?slide= URL: opening by link, out-of-range and garbage values", async ({ page, request }) => {
   const { ch } = await setup(page, request);
   await open(page, ch, "?slide=5");
   await expect(num(page)).toHaveText(pageNum(ch, 6));
@@ -259,7 +259,7 @@ test("адрес ?slide=: заход по ссылке, выход за гран
   await expect(num(page)).toHaveText(pageNum(ch, 1));
 });
 
-test("при уходе со страницы чтение останавливается: после возвращения — «Играть» и 0:00", async ({ page, request }) => {
+test("leaving the page stops reading: after returning, Play and 0:00", async ({ page, request }) => {
   const { ch } = await setup(page, request);
   await open(page, ch);
   await play(page).click();
@@ -274,20 +274,20 @@ test("при уходе со страницы чтение останавлив�
   await expect(clockText(page)).toContainText("0:00 / ");
 });
 
-test("переход в левом меню разделов останавливает чтение", async ({ page, request }) => {
+test("navigating in the left sections menu stops reading", async ({ page, request }) => {
   const { ch } = await setup(page, request);
   await open(page, ch);
   await play(page).click();
   await page.clock.runFor(2000);
-  await page.locator(".sidebar .slide-fs-toc-item").nth(1).click(); // другой раздел
+  await page.locator(".sidebar .slide-fs-toc-item").nth(1).click(); // another section
   await expect(page).toHaveURL(/\/book\/13$/);
-  await page.goBack(); // та же вкладка приложения, без перезагрузки: плеер не должен «доиграть» в фоне
+  await page.goBack(); // same app tab, no reload: the player must not keep playing in the background
   await expect(page.locator(".slide-panel")).toBeVisible();
   await expect(play(page)).toHaveText("Играть");
   await expect(page.locator(".voice-pop-text .now")).toHaveCount(0);
 });
 
-test("чтение последнего абзаца заканчивается остановкой: «Играть», слова не подсвечены", async ({ page, request }) => {
+test("reading the last paragraph ends with a stop: Play, no words highlighted", async ({ page, request }) => {
   const { ch, durs } = await setup(page, request);
   const last = ch.lessons.length - 1;
   await open(page, ch, `?slide=${last}`);
@@ -296,12 +296,12 @@ test("чтение последнего абзаца заканчивается 
   await page.clock.runFor(durs[last]! * 1000 + 2000);
   await expect(play(page)).toHaveText("Играть");
   await expect(page.locator(".voice-pop-text .now")).toHaveCount(0);
-  // проигрыватель можно запустить снова
+  // the player can be started again
   await play(page).click();
   await expect(play(page)).toHaveText("Пауза");
 });
 
-test("слайды, прочитанные плеером, попадают в прогресс", async ({ page, request }) => {
+test("slides read by the player count towards progress", async ({ page, request }) => {
   const { token } = await loginFresh(page, request);
   const ch = await loadChapter(request, DM1);
   const durs = ch.lessons.map((l) => seconds(l.text));
@@ -313,7 +313,7 @@ test("слайды, прочитанные плеером, попадают в �
   await expect.poll(async () => (await progressOf(request, token)).slides[`12:${DM1.num}`]).toEqual([0, 1, 2]);
 });
 
-test("окно «За кадром» только на вкладке теории", async ({ page, request }) => {
+test("the voice-over window appears only on the theory tab", async ({ page, request }) => {
   const { ch } = await setup(page, request);
   await open(page, ch);
   await page.locator(".ch-tab", { hasText: "Вопросы" }).click();
@@ -324,7 +324,7 @@ test("окно «За кадром» только на вкладке теори
   await expect(voice(page)).toHaveText(words(ch.lessons[0]!.text));
 });
 
-test("смена вкладки во время чтения останавливает плеер", async ({ page, request }) => {
+test("switching tabs during reading stops the player", async ({ page, request }) => {
   const { ch } = await setup(page, request);
   await open(page, ch);
   await play(page).click();

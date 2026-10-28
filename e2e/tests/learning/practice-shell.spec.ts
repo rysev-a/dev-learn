@@ -2,8 +2,8 @@ import type { APIRequestContext, Locator, Page } from "@playwright/test";
 import { bearer, chapters, expect, loginFresh, test } from "../../support/fixtures";
 import { FakeWorker, chapterPath, codeTasks, failing, passing, presetSetting, unique, type CodeTask, type WorkerResult } from "../../support/learning";
 
-/* Общая оболочка практики: прогресс «Решено N из M», порядок упражнений, переходы «Дальше →» и автопереход, пункты в полном экране,
-   сброс упражнений из настроек. Проверку выполняет подставной воркер; решения сидятся прямо через API. */
+/* Shared practice shell: "Решено N из M" progress, exercise order, "Дальше →" transitions and auto-advance, items in fullscreen,
+   exercise reset from settings. A fake worker performs the check; solutions are seeded directly through the API. */
 
 const PY = { book: 13, num: 0 };
 const SQL = { book: 9, num: 1 };
@@ -20,7 +20,7 @@ async function open(page: Page, request: APIRequestContext, query = "", target =
   await expect(page.locator(".pr-main")).toBeVisible();
 }
 
-/** Отправляет решение через API и отвечает за воркера: так упражнению задаётся статус без работы в интерфейсе. */
+/** Submits a solution through the API and answers for the worker: this sets an exercise status without using the interface. */
 async function seed(request: APIRequestContext, token: string, worker: FakeWorker, t: CodeTask, answer: WorkerResult, target = PY): Promise<void> {
   await worker.ping();
   const res = await request.post("/api/exercises/run", { headers: bearer(token), data: { book: target.book, chapter: target.num, task: t.id, code: `print(1)\n${unique()}\n` } });
@@ -30,20 +30,20 @@ async function seed(request: APIRequestContext, token: string, worker: FakeWorke
   await worker.complete(job!, answer);
 }
 
-/** Ответ воркера на то, что прислали из интерфейса. */
+/** The worker's answer to what the interface sent. */
 async function serve(worker: FakeWorker, answer: WorkerResult): Promise<void> {
   const job = await worker.claim();
-  expect(job, "задание дошло до воркера").not.toBeNull();
+  expect(job, "the job reached the worker").not.toBeNull();
   await worker.complete(job!, answer);
 }
 
-test.describe("прогресс и порядок", () => {
-  test("«Решено N из M», полоса, значок вкладки и отметки следуют статусам с сервера", async ({ page, request, guard }) => {
+test.describe("progress and order", () => {
+  test("\"Решено N из M\", the bar, the tab badge and the marks follow the server statuses", async ({ page, request, guard }) => {
     const { token } = await loginFresh(page, request);
     const worker = new FakeWorker(request);
     await seed(request, token, worker, pyTasks[0]!, passing("1991\n"));
     await seed(request, token, worker, pyTasks[1]!, passing("int\n"));
-    await seed(request, token, worker, pyTasks[2]!, failing("чётное", "нечётное"));
+    await seed(request, token, worker, pyTasks[2]!, failing("even", "odd"));
     await seed(request, token, worker, pyTasks[3]!, passing("1\n"));
     await open(page, request);
     const total = pyTasks.length;
@@ -55,7 +55,7 @@ test.describe("прогресс и порядок", () => {
     expect(marks).toEqual(["✓", "✓", "✗", "✓", "5", "6"]);
     await expect(page.locator(".pr-item.ok")).toHaveCount(3);
     await expect(page.locator(".pr-item.bad")).toHaveCount(1);
-    // у открытого провального упражнения «не пройдено», у нерешённого — «не решено»
+    // an opened failed exercise shows "не пройдено", an unsolved one shows "не решено"
     await items(page).nth(2).click();
     await expect(page.locator(".pr-badge")).toHaveText("не пройдено");
     await items(page).nth(4).click();
@@ -63,30 +63,30 @@ test.describe("прогресс и порядок", () => {
     guard.assertClean();
   });
 
-  test("упражнения идут в порядке главы (SQL: 41 упражнение), названия и номера совпадают с данными", async ({ page, request }) => {
+  test("exercises go in chapter order (SQL: 41 exercises), titles and numbers match the data", async ({ page, request }) => {
     await loginFresh(page, request);
     await open(page, request, "", SQL);
     await expect(items(page)).toHaveCount(sqlTasks.length);
     expect(await items(page).locator(".pr-name").allTextContents()).toEqual(sqlTasks.map((t) => t.title));
     expect(await items(page).locator(".pr-mark").allTextContents()).toEqual(sqlTasks.map((_, i) => String(i + 1)));
     await expect(label(page)).toHaveText(`Решено 0 из ${sqlTasks.length}`);
-    // выбор последнего упражнения
+    // selecting the last exercise
     await items(page).last().click();
     await expect(page.locator(".pr-head h3")).toHaveText(`${sqlTasks.length}. ${sqlTasks[sqlTasks.length - 1]!.title}`);
   });
 });
 
-test.describe("подписи оболочки", () => {
-  // Правая подпись полосы прогресса жёстко «python · docker» — и у SQL-глав (режим sql, песочница с SQLite), и у Rust/C/JS.
-  test("подпись справа от полосы не называет Python у SQL-упражнений", async ({ page, request }) => {
+test.describe("shell labels", () => {
+  // The right-hand label of the progress bar is hard-coded as "python · docker", for SQL chapters (sql mode, SQLite sandbox) and for Rust/C/JS alike.
+  test("the label to the right of the bar does not say Python for SQL exercises", async ({ page, request }) => {
     await loginFresh(page, request);
     await open(page, request, "", SQL);
     await expect(page.locator(".pr-top-label").last()).not.toContainText("python");
   });
 });
 
-test.describe("«Дальше →» и автопереход", () => {
-  test("автопереход выключен по умолчанию: после решения остаёмся на упражнении", async ({ page, request }) => {
+test.describe("\"Дальше →\" and auto-advance", () => {
+  test("auto-advance is off by default: after solving we stay on the exercise", async ({ page, request }) => {
     await loginFresh(page, request);
     const worker = new FakeWorker(request);
     await worker.ping();
@@ -96,12 +96,12 @@ test.describe("«Дальше →» и автопереход", () => {
     await serve(worker, passing("1991\n"));
     await expect(page.locator(".pr-badge")).toHaveText("выполнено");
     const url = page.url();
-    await page.waitForTimeout(2000); // автопереход, если бы он был, сработал бы через секунду
+    await page.waitForTimeout(2000); // auto-advance, if it were on, would fire after a second
     expect(page.url()).toBe(url);
     await expect(mainBtn(page)).toHaveText("Дальше →");
   });
 
-  test("автопереход включён: через секунду открывается следующее упражнение", async ({ page, request, guard }) => {
+  test("auto-advance is on: the next exercise opens after a second", async ({ page, request, guard }) => {
     await loginFresh(page, request);
     await presetSetting(page, "cs-core-auto-next", "1");
     const worker = new FakeWorker(request);
@@ -118,7 +118,7 @@ test.describe("«Дальше →» и автопереход", () => {
     guard.assertClean();
   });
 
-  test("автопереход не уводит, если ученик уже выбрал другое упражнение", async ({ page, request }) => {
+  test("auto-advance does not move on if the student already picked another exercise", async ({ page, request }) => {
     await loginFresh(page, request);
     await presetSetting(page, "cs-core-auto-next", "1");
     const worker = new FakeWorker(request);
@@ -128,14 +128,14 @@ test.describe("«Дальше →» и автопереход", () => {
     await mainBtn(page).click();
     await serve(worker, passing("1991\n"));
     await expect(page.locator(".pr-badge")).toHaveText("выполнено");
-    await items(page).nth(4).click(); // не дожидаясь секунды
+    await items(page).nth(4).click(); // without waiting for the second
     await expect(page).toHaveURL(new RegExp(`task=${pyTasks[4]!.id}$`));
     await page.waitForTimeout(2000);
     await expect(page).toHaveURL(new RegExp(`task=${pyTasks[4]!.id}$`));
     await expect(page.locator(".pr-head h3")).toContainText(pyTasks[4]!.title);
   });
 
-  test("настройка «Автопереход» переключается и пишется в localStorage", async ({ page, request }) => {
+  test("the \"Автопереход\" setting toggles and is written to localStorage", async ({ page, request }) => {
     await loginFresh(page, request);
     await page.goto("/settings");
     const toggle = page.getByRole("switch", { name: "Автопереход к следующему упражнению" });
@@ -152,9 +152,9 @@ test.describe("«Дальше →» и автопереход", () => {
     expect(await stored()).toBeNull();
   });
 
-  // Настройки обещают: «после последнего — первое упражнение следующей главы» (так же в AGENTS.md). В Leptos-фронте
-  // `go_next` на последнем упражнении ничего не делает, а кнопка «Дальше →» там вовсе не появляется (`go_mode` требует idx + 1 < total).
-  test("после решения последнего упражнения «Дальше →» ведёт к первому упражнению следующей главы с задачами", async ({ page, request }) => {
+  // The settings promise: "after the last one, the first exercise of the next chapter" (same in AGENTS.md). In the Leptos frontend
+  // `go_next` does nothing on the last exercise, and the "Дальше →" button does not appear there at all (`go_mode` requires idx + 1 < total).
+  test("after solving the last exercise, \"Дальше →\" leads to the first exercise of the next chapter with tasks", async ({ page, request }) => {
     await loginFresh(page, request);
     const worker = new FakeWorker(request);
     await worker.ping();
@@ -171,8 +171,8 @@ test.describe("«Дальше →» и автопереход", () => {
   });
 });
 
-test.describe("полный экран", () => {
-  test("в дереве слева — упражнения со статусами; выбор сохраняет ?fs=1; проверка работает и обновляет значок", async ({ page, request, guard }) => {
+test.describe("fullscreen", () => {
+  test("the left tree lists exercises with statuses; a pick keeps ?fs=1; checking works and updates the icon", async ({ page, request, guard }) => {
     const { token } = await loginFresh(page, request);
     const worker = new FakeWorker(request);
     await seed(request, token, worker, pyTasks[0]!, passing("1991\n"));
@@ -187,8 +187,8 @@ test.describe("полный экран", () => {
     await expect(tree.nth(1)).toHaveClass(/\bbad\b/);
     await expect(tree.nth(1).locator(".fst-slide-num")).toHaveText("✗");
     await expect(tree.nth(2).locator(".fst-slide-num")).toHaveText("03");
-    await expect(tree.nth(0)).toHaveClass(/\bon\b/); // текущее упражнение отмечено
-    // выбор в дереве: адрес сохраняет fs=1 и добавляет task
+    await expect(tree.nth(0)).toHaveClass(/\bon\b/); // the current exercise is marked
+    // a pick in the tree: the address keeps fs=1 and adds task
     await tree.nth(2).click();
     await expect(page).toHaveURL(new RegExp(`task=${pyTasks[2]!.id}`));
     await expect(page).toHaveURL(/fs=1/);
@@ -196,15 +196,15 @@ test.describe("полный экран", () => {
     await expect(page.locator(".pr-head h3")).toHaveText(`3. ${pyTasks[2]!.title}`);
     await expect(tree.nth(2)).toHaveClass(/\bon\b/);
     await expect(tree.nth(0)).not.toHaveClass(/\bon\b/);
-    // проверка прямо в полном экране: значок пункта меняется на ✓
-    await page.getByRole("button", { name: "Сбросить" }).click(); // подготовка: заготовка → своё решение
+    // checking right in fullscreen: the item icon changes to a check mark
+    await page.getByRole("button", { name: "Сбросить" }).click(); // preparation: starter -> own solution
     await editor(page).fill(`def parity(n):\n    return 'x'\n${unique()}\n`);
     await editor(page).press("Control+Enter");
     await serve(worker, passing(""));
     await expect(tree.nth(2)).toHaveClass(/\bok\b/);
     await expect(tree.nth(2).locator(".fst-slide-num")).toHaveText("✓");
     await expect(page.locator(".pr-top-label").first()).toHaveText(`Решено 2 из ${pyTasks.length}`);
-    // «Свернуть» возвращает обычный вид, выбранное упражнение остаётся
+    // "Свернуть" returns the normal view, the selected exercise stays
     await page.locator(".slide-fs .slide-btn", { hasText: "Свернуть" }).click();
     await expect(page.locator(".slide-fs")).toHaveCount(0);
     await expect(page.locator(".pr-head h3")).toHaveText(`3. ${pyTasks[2]!.title}`);
@@ -212,8 +212,8 @@ test.describe("полный экран", () => {
   });
 });
 
-test.describe("сброс упражнений в настройках", () => {
-  test("«Сбросить прогресс упражнений» стирает статусы, черновики и историю; отказ в подтверждении ничего не трогает", async ({ page, request }) => {
+test.describe("exercise reset in settings", () => {
+  test("\"Сбросить прогресс упражнений\" erases statuses, drafts and history; declining the confirmation touches nothing", async ({ page, request }) => {
     const { token } = await loginFresh(page, request);
     const worker = new FakeWorker(request);
     await seed(request, token, worker, pyTasks[0]!, passing("1991\n"));
@@ -224,18 +224,18 @@ test.describe("сброс упражнений в настройках", () => {
 
     await page.goto("/settings");
     const row = page.locator(".set-row", { hasText: "Сбросить прогресс упражнений" });
-    // отказ
+    // decline
     page.once("dialog", (d) => void d.dismiss());
     await row.getByRole("button", { name: "Сбросить", exact: true }).click();
     expect(Object.keys((await state()).status)).toHaveLength(2);
-    // согласие
+    // accept
     page.once("dialog", (d) => void d.accept());
     await row.getByRole("button", { name: "Сбросить", exact: true }).click();
     await expect.poll(async () => Object.keys((await state()).status).length).toBe(0);
     expect((await state()).drafts).toEqual({});
     const attempts = (await (await request.get(`/api/exercises/${PY.book}/${PY.num}/${pyTasks[0]!.id}/attempts`, { headers: bearer(token) })).json()) as { attempts: unknown[] };
     expect(attempts.attempts).toEqual([]);
-    // практика снова чистая
+    // practice is clean again
     await open(page, request);
     await expect(label(page)).toHaveText(`Решено 0 из ${pyTasks.length}`);
     await expect(page.locator(".pr-item.ok, .pr-item.bad")).toHaveCount(0);
@@ -244,10 +244,10 @@ test.describe("сброс упражнений в настройках", () => {
   });
 });
 
-test.describe("вкладки главы", () => {
-  // Ссылка «Теория» ведёт на адрес главы без подпути и по префиксу считается «текущей»: у неё всегда aria-current="page", даже когда
-  // открыта вкладка «Вопросы» или «Практика» (читалка экрана объявляет две текущие страницы).
-  test("aria-current=page только у открытой вкладки", async ({ page, request }) => {
+test.describe("chapter tabs", () => {
+  // The "Теория" link points to the chapter address without a subpath and is considered current by prefix: it always has aria-current="page", even when
+  // the "Вопросы" or "Практика" tab is open (a screen reader announces two current pages).
+  test("aria-current=page only on the open tab", async ({ page, request }) => {
     await loginFresh(page, request);
     await open(page, request);
     const current = page.locator(".ch-tabs a[aria-current='page']");
@@ -255,7 +255,7 @@ test.describe("вкладки главы", () => {
     await expect(current).toContainText("Практика");
   });
 
-  test("переключение вкладок сохраняет выбранное упражнение в адресе вкладки практики", async ({ page, request }) => {
+  test("switching tabs keeps the selected exercise in the practice tab address", async ({ page, request }) => {
     await loginFresh(page, request);
     await open(page, request, `?task=${pyTasks[3]!.id}`);
     await expect(page.locator(".pr-head h3")).toContainText(pyTasks[3]!.title);
@@ -263,7 +263,7 @@ test.describe("вкладки главы", () => {
     await expect(page.locator(".quiz")).toBeVisible();
     await page.locator(".ch-tab", { hasText: "Практика" }).click();
     await expect(page.locator(".pr-main")).toBeVisible();
-    // вкладка открывается с первого упражнения (выбор живёт в адресе), черновик при этом не теряется
+    // the tab opens from the first exercise (the pick lives in the address), the draft is not lost
     await expect(page.locator(".pr-head h3")).toContainText(pyTasks[0]!.title);
   });
 });

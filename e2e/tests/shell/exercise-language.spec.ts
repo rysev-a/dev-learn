@@ -1,7 +1,7 @@
 import { expect, loginFresh, test, books, chapters } from "../../support/fixtures";
 
-/* Данные упражнений (код, SQL, лаборатории) — только английские в обоих языках интерфейса: в русском режиме по-русски только
-   название, условие и подсказка; в английском режиме на странице практики нет кириллицы вообще. */
+/* Exercise data (code, SQL, labs) is English only in both interface languages: in Russian mode only the
+   title, statement and hint are Russian; in English mode the practice page has no Cyrillic at all. */
 
 const CYR = /[А-Яа-яЁё]/;
 const EXERCISE_BOOKS = [7, 8, 9, 10, 11, 13, 14, 15, 16, 17, 18];
@@ -13,7 +13,7 @@ function strip(task: Task): unknown {
   return rest;
 }
 
-test("в API упражнений нет кириллицы: английский — нигде, русский — только в названии, условии и подсказке", async ({ request }) => {
+test("the exercises API has no Cyrillic: English everywhere, Russian only in the title, statement and hint", async ({ request }) => {
   test.setTimeout(600_000);
   const bad: string[] = [];
   let checked = 0;
@@ -34,11 +34,11 @@ test("в API упражнений нет кириллицы: английски�
       }
     }
   }
-  expect(checked, "проверено ответов").toBeGreaterThan(100);
+  expect(checked, "responses checked").toBeGreaterThan(100);
   expect(bad, bad.slice(0, 20).join("\n")).toEqual([]);
 });
 
-test("страница практики по-английски: ни одной русской буквы в области упражнения", async ({ page, request }) => {
+test("practice page in English: not a single Russian letter in the exercise area", async ({ page, request }) => {
   test.setTimeout(900_000);
   await loginFresh(page, request);
   await page.addInitScript(() => window.localStorage.setItem("cs-core-lang", "en"));

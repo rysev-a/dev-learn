@@ -4,13 +4,13 @@ import { fileURLToPath } from "node:url";
 import { expect, type APIRequestContext, type APIResponse, type Locator, type Page } from "@playwright/test";
 import { bearer, chapterId } from "./fixtures";
 
-/* Лаборатории книги 14 (схемы, Мини-8, RISC-V): эталоны читаются из данных курса (backend/data/labs/arch),
-   помощники API (черновики, решение, состояние) и открытие упражнения в практике главы. */
+/* Book 14 labs (circuits, Mini-8, RISC-V): reference solutions are read from the course data (backend/data/labs/arch),
+   API helpers (drafts, solution, state) and opening an exercise in the chapter practice. */
 
 const DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../backend/data/labs/arch");
 
 export const BOOK = 14;
-/** Главы со схемами и ассемблером Мини-8: 6–15; RISC-V: 16–17. */
+/** Chapters with circuits and Mini-8 assembly: 6–15; RISC-V: 16–17. */
 export const ARCH_CHAPTERS = [6, 7, 8, 9, 10, 11, 12, 13, 14, 15] as const;
 export const RISCV_CHAPTERS = [16, 17] as const;
 
@@ -75,7 +75,7 @@ interface LabFile {
 
 const cache = new Map<number, LabFile>();
 
-/** Файл данных главы (14-NN.json). */
+/** Chapter data file (14-NN.json). */
 export function labFile(chapter: number): LabFile {
   let f = cache.get(chapter);
   if (!f) {
@@ -89,7 +89,7 @@ export const tasksOf = (chapter: number): LabTask[] => labFile(chapter).tasks;
 
 export function taskOf(chapter: number, id: string): LabTask {
   const t = tasksOf(chapter).find((x) => x.id === id);
-  if (!t) throw new Error(`нет упражнения 14:${chapter}/${id}`);
+  if (!t) throw new Error(`no exercise 14:${chapter}/${id}`);
   return t;
 }
 
@@ -97,7 +97,7 @@ export const circuitOf = (chapter: number, id: string): LabTask<CircuitSpec> => 
 export const asmOf = (chapter: number, id: string): LabTask<AsmSpec> => taskOf(chapter, id) as LabTask<AsmSpec>;
 export const riscvOf = (chapter: number, id: string): LabTask<RiscvSpec> => taskOf(chapter, id) as LabTask<RiscvSpec>;
 
-/** Эталон как тело решения (то, что хранится черновиком): JSON схемы или текст программы. */
+/** Reference as a solution body (what a draft stores): circuit JSON or program text. */
 export function solutionText(task: LabTask): string {
   const spec = task.spec as unknown as Record<string, unknown>;
   if (spec["kind"] === "circuit") return JSON.stringify(spec["solution"]);
@@ -105,7 +105,7 @@ export function solutionText(task: LabTask): string {
   return String(spec["reference"]);
 }
 
-/** Пустая схема нужной сборки. */
+/** An empty circuit of the required build. */
 export function emptyDrawing(build: "gates" | "blocks"): string {
   return build === "gates" ? JSON.stringify({ gates: [], wires: [] }) : JSON.stringify({ instances: [], bus_wires: [] });
 }
@@ -114,15 +114,15 @@ export const EMPTY_GATES = emptyDrawing("gates");
 
 export async function putDraft(request: APIRequestContext, token: string, chapter: number, id: string, code: string): Promise<void> {
   const res = await request.put(`/api/exercises/${BOOK}/${chapter}/${id}/draft`, { headers: bearer(token), data: { code } });
-  expect(res.status(), `черновик ${chapter}/${id}`).toBe(204);
+  expect(res.status(), `draft ${chapter}/${id}`).toBe(204);
 }
 
-/** Отправка решения на сервер как это делает интерфейс (ответ — как есть: 204 или 422 с причиной). */
+/** Submits a solution to the server the way the UI does (response as is: 204 or 422 with a reason). */
 export function putSolved(request: APIRequestContext, token: string, chapter: number, id: string, solution: string): Promise<APIResponse> {
   return request.put(`/api/exercises/${BOOK}/${chapter}/${id}/solved`, { headers: bearer(token), data: { solution } });
 }
 
-/** Причина отказа сервера (поле `detail` или `error` ответа 422). */
+/** Server rejection reason (the `detail` or `error` field of a 422 response). */
 export async function rejectionOf(res: APIResponse): Promise<string> {
   const body = (await res.json()) as { detail?: string; error?: string };
   return String(body.detail ?? body.error ?? "");
@@ -130,10 +130,10 @@ export async function rejectionOf(res: APIResponse): Promise<string> {
 
 export async function solveViaApi(request: APIRequestContext, token: string, chapter: number, id: string): Promise<void> {
   const res = await putSolved(request, token, chapter, id, solutionText(taskOf(chapter, id)));
-  expect(res.status(), `решение ${chapter}/${id}: ${res.status()} ${res.status() === 204 ? "" : await res.text()}`).toBe(204);
+  expect(res.status(), `solution ${chapter}/${id}: ${res.status()} ${res.status() === 204 ? "" : await res.text()}`).toBe(204);
 }
 
-/** Решает через API все упражнения до указанного (порядок курса: из решённых собираются составные блоки). */
+/** Solves every exercise before the given one through the API (course order: composite blocks are assembled from solved ones). */
 export async function solveBefore(request: APIRequestContext, token: string, chapter: number, id: string): Promise<void> {
   for (const ch of ARCH_CHAPTERS) {
     if (ch > chapter) return;
@@ -155,12 +155,12 @@ export async function chapterState(request: APIRequestContext, token: string, ch
   return (await res.json()) as ChapterState;
 }
 
-/** Статус упражнения на сервере (`ok`, `fail`, …) или `undefined`, если попыток не было. */
+/** Exercise status on the server (`ok`, `fail`, …) or `undefined` if there were no attempts. */
 export async function statusOf(request: APIRequestContext, token: string, chapter: number, id: string): Promise<string | undefined> {
   return (await chapterState(request, token, chapter)).status[id];
 }
 
-/** Открывает упражнение главы в практике и ждёт, пока лаборатория загрузится. */
+/** Opens a chapter exercise in the practice tab and waits for the lab to load. */
 export async function openTask(page: Page, request: APIRequestContext, chapter: number, id: string): Promise<void> {
   const ch = await chapterId(request, BOOK, chapter);
   await page.goto(`/book/${BOOK}/chapter/${ch}/exercises?task=${id}`);
@@ -168,25 +168,25 @@ export async function openTask(page: Page, request: APIRequestContext, chapter: 
   await expect(page.locator(".lab").first()).toBeVisible();
 }
 
-/** Пункт списка упражнений слева. */
+/** Item of the exercise list on the left. */
 export const listItem = (page: Page, title: string) => page.locator(`.pr-item[title="${title}"]`);
 
-/* ——— Действия на странице ——— */
+/* ——— Page actions ——— */
 
-/** Клик мышью в центр элемента (SVG-элементы доски принимают указатель, а не `click()` с проверками видимости). */
+/** Mouse click at the element centre (the board's SVG elements take the pointer, not `click()` with visibility checks). */
 export async function clickCenter(page: Page, loc: Locator): Promise<void> {
   const b = await loc.boundingBox();
-  if (!b) throw new Error("у элемента нет рамки");
+  if (!b) throw new Error("the element has no bounding box");
   await page.mouse.click(b.x + b.width / 2, b.y + b.height / 2);
 }
 
 export async function centerOf(loc: Locator): Promise<{ x: number; y: number }> {
   const b = await loc.boundingBox();
-  if (!b) throw new Error("у элемента нет рамки");
+  if (!b) throw new Error("the element has no bounding box");
   return { x: b.x + b.width / 2, y: b.y + b.height / 2 };
 }
 
-/** Тумблер входа на доске: для вентилей — узел входа, для блоков — «чип» в рамке «Входы». */
+/** Input toggle on the board: for gates the input node, for blocks the chip inside the inputs frame. */
 function inputToggle(page: Page, spec: CircuitSpec, id: string): Locator {
   const index = spec.inputs.indexOf(id);
   if (spec.build === "gates") return page.locator(".input-node").nth(index).locator(".node-click");
@@ -194,9 +194,9 @@ function inputToggle(page: Page, spec: CircuitSpec, id: string): Locator {
 }
 
 /**
- * Проходит сценарий упражнения «по шагам» руками и ждёт отметки шага «выполнен».
- * Если упражнение тактовое (`ticks`), такт — импульсы: поднятый CLK сначала опускают (новый фронт), выставляют данные, затем
- * подают нужное число фронтов (`pulses`). Иначе такт — обычный уровень: при спаде его опускают первым, при подъёме — последним.
+ * Walks through the exercise scenario step by step by hand and waits for the step to be marked done.
+ * If the exercise is clocked (`ticks`), the clock is pulses: a raised CLK is lowered first (a new edge), data is set, then
+ * the required number of edges (`pulses`) is applied. Otherwise the clock is a plain level: on a falling step it is lowered first, on a rising one last.
  */
 export async function playSteps(page: Page, spec: CircuitSpec): Promise<void> {
   const level: Record<string, number> = Object.fromEntries(spec.inputs.map((i) => [i, 0]));
@@ -212,17 +212,17 @@ export async function playSteps(page: Page, spec: CircuitSpec): Promise<void> {
       if (id !== clock && level[id] !== v) await toggle(id);
     }
     if (clock !== null && target === 1) {
-      // «тактов: N» — столько фронтов нужно подать; между ними такт опускается
+      // "ticks: N" is how many edges to apply; the clock goes low between them
       for (let pulse = 0; pulse < (spec.ticks ? (step.pulses ?? 1) : 1); pulse++) {
         if (level[clock] === 1) await toggle(clock);
         await toggle(clock);
       }
     }
-    await expect.poll(() => page.locator(".lab-step.done").count(), { message: `шаг ${n + 1}: ${step.text}` }).toBeGreaterThan(n);
+    await expect.poll(() => page.locator(".lab-step.done").count(), { message: `step ${n + 1}: ${step.text}` }).toBeGreaterThan(n);
   }
 }
 
-/** Упражнение со схемой решено в интерфейсе и принято сервером. */
+/** A circuit exercise is solved in the UI and accepted by the server. */
 export async function expectCircuitSolved(page: Page, request: APIRequestContext, token: string, chapter: number, task: LabTask<CircuitSpec>): Promise<void> {
   const spec = task.spec;
   await expect(page.locator(".lab-alert.ok, .lab-alert").first()).toContainText("Схема работает");
@@ -232,6 +232,6 @@ export async function expectCircuitSolved(page: Page, request: APIRequestContext
   await expect(item.locator(".pr-mark")).toHaveText("✓");
   await expect(page.locator(".pr-head .pr-badge")).toHaveText("выполнено");
   await expect(page.locator("p.error")).toHaveCount(0);
-  await expect.poll(() => statusOf(request, token, chapter, task.id), { message: `статус ${chapter}/${task.id} на сервере` }).toBe("ok");
+  await expect.poll(() => statusOf(request, token, chapter, task.id), { message: `status ${chapter}/${task.id} on the server` }).toBe("ok");
   if (spec.mode === "table") await expect(page.locator(".lab-tt .bad-mark")).toHaveCount(0);
 }

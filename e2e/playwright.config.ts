@@ -2,11 +2,11 @@ import { defineConfig } from "@playwright/test";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-/* E2E-тесты: Leptos-фронт (собранный в e2e/.dist) отдаёт backend на базе в памяти, содержимое курса сидится из backend/data.
-   Сборка: `npm run build` (trunk + cargo). Один рабочий процесс: тесты книг идут по одной главе за раз, лаборатории не конкурируют за CPU. */
+/* E2E tests: the Leptos frontend (built into e2e/.dist) is served by the backend on an in-memory database; course content is seeded from backend/data.
+   Build: `npm run build` (trunk + cargo). A single worker process: book tests run one chapter at a time, labs do not compete for CPU. */
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const port = Number(process.env.E2E_PORT ?? 8099);
-/** Готовый стек (например, `docker compose … up`): тесты идут на него, свой сервер не поднимается. */
+/** A ready-made stack (e.g. `docker compose … up`): tests run against it, no own server is started. */
 const external = process.env.E2E_BASE_URL;
 
 export default defineConfig({

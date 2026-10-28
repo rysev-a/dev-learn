@@ -2,25 +2,25 @@ import type { Locator, Page } from "@playwright/test";
 import { bearer, expect, loginFresh, test } from "../../support/fixtures";
 import { answerTasks, answerTitle, chapterPath, firstAnswer, learningGuard, progressOf } from "../../support/learning";
 
-/* Упражнения с вводом ответа (дискретная математика, книга 12): условия и подсказки приходят без ответов, проверяет сервер. */
+/* Exercises with typed answers (discrete math, book 12): statements and hints come without answers, the server checks. */
 
 const BOOK = 12;
 const CHAPTERS = [1, 2, 3];
 const NOTE = "Пока неверно — попробуй ещё раз или загляни в подсказку.";
-const WRONG = "абракадабра-е2е";
+const WRONG = "gibberish-e2e";
 
 const row = (page: Page, i: number): Locator => page.locator(".quiz-q").nth(i);
 const input = (page: Page, i: number): Locator => row(page, i).locator("input.ex-input");
 const checkBtn = (page: Page, i: number): Locator => row(page, i).locator(".ex-row button.quiz-btn");
 const counter = (page: Page): Locator => page.locator(".quiz-lang");
 
-/** Ввод + «Проверить». */
+/** Input + "Проверить". */
 async function submit(page: Page, i: number, value: string) {
   await input(page, i).fill(value);
   await checkBtn(page, i).click();
 }
 
-/** Подготовка: решить задачу прямо через API. */
+/** Setup: solve a task directly through the API. */
 async function solveViaApi(request: Parameters<typeof chapterPath>[0], token: string, num: number, task: number, value: string) {
   const res = await request.post(`/api/answers/${BOOK}/${num}/check`, { headers: bearer(token), data: { task, value } });
   expect(res.ok()).toBeTruthy();
@@ -28,11 +28,11 @@ async function solveViaApi(request: Parameters<typeof chapterPath>[0], token: st
 }
 
 for (const num of CHAPTERS) {
-  test.describe(`дискретная математика, глава ${num}`, () => {
+  test.describe(`discrete math, chapter ${num}`, () => {
     const tasks = answerTasks(BOOK, num);
     const title = answerTitle(BOOK, num);
 
-    test("условия, поля ввода и подсказки без ответов", async ({ page, request }) => {
+    test("statements, inputs and hints without answers", async ({ page, request }) => {
       const guard = learningGuard(page);
       await loginFresh(page, request);
       await page.goto(await chapterPath(request, BOOK, num, "exercises"));
@@ -45,14 +45,14 @@ for (const num of CHAPTERS) {
         await expect(input(page, i)).toBeEnabled();
         await expect(input(page, i)).toHaveValue("");
         await expect(checkBtn(page, i)).toHaveText("Проверить");
-        await expect(row(page, i).locator(".ex-hint")).toHaveCount(0); // подсказка скрыта
+        await expect(row(page, i).locator(".ex-hint")).toHaveCount(0); // hint is hidden
       }
       await expect(page.getByRole("button", { name: "Начать заново" })).toHaveCount(0);
       await expect(page.locator(".quiz-result")).toHaveCount(0);
       guard.assertClean();
     });
 
-    test("неверный ввод даёт сообщение, правка его снимает, верный — «решено»", async ({ page, request }) => {
+    test("wrong input gives a message, an edit clears it, a correct one shows \"решено\"", async ({ page, request }) => {
       const guard = learningGuard(page);
       const { token } = await loginFresh(page, request);
       await page.goto(await chapterPath(request, BOOK, num, "exercises"));
@@ -63,12 +63,12 @@ for (const num of CHAPTERS) {
       await expect(input(page, 0)).toBeEnabled();
       await expect(counter(page)).toHaveText("упражнения");
       expect((await progressOf(request, token)).answers[`${BOOK}:${num}`] ?? {}).toEqual({});
-      // новая правка снимает «неверно»
+      // a new edit clears the "wrong" state
       await input(page, 0).press("End");
       await input(page, 0).pressSequentially("1");
       await expect(row(page, 0).locator(".ex-note")).toHaveCount(0);
       await expect(input(page, 0)).not.toHaveClass(/\bwrong\b/);
-      // верный ответ
+      // correct answer
       await submit(page, 0, firstAnswer(t));
       await expect(input(page, 0)).toHaveClass(/\bright\b/);
       await expect(input(page, 0)).toBeDisabled();
@@ -77,20 +77,20 @@ for (const num of CHAPTERS) {
       await expect(row(page, 0).locator(".ex-note")).toHaveCount(0);
       await expect(counter(page)).toHaveText(`упражнения · решено 1/${tasks.length}`);
       await expect(page.getByRole("button", { name: "Начать заново" })).toBeVisible();
-      // остальные задачи не затронуты
+      // other tasks are unaffected
       await expect(input(page, 1)).toBeEnabled();
       expect((await progressOf(request, token)).answers[`${BOOK}:${num}`]).toEqual({ "0": firstAnswer(t) });
       guard.assertClean();
     });
 
-    test("решённое переживает перезагрузку, «Начать заново» очищает и на сервере", async ({ page, request }) => {
+    test("solved state survives a reload, \"Начать заново\" also clears it on the server", async ({ page, request }) => {
       const guard = learningGuard(page);
       const { token } = await loginFresh(page, request);
       const url = await chapterPath(request, BOOK, num, "exercises");
       await page.goto(url);
       await submit(page, 0, firstAnswer(tasks[0]!));
       await submit(page, 1, firstAnswer(tasks[1]!));
-      await submit(page, 2, WRONG); // неверная попытка не сохраняется
+      await submit(page, 2, WRONG); // a wrong attempt is not saved
       await expect(counter(page)).toHaveText(`упражнения · решено 2/${tasks.length}`);
       await page.reload();
       await expect(counter(page)).toHaveText(`упражнения · решено 2/${tasks.length}`);
@@ -116,13 +116,13 @@ for (const num of CHAPTERS) {
       await page.reload();
       await expect(counter(page)).toHaveText("упражнения");
       await expect(input(page, 0)).toBeEnabled();
-      // после сброса можно решить снова
+      // after a reset it can be solved again
       await submit(page, 0, firstAnswer(tasks[0]!));
       await expect(counter(page)).toHaveText(`упражнения · решено 1/${tasks.length}`);
       guard.assertClean();
     });
 
-    test("все задачи решены: итоговая строка", async ({ page, request }) => {
+    test("all tasks solved: summary line", async ({ page, request }) => {
       const guard = learningGuard(page);
       const { token } = await loginFresh(page, request);
       await page.goto(await chapterPath(request, BOOK, num, "exercises"));
@@ -140,11 +140,11 @@ for (const num of CHAPTERS) {
   });
 }
 
-test.describe("ввод ответа", () => {
+test.describe("answer input", () => {
   const num = 1;
   const tasks = answerTasks(BOOK, num);
 
-  test("Enter в поле проверяет ответ; пустой ввод ничего не отправляет", async ({ page, request }) => {
+  test("Enter in the field checks the answer; empty input sends nothing", async ({ page, request }) => {
     await loginFresh(page, request);
     await page.goto(await chapterPath(request, BOOK, num, "exercises"));
     let checks = 0;
@@ -156,29 +156,29 @@ test.describe("ввод ответа", () => {
     await input(page, 0).fill("   ");
     await input(page, 0).press("Enter");
     await expect(row(page, 0).locator(".ex-note")).toHaveCount(0);
-    expect(checks, "пустой ввод не уходит на сервер").toBe(0);
+    expect(checks, "empty input is not sent to the server").toBe(0);
     await input(page, 0).fill(firstAnswer(tasks[0]!));
     await input(page, 0).press("Enter");
     await expect(input(page, 0)).toHaveClass(/\bright\b/);
     expect(checks).toBe(1);
   });
 
-  test("сравнение без учёта регистра, пробелов и с запятой в числах; запасные варианты ответа", async ({ page, request }) => {
+  test("comparison ignores case and spaces, accepts a comma in numbers; alternative accepted answers", async ({ page, request }) => {
     await loginFresh(page, request);
     await page.goto(await chapterPath(request, BOOK, num, "exercises"));
-    // задача 3 («1022»): пробелы вокруг, десятичная запись числа
+    // task 3 ("1022"): surrounding spaces, decimal notation
     await submit(page, 6, "  1022  ");
     await expect(input(page, 6)).toHaveClass(/\bright\b/);
     await submit(page, 5, "32,0");
     await expect(input(page, 5)).toHaveClass(/\bright\b/);
-    // задача 5: «да» принимается в другом регистре, как и запасной вариант «истинно»
+    // task 5: "да" is accepted in another case, as is the alternative "истинно"
     await submit(page, 4, "  ДА ");
     await expect(input(page, 4)).toHaveClass(/\bright\b/);
-    await submit(page, 3, "6 штук"); // лишний текст — не число
+    await submit(page, 3, "6 pieces"); // extra text is not a number
     await expect(row(page, 3).locator(".ex-note")).toHaveText(NOTE);
-    await submit(page, 2, "9.5"); // близкое число — неверно
+    await submit(page, 2, "9.5"); // a close number is wrong
     await expect(row(page, 2).locator(".ex-note")).toHaveText(NOTE);
-    // сохранено то, что ввёл ученик (с обрезанными краями)
+    // what the student typed is kept (edges trimmed)
     await expect(input(page, 4)).toHaveValue("  ДА ");
     const alt = answerTasks(BOOK, 2).find((t) => t.answers.length > 1)!;
     await page.goto(await chapterPath(request, BOOK, 2, "exercises"));
@@ -187,7 +187,7 @@ test.describe("ввод ответа", () => {
     await expect(input(page, k)).toHaveClass(/\bright\b/);
   });
 
-  test("подсказка: показать и скрыть, ответа в ней нет", async ({ page, request }) => {
+  test("hint: show and hide, it contains no answer", async ({ page, request }) => {
     const guard = learningGuard(page);
     await loginFresh(page, request);
     await page.goto(await chapterPath(request, BOOK, num, "exercises"));
@@ -197,32 +197,32 @@ test.describe("ввод ответа", () => {
     await toggle.click();
     await expect(toggle).toHaveText("Скрыть подсказку");
     await expect(row(page, 2).locator(".ex-hint")).toHaveText(t.hint);
-    await expect(row(page, 1).locator(".ex-hint")).toHaveCount(0); // у других задач не открылась
+    await expect(row(page, 1).locator(".ex-hint")).toHaveCount(0); // not opened for other tasks
     await toggle.click();
     await expect(toggle).toHaveText("Подсказка");
     await expect(row(page, 2).locator(".ex-hint")).toHaveCount(0);
     guard.assertClean();
   });
 
-  test("вкладка «Практика» главы без код-задач открывает упражнения, значка с числом нет", async ({ page, request }) => {
+  test("the \"Практика\" tab of a chapter without code tasks opens the exercises, no count badge", async ({ page, request }) => {
     await loginFresh(page, request);
     await page.goto(await chapterPath(request, BOOK, num, ""));
-    await expect(page.locator(".ch-tab")).toHaveCount(3); // вкладки появляются по мере загрузки данных главы: ждём все, чтобы они не сдвигались под курсором
+    await expect(page.locator(".ch-tab")).toHaveCount(3); // tabs appear as chapter data loads: wait for all of them so they do not shift under the cursor
     const tab = page.locator(".ch-tab", { hasText: "Практика" });
     await expect(tab).toBeVisible();
     await expect(tab.locator(".ch-tab-badge")).toHaveCount(0);
     await tab.click();
     await expect(page).toHaveURL(/\/exercises$/);
     await expect(page.locator(".quiz-q")).toHaveCount(tasks.length);
-    await expect(page.locator(".pr")).toHaveCount(0); // оболочки код-практики здесь нет
+    await expect(page.locator(".pr")).toHaveCount(0); // there is no code-practice shell here
   });
 });
 
-test.describe("API ответов: проверка на сервере", () => {
+test.describe("answers API: server-side check", () => {
   const num = 1;
   const tasks = answerTasks(BOOK, num);
 
-  test("условия приходят без ответов, неверный ответ верного не раскрывает", async ({ page, request }) => {
+  test("statements come without answers, a wrong answer does not reveal the right one", async ({ page, request }) => {
     const { token } = await loginFresh(page, request);
     const h = bearer(token);
     const set = await request.get(`/api/answers/${BOOK}/${num}`, { headers: h });
@@ -234,34 +234,34 @@ test.describe("API ответов: проверка на сервере", () => 
     for (const t of body.tasks) expect(Object.keys(t).sort()).toEqual(["hint", "q"]);
     expect(body.solved).toEqual({});
     expect(raw).not.toContain('"answers"');
-    // верный ответ нигде не светится в ответе проверки неверного
+    // the correct answer does not appear anywhere in the response to a wrong check
     const bad = await request.post(`/api/answers/${BOOK}/${num}/check`, { headers: h, data: { task: 0, value: WRONG } });
     expect(bad.ok()).toBeTruthy();
     expect(await bad.json()).toEqual({ ok: false });
-    // верный: ровно {ok: true}, и после него GET отдаёт принятое значение именно этого пользователя
+    // correct: exactly {ok: true}, and afterwards GET returns the accepted value of this very user
     const good = await request.post(`/api/answers/${BOOK}/${num}/check`, { headers: h, data: { task: 0, value: " " + firstAnswer(tasks[0]!) + " " } });
     expect(await good.json()).toEqual({ ok: true });
     const after = (await (await request.get(`/api/answers/${BOOK}/${num}`, { headers: h })).json()) as { solved: Record<string, string> };
     expect(after.solved).toEqual({ "0": firstAnswer(tasks[0]!) });
-    // счётчики глав открыты, ответов в них нет
+    // chapter counters are open, they contain no answers
     const counts = (await (await request.get("/api/answers")).json()) as Record<string, Record<string, number>>;
     expect(counts[String(BOOK)]?.[String(num)]).toBe(tasks.length);
   });
 
-  test("без входа и с неверными данными проверка отклоняется", async ({ page, request }) => {
+  test("without sign-in and with invalid data the check is rejected", async ({ page, request }) => {
     expect((await request.get(`/api/answers/${BOOK}/${num}`)).status()).toBe(401);
     expect((await request.post(`/api/answers/${BOOK}/${num}/check`, { data: { task: 0, value: "1" } })).status()).toBe(401);
     const { token } = await loginFresh(page, request);
     const h = bearer(token);
     const check = (task: number, value: string) => request.post(`/api/answers/${BOOK}/${num}/check`, { headers: h, data: { task, value } });
-    expect((await check(tasks.length, "1")).status(), "задачи с таким номером нет").toBe(404);
-    expect((await check(0, "1".repeat(201))).status(), "слишком длинный ввод").toBe(422);
-    expect((await request.get(`/api/answers/${BOOK}/999`, { headers: h })).status(), "у главы нет упражнений").toBe(404);
-    expect((await request.delete(`/api/answers?book=${BOOK}&chapter=-1`, { headers: h })).status(), "глава вне диапазона").toBe(422);
+    expect((await check(tasks.length, "1")).status(), "no task with this number").toBe(404);
+    expect((await check(0, "1".repeat(201))).status(), "input too long").toBe(422);
+    expect((await request.get(`/api/answers/${BOOK}/999`, { headers: h })).status(), "the chapter has no exercises").toBe(404);
+    expect((await request.delete(`/api/answers?book=${BOOK}&chapter=-1`, { headers: h })).status(), "chapter out of range").toBe(422);
     expect((await progressOf(request, token)).answers[`${BOOK}:${num}`] ?? {}).toEqual({});
   });
 
-  test("главы не делят решённое; сброс затрагивает только свою главу", async ({ page, request }) => {
+  test("chapters do not share solved state; a reset affects only its own chapter", async ({ page, request }) => {
     const { token } = await loginFresh(page, request);
     const h = bearer(token);
     await solveViaApi(request, token, 1, 0, firstAnswer(tasks[0]!));

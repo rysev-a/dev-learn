@@ -2,13 +2,13 @@ import type { Locator, Page } from "@playwright/test";
 import { expect, loginFresh, test } from "../../support/fixtures";
 import { labTask, listItem, openTask, progressLabel, putSolved, statusOf, expectStatusOk } from "../../support/labs";
 
-/* Лаборатория «Виртуализация» (книга 17): шесть симуляторов. Решение — JSON `{id цели: данные}`, которое строит сам интерфейс;
-   у этих упражнений в данных нет эталона, поэтому решаются действиями в интерфейсе, а присланное решение затем
-   воспроизводится другим учеником через API (серверная перепроверка моделью). */
+/* Virtualization lab (book 17): six simulators. A solution is JSON `{goal id: data}` built by the interface itself;
+   these exercises have no reference in the data, so they are solved by actions in the interface, and the submitted solution is then
+   replayed by another student through the API (server-side re-check by the model). */
 
 test.use({ viewport: { width: 1400, height: 1500 } });
 
-/** Симулятор → глава и id упражнения. */
+/** Simulator -> chapter and exercise id. */
 const SIM = {
   hv: [2, "virt-sim-hv"],
   ept: [4, "virt-sim-ept"],
@@ -19,7 +19,7 @@ const SIM = {
 } as const;
 type Sim = keyof typeof SIM;
 
-// --- помощники --------------------------------------------------------------------------------------------
+// --- helpers --------------------------------------------------------------------------------------------
 
 const goalItems = (page: Page) => page.locator(".vl-goals li");
 const tabs = (page: Page) => page.locator(".vl-tab");
@@ -31,14 +31,14 @@ async function open(page: Page, request: Parameters<typeof openTask>[1], sim: Si
   await expect(page.locator(".vl")).toBeVisible();
 }
 
-/** Решение, которое интерфейс отправит на сервер (перехватывается запрос, ответ сервера не подменяется). */
+/** The solution the interface will send to the server (the request is intercepted, the server response is not replaced). */
 function solutionRequest(page: Page, sim: Sim) {
   const [, id] = SIM[sim];
   return page.waitForRequest((r) => r.url().endsWith(`/${id}/solved`) && r.method() === "PUT");
 }
 const solutionOf = (r: { postData(): string | null }) => (JSON.parse(r.postData() ?? "{}") as { solution: string }).solution;
 
-/** Все цели упражнения выполнены в интерфейсе и записаны на сервере. */
+/** All exercise goals are met in the interface and recorded on the server. */
 async function expectSolved(page: Page, request: Parameters<typeof openTask>[1], token: string, sim: Sim) {
   const [chapter, id] = SIM[sim];
   const task = labTask("virt", chapter, id);
@@ -49,8 +49,8 @@ async function expectSolved(page: Page, request: Parameters<typeof openTask>[1],
 }
 
 /**
- * Решение, присланное интерфейсом, принимает сервер и у другого ученика: после этого страница открывается решённой.
- * Затем решение портится `spoil` — сервер обязан отказать с причиной, содержащей `reason`.
+ * The solution submitted by the interface is also accepted by the server for another student: after that the page opens as solved.
+ * Then the solution is corrupted by `spoil`; the server must refuse with a reason containing `reason`.
  */
 async function replayForAnotherUser(page: Page, request: Parameters<typeof openTask>[1], sim: Sim, solution: string, spoil: (s: Record<string, unknown>) => void, reason: RegExp) {
   const [chapter, id] = SIM[sim];
@@ -58,7 +58,7 @@ async function replayForAnotherUser(page: Page, request: Parameters<typeof openT
   const bad = JSON.parse(solution) as Record<string, unknown>;
   spoil(bad);
   const refused = await putSolved(request, other.token, "virt", chapter, id, JSON.stringify(bad));
-  expect(refused.status, `испорченное решение ${sim}`).toBe(422);
+  expect(refused.status, `corrupted solution ${sim}`).toBe(422);
   expect(refused.detail).toMatch(reason);
   expect(await statusOf(request, other.token, "virt", chapter, id)).toBeUndefined();
 
@@ -67,17 +67,17 @@ async function replayForAnotherUser(page: Page, request: Parameters<typeof openT
   await page.goto("about:blank");
   await openTask(page, request, "virt", chapter, id);
   await expect(badge(page)).toHaveText("выполнено");
-  // решённое упражнение показывает все цели достигнутыми
+  // a solved exercise shows all goals as met
   const marks = page.locator(".vl-goals li.ok, .vl-tab.ok");
   expect(await marks.count()).toBeGreaterThan(0);
   await expect(page.locator(".vl-goals li:not(.ok), .vl-tab:not(.ok)")).toHaveCount(0);
 }
 
-// --- 0. исходное состояние -----------------------------------------------------------------------------------
+// --- 0. initial state -----------------------------------------------------------------------------------
 
-test.describe("исходное состояние не засчитывается", () => {
+test.describe("the initial state is not accepted", () => {
   for (const sim of Object.keys(SIM) as Sim[]) {
-    test(`${sim}: цели не достигнуты, на сервере решения нет`, async ({ page, request, guard }) => {
+    test(`${sim}: goals are not met, no solution on the server`, async ({ page, request, guard }) => {
       const [chapter, id] = SIM[sim];
       const { token } = await loginFresh(page, request, `virt-${sim}`);
       await open(page, request, sim);
@@ -89,7 +89,7 @@ test.describe("исходное состояние не засчитываетс
       await expect(page.locator(".pr-list .pr-item.ok")).toHaveCount(0);
       await page.waitForLoadState("networkidle");
       expect(await statusOf(request, token, "virt", chapter, id)).toBeUndefined();
-      // пустое решение сервер отклоняет с причиной
+      // the server rejects an empty solution with a reason
       const empty = await putSolved(request, token, "virt", chapter, id, "{}");
       expect(empty.status).toBe(422);
       expect(empty.detail).toContain("цель не достигнута");
@@ -98,9 +98,9 @@ test.describe("исходное состояние не засчитываетс
   }
 });
 
-// --- 1. мини-гипервизор (глава 2) ----------------------------------------------------------------------------------
+// --- 1. mini hypervisor (chapter 2) ----------------------------------------------------------------------------------
 
-/** Верная имитация на ловушке: по заголовку ловушки и виртуальному флагу IF гостя. */
+/** Correct emulation for a trap: by the trap title and the guest's virtual IF flag. */
 function correctOption(title: string, vif: string): string {
   const num = (re: RegExp) => re.exec(title)?.[1] ?? "";
   if (title.startsWith("CLI")) return "виртуальный флаг vif ← 0";
@@ -110,13 +110,13 @@ function correctOption(title: string, vif: string): string {
   if (title.startsWith("HLT")) return "остановить виртуальный процессор гостя";
   if (title.startsWith("внешнее прерывание")) return vif === "1" ? "доставить гостю сейчас" : "поставить в очередь";
   if (title.startsWith("POPF")) return `vif ← ${num(/POPF (-?\d+)/)}`;
-  throw new Error(`неизвестная ловушка: ${title}`);
+  throw new Error(`unknown trap: ${title}`);
 }
 
-/** Значение строки таблицы «гость видит». */
+/** Value of a row in the "guest sees" table. */
 const guestCell = (page: Page, name: string) => page.locator(".vl-stat tr", { has: page.locator("td", { hasText: name }) }).locator("td").nth(1);
 
-/** Проходит текущую программу верными вариантами до сообщения «Программа выполнена». */
+/** Runs the current program with correct options until the "Программа выполнена" message. */
 async function runHvProgram(page: Page) {
   const done = page.locator(".vl-yes", { hasText: "Программа выполнена верно" });
   for (let i = 0; i < 40 && !(await done.isVisible()); i++) {
@@ -132,14 +132,14 @@ async function runHvProgram(page: Page) {
   await expect(done).toBeVisible();
 }
 
-test.describe("hv: мини-гипервизор", () => {
-  test("три программы проходятся верными имитациями; решение с записью действий принимает сервер", async ({ page, request, guard }) => {
+test.describe("hv: mini hypervisor", () => {
+  test("three programs pass with correct emulations; the server accepts the solution with its action log", async ({ page, request, guard }) => {
     const [chapter, id] = SIM.hv;
     const { token } = await loginFresh(page, request, "virt-hv");
     await open(page, request, "hv");
     const sent = solutionRequest(page, "hv");
 
-    // программа 1: «Шаг» недоступен на ловушке, неверный вариант объясняется
+    // program 1: "Шаг" is unavailable on a trap, a wrong option is explained
     await expect(tabs(page).nth(0)).toHaveClass(/\bon\b/);
     await page.getByRole("button", { name: "Шаг", exact: true }).click(); // ADD 3
     await expect(page.locator(".vl-trap-t")).toContainText("CLI");
@@ -152,13 +152,13 @@ test.describe("hv: мини-гипервизор", () => {
     await expect(guestCell(page, "vcr3")).toHaveText("4096");
     await expect(page.locator(".vl-log li").first()).toBeVisible();
 
-    // программа 2: прерывания ждут в очереди, пока гость не разрешит
+    // program 2: interrupts wait in the queue until the guest allows them
     await tabs(page).nth(1).click();
     await runHvProgram(page);
     await expect(tabs(page).nth(1)).toHaveClass(/\bok\b/);
     await expect(guestCell(page, "доставлено")).toHaveText("1, 2");
 
-    // программа 3: без трансляции POPF «тихая» — программа не проходится; с трансляцией проходится
+    // program 3: without translation POPF is silent and the program fails; with translation it passes
     await tabs(page).nth(2).click();
     for (let i = 0; i < 20 && !(await page.locator(".vl-no", { hasText: "неверный результат" }).isVisible()); i++) {
       if (await page.locator(".vl-trap-t").isVisible()) {
@@ -176,7 +176,7 @@ test.describe("hv: мини-гипервизор", () => {
     const translate = page.getByLabel("двоичная трансляция", { exact: false });
     await translate.check();
     await runHvProgram(page);
-    // трансляцию нельзя менять после запуска
+    // translation cannot be changed after the start
     await expect(translate).toBeDisabled();
     await expect(page.locator(".vl-tab.ok")).toHaveCount(3);
 
@@ -188,7 +188,7 @@ test.describe("hv: мини-гипервизор", () => {
     expect(parsed.base!.trace.length).toBeGreaterThan(5);
     guard.assertClean();
 
-    // та же запись действий у другого ученика: принята; подделка (число ошибок, трансляция) — нет
+    // the same action log for another student: accepted; a forgery (error count, translation) is not
     await replayForAnotherUser(page, request, "hv", solution, (s) => {
       (s.base as { mistakes: number }).mistakes += 5;
     }, /число ошибок не совпадает/);
@@ -198,16 +198,16 @@ test.describe("hv: мини-гипервизор", () => {
   });
 });
 
-// --- 2. EPT / теневые таблицы (глава 4) -------------------------------------------------------------------------------
+// --- 2. EPT / shadow tables (chapter 4) -------------------------------------------------------------------------------
 
-test.describe("ept: трансляция адресов", () => {
-  test("перебор режимов и размеров страниц достигает всех целей; запуск показывает цену обхода", async ({ page, request, guard }) => {
+test.describe("ept: address translation", () => {
+  test("trying modes and page sizes reaches all goals; a run shows the walk cost", async ({ page, request, guard }) => {
     const { token } = await loginFresh(page, request, "virt-ept");
     await open(page, request, "ept");
     const sent = solutionRequest(page, "ept");
     const [mode, guest, host, workload] = [page.locator(".vl-segbtn"), page.locator(".vl-field select").nth(0), page.locator(".vl-field select").nth(1), page.locator(".vl-field select").nth(2)];
 
-    // формула и сетка обхода зависят от режима и размеров
+    // the formula and the walk grid depend on the mode and sizes
     await mode.filter({ hasText: "EPT" }).click();
     await expect(page.locator(".pr-res-time")).toHaveText("(4+1)×(4+1)−1");
     await expect(page.locator(".vl-grid2 i")).toHaveCount(25);
@@ -218,7 +218,7 @@ test.describe("ept: трансляция адресов", () => {
     await expect(page.locator(".pr-res-time")).toContainText("уровн");
     await expect(page.locator(".vl-final")).toHaveCount(0);
 
-    // «Один промах TLB» в EPT на страницах 2 МиБ — первая цель (≤ 15 обращений)
+    // "one TLB miss" in EPT on 2 MiB pages is the first goal (<= 15 accesses)
     await mode.filter({ hasText: "EPT" }).click();
     await workload.selectOption({ index: 0 });
     await page.getByRole("button", { name: "Запустить нагрузку" }).click();
@@ -227,7 +227,7 @@ test.describe("ept: трансляция адресов", () => {
     await expect(goalItems(page).first()).toHaveClass(/\bok\b/);
     await expect(goalItems(page).nth(1)).not.toHaveClass(/\bok\b/);
 
-    // остальные цели — перебором: для каждой нагрузки все режимы и размеры страниц
+    // the remaining goals by brute force: for each workload, all modes and page sizes
     const count = await workload.locator("option").count();
     for (let w = 1; w < count; w++) {
       await workload.selectOption({ index: w });
@@ -250,7 +250,7 @@ test.describe("ept: трансляция адресов", () => {
     expect(parsed.walk!.workload).toBe("one");
     guard.assertClean();
 
-    // сервер заново запускает модель: настройки, при которых цель недостижима, отклоняются
+    // the server reruns the model: settings that make the goal unreachable are rejected
     await replayForAnotherUser(page, request, "ept", solution, (s) => {
       const walk = s.walk as { mode: string; guest: string; host: string };
       walk.mode = "shadow";
@@ -260,10 +260,10 @@ test.describe("ept: трансляция адресов", () => {
   });
 });
 
-// --- 3. очередь virtio (глава 6) ------------------------------------------------------------------------------------------
+// --- 3. virtio queue (chapter 6) ------------------------------------------------------------------------------------------
 
-test.describe("virtq: очередь virtio", () => {
-  test("пачки, переполнение и подавление оповещений; запись действий воспроизводит сервер", async ({ page, request, guard }) => {
+test.describe("virtq: virtio queue", () => {
+  test("batches, overflow and notification suppression; the server replays the action log", async ({ page, request, guard }) => {
     const { token } = await loginFresh(page, request, "virt-virtq");
     await open(page, request, "virtq");
     const sent = solutionRequest(page, "virtq");
@@ -273,26 +273,26 @@ test.describe("virtq: очередь virtio", () => {
     await expect(page.locator(".pr-res-time")).toHaveText("свободно 8 из 8");
     await press("Устройство: обработать 1");
     await expect(page.locator(".vl-final")).toContainText("Устройство спит");
-    // две пачки по 3 без подавления: шесть буферов не больше чем двумя оповещениями
+    // two batches of 3 without suppression: six buffers with at most two notifications
     await press("Гость: положить пачку из 3");
     await expect(page.locator(".pr-res-time")).toHaveText("свободно 5 из 8");
     await expect(page.locator(".vl-desc i.avail")).toHaveCount(3);
     await press("Гость: положить пачку из 3");
     await expect(row("оповещений")).toHaveText(/^[12]$/);
     await expect(goalItems(page).nth(0)).toHaveClass(/\bok\b/);
-    // третья пачка не помещается: переполнение
+    // the third batch does not fit: overflow
     await expect(goalItems(page).nth(1)).not.toHaveClass(/\bok\b/);
     await press("Гость: положить пачку из 3");
     await expect(page.locator(".vl-final")).toContainText("очередь переполнена");
     await expect(goalItems(page).nth(1)).toHaveClass(/\bok\b/);
 
-    // обработка устройством и сбор готовых освобождают дескрипторы
+    // device processing and collecting completed buffers free the descriptors
     await press("Устройство: обработать 1");
     await expect(page.locator(".vl-desc i.used")).toHaveCount(1);
     await press("Гость: забрать готовые");
     await expect(page.locator(".vl-desc i.used")).toHaveCount(0);
 
-    // сброс, подавление и десять буферов двумя оповещениями
+    // reset, suppression and ten buffers with two notifications
     await press("Сбросить");
     await expect(page.locator(".pr-res-time")).toHaveText("свободно 8 из 8");
     const suppress = page.getByLabel("подавление оповещений", { exact: false });
@@ -319,10 +319,10 @@ test.describe("virtq: очередь virtio", () => {
   });
 });
 
-// --- 4. слои qcow2 (глава 9) ---------------------------------------------------------------------------------------------------
+// --- 4. qcow2 layers (chapter 9) ---------------------------------------------------------------------------------------------------
 
-test.describe("qcow2: слои образа", () => {
-  test("снимки, глубокое чтение, слияние и откат; запись действий воспроизводит сервер", async ({ page, request, guard }) => {
+test.describe("qcow2: image layers", () => {
+  test("snapshots, deep read, merge and rollback; the server replays the action log", async ({ page, request, guard }) => {
     const { token } = await loginFresh(page, request, "virt-qcow2");
     await open(page, request, "qcow2");
     const sent = solutionRequest(page, "qcow2");
@@ -335,7 +335,7 @@ test.describe("qcow2: слои образа", () => {
     await press("Откатить верхний слой");
     await expect(page.locator(".vl-final")).toContainText("Откат невозможен");
 
-    // три снимка → цепочка из четырёх слоёв; чтение кластера из базы проходит все слои
+    // three snapshots -> a chain of four layers; reading a cluster from the base walks all layers
     for (let i = 0; i < 3; i++) await press("Снимок");
     await expect(page.locator(".pr-res-time")).toHaveText("4 сл.");
     await expect(layers).toHaveCount(4);
@@ -344,7 +344,7 @@ test.describe("qcow2: слои образа", () => {
     await expect(page.locator(".vl-final")).toContainText("обращений к таблицам: 4");
     await expect(goalItems(page).nth(0)).toHaveClass(/\bok\b/);
 
-    // слияние дважды: цепочка сокращается до двух слоёв
+    // merge twice: the chain shrinks to two layers
     await press("Слить верхний слой");
     await expect(layers).toHaveCount(3);
     await expect(goalItems(page).nth(1)).not.toHaveClass(/\bok\b/);
@@ -352,7 +352,7 @@ test.describe("qcow2: слои образа", () => {
     await expect(layers).toHaveCount(2);
     await expect(goalItems(page).nth(1)).toHaveClass(/\bok\b/);
 
-    // откат: запись в верхний слой, откат слоя, чтение — старые данные вернулись
+    // rollback: write to the top layer, roll the layer back, read; the old data is back
     await page.locator(".vl-field select").selectOption("F");
     await press("Записать");
     await expect(page.locator(".vl-final")).toContainText("копирование при записи");
@@ -375,10 +375,10 @@ test.describe("qcow2: слои образа", () => {
   });
 });
 
-// --- 5. живая миграция (глава 10) ------------------------------------------------------------------------------------------------
+// --- 5. live migration (chapter 10) ------------------------------------------------------------------------------------------------
 
-test.describe("migration: живая миграция", () => {
-  /** Запускает миграцию с параметрами и ждёт вердикта по цели сценария. */
+test.describe("migration: live migration", () => {
+  /** Starts a migration with the parameters and waits for the verdict on the scenario goal. */
   async function migrate(page: Page, opts: { downtime: number; autoConverge?: boolean; hybridAfter?: number }) {
     await page.locator("input[type=range]").fill(String(opts.downtime));
     const checks = page.locator(".vl-check input[type=checkbox]");
@@ -389,12 +389,12 @@ test.describe("migration: живая миграция", () => {
   }
   const verdict = (page: Page) => page.locator(".vl-final, .vl-card").getByText(/Цель сценария/);
 
-  test("три сценария: параметры подбираются, достижение цели проверяет сервер", async ({ page, request, guard }) => {
+  test("three scenarios: parameters are tuned, the server checks that the goal is reached", async ({ page, request, guard }) => {
     const { token } = await loginFresh(page, request, "virt-migration");
     await open(page, request, "migration");
     const sent = solutionRequest(page, "migration");
 
-    // спокойный гость: параметры по умолчанию (простой 300 мс) цели не достигают, с 80 мс — достигают
+    // calm guest: the default parameters (300 ms downtime) miss the goal, 80 ms reaches it
     await migrate(page, { downtime: 300 });
     await expect(page.locator(".vl-rounds li").first()).toBeVisible();
     await expect(verdict(page)).toContainText("не достигнута");
@@ -404,14 +404,14 @@ test.describe("migration: живая миграция", () => {
     await expect(verdict(page)).not.toContainText("не достигнута");
     await expect(tabs(page).nth(0)).toHaveClass(/\bok\b/);
 
-    // активный гость: нужно притормозить vCPU (auto-converge)
+    // active guest: the vCPU must be throttled (auto-converge)
     await tabs(page).nth(1).click();
     await migrate(page, { downtime: 300 });
     await expect(verdict(page)).toContainText("не достигнута");
     await migrate(page, { downtime: 300, autoConverge: true });
     await expect(tabs(page).nth(1)).toHaveClass(/\bok\b/);
 
-    // очень активный: гибрид с переходом на post-copy
+    // very active guest: hybrid with a switch to post-copy
     await tabs(page).nth(2).click();
     await migrate(page, { downtime: 80, hybridAfter: 1 });
     await expect(page.locator(".vl-tab.ok")).toHaveCount(3);
@@ -429,24 +429,24 @@ test.describe("migration: живая миграция", () => {
   });
 });
 
-// --- 6. размещение по узлам NUMA (глава 11) ------------------------------------------------------------------------------------------
+// --- 6. placement on NUMA nodes (chapter 11) ------------------------------------------------------------------------------------------
 
-test.describe("numa: размещение машин", () => {
+test.describe("numa: machine placement", () => {
   const rows = (page: Page) => page.locator(".vl-vms tbody tr");
   const place = (row: Locator, what: "cpu" | "mem", node: string) => row.locator("select").nth(what === "cpu" ? 0 : 1).selectOption(node);
 
-  test("размещение принимается только при выполнении цели; сервер оценивает его заново", async ({ page, request, guard }) => {
+  test("a placement is accepted only when the goal is met; the server evaluates it again", async ({ page, request, guard }) => {
     const { token } = await loginFresh(page, request, "virt-numa");
     await open(page, request, "numa");
     const sent = solutionRequest(page, "numa");
     const accept = () => page.getByRole("button", { name: "Принять размещение" }).click();
 
-    // сценарий 1: по умолчанию машины не размещены как надо — «Принять» отклоняется с причиной
+    // scenario 1: by default the machines are not placed correctly; "Принять" is rejected with a reason
     await expect(rows(page)).toHaveCount(4);
     await accept();
     await expect(page.locator(".vl-no")).not.toHaveText("");
     await expect(tabs(page).nth(0)).not.toHaveClass(/\bok\b/);
-    // A и B — на узел 0, C и D — на узел 1 (и процессоры, и память)
+    // A and B go to node 0, C and D to node 1 (both CPUs and memory)
     for (const [i, node] of [[0, "0"], [1, "0"], [2, "1"], [3, "1"]] as const) {
       await place(rows(page).nth(i), "cpu", node);
       await place(rows(page).nth(i), "mem", node);
@@ -456,7 +456,7 @@ test.describe("numa: размещение машин", () => {
     await expect(page.locator(".vl-yes")).toContainText("Принято");
     await expect(tabs(page).nth(0)).toHaveClass(/\bok\b/);
 
-    // сценарий 2: большая машина растянута, нужна виртуальная NUMA (без неё доля удалённых больше 20%)
+    // scenario 2: the large machine is stretched and needs virtual NUMA (without it the remote share is above 20%)
     await tabs(page).nth(1).click();
     await expect(rows(page)).toHaveCount(3);
     await place(rows(page).nth(0), "cpu", "wide");
@@ -480,13 +480,13 @@ test.describe("numa: размещение машин", () => {
     expect(parsed.wide!.E!.vnuma).toBe(true);
     guard.assertClean();
 
-    // без виртуальной NUMA размещение второго сценария сервер не принимает
+    // without virtual NUMA the server does not accept the placement of the second scenario
     await replayForAnotherUser(page, request, "numa", solution, (s) => {
       for (const p of Object.values(s.wide as Record<string, { vnuma: boolean }>)) p.vnuma = false;
     }, /wide.*удалённых/);
   });
 
-  test("размещение, не помещающееся в узлы, отклоняется с объяснением", async ({ page, request, guard }) => {
+  test("a placement that does not fit the nodes is rejected with an explanation", async ({ page, request, guard }) => {
     await loginFresh(page, request, "virt-numa");
     await open(page, request, "numa");
     for (let i = 0; i < 4; i++) {
@@ -500,9 +500,9 @@ test.describe("numa: размещение машин", () => {
   });
 });
 
-// --- интерфейс отказа сервера ------------------------------------------------------------------------------------------------------
+// --- server refusal interface ------------------------------------------------------------------------------------------------------
 
-test("интерфейс показывает причину отказа сервера, если решение подменили", async ({ page, request, guard }) => {
+test("the interface shows the server's refusal reason when the solution was tampered with", async ({ page, request, guard }) => {
   const [chapter, id] = SIM.qcow2;
   const { token } = await loginFresh(page, request, "virt-qcow2");
   await page.route(`**/api/exercises/17/${chapter}/${id}/solved`, (route) => route.continue({ postData: JSON.stringify({ solution: JSON.stringify({ deep: { trace: [] } }) }) }));

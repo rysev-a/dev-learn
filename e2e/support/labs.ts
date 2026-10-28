@@ -4,15 +4,15 @@ import { fileURLToPath } from "node:url";
 import { expect, type APIRequestContext, type Page } from "@playwright/test";
 import { bearer, chapterId } from "./fixtures";
 
-/* Помощники e2e для лабораторий (книги 15, 17, 18): эталоны читаются из файлов данных бэкенда, а не дублируются в тестах;
-   упражнение открывается по номеру главы и id, состояние проверяется и по интерфейсу, и по API. */
+/* e2e helpers for the labs (books 15, 17, 18): reference solutions are read from the backend data files, not duplicated in tests;
+   an exercise is opened by chapter number and id, state is checked both through the UI and the API. */
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const DATA = path.join(root, "backend", "data", "labs");
 
 export type LabKind = "sd" | "net" | "virt" | "web";
 
-/** Книга курса для каждого вида лаборатории. */
+/** Course book for each lab kind. */
 export const BOOK: Record<LabKind, number> = { sd: 18, net: 15, virt: 17, web: 11 };
 
 export interface LabTaskData {
@@ -20,7 +20,7 @@ export interface LabTaskData {
   title: string;
   statement: string;
   hint: string;
-  /** сценарий упражнения вместе с эталоном (`solution`) */
+  /** exercise scenario together with the reference (`solution`) */
   spec: Record<string, unknown>;
 }
 
@@ -33,7 +33,7 @@ interface LabFile {
 
 const cache = new Map<string, LabFile>();
 
-/** Файл данных главы: `backend/data/labs/<вид>/<книга>-<глава:02>.json`. */
+/** Chapter data file: `backend/data/labs/<kind>/<book>-<chapter:02>.json`. */
 export function labFile(kind: LabKind, chapter: number): LabFile {
   const name = `${BOOK[kind]}-${String(chapter).padStart(2, "0")}.json`;
   const file = path.join(DATA, kind, name);
@@ -45,7 +45,7 @@ export function labFile(kind: LabKind, chapter: number): LabFile {
   return found;
 }
 
-/** Номера глав, для которых есть файлы данных, по возрастанию. */
+/** Chapter numbers that have data files, ascending. */
 export function labChapters(kind: LabKind): number[] {
   return fs
     .readdirSync(path.join(DATA, kind))
@@ -54,33 +54,33 @@ export function labChapters(kind: LabKind): number[] {
     .sort((a, b) => a - b);
 }
 
-/** Упражнение по номеру главы и id. */
+/** Exercise by chapter number and id. */
 export function labTask(kind: LabKind, chapter: number, id: string): LabTaskData {
   const t = labFile(kind, chapter).tasks.find((x) => x.id === id);
-  if (!t) throw new Error(`нет упражнения ${kind} ${chapter}:${id}`);
+  if (!t) throw new Error(`no exercise ${kind} ${chapter}:${id}`);
   return t;
 }
 
-/** Все упражнения главы в порядке курса. */
+/** All chapter exercises in course order. */
 export function labTasks(kind: LabKind, chapter: number): LabTaskData[] {
   return labFile(kind, chapter).tasks;
 }
 
-/** Эталон упражнения как JSON-объект (`spec.solution`); для лабораторий без эталона в данных — ошибка. */
+/** Exercise reference as a JSON object (`spec.solution`); an error for labs without a reference in the data. */
 export function reference(task: LabTaskData): unknown {
-  if (task.spec.solution === undefined) throw new Error(`у ${task.id} нет эталона в данных`);
+  if (task.spec.solution === undefined) throw new Error(`${task.id} has no reference in the data`);
   return task.spec.solution;
 }
 
 const url = (book: number, chapter: number, task: string, tail = "") => `/api/exercises/${book}/${chapter}/${task}${tail}`;
 
-/** Черновик упражнения через API — так его сохраняет сам интерфейс. */
+/** Exercise draft through the API — the way the UI itself saves it. */
 export async function putDraft(request: APIRequestContext, token: string, kind: LabKind, chapter: number, id: string, code: string): Promise<void> {
   const res = await request.put(url(BOOK[kind], chapter, id, "/draft"), { headers: bearer(token), data: { code } });
-  expect(res.status(), `черновик ${id}`).toBe(204);
+  expect(res.status(), `draft ${id}`).toBe(204);
 }
 
-/** Решение на проверку сервером (ответ целиком: статус и тело). */
+/** Solution submitted for server verification (the whole response: status and body). */
 export async function putSolved(request: APIRequestContext, token: string, kind: LabKind, chapter: number, id: string, solution: string) {
   const res = await request.put(url(BOOK[kind], chapter, id, "/solved"), { headers: bearer(token), data: { solution } });
   const text = await res.text();
@@ -88,7 +88,7 @@ export async function putSolved(request: APIRequestContext, token: string, kind:
   try {
     detail = (JSON.parse(text) as { detail?: string }).detail ?? "";
   } catch {
-    /* тело пустое (204) */
+    /* empty body (204) */
   }
   return { status: res.status(), detail };
 }
@@ -100,34 +100,34 @@ export interface ChapterState {
 
 export async function chapterState(request: APIRequestContext, token: string, kind: LabKind, chapter: number): Promise<ChapterState> {
   const res = await request.get(`/api/exercises/${BOOK[kind]}/${chapter}/state`, { headers: bearer(token) });
-  expect(res.ok(), "состояние главы").toBeTruthy();
+  expect(res.ok(), "chapter state").toBeTruthy();
   return (await res.json()) as ChapterState;
 }
 
-/** Ждёт, пока сервер запишет упражнению статус `ok` (интерфейс отправляет решение сам и не сразу). */
+/** Waits until the server records status `ok` for the exercise (the UI submits the solution itself, and not immediately). */
 export async function expectStatusOk(request: APIRequestContext, token: string, kind: LabKind, chapter: number, id: string): Promise<void> {
-  await expect.poll(async () => (await chapterState(request, token, kind, chapter)).status[id], { message: `статус ${id} на сервере`, timeout: 15_000 }).toBe("ok");
+  await expect.poll(async () => (await chapterState(request, token, kind, chapter)).status[id], { message: `status ${id} on the server`, timeout: 15_000 }).toBe("ok");
 }
 
-/** Статус упражнения на сервере прямо сейчас (`undefined` — решения нет). */
+/** Exercise status on the server right now (`undefined` — no solution). */
 export async function statusOf(request: APIRequestContext, token: string, kind: LabKind, chapter: number, id: string): Promise<string | undefined> {
   return (await chapterState(request, token, kind, chapter)).status[id];
 }
 
-/** Открывает практику главы на нужном упражнении; ждёт, пока на странице появится само упражнение. */
+/** Opens the chapter practice on the needed exercise; waits for the exercise itself to appear on the page. */
 export async function openTask(page: Page, request: APIRequestContext, kind: LabKind, chapter: number, id: string): Promise<void> {
   const cid = await chapterId(request, BOOK[kind], chapter);
   await page.goto(`/book/${BOOK[kind]}/chapter/${cid}/exercises?task=${id}`);
   await expect(page.locator(".pr-main .pr-head h3")).toContainText(labTask(kind, chapter, id).title);
 }
 
-/** Строка упражнения в полосе списка. */
+/** Exercise row in the list strip. */
 export const listItem = (page: Page, title: string) => page.locator(".pr-list .pr-item", { hasText: title });
 
-/** Подпись «Решено N из M» над списком упражнений. */
+/** The "Solved N of M" caption above the exercise list. */
 export const progressLabel = (page: Page) => page.locator(".pr-top .pr-top-label").first();
 
-/** Глубокая копия JSON-значения. */
+/** Deep copy of a JSON value. */
 export function clone<T>(v: T): T {
   return JSON.parse(JSON.stringify(v)) as T;
 }

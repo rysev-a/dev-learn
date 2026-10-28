@@ -5,8 +5,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { bearer, chapterId } from "./fixtures";
 
-/* Приспособления для тестов модулей обучения: чтение содержимого курса из SQL-файлов (верные ответы квизов и задач),
-   адреса вкладок, прямые вызовы API, воркер проверки кода (подставной и настоящий). */
+/* Helpers for the learning-module tests: reading course content from SQL files (correct quiz and task answers),
+   tab URLs, direct API calls, the code-check worker (fake and real). */
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 export const ROOT = path.resolve(here, "..", "..");
@@ -14,11 +14,11 @@ const SQL = path.join(ROOT, "backend", "data", "sql");
 export const PORT = Number(process.env.E2E_PORT ?? 8099);
 export const WORKER_TOKEN = "e2e";
 
-// --- чтение SQL-файлов курса --------------------------------------------------------------------
+// --- reading course SQL files --------------------------------------------------------------------
 
 type Cell = string | number | null;
 
-/** Строки всех `INSERT INTO <table> (…) VALUES (…)` файла: строки SQL ('' — кавычка), числа, NULL. */
+/** Rows of all `INSERT INTO <table> (…) VALUES (…)` statements of a file: SQL strings ('' is a quote), numbers, NULL. */
 export function parseInserts(file: string, table: string): Cell[][] {
   const text = fs.readFileSync(file, "utf8");
   const head = `INSERT INTO ${table} (`;
@@ -36,7 +36,7 @@ export function parseInserts(file: string, table: string): Cell[][] {
         i++;
         for (;;) {
           const c = text[i++];
-          if (c === undefined) throw new Error(`обрыв строки в ${file}`);
+          if (c === undefined) throw new Error(`unterminated string in ${file}`);
           if (c === "'") {
             if (text[i] === "'") {
               s += "'";
@@ -69,14 +69,14 @@ export function parseInserts(file: string, table: string): Cell[][] {
 function bookFile(dir: string, book: number): string {
   const prefix = `${String(book).padStart(2, "0")}-`;
   const name = fs.readdirSync(path.join(SQL, dir)).find((f) => f.startsWith(prefix));
-  if (!name) throw new Error(`нет SQL-файла книги ${book} в ${dir}`);
+  if (!name) throw new Error(`no SQL file for book ${book} in ${dir}`);
   return path.join(SQL, dir, name);
 }
 
 export interface QuizQuestion {
   q: string;
   options: string[];
-  /** индекс верного варианта */
+  /** index of the correct option */
   answer: number;
   expl: string;
 }
@@ -90,7 +90,7 @@ export function quizQuestions(book: number, chapter: number): QuizQuestion[] {
 
 export interface AnswerTask {
   q: string;
-  /** принимаемые ответы */
+  /** accepted answers */
   answers: string[];
   hint: string;
 }
@@ -104,7 +104,7 @@ export function answerTasks(book: number, chapter: number): AnswerTask[] {
 
 export function answerTitle(book: number, chapter: number): string {
   const row = parseInserts(bookFile("answers", book), "answer_sets").find((r) => r[0] === book && r[1] === chapter);
-  if (!row) throw new Error(`нет набора ответов ${book}:${chapter}`);
+  if (!row) throw new Error(`no answer set ${book}:${chapter}`);
   return String(row[2]);
 }
 
@@ -124,17 +124,17 @@ export function codeTasks(book: number, chapter: number): CodeTask[] {
     .map((r) => ({ id: String(r[2]), mode: String(r[4]), title: String(r[5]), statement: String(r[6]), starter: String(r[7] ?? ""), hint: String(r[8] ?? "") }));
 }
 
-// --- адреса и API -------------------------------------------------------------------------------
+// --- URLs and API -------------------------------------------------------------------------------
 
 export type Tab = "" | "questions" | "exercises";
 
-/** Адрес вкладки главы (в пути — внутренний id главы, не номер). */
+/** Chapter tab URL (the path carries the internal chapter id, not the number). */
 export async function chapterPath(request: APIRequestContext, book: number, num: number, tab: Tab = ""): Promise<string> {
   const id = await chapterId(request, book, num);
   return `/book/${book}/chapter/${id}${tab ? `/${tab}` : ""}`;
 }
 
-/** Прогресс пользователя прямо с сервера. */
+/** User progress straight from the server. */
 export async function progressOf(request: APIRequestContext, token: string): Promise<{
   quiz: Record<string, (number | null)[]>;
   quizRight: Record<string, number>;
@@ -146,21 +146,21 @@ export async function progressOf(request: APIRequestContext, token: string): Pro
   return res.json();
 }
 
-/** Ответить на вопрос квиза прямо через API (подготовка состояния). */
+/** Answer a quiz question directly through the API (state setup). */
 export async function answerQuiz(request: APIRequestContext, token: string, book: number, num: number, question: number, pick: number) {
   const res = await request.post(`/api/quizzes/${book}/${num}/answer`, { headers: bearer(token), data: { question, pick } });
-  expect(res.ok(), `ответ на вопрос ${question}: ${res.status()}`).toBeTruthy();
+  expect(res.ok(), `answer to question ${question}: ${res.status()}`).toBeTruthy();
   return (await res.json()) as { pick: number; answer: number; expl: string; right: number };
 }
 
-/** Поле ввода и значение для `fill`, не зависящие от регистра пробелов: ввод ответа — как набрал бы ученик. */
+/** Input field and value for `fill`, independent of whitespace case: answer entry as a student would type it. */
 export const firstAnswer = (t: AnswerTask): string => t.answers[0] ?? "";
 
-// --- охрана консоли ----------------------------------------------------------------------------
+// --- console guard ----------------------------------------------------------------------------
 
 /**
- * Как `guard` из fixtures, но 404 на `GET /api/exercises/<книга>/<глава>` не считается ошибкой: так приложение узнаёт, что у главы нет
- * код-задач (например, у упражнений с вводом ответа), а браузер пишет такой ответ в консоль; а также ожидаемые отказы `POST /api/exercises/run`.
+ * Like `guard` from fixtures, but a 404 on `GET /api/exercises/<book>/<chapter>` is not an error: this is how the app learns that a chapter has no
+ * code tasks (e.g. answer-entry exercises), and the browser logs such a response to the console; expected `POST /api/exercises/run` rejections are ignored too.
  */
 export function learningGuard(page: Page) {
   const errors: string[] = [];
@@ -168,22 +168,22 @@ export function learningGuard(page: Page) {
   page.on("console", (m) => {
     if (m.type() !== "error" || /Blocked script execution in 'about:srcdoc'/.test(m.text())) return;
     if (/Failed to load resource.*404/.test(m.text()) && /\/api\/exercises\/\d+\/\d+$/.test(m.location().url)) return;
-    // ожидаемые отказы постановки проверки (нет воркера, пустой код, уже идёт проверка): интерфейс показывает их текстом
+    // expected rejections when queuing a check (no worker, empty code, a check already running): the UI shows them as text
     if (/Failed to load resource.*(422|429|503)/.test(m.text()) && m.location().url.endsWith("/api/exercises/run")) return;
     if (/ResizeObserver loop/.test(m.text())) return;
     errors.push(`console.error: ${m.text().slice(0, 300)}`);
   });
-  return { errors, assertClean: () => expect(errors, "ошибки в консоли браузера").toEqual([]) };
+  return { errors, assertClean: () => expect(errors, "browser console errors").toEqual([]) };
 }
 
-// --- настройки в localStorage -------------------------------------------------------------------
+// --- localStorage settings -------------------------------------------------------------------
 
-/** Записать настройку в localStorage до загрузки приложения. */
+/** Write a setting to localStorage before the app loads. */
 export async function presetSetting(page: Page, key: string, value: string) {
   await page.addInitScript(([k, v]) => { if (window === window.top) window.localStorage.setItem(k as string, v as string); }, [key, value]);
 }
 
-// --- воркер проверки кода -----------------------------------------------------------------------
+// --- code-check worker -----------------------------------------------------------------------
 
 export interface Job {
   id: string;
@@ -200,8 +200,8 @@ export interface WorkerResult {
 }
 
 /**
- * Подставной воркер: говорит с `/internal/worker/*` с токеном e2e, но задания не выполняет — результат задаёт тест.
- * Так очередь, состояния «в очереди»/«выполняется» и показ результатов проверяются без Docker и детерминированно.
+ * Fake worker: talks to `/internal/worker/*` with the e2e token but does not execute tasks — the test sets the result.
+ * This way the queue, the "queued"/"running" states and result display are checked without Docker and deterministically.
  */
 export class FakeWorker {
   constructor(
@@ -213,13 +213,13 @@ export class FakeWorker {
     return { Authorization: `Bearer ${WORKER_TOKEN}` };
   }
 
-  /** Сердцебиение: сервер считает проверку доступной ближайшие 30 секунд. */
+  /** Heartbeat: the server treats checking as available for the next 30 seconds. */
   async ping(lanes: string[] = ["light"]): Promise<void> {
     const res = await this.request.post("/internal/worker/ping", { headers: this.headers(), data: { name: this.name, lanes, slots: 1, jobs: [] } });
-    expect(res.status(), "ping воркера").toBe(204);
+    expect(res.status(), "worker ping").toBe(204);
   }
 
-  /** Забрать задание (долгий опрос до `waitSec` секунд); `null` — заданий не было. */
+  /** Claim a job (long poll up to `waitSec` seconds); `null` — there were no jobs. */
   async claim(waitSec = 15, lanes: string[] = ["light"]): Promise<Job | null> {
     const res = await this.request.post("/internal/worker/claim", {
       headers: this.headers(),
@@ -227,36 +227,36 @@ export class FakeWorker {
       timeout: (waitSec + 15) * 1000,
     });
     if (res.status() === 204) return null;
-    expect(res.status(), "claim воркера").toBe(200);
+    expect(res.status(), "worker claim").toBe(200);
     return (await res.json()) as Job;
   }
 
-  /** Вернуть результат задания. */
+  /** Return a job result. */
   async complete(job: Job, result: WorkerResult): Promise<void> {
     const res = await this.request.post(`/internal/worker/jobs/${job.id}/result`, { headers: this.headers(), data: { name: this.name, result } });
-    expect(res.status(), "результат воркера").toBe(204);
+    expect(res.status(), "worker result").toBe(204);
   }
 }
 
-/** Все тесты верны: результат подставного воркера «решено». */
+/** All tests pass: the fake worker's result is "solved". */
 export const passing = (stdout = ""): WorkerResult => ({ status: "ok", results: [{ ok: true, got: stdout, expected: stdout }], stdout });
 
-/** Один тест не пройден: «ожидалось»/«получено». */
+/** One test fails: expected/got. */
 export const failing = (expected: string, got: string): WorkerResult => ({ status: "ok", results: [{ ok: false, expected, got }], stdout: got });
 
-/** Ждёт, пока сервер перестанет считать воркеров живыми (сердцебиение старше 30 с). */
+/** Waits until the server stops counting workers as alive (heartbeat older than 30 s). */
 export async function waitNoWorkers(request: APIRequestContext, timeoutMs = 45_000): Promise<void> {
   await expect
     .poll(async () => ((await (await request.get("/api/exercises/runner/status")).json()) as { available: boolean }).available, { timeout: timeoutMs, intervals: [500, 1000, 2000] })
     .toBe(false);
 }
 
-/** Уникальный комментарий: решение не попадёт в кэш результатов (ключ — хеш задачи и кода). */
+/** A unique comment: the solution will not hit the result cache (the key is a hash of the task and code). */
 export const unique = () => `# e2e ${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
 
-// --- настоящая проверка в песочнице -------------------------------------------------------------
+// --- real checking in the sandbox -------------------------------------------------------------
 
-/** Настоящий воркер включается явно (`E2E_WORKER=1`) и только при живом Docker с образом песочницы. */
+/** The real worker is enabled explicitly (`E2E_WORKER=1`) and only with a live Docker that has the sandbox image. */
 export const realWorkerRequested = process.env.E2E_WORKER === "1";
 
 export function dockerReady(image = "python:3.13-slim"): boolean {
@@ -268,7 +268,7 @@ export interface RealWorker {
   stop: () => Promise<void>;
 }
 
-/** Запускает `worker/worker.py` как дочерний процесс и ждёт, пока сервер увидит воркера. */
+/** Starts `worker/worker.py` as a child process and waits until the server sees the worker. */
 export async function startRealWorker(request: APIRequestContext): Promise<RealWorker> {
   const child: ChildProcess = spawn("uv", ["run", "worker.py", "--server", `http://127.0.0.1:${PORT}`, "--name", "e2e", "--light", "2", "--heavy", "1"], {
     cwd: path.join(ROOT, "worker"),
@@ -284,9 +284,9 @@ export async function startRealWorker(request: APIRequestContext): Promise<RealW
     stop: async () => {
       if (child.pid && child.exitCode === null) {
         try {
-          process.kill(-child.pid, "SIGTERM"); // вся группа: uv и python
+          process.kill(-child.pid, "SIGTERM"); // the whole group: uv and python
         } catch {
-          /* уже завершён */
+          /* already finished */
         }
       }
       await Promise.race([exited, new Promise<void>((r) => setTimeout(r, 20_000))]);

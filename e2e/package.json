@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "E2E-тесты курса на Playwright (TypeScript): Leptos-фронт + backend, проверка по одной главе одной книги",
+  "description": "Playwright (TypeScript) e2e tests for the course: Leptos frontend + backend, one chapter of one book at a time",
   "scripts": {
     "build:app": "cd ../frontend/app && trunk build --dist ../../e2e/.dist",
     "build:backend": "cd ../backend && cargo build $CARGO_FLAGS",

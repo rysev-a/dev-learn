@@ -4,13 +4,13 @@ import { fileURLToPath } from "node:url";
 import { bearer, chapters, expect, loginFresh, test, type ChapterRef } from "./fixtures";
 import type { APIRequestContext, Page } from "@playwright/test";
 
-/* Обход глав книги: по одной главе — один test. Список глав берётся статически из файлов слайдов `backend/data/slides`,
-   id главы и её данные (слайды, число вопросов и упражнений) — из API при выполнении. */
+/* Book chapter walk: one chapter — one test. The chapter list is taken statically from the slide files in `backend/data/slides`,
+   the chapter id and its data (slides, number of questions and exercises) come from the API at run time. */
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 const data = path.join(root, "backend", "data");
 
-/** Номера глав книги, у которых есть файл слайдов `<книга:02>-<глава:02>.json`. */
+/** Numbers of the book's chapters that have a slide file `<book:02>-<chapter:02>.json`. */
 export function slideChapters(book: number): number[] {
   const prefix = `${String(book).padStart(2, "0")}-`;
   return fs
@@ -20,7 +20,7 @@ export function slideChapters(book: number): number[] {
     .sort((a, b) => a - b);
 }
 
-/** Книги из `sql/books.sql`: id → короткое имя и название. */
+/** Books from `sql/books.sql`: id → short name and title. */
 export function bookMeta(): Map<number, { slug: string; title: string }> {
   const sql = fs.readFileSync(path.join(data, "sql", "books.sql"), "utf8");
   const out = new Map<number, { slug: string; title: string }>();
@@ -28,7 +28,7 @@ export function bookMeta(): Map<number, { slug: string; title: string }> {
   return out;
 }
 
-/** Названия глав из учебников (`#CHAPTER N | Название`): для имён тестов, пока API ещё недоступен. */
+/** Chapter titles from the textbooks (`#CHAPTER N | Title`): for test names while the API is not yet available. */
 function textbookTitles(book: number): Map<number, string> {
   const out = new Map<number, string>();
   const base = path.join(data, "textbook");
@@ -42,7 +42,7 @@ function textbookTitles(book: number): Map<number, string> {
   return out;
 }
 
-// --- данные API ------------------------------------------------------------------------------------------------------------
+// --- API data ------------------------------------------------------------------------------------------------------------
 
 interface SceneBlock {
   t: "scene";
@@ -78,11 +78,11 @@ async function getJson<T>(request: APIRequestContext, url: string, headers?: Rec
 
 const countOf = (counts: Counts, book: number, num: number): number => counts[String(book)]?.[String(num)] ?? 0;
 
-// --- охрана консоли --------------------------------------------------------------------------------------------------------
+// --- console guard --------------------------------------------------------------------------------------------------------
 
 /**
- * Как `watchConsole` из fixtures, но без шума от ожидаемых 404: вкладки главы спрашивают `/api/exercises/<книга>/<глава>`,
- * и ответ 404 означает «код-упражнений нет» — браузер пишет его в консоль как error, хотя это штатный ответ приложения.
+ * Like `watchConsole` from fixtures, but without noise from expected 404s: the chapter tabs request `/api/exercises/<book>/<chapter>`,
+ * and a 404 means "no code exercises" — the browser logs it to the console as an error, although it is a normal app response.
  */
 function watchChapterConsole(page: Page, ignore500 = false) {
   const errors: string[] = [];
@@ -96,11 +96,11 @@ function watchChapterConsole(page: Page, ignore500 = false) {
   return errors;
 }
 
-// --- проверки вкладок ------------------------------------------------------------------------------------------------------
+// --- tab checks ------------------------------------------------------------------------------------------------------
 
 const two = (n: number) => String(n).padStart(2, "0");
 
-/** Снимок показанного слайда (собирается в странице одним вызовом, чтобы обход не упирался в число обращений к браузеру). */
+/** Snapshot of the shown slide (collected in the page with a single call so the walk is not limited by the number of browser round trips). */
 interface Snap {
   num: string;
   rubric: string;
@@ -113,29 +113,29 @@ interface Snap {
   errors: number;
 }
 
-/** Ждёт в странице, пока условие даст значение; при тайм-ауте сообщает, что именно ждали. */
+/** Waits in the page until the condition yields a value; on timeout reports what exactly was awaited. */
 async function until<T, A>(page: Page, what: string, fn: (arg: A) => T | null | false, arg: A): Promise<T> {
   try {
     const handle = await page.waitForFunction(fn as (a: unknown) => unknown, arg, { timeout: 10_000 });
     return (await handle.jsonValue()) as T;
   } catch (e) {
-    throw new Error(`не дождались: ${what}\n${(e as Error).message.split("\n")[0]}`);
+    throw new Error(`timed out waiting for: ${what}\n${(e as Error).message.split("\n")[0]}`);
   }
 }
 
-/** Вкладка «Теория»: каждый слайд по точкам, у схем — каждый шаг. */
+/** The Theory tab: every slide point by point, every step for diagrams. */
 async function walkTheory(page: Page, deck: ChapterSlides) {
   const count = deck.slides.length;
   await expect(page.locator(".slide-dot")).toHaveCount(count);
   for (let i = 0; i < count; i++) {
     const slide = deck.slides[i]!;
-    const at = `слайд ${i + 1}/${count} «${slide.title}»`;
+    const at = `slide ${i + 1}/${count} "${slide.title}"`;
     if (i > 0) await page.locator(".slide-dot").nth(i).click();
 
-    // слайд i показан: номер в панели и в рубрике совпали
+    // slide i is shown: the number in the panel and in the rubric match
     const snap = await until<Snap, string>(
       page,
-      `${at}: показ слайда`,
+      `${at}: slide shown`,
       (want) => {
         const num = document.querySelector(".slide-panel-num")?.textContent ?? "";
         const frame = document.querySelector(".slide-stage .slide");
@@ -157,25 +157,25 @@ async function walkTheory(page: Page, deck: ChapterSlides) {
       `${two(i + 1)} / ${two(count)}|${two(i + 1)} / ${count}`,
     );
     const norm = (t: string) => t.replace(/\s+/g, " ").trim();
-    expect(snap.rubric, `${at}: рубрика`).toBe(norm(deck.rubric));
-    expect(snap.title, `${at}: заголовок`).toBe(norm(slide.title));
-    expect(snap.mainLabel, `${at}: «ГЛАВНОЕ»`).toBe("ГЛАВНОЕ");
-    expect(norm(slide.main), `${at}: «ГЛАВНОЕ» пусто в данных`).not.toBe("");
-    expect(snap.mainText, `${at}: текст «ГЛАВНОЕ»`).toBe(norm(slide.main));
-    expect(snap.bodyKids, `${at}: пустое тело слайда`).toBeGreaterThan(0);
-    expect(snap.errors, `${at}: блок ошибки`).toBe(0);
+    expect(snap.rubric, `${at}: rubric`).toBe(norm(deck.rubric));
+    expect(snap.title, `${at}: title`).toBe(norm(slide.title));
+    expect(snap.mainLabel, `${at}: MAIN label`).toBe("ГЛАВНОЕ");
+    expect(norm(slide.main), `${at}: MAIN is empty in the data`).not.toBe("");
+    expect(snap.mainText, `${at}: MAIN text`).toBe(norm(slide.main));
+    expect(snap.bodyKids, `${at}: empty slide body`).toBeGreaterThan(0);
+    expect(snap.errors, `${at}: error block`).toBe(0);
 
     const scenes = slide.body.filter((b): b is SceneBlock => b.t === "scene");
-    expect(snap.stages.length, `${at}: число схем`).toBe(scenes.length);
+    expect(snap.stages.length, `${at}: number of diagrams`).toBe(scenes.length);
     for (let s = 0; s < scenes.length; s++) {
       const scene = scenes[s]!;
-      expect(snap.stages[s]!.chips, `${at}: кнопки шагов`).toEqual(scene.labels.map(norm));
+      expect(snap.stages[s]!.chips, `${at}: step buttons`).toEqual(scene.labels.map(norm));
       for (let k = 0; k < scene.labels.length; k++) {
-        const step = `${at}, шаг ${k + 1} «${scene.labels[k]}»`;
+        const step = `${at}, step ${k + 1} "${scene.labels[k]}"`;
         await page.locator(".slide-stage .a-stage").nth(s).locator(".a-chip").nth(k).click();
         const got = await until<{ note: string; svg: number; errors: number }, [number, number]>(
           page,
-          `${step}: кнопка включена`,
+          `${step}: button enabled`,
           ([si, ki]) => {
             const st = document.querySelectorAll(".slide-stage .a-stage")[si!];
             if (!st) return null;
@@ -189,26 +189,26 @@ async function walkTheory(page: Page, deck: ChapterSlides) {
           },
           [s, k],
         );
-        expect(scene.captions[k]!.trim(), `${step}: подпись пуста в данных`).not.toBe("");
-        expect(got.note, `${step}: подпись`).toBe(norm(scene.captions[k]!));
-        // холст: кроме определений стрелок в SVG есть фигуры
-        expect(got.svg, `${step}: SVG схемы пуст`).toBeGreaterThan(0);
-        expect(got.errors, `${step}: блок ошибки`).toBe(0);
+        expect(scene.captions[k]!.trim(), `${step}: caption is empty in the data`).not.toBe("");
+        expect(got.note, `${step}: caption`).toBe(norm(scene.captions[k]!));
+        // canvas: besides the arrow definitions the SVG has shapes
+        expect(got.svg, `${step}: diagram SVG is empty`).toBeGreaterThan(0);
+        expect(got.errors, `${step}: error block`).toBe(0);
       }
     }
   }
 }
 
-/** Вкладка «Вопросы»: вопросы и варианты показаны, ответов (подсветки) до выбора нет. */
+/** The Questions tab: questions and options are shown, no answers (highlighting) before a pick. */
 async function checkQuiz(page: Page, expected: number) {
   await expect(page).toHaveURL(/\/questions$/);
   const questions = page.locator(".quiz-q");
   await expect(questions).toHaveCount(expected);
   for (let q = 0; q < expected; q++) {
-    await expect(questions.nth(q).locator(".quiz-q-text"), `вопрос ${q + 1}`).not.toHaveText("");
-    expect(await questions.nth(q).locator(".quiz-opt").count(), `вопрос ${q + 1}: вариантов`).toBeGreaterThanOrEqual(2);
+    await expect(questions.nth(q).locator(".quiz-q-text"), `question ${q + 1}`).not.toHaveText("");
+    expect(await questions.nth(q).locator(".quiz-opt").count(), `question ${q + 1}: options`).toBeGreaterThanOrEqual(2);
   }
-  await expect(page.locator(".quiz-opt.right, .quiz-opt.wrong"), "до ответа варианты не подсвечены").toHaveCount(0);
+  await expect(page.locator(".quiz-opt.right, .quiz-opt.wrong"), "options are not highlighted before an answer").toHaveCount(0);
   await expect(page.locator(".error")).toHaveCount(0);
 }
 
@@ -219,7 +219,7 @@ interface Task {
   statement: string;
 }
 
-/** Вкладка «Практика»: список упражнений с кодом/лабораторией или задачи с вводом ответа. Решений здесь нет. */
+/** The Practice tab: a list of code/lab exercises or answer-entry tasks. No solutions here. */
 async function checkPractice(page: Page, tasks: Task[], answers: number) {
   await expect(page).toHaveURL(/\/exercises(\?.*)?$/);
   if (tasks.length > 0) {
@@ -229,12 +229,12 @@ async function checkPractice(page: Page, tasks: Task[], answers: number) {
     await expect(page.locator(".pr-head h3")).toHaveText(`1. ${tasks[0]!.title}`);
     await expect(page.locator(".pr-statement")).toHaveText(tasks[0]!.statement);
     if (tasks[0]!.mode === "lab") {
-      // полоса упражнений сверху (`lab-pr`) — только у глав из одних лабораторных упражнений; в смешанных (глава 17:2 и др.) её нет
-      await expect(page.locator(".pr.lab-pr"), "раскладка лабораторий").toHaveCount(tasks.every((t) => t.mode === "lab") ? 1 : 0);
-      // кроме заголовка и условия — сама лаборатория
-      await expect.poll(() => page.locator(".pr-main > *").count(), "лаборатория не показана").toBeGreaterThan(2);
+      // the exercise strip on top (`lab-pr`) exists only for chapters made of lab exercises alone; mixed ones (chapter 17:2 etc.) do not have it
+      await expect(page.locator(".pr.lab-pr"), "lab layout").toHaveCount(tasks.every((t) => t.mode === "lab") ? 1 : 0);
+      // besides the heading and the statement — the lab itself
+      await expect.poll(() => page.locator(".pr-main > *").count(), "lab is not shown").toBeGreaterThan(2);
     } else {
-      await expect(page.locator(".rs-input"), "редактор кода").toBeVisible();
+      await expect(page.locator(".rs-input"), "code editor").toBeVisible();
     }
   } else {
     await expect(page.locator(".quiz-q")).toHaveCount(answers);
@@ -243,7 +243,7 @@ async function checkPractice(page: Page, tasks: Task[], answers: number) {
   await expect(page.locator(".error")).toHaveCount(0);
 }
 
-/** Ждёт, пока сервер запишет просмотренные слайды главы (номера с нуля). */
+/** Waits until the server records the chapter's viewed slides (zero-based numbers). */
 async function expectSlideProgress(request: APIRequestContext, token: string, book: number, num: number, want: number[]) {
   await expect
     .poll(
@@ -251,70 +251,70 @@ async function expectSlideProgress(request: APIRequestContext, token: string, bo
         const p = await getJson<{ slides: Record<string, number[]> }>(request, "/api/progress", bearer(token));
         return p.slides[`${book}:${num}`] ?? [];
       },
-      { message: "прогресс просмотренных слайдов на сервере", timeout: 10_000 },
+      { message: "viewed-slide progress on the server", timeout: 10_000 },
     )
     .toEqual(want);
 }
 
 /**
- * Подтверждённые дефекты приложения (ключ — «книга:глава»). Такая глава проходит обычный обход, но без затронутой проверки;
- * сама проверка остаётся строгой в отдельном test.fixme (см. конец bookSuite) и включится, когда дефект исправят.
- * - 9:26: `GET /api/exercises/9/26` отвечает 500 «FOREIGN KEY constraint failed» — у главы 26 «Баз данных» (28 упражнений)
- *   не открывается практика (вкладки «Практика» на странице нет).
+ * Confirmed app defects (key — "book:chapter"). Such a chapter goes through the regular walk, but without the affected check;
+ * the check itself stays strict in a separate test.fixme (see the end of bookSuite) and turns on when the defect is fixed.
+ * - 9:26: `GET /api/exercises/9/26` answers 500 "FOREIGN KEY constraint failed" — chapter 26 of Databases (28 exercises)
+ *   cannot open its practice (the page has no Practice tab).
  */
 const KNOWN_DEFECTS: Record<string, { what: string }> = {};
 const defectOf = (book: number, num: number) => KNOWN_DEFECTS[`${book}:${num}`];
 
-// --- набор тестов книги ----------------------------------------------------------------------------------------------------
+// --- book test suite ----------------------------------------------------------------------------------------------------
 
 /**
- * Набор тестов книги: на каждую главу со слайдами — отдельный test (провал локализуется до главы).
- * Тесты идут по одной главе за раз (workers = 1 в конфиге); падение одной главы не отменяет следующие.
+ * Book test suite: a separate test per chapter with slides (a failure is localised to the chapter).
+ * Tests run one chapter at a time (workers = 1 in the config); a failing chapter does not cancel the next ones.
  */
 export function bookSuite(bookId: number, slug: string) {
   const meta = bookMeta().get(bookId);
-  if (!meta) throw new Error(`книга ${bookId} не найдена в sql/books.sql`);
-  if (meta.slug !== slug) throw new Error(`у книги ${bookId} короткое имя «${meta.slug}», а не «${slug}»`);
+  if (!meta) throw new Error(`book ${bookId} not found in sql/books.sql`);
+  if (meta.slug !== slug) throw new Error(`book ${bookId} has short name "${meta.slug}", not "${slug}"`);
   const titles = textbookTitles(bookId);
   const nums = slideChapters(bookId);
-  if (nums.length === 0) throw new Error(`нет файлов слайдов книги ${bookId}`);
+  if (nums.length === 0) throw new Error(`no slide files for book ${bookId}`);
 
-  test.describe(`${meta.title} (книга ${bookId})`, () => {
+  test.describe(`${meta.title} (book ${bookId})`, () => {
     for (const num of nums) {
-      test(`«${meta.title}: глава ${num} — ${titles.get(num) ?? "?"}»`, async ({ page, request }) => {
+      test(`"${meta.title}: chapter ${num} — ${titles.get(num) ?? "?"}"`, async ({ page, request }) => {
         const errors = watchChapterConsole(page, !!defectOf(bookId, num));
         const { token } = await loginFresh(page, request);
 
-        // данные главы из API
+        // chapter data from the API
         const ref = (await chaptersOf(request, bookId)).find((c) => c.num === num);
-        expect(ref, `глава ${bookId}:${num} есть в курсе`).toBeTruthy();
+        expect(ref, `chapter ${bookId}:${num} exists in the course`).toBeTruthy();
         const { id, title } = ref!;
-        if (titles.has(num)) expect(title, "название главы в API и в учебнике").toBe(titles.get(num));
+        if (titles.has(num)) expect(title, "chapter title in the API and in the textbook").toBe(titles.get(num));
         const deck = await getJson<ChapterSlides>(request, `/api/slides/${bookId}/${num}`);
         const file = JSON.parse(fs.readFileSync(path.join(data, "slides", `${two(bookId)}-${two(num)}.json`), "utf8")) as ChapterSlides;
-        expect(deck.slides.length, "число слайдов в API и в файле данных").toBe(file.slides.length);
+        expect(deck.slides.length, "number of slides in the API and in the data file").toBe(file.slides.length);
         expect(deck.slides.length).toBeGreaterThan(0);
         const quizzes = countOf(await getJson<Counts>(request, "/api/quizzes"), bookId, num);
         const answers = countOf(await getJson<Counts>(request, "/api/answers"), bookId, num);
         const codeRes = await request.get(`/api/exercises/${bookId}/${num}`);
         const tasks = codeRes.ok() ? ((await codeRes.json()) as { tasks: Task[] }).tasks : [];
-        if (!codeRes.ok() && !defectOf(bookId, num)) expect(codeRes.status(), "упражнений нет — 404").toBe(404);
+        if (!codeRes.ok() && !defectOf(bookId, num)) expect(codeRes.status(), "no exercises — 404").toBe(404);
         const hasPractice = tasks.length > 0 || answers > 0;
 
-        // страница главы
+        // chapter page
         await page.goto(`/book/${bookId}/chapter/${id}`);
         await expect(page.locator("h2")).toHaveText(`Урок ${num}. ${title}`);
         const tabNames = ["Теория", ...(quizzes > 0 ? ["Вопросы"] : []), ...(hasPractice ? ["Практика"] : [])];
         await expect(page.locator(".ch-tab")).toHaveCount(tabNames.length);
         for (const [i, name] of tabNames.entries()) await expect(page.locator(".ch-tab").nth(i)).toContainText(name);
 
-        // теория
+        // theory
         await walkTheory(page, deck);
 
-        // прогресс: просмотрены все слайды главы (номера с нуля)
+        // progress: all chapter slides viewed (zero-based numbers)
         await expectSlideProgress(request, token, bookId, num, deck.slides.map((_, i) => i));
 
-        // вопросы и практика (если есть)
+        // questions and practice (if any)
         if (quizzes > 0) {
           await page.locator(".ch-tab", { hasText: "Вопросы" }).click();
           await checkQuiz(page, quizzes);
@@ -324,14 +324,14 @@ export function bookSuite(bookId: number, slug: string) {
           await checkPractice(page, tasks, answers);
         }
 
-        expect(errors, "ошибки в консоли браузера").toEqual([]);
+        expect(errors, "browser console errors").toEqual([]);
       });
     }
-    // строгие проверки известных дефектов: пропущены (fixme), пока дефект не исправлен
+    // strict checks of known defects: skipped (fixme) until the defect is fixed
     for (const num of nums) {
       const known = defectOf(bookId, num);
       if (!known) continue;
-      test.fixme(`«${meta.title}: глава ${num}» — ${known.what}`, async ({ page, request }) => {
+      test.fixme(`"${meta.title}: chapter ${num}" — ${known.what}`, async ({ page, request }) => {
         await loginFresh(page, request);
         const ref = (await chaptersOf(request, bookId)).find((c) => c.num === num)!;
         const tasks = (await getJson<{ tasks: Task[] }>(request, `/api/exercises/${bookId}/${num}`)).tasks;
