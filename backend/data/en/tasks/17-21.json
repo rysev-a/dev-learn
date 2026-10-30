@@ -1,0 +1,90 @@
+{
+ "book": 17,
+ "chapter": 21,
+ "tasks": [
+  {
+   "id": "ov21-vlan-device",
+   "title": "VLAN device name",
+   "statement": "On a host a network with a VLAN tag gets a sub-interface \"nic.number\". Write a function vlan_device(nic, vlan): if vlan is None, return nic unchanged; if vlan is an integer from 1 to 4094 inclusive, return a string like \"eth0.100\"; otherwise return an empty string. A Linux interface name is at most 15 characters: if the resulting name (including the untagged one) is longer, also return an empty string.",
+   "hint": "Build the name first, then check its length."
+  },
+  {
+   "id": "ov21-network-name",
+   "title": "A valid network name",
+   "statement": "A network name becomes the bridge name on the host, so it is restricted. In our model a name is valid when all conditions hold: the length is from 1 to 15 characters; only ASCII letters, digits, underscore and hyphen; the name does not start with a hyphen. Write a function is_valid_network_name(name): return True or False.",
+   "hint": "Check the length, the first character and every character separately; c.isascii() helps with ASCII."
+  },
+  {
+   "id": "ov21-required-missing",
+   "title": "Hosts missing required networks",
+   "statement": "A host on which at least one required network of the cluster is not working becomes NonOperational. Write a function nonoperational_hosts(required, hosts): required is a list of required network names (may repeat), hosts is a dictionary \"host name → list of networks that work on it\". Return a list of tuples (host, sorted list of missing required networks without repeats) only for the hosts that lack something; the list is sorted by host name.",
+   "hint": "Turn required into a set and subtract the host's set of networks."
+  },
+  {
+   "id": "ov21-mtu-plan",
+   "title": "MTU plan per NIC",
+   "statement": "A host NIC needs an MTU equal to the maximum MTU of the networks on it, and the path behind the NIC (the switch port) must pass it. Write a function mtu_plan(network_mtu, attachments, path_mtu): network_mtu is a dictionary \"network → MTU\" (a network missing from it has 1500), attachments is a list of pairs (network, NIC), path_mtu is a dictionary \"NIC → path MTU\" (if the NIC is absent, assume 1500). Return a tuple of two elements: a dictionary \"NIC → required MTU\" (only for NICs from attachments) and a sorted list of NICs whose path MTU is lower than required.",
+   "hint": "Accumulate the maximum per NIC in a dictionary, then compare with path_mtu.get(nic, 1500)."
+  },
+  {
+   "id": "ov21-static-ip",
+   "title": "Static address check",
+   "statement": "An administrator sets a static address on a host. Write a function check_static_ip(address, prefix, gateway) and return the first error that applies, in this order: \"bad-prefix\" if prefix is not an integer from 1 to 30; \"bad-address\" if address is not a valid IPv4; \"bad-gateway\" if gateway is not an empty string and not a valid IPv4; \"address-is-network\" if the address equals the network address; \"address-is-broadcast\" if it equals the broadcast address; if gateway is an empty string, return \"ok\"; \"gateway-outside\" if the gateway is outside the subnet; \"gateway-is-self\" if the gateway equals the address; \"gateway-reserved\" if the gateway equals the network or broadcast address. Otherwise return \"ok\". You may use the ipaddress module.",
+   "hint": "ipaddress.IPv4Network(f'{address}/{prefix}', strict=False) gives network_address, broadcast_address and the 'in' check."
+  },
+  {
+   "id": "ov21-bond-select",
+   "title": "Choosing a bond mode",
+   "statement": "Write a function choose_bond_mode(switch, vm_network, need_speed) that picks a bond mode (a number 0..6). switch describes how the switch ports are configured: \"none\" (nothing), \"static\" (static aggregation) or \"lacp\"; treat any other value as \"none\". Allowed modes: always 1, 5, 6; with \"static\" also 0, 2, 3; with \"lacp\" also 4. If vm_network is True, modes 0, 5, 6 are excluded. Then take the first allowed mode from the preference list: with need_speed=True it is [4, 2, 6, 5, 0, 3, 1], otherwise [1, 4, 2, 6, 5, 3, 0].",
+   "hint": "Build the set of allowed modes, then walk the preference list."
+  },
+  {
+   "id": "ov21-qos-limiter",
+   "title": "vNIC rate limiter",
+   "statement": "A simplified QoS model of a virtual NIC: a token bucket. At the start the bucket holds burst tokens. On each step (second): the bucket is refilled by average, but not above burst; then sent = min(demand, tokens in the bucket, peak) is transmitted; those tokens are removed from the bucket. Excess demand is lost (there are no queues). Write a function qos_limiter(average, peak, burst, demands): demands is the list of demand per step; return the list of what was sent on each step.",
+   "hint": "Keep one variable tokens and update it on every step in the stated order."
+  },
+  {
+   "id": "ov21-bond-options",
+   "title": "Parsing bond options",
+   "statement": "Custom bond options are a string of pairs separated by spaces, for example \"mode=4 miimon=100 lacp_rate=fast\". Mode names: balance-rr=0, active-backup=1, balance-xor=2, broadcast=3, 802.3ad=4, balance-tlb=5, balance-alb=6. Write a function parse_bond_options(text): return None if any of these holds: a token has no \"=\" or an empty name or value; there is no mode; mode is neither a name from the list nor a digit 0..6; the miimon value is not all digits; lacp_rate is set when the mode is not 4, or its value is neither \"slow\" nor \"fast\". Otherwise return a tuple (mode number, a list of tuples (name, value) of the other options sorted by name). If a key repeats, the last value wins.",
+   "hint": "Parse the tokens into a dictionary, then pop mode and check the rest in order."
+  },
+  {
+   "id": "ov21-host-plan",
+   "title": "Validating a host network plan",
+   "statement": "A host plan is a list of tuples (network, nic, vlan, is_vm): vlan is None (an untagged network) or a number. Write a function validate_plan(attachments) that returns a sorted list of unique error strings: \"name-too-long:<network>\" when is_vm is true and the network name is longer than 15 characters (the bridge name); \"network-on-multiple-nics:<network>\" when one network is bound to different NICs; \"bad-vlan:<network>\" when vlan is not None and not an integer 1..4094; \"multiple-untagged:<nic>\" when a NIC has two or more different untagged networks; \"vlan-clash:<nic>.<vlan>\" when a NIC has two or more different networks with the same valid vlan. Invalid vlans do not take part in the vlan-clash check. A correct plan gives an empty list.",
+   "hint": "Keep three dictionaries: NICs per network, untagged networks per NIC, networks per pair (NIC, vlan); finally collect a set of errors."
+  },
+  {
+   "id": "ov21-out-of-sync",
+   "title": "Finding out-of-sync networks",
+   "statement": "The engine keeps the desired network configuration of a host, desired, and the host reports the actual one, actual; both are dictionaries \"network → dictionary of properties\" (for example {\"vlan\": 10, \"mtu\": 1500}). Write a function out_of_sync(desired, actual): return a list of tuples (network, list of strings). For a network in desired that is absent from actual, the list is [\"missing\"]. For a network present in both, the list is the sorted names of properties from desired whose value in actual differs or is absent (extra properties in actual are ignored); a network without differences is left out. A network present only in actual gives (network, [\"unmanaged\"]). First come the networks from desired alphabetically, then the actual-only ones alphabetically.",
+   "hint": "Two passes: over desired, then over actual-only; differences are a comparison of values by desired's keys."
+  },
+  {
+   "id": "ov21-weighted-shares",
+   "title": "Splitting a link between networks",
+   "statement": "Host network QoS divides the NIC's bandwidth among networks by weights (shares). The model is weighted max-min fairness. Write a function weighted_shares(capacity, demands, weights): demands is a dictionary \"network → demand\", weights is \"network → weight\" (a positive number for every network in demands). While capacity remains and there are unsatisfied networks: each unsatisfied network is entitled to a share of the remainder proportional to its weight; networks whose demand does not exceed the share get exactly their demand and leave the split, and the freed capacity is divided further; if nobody's demand is within the share, all the remaining networks get their shares and the split ends. A network with zero demand gets 0. Return a dictionary \"network → allocated rate\", each value a float rounded to 3 decimals.",
+   "hint": "Loop: compute the shares of the active networks from the remainder; remove the saturated ones and subtract their demand from the remainder; if none are saturated, hand out the shares and stop."
+  },
+  {
+   "id": "ov21-ovn-acl",
+   "title": "OVN access-list verdict",
+   "statement": "OVN security groups are turned into ACLs. The model: acls is a list of tuples (priority, direction, action, proto, port_min, port_max, cidr). direction is \"ingress\" or \"egress\"; action is \"allow\" or \"drop\"; proto is \"tcp\", \"udp\", \"icmp\" or \"any\"; port_min and port_max are inclusive port bounds or None (any port; an icmp packet arrives with port=None); cidr is a network like \"10.0.0.0/8\" or \"any\". A rule matches a packet (direction, proto, port, remote) if the direction is equal, the protocol matches (a rule with \"any\" matches every protocol), the port is within the bounds (a rule with bounds does not match a packet with port=None) and the address remote lies in cidr (IPv6 is allowed too). Among the matching rules the one with the highest priority wins; on equal priority \"drop\" wins. If nothing matches, the verdict is \"drop\". Write a function packet_verdict(acls, direction, proto, port, remote) that returns \"allow\" or \"drop\".",
+   "hint": "For each rule check the conditions in turn and compare the matching ones by the key (priority, action == drop); use ipaddress.ip_address(remote) in ipaddress.ip_network(cidr)."
+  },
+  {
+   "id": "ov21-ovn-assign",
+   "title": "Assigning addresses to OVN ports",
+   "statement": "An OVN logical switch hands out addresses to ports from a subnet. The first usable address of the subnet is reserved for the gateway (the logical router). Write a function assign_addresses(cidr, existing, ports): existing is a dictionary \"port → address already given\", ports is a list of port names that need addresses. Return a dictionary \"port → address (a string)\" for all ports in ports: a port that already has an address in existing keeps it; the others, in the order of the list, get the smallest free host address of the subnet (except the gateway address and all the addresses among existing's values, including ports not in ports); a repeated port in ports gets the same address. If no free addresses are left, the port gets an empty string. The usable addresses are net.hosts() from the ipaddress module.",
+   "hint": "net.hosts() is a generator: give the first element to the gateway, filter the rest by the used ones and take next(..., '')."
+  },
+  {
+   "id": "ov21-setup-networks",
+   "title": "setupNetworks with rollback",
+   "statement": "Model the atomic setupNetworks operation. The host configuration current is a dictionary \"network → (nic, vlan)\", where vlan is None or a number. ops is a list of edit tuples: (\"add\", network, nic, vlan), (\"remove\", network), (\"move\", network, nic, vlan). The edits are applied in order to a copy of the configuration. An edit is rejected if: add for an existing network; remove or move for a missing one; an unknown kind of edit; vlan is not None and not an integer 1..4094; after the edit some NIC has two or more untagged networks. On the first rejected edit with index i return (\"rejected:i\", current), leaving the configuration unchanged. If all edits are accepted and check=True, connectivity is verified: the network \"ovirtmgmt\" must exist and its NIC must be in the list up_nics; otherwise return (\"reverted\", current). Else return (\"applied\", the new configuration). Signature: apply_setup_networks(current, ops, up_nics, check).",
+   "hint": "Copy current into a new dictionary, apply edits in an enumerate loop and check the invariants after each; a rollback just returns the original current."
+  }
+ ]
+}

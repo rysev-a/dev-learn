@@ -1,0 +1,66 @@
+{
+ "book": 17,
+ "chapter": 17,
+ "tasks": [
+  {
+   "id": "ov-vm-path",
+   "title": "Where a machine runs",
+   "statement": "The oVirt inventory is nested dictionaries: data center → cluster → host → list of virtual machine names, for example {\"dc1\": {\"cl1\": {\"h1\": [\"web\", \"db\"]}}}. Write a function vm_path(inventory, vm): return a string like \"dc1/cl1/h1\" for the host where the machine vm runs, or an empty string if there is no such machine.",
+   "hint": "Three nested loops over items(); once you find the name in the list, build the path."
+  },
+  {
+   "id": "ov-inventory-stats",
+   "title": "Inventory counters",
+   "statement": "For the inventory from the previous task (data center → cluster → host → list of VMs) write a function inventory_stats(inventory): return a tuple of four numbers: how many data centers, clusters, hosts, and virtual machines the inventory has.",
+   "hint": "Accumulate four counters in the same nested loops."
+  },
+  {
+   "id": "ov-cluster-baseline",
+   "title": "Cluster CPU baseline",
+   "statement": "A cluster's CPU type cannot be newer than its oldest host. You get generations, the names of processor generations from old to new, for example [\"Nehalem\", \"Sandy Bridge\", \"Haswell\", \"Skylake\"], and host_cpus, the generations of the cluster's hosts. Write a function cluster_baseline(generations, host_cpus): return the oldest generation among the hosts. If there are no hosts, return an empty string.",
+   "hint": "A generation's rank is generations.index(name); take the minimum by that key."
+  },
+  {
+   "id": "ov-api-url",
+   "title": "REST request URL",
+   "statement": "The engine's REST interface lives at https://<host>/ovirt-engine/api. Write a function api_url(host, path, query): path is a string like \"vms/123/start\" (it may have extra slashes at the start and end, strip them), query is a dictionary of parameters. Return the full URL; add the parameters after a ? sorted by name and joined with &, as name=value (values are strings or numbers, no escaping needed). An empty query gives a URL without ?; an empty path gives the API root without a trailing slash.",
+   "hint": "Use path.strip('/'); if it is empty, add no slash. For parameters use sorted(query.items())."
+  },
+  {
+   "id": "ov-host-states",
+   "title": "Host states",
+   "statement": "A simplified model of a host's life. Transitions (state, event) → new state: (Maintenance, activate) → Up; (Up, maintenance) → PreparingForMaintenance; (PreparingForMaintenance, vms_migrated) → Maintenance; (Up, no_heartbeat) → NonResponsive; (NonResponsive, heartbeat) → Up; (NonResponsive, fenced) → Maintenance. Any event with no transition leaves the state unchanged. Write a function final_state(start, events): return the state after all the events in order.",
+   "hint": "Put the transitions into a dictionary keyed by a tuple and use table.get((state, event), state)."
+  },
+  {
+   "id": "ov-compat-version",
+   "title": "Compatibility version",
+   "statement": "Versions are written as strings like \"4.7\" (the major and minor parts are integers and must be compared as numbers, so \"4.10\" is newer than \"4.9\"). A cluster can be moved to a new version target if three conditions hold: target is not lower than the cluster's current version current, target is not higher than the data center's version dc, and target is not higher than the weakest host supports (host_max is a list of the hosts' maximum versions). Write a function can_upgrade(current, target, dc, host_max): return True or False.",
+   "hint": "Turn a version into a tuple of numbers: tuple(map(int, s.split('.'))); tuples compare the way you need."
+  },
+  {
+   "id": "ov-missing-ports",
+   "title": "Which ports are missing",
+   "statement": "For the platform to work, a host must have these ports open: 22 (SSH), 54321 (VDSM), 16514 (libvirt over TLS) and the range 49152–49215 for migration. Write a function missing_ports(open_ports): open_ports is a list of open numbers and ranges (a range is a tuple (from, to) inclusive). Return a sorted list of the missing required ports from the first three; the migration range counts as closed unless a single open range covers it entirely, in which case add its start 49152 to the answer as a marker. A single open port inside the migration range does not cover the range.",
+   "hint": "For each required port, check whether it equals a number in the list or lies in some tuple. For the migration range, one tuple covering 49152..49215 is enough."
+  },
+  {
+   "id": "ov-ha-score",
+   "title": "Host score for the hosted engine",
+   "statement": "Hosted-engine services choose the host with the best score for the engine. A simplified model: the score starts at 3400; if the gateway is unreachable, subtract 1600; if there is no management network, subtract 1600; if free memory is below 4096 MB, subtract 400; if CPU load is above 80 percent, subtract 800. The score is never below zero. Write a function best_host(hosts): hosts is a dictionary name → dictionary with the fields gateway (bool), mgmt (bool), free_mb (a number), cpu (percent). Return the name of the host with the highest score; on a tie, the alphabetically smaller name. For an empty dictionary, return an empty string.",
+   "hint": "Write a separate function score(h) and sort by (-score, name)."
+  },
+  {
+   "id": "ov-placement-order",
+   "title": "Host order for placement",
+   "statement": "A simplified scheduler places a new machine on the least loaded host of the cluster. You get an inventory (data center → cluster → host → list of VMs) and a cluster name cluster (cluster names are unique across the inventory). Write a function placement_order(inventory, cluster): return the list of the cluster's host names sorted by VM count ascending, and by name on a tie. If there is no such cluster, return an empty list.",
+   "hint": "Find the cluster's host dictionary in two loops, then sorted(hosts, key=lambda h: (len(hosts[h]), h))."
+  },
+  {
+   "id": "ov-command-trace",
+   "title": "Where the time went",
+   "statement": "A machine-start command passes the links engine → vdsm → libvirt → qemu. The trace log is a list of tuples (link, start, end) in seconds; the links are nested, so a link's own time is its duration minus the duration of the next link in the log (the last link counts in full). Write a function slowest_link(trace): return the name of the link with the largest own time; on a tie, the one that comes earlier in the log. For an empty log, return an empty string.",
+   "hint": "Duration = end − start; the own time of link i = duration i minus duration i+1."
+  }
+ ]
+}

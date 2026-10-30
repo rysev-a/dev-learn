@@ -1,0 +1,90 @@
+{
+ "book": 17,
+ "chapter": 25,
+ "tasks": [
+  {
+   "id": "ov25-upgrade-plan",
+   "title": "Upgrade plan",
+   "statement": "An upgrade model. The version steps in order are \"4.3\", \"4.4\", \"4.5\" (there are no others). You get the engine version engine, a dictionary hosts (host name → version), the cluster compatibility version cluster, the data center version dc, and the target step target. The state is valid only if all of this holds: every version is in the list of steps and none is higher than target; no host is newer than the engine; the cluster version is not higher than any host's version; the data center version is not higher than the cluster version. If the state is invalid, return None. Otherwise return a list of step strings. Walk the steps v from the one after the oldest version among the engine and the hosts up to target inclusive. For each step v: if the engine is below v, add \"backup\" and \"engine:v\"; then for each host in alphabetical order of names, if it is below v, add \"maintenance:name\", \"host:name:v\" and \"activate:name\". After all the steps add one \"cluster:v\" step for each step above the cluster's version (ascending), then the same \"dc:v\" steps for the data center. If there is nothing to do, return an empty list.",
+   "hint": "Keep the list of steps L = [\"4.3\", \"4.4\", \"4.5\"], the rank is L.index(v). First the None checks, then three loops: over steps with hosts, over the cluster, over the data center. Copy the hosts' versions into a local dictionary so you can update them as you go."
+  },
+  {
+   "id": "ov25-parse-engine-line",
+   "title": "Parsing an engine.log line",
+   "statement": "An engine log line looks like this: \"2026-03-01 10:15:42,123+01 INFO  [org.ovirt.engine.core.bll.RunVmCommand] (default task-5) [5f2a] Running command\". The fields in order: date and time with milliseconds (three digits) and a time zone offset (a sign and two digits); the level DEBUG, INFO, WARN or ERROR followed by one or more spaces; the full class name in square brackets; the thread in round brackets; the correlation id in square brackets (it may be empty); one space and the message text (it may contain brackets and may be empty). Write a function parse_engine_line(line): return a tuple of five strings: (date and time without milliseconds and zone, like \"2026-03-01 10:15:42\", the level, the last part of the class name after the last dot, the correlation id, the text). If the line does not fit the format (including an unknown level or missing milliseconds), return None.",
+   "hint": "A regular expression with groups: the level and spaces, then [^\\]]* for the class and correlation brackets and [^)]* for the thread. Cut the class by dots: split('.')[-1]."
+  },
+  {
+   "id": "ov25-command-timelines",
+   "title": "Command timelines by correlation id",
+   "statement": "Log lines from different nodes are merged into one list in arbitrary order. A line looks like \"HH:MM:SS LEVEL source corr text…\": four words separated by spaces, then an optional text. Lines with fewer than four words, with a time not of the form HH:MM:SS (two digits, colon, two digits, colon, two digits), or with corr equal to \"-\" are skipped. Write a function command_timelines(lines): return a dictionary corr → a dictionary with the keys \"start\" (the earliest time as a string), \"end\" (the latest), \"duration\" (end minus start in seconds, an integer; all lines fall within one day), \"errors\" (how many lines have level ERROR) and \"sources\" (a sorted list of distinct sources). For empty input return an empty dictionary.",
+   "hint": "line.split(None, 4) gives up to five parts. Convert the time to seconds to find the minimum and maximum; an HH:MM:SS string sorts correctly as text, but compute the difference in seconds."
+  },
+  {
+   "id": "ov25-first-error",
+   "title": "The first error in a chain",
+   "statement": "The layers from top to bottom: engine (depth 0), vdsm (1), libvirt (2), qemu (3), sanlock (4). You get a list of log lines lines: tuples (time \"HH:MM:SS\", source, level, corr, message) in arbitrary order, a correlation id corr, and a dictionary skew: source → how many seconds its clock runs ahead (0 if the source is not in the dictionary). A line's true time is its time minus its source's correction (in seconds since midnight; the result may be negative). Write a function first_error(lines, corr, skew): among the lines with level ERROR and the given corr, find the one with the smallest true time; on a tie take the source with the greater depth, and if still tied, the line that comes earlier in the list. Return a tuple (source, message), or None if there are no errors.",
+   "hint": "For each matching line build the key (true time, −depth, index) and take the minimum. Convert time to seconds."
+  },
+  {
+   "id": "ov25-triage",
+   "title": "Symptom triage",
+   "statement": "Each symptom adds points to layers. The layers in priority order: engine, vdsm, libvirt, qemu, storage, network. The table: login_fails: engine +3; portal_slow: engine +2; no_heartbeat: vdsm +3, network +2; vm_wont_start: libvirt +2, qemu +2, storage +1; vm_crashed: qemu +3, libvirt +1; domain_inactive: storage +3, network +1; disk_io_errors: storage +3, qemu +1; migration_fails: network +2, libvirt +1, qemu +1; cert_error: engine +2, vdsm +2; ping_ok: network −3; many_hosts_affected: storage +2, network +1, engine +1. Write a function triage(symptoms): symptoms is a list of symptom names. Repeats count once, unknown names are ignored. Return a tuple (layer, points) for the layer with the largest total; on a tie the layer that comes earlier in the priority list wins. If the largest total is not above zero, return (\"unknown\", 0).",
+   "hint": "Put the table into a dictionary of dictionaries and iterate over set(symptoms). For the maximum walk the layers in priority order and replace the best only on strict improvement."
+  },
+  {
+   "id": "ov25-capacity-days",
+   "title": "Days until memory runs out",
+   "statement": "A capacity planner. host_gb is the memory of the cluster's hosts in GB, used_gb is the total memory of virtual machines per day (the last value is today). The N+1 headroom rule: usable capacity equals the sum of all hosts' memory minus the memory of the largest host (0 for an empty list of hosts). Write a function capacity_days(host_gb, used_gb). If used_gb is empty, return None. Free = usable capacity minus the last value of used_gb; if free is not above zero, return 0. If used_gb has fewer than two values, return None. The growth per day is (last minus first) divided by (number of values minus one); if the total growth (last minus first) is not positive, return None (the resource will not run out). Otherwise return the whole number of days until exhaustion: free divided by the growth per day, rounded down. Compute in integers, as free * (n − 1) // (last − first).",
+   "hint": "The order of checks matters: empty → None; free <= 0 → 0; fewer than two values → None; no growth → None; otherwise the integer formula."
+  },
+  {
+   "id": "ov25-check-certs",
+   "title": "Certificate lifetimes and clocks",
+   "statement": "The engine and the host see time differently: the engine's clock shows now (seconds), the host's clock shows now + offset (offset may be negative). certs is a dictionary name → tuple (not_before, not_after). A certificate is checked against both clocks: let lo be the smaller of the two times and hi the larger. The status is \"not_yet_valid\" if lo < not_before; otherwise \"expired\" if hi >= not_after; otherwise \"expiring\" if not_after − hi <= warn; otherwise it is fine. Write a function check_certs(certs, now, offset, warn): return a sorted list of tuples (name, status) for certificates that are not fine. In addition, if abs(offset) > 300, add the tuple (\"clock\", \"skewed\") to the list. Sort the resulting tuples as they are. There is no name \"clock\" in certs.",
+   "hint": "Compute lo and hi once, then check in order: not_yet_valid, expired, expiring. At the end add clock and call sorted."
+  },
+  {
+   "id": "ov25-host-status",
+   "title": "Host status",
+   "statement": "A simplified model of host status. host is a dictionary with the fields maintenance (bool), heartbeat (bool), nets (a list of logical networks configured on the host) and seen (a list of storage domains the host can see). required_nets are the networks required by the cluster, attached_domains are the domains attached to the data center. Write a function host_status(host, required_nets, attached_domains): return a tuple (status, reasons). If maintenance, (\"Maintenance\", []). Otherwise, if there is no heartbeat, (\"NonResponsive\", []). Otherwise collect reasons: for each required network missing on the host \"net:name\" (alphabetically), then for each unseen domain \"sd:name\" (alphabetically); if there are reasons, (\"NonOperational\", reasons), otherwise (\"Up\", []).",
+   "hint": "A set difference gives the missing items: set(required_nets) - set(host['nets']). The checks go in priority order."
+  },
+  {
+   "id": "ov25-domain-status",
+   "title": "Storage domain state",
+   "statement": "The engine judges a storage domain by the hosts' reports. reports is a dictionary host → \"ok\" or \"fail\" (whether the host can work with the domain), host_states is a dictionary host → host status. Only hosts that are in both dictionaries and have the status \"Up\" are counted. Write a function domain_status(reports, host_states): return a tuple (state, hosts). If there are no counted hosts, (\"Unknown\", []). If all counted hosts report \"fail\", (\"Inactive\", []). Otherwise (\"Active\", a sorted list of counted hosts with \"fail\": they should become NonOperational).",
+   "hint": "First filter the reports by host_states.get(host) == 'Up', then compare the number of failing hosts with the number of counted hosts."
+  },
+  {
+   "id": "ov25-stale-locks",
+   "title": "Stale image locks",
+   "statement": "Image locks are held by tasks. events is a list of tuples (kind, image, task) in event order. Kind \"lock\": if the image is not locked yet, this task locks it; if it is already locked (by anyone), the event is ignored. Kind \"unlock\": if the image is locked by exactly this task, the lock is released; otherwise the event is ignored. running is a list of tasks that are still running. Write a function stale_locks(events, running): return a sorted list of tuples (image, task) for images that are still locked at the end by a task that is not in running (this is the \"stuck\" Image Locked).",
+   "hint": "Keep a dictionary image → task. After processing all the events, filter the entries whose task is not in running and sort them."
+  },
+  {
+   "id": "ov25-live-merge",
+   "title": "Live merge and failure",
+   "statement": "A model of the live merge of a snapshot. chain is a list of volumes from the base to the active one, victim is the volume that is merged down into the previous volume of the chain, fail_step is the step at which a failure happened, or None. The steps in order are \"extend\", \"commit\", \"pivot\", \"cleanup\". Write a function live_merge(chain, victim, fail_step): return a tuple (chain, orphans, status). If victim is not in the chain or is the base (first) one, the merge is rejected: (a copy of the chain, [], \"rejected\"). Otherwise, if the failure is at \"extend\" or \"commit\", the chain is unchanged: (a copy of the chain, [], \"rolled_back\"). A failure at \"pivot\" leaves the chain unchanged but the merge can be repeated: (a copy of the chain, [], \"retry\"). A failure at \"cleanup\" means the merge was done but the volume stayed on disk: (the chain without victim, [victim], \"partial\"). With no failure: (the chain without victim, [], \"ok\"). The original list must not be modified.",
+   "hint": "First the rejected check, then compute the chain without victim and handle fail_step. Return list(chain), not chain itself."
+  },
+  {
+   "id": "ov25-alert-windows",
+   "title": "Alert windows",
+   "statement": "An alert fires when a metric stays above a threshold long enough. samples is a list of metric values per minute; a None value means a missed measurement. Write a function alert_windows(samples, threshold, min_len): return a list of tuples (first index, last index) for each run of consecutive measurements strictly above threshold that contains at least min_len such measurements. A missed measurement (None) neither breaks a run nor counts as a measurement, and it is not part of the run's bounds if it sits at an edge. A measurement not exceeding the threshold ends the run. Return runs in ascending index order.",
+   "hint": "Keep the run's start, the index of the last hot measurement and a counter. On None simply continue; on a cold measurement and at the end close the run after checking the counter."
+  },
+  {
+   "id": "ov25-overcommit",
+   "title": "Memory overcommit check",
+   "statement": "host_gb is the physical memory of the cluster's hosts in GB, vm_gb is the memory assigned to virtual machines, limit_pct is the allowed overcommit in percent (100 means no overcommit). Write a function overcommit_check(host_gb, vm_gb, limit_pct): let H be the sum of host_gb and V the sum of vm_gb. If H is 0, return (0, \"over\", False). Otherwise return a tuple of three values: ratio, the integer part of 100 * V / H; verdict, \"ok\" if V * 100 <= limit_pct * H, otherwise \"over\" (the comparison is exact, in integers, not on the rounded ratio); n1, True if V * 100 <= limit_pct * (H minus the memory of the largest host), that is, the load fits the limit even after losing the largest host.",
+   "hint": "Everything is computed in integers: ratio = 100 * V // H; for the verdict and n1 compare V * 100 with limit_pct * (...)."
+  },
+  {
+   "id": "ov25-effective-perms",
+   "title": "Effective permissions",
+   "statement": "Permissions in oVirt are granted by roles on objects. roles is a dictionary role → list of permissions. assignments is a list of tuples (subject, role, object), where the subject is a user or group name. path is a list of objects from the system to a virtual machine, for example [\"system\", \"dc1\", \"cl1\", \"vm1\"]: an assignment on any object in the path applies to the machine (permissions are inherited downward). Write a function effective_perms(user, groups, assignments, path, roles): return a sorted list without repeats of all permissions that the user, who belongs to groups, gets on the machine with the given path: take the assignments whose subject is the user or one of the groups and whose object is in path. A role missing from roles grants nothing.",
+   "hint": "Build the set of subjects {user} | set(groups) and union the roles' permissions of matching assignments with |=."
+  }
+ ]
+}

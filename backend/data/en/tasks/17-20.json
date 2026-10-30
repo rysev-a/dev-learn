@@ -1,0 +1,90 @@
+{
+ "book": 17,
+ "chapter": 20,
+ "tasks": [
+  {
+   "id": "ov20-domain-family",
+   "title": "Domain family",
+   "statement": "A storage domain's type determines its family. Write a function domain_family(domain_type): the type arrives as a string in any letter case, possibly with spaces at the edges. The types NFS, POSIXFS, GLUSTERFS and LOCALFS are the family \"file\"; ISCSI and FCP are \"block\"; MANAGED_BLOCK is \"managed\"; any other type (including an empty string) is \"unknown\".",
+   "hint": "Normalize with strip().upper() and test membership in sets."
+  },
+  {
+   "id": "ov20-file-paths",
+   "title": "Volume paths in a file domain",
+   "statement": "In a file domain a disk volume lies at <mount>/<sd>/images/<img>/<vol>, its description is in the file with the .meta suffix, and its lease is in the file with the .lease suffix. Write a function file_paths(mount, sd, img, vol): return a tuple of three strings (the volume path, the .meta path, the .lease path). The mount point mount may end with one or more slashes; remove them so the paths contain no double slashes.",
+   "hint": "Use mount.rstrip('/') and an f-string; the suffixes are simply appended to the volume path."
+  },
+  {
+   "id": "ov20-parse-meta",
+   "title": "Parsing domain metadata",
+   "statement": "The dom_md/metadata file consists of KEY=VALUE lines. Write a function parse_domain_meta(text): return a dictionary. Rules: first strip spaces at the edges of every line; empty lines and lines without a = sign are skipped (for example, the line EOF); a line is split at the FIRST = sign, so the value may contain = and may be empty; the key _SHA_CKSUM does not go into the dictionary; the values of the keys VERSION, MASTER_VERSION, LEASETIMESEC, LEASERETRIES, IOOPTIMEOUTSEC and LOCKRENEWALINTERVALSEC, if they consist only of digits, become integers, all other values stay strings. If a key repeats, the last line wins.",
+   "hint": "Use splitlines(), then line.split('=', 1); integers via str.isdigit()."
+  },
+  {
+   "id": "ov20-lv-tags",
+   "title": "Logical volume tags",
+   "statement": "In a block domain, a volume's links are recorded in LVM tags. Write a function parse_lv_tags(tags): tags is a list of strings. The tag IU_<x> gives the image with value x, the tag PU_<x> gives the parent with value x, the tag MD_<n> gives the metadata slot number (slot) as an integer. Return a dictionary with the keys \"image\", \"parent\", \"slot\"; a missing value is None. A parent equal to the zero identifier 00000000-0000-0000-0000-000000000000 means there is no parent (a base) and also gives None. All other tags are ignored. If a tag of one kind appears several times, the last one wins.",
+   "hint": "For each tag test tag.startswith('IU_') and so on; the slice tag[3:] gives the value."
+  },
+  {
+   "id": "ov20-chain-order",
+   "title": "Volume order in a chain",
+   "statement": "The volumes of one image arrive in arbitrary order as a list of tuples (id, parent); a base has an empty string as parent. Write a function chain_order(volumes): return the list of identifiers from the base to the leaf. A chain is valid only if: the identifiers are unique, there is exactly one base, every parent (except the empty one) is among the identifiers, no volume has two children, and all volumes belong to a single chain starting at the base (cycles are unreachable from the base). For any invalid chain and for an empty list, return an empty list.",
+   "hint": "Build a dictionary parent → child, catching a second child as you build. Walk from the base and compare the walk length with the number of volumes."
+  },
+  {
+   "id": "ov20-read-lookup",
+   "title": "Where a block is read from",
+   "statement": "A read in a chain goes from the leaf down to the base. The chain is a list of tuples (volume id, list of allocated clusters), ordered from the base to the leaf. Write a function read_source(chain, cluster): return a tuple (id, checked), where id is the topmost volume in which the cluster is allocated, and checked is how many volumes had to be inspected, counting the one found. If the cluster is in no volume, it reads as zeros: return (\"zero\", the number of volumes in the chain). For an empty chain return (\"zero\", 0).",
+   "hint": "Iterate over reversed(chain) with a counter; if the loop ends without a hit, it is zeros."
+  },
+  {
+   "id": "ov20-live-merge",
+   "title": "Merging a volume into its parent",
+   "statement": "A model of merging a chain link. The chain is a list of tuples (id, data) from the base to the leaf, where data is a dictionary cluster → content (string keys, string values). Write a function merge_volume(chain, vol): return a tuple (new_chain, moved). Rules: if vol is the base (the first volume) or there is no such volume, the chain is returned unchanged and moved is 0. Otherwise the data of vol move into its parent (the previous volume): for every cluster the value from vol replaces the parent's value, the other clusters of the parent stay; the volume vol is removed from the chain, the order of the rest does not change, and the one that stood after vol now follows the parent. moved is the number of clusters in vol's data. The input lists and dictionaries must not be modified; the new chain consists of tuples (id, dictionary).",
+   "hint": "Find the index i of vol; the merged dictionary is {**chain[i-1][1], **chain[i][1]}; build a new list without i."
+  },
+  {
+   "id": "ov20-thin-extend",
+   "title": "Extending a thin volume",
+   "statement": "A model of extending a thin qcow2 volume on a block domain (all numbers in MB). The volume has a current size size, a maximum max_size, an extension chunk chunk, and a threshold threshold. The samples samples are the image fill levels (used) at polling moments. For each sample in order: 1) if used is greater than size, the machine got a write error: pauses grows by 1, then the volume is extended in emergency by chunks of chunk (but not beyond max_size) until size is at least used or reaches max_size; each chunk counts as one extension; 2) then, if size is less than max_size and the free space size − used is strictly less than threshold, the volume is extended by one more chunk (not beyond max_size), which counts as one extension. Write a function thin_extend(size, chunk, threshold, max_size, samples): return a tuple (final_size, number_of_extensions, pauses).",
+   "hint": "Keep three counters; the extension step is size = min(size + chunk, max_size). Conditions 1 and 2 are checked one after the other for each sample."
+  },
+  {
+   "id": "ov20-pick-spm",
+   "title": "Choosing the SPM",
+   "statement": "A model of choosing the Storage Pool Manager. The hosts are a list of dictionaries with the fields name (a string), id (an integer, the host number), prio (an integer: the larger, the higher the priority; the value -1 means \"never be the SPM\"), up (bool) and sees_master (bool, the host sees the master domain). An eligible host: up and sees_master, and prio not less than zero. Write a function pick_spm(hosts, current): current is the name of the present SPM or an empty string. If current is eligible, it stays the SPM (return current). Otherwise return the name of the eligible host with the largest prio, and on a tie the one with the smallest id. If there are no eligible hosts, return an empty string.",
+   "hint": "First filter the eligible hosts, then check current among their names, then take min by the key (-prio, id)."
+  },
+  {
+   "id": "ov20-lease-sim",
+   "title": "A sanlock lease simulation",
+   "statement": "A model of a single lease. An event is a tuple (time, host, action), events come in non-decreasing time order, and timeout is the lifetime of the lease. State: the owner and the expiry moment expires. The lease is free if there is no owner or the event time is not less than expires (it has expired). Actions: \"acquire\": if the lease is free or the owner is the same host, the host becomes the owner, expires = time + timeout, and the result is \"ok\"; otherwise \"busy\". \"renew\": if the host is the owner and the time is less than expires, then expires = time + timeout and the result is \"ok\"; otherwise \"lost\" (the state does not change). \"release\": if the host is the owner and the time is less than expires, the lease is freed and the result is \"ok\"; otherwise \"noop\". Write a function lease_sim(events, timeout): return a tuple (the list of results per event, the owner after the last event). The owner after the last event is the host name only if the lease has not expired at the moment of the last event (time is less than expires), otherwise an empty string. For an empty list of events return ([], \"\").",
+   "hint": "Keep owner and expires; at the start of each event compute free = owner is None or t >= expires."
+  },
+  {
+   "id": "ov20-domain-status",
+   "title": "Domain status",
+   "statement": "A model of determining a domain's status. Write a function domain_status(maintenance, busy, reports): maintenance and busy are bool, reports is a list of tuples (host_state, valid) with the hosts' reports about the domain, valid is bool. Only reports of hosts in the state \"Up\" count. Rules in order: if maintenance, \"Maintenance\"; otherwise if busy (an operation is running), \"Locked\"; otherwise if there are no counted reports, \"Unknown\"; otherwise if at least one counted report is valid, \"Active\"; otherwise \"Inactive\".",
+   "hint": "Filter the reports by the Up state, then test the conditions in the given order."
+  },
+  {
+   "id": "ov20-space-report",
+   "title": "Domain space report",
+   "statement": "A model of space accounting in a domain. Write a function space_report(total_gb, disks, warn_pct, crit_gb): total_gb is the domain capacity (an integer greater than zero), disks is a list of tuples (virtual_size, actual_size) in GB, warn_pct is the warning threshold in percent, crit_gb is the critical threshold in GB. Return a tuple (free, overcommit, state). free = total_gb minus the sum of the actual sizes. overcommit = the sum of the virtual sizes divided by total_gb, rounded to two digits (round). state: \"critical\" if free is strictly less than crit_gb; otherwise \"warning\" if free * 100 is strictly less than warn_pct * total_gb; otherwise \"ok\".",
+   "hint": "Make the sums in one pass; compare with warn_pct by multiplication, without division, to avoid fractions."
+  },
+  {
+   "id": "ov20-lv-sizes",
+   "title": "Logical volume sizes",
+   "statement": "A model of LV sizes on a block domain (all in MB, an LV size is a multiple of extent_mb: round up). Write a function lv_sizes(virtual_mb, kind, chunk_mb, extent_mb): return a tuple (initial_size, maximum_size). For kind == \"preallocated\" both equal the virtual size rounded up to a multiple of extent_mb. For kind == \"thin\" (qcow2 grows) the maximum is the virtual size plus a 10 percent reserve for qcow2 metadata (compute in integers: ceil(virtual_mb * 11 / 10)), rounded up to a multiple of extent_mb; the initial size is chunk_mb rounded up to a multiple of extent_mb, but not more than the maximum.",
+   "hint": "A round-up helper: -(-x // e) * e. For thin, compute the maximum first."
+  },
+  {
+   "id": "ov20-lsm-rollback",
+   "title": "Live storage migration rollback",
+   "statement": "Live storage migration runs the steps in order: \"snapshot\", \"create_target\", \"mirror\", \"pivot\", \"delete_source\". Write a function lsm_run(fail_at): fail_at is the name of the step where a failure happens, or an empty string if there are no failures. Return a tuple (done, location, cleanup). done is the list of successfully completed steps in order (the failed step is not included; with no failure, all five). location is \"target\" if the pivot step completed successfully, otherwise \"source\". cleanup is the list of rollback actions in order: if the failure is at mirror or pivot, first \"abort_mirror\"; then, if the failure is at create_target, mirror, or pivot, \"remove_target\"; if the failure is at delete_source, the only action is \"retry_delete_source\"; with a failure at snapshot and with no failure cleanup is empty.",
+   "hint": "steps.index(fail_at) gives the number of completed steps; then a few ifs for the rollback."
+  }
+ ]
+}

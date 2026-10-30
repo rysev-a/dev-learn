@@ -1,0 +1,90 @@
+{
+ "book": 17,
+ "chapter": 23,
+ "tasks": [
+  {
+   "id": "ov23-split-href",
+   "title": "Parsing a REST link",
+   "statement": "Links in REST API replies look like \"/ovirt-engine/api/vms/123/nics/9\". After the prefix \"/ovirt-engine/api\" the segments alternate: a collection name, an identifier, a collection name, an identifier, and so on. Write a function split_href(href): return a list of tuples (collection, identifier). If the path ends with a name that has no identifier (a collection or an action), the identifier in the last tuple is None. The prefix may be absent (then it is just a path); ignore empty segments caused by extra slashes. The prefix is removed only if href equals it or starts with it followed by a slash.",
+   "hint": "Remove the prefix, split by '/', filter out the empty ones, and walk the pairs with a step of 2."
+  },
+  {
+   "id": "ov23-build-query",
+   "title": "A list query string",
+   "statement": "Build a query string for a collection. The function is build_query(search, sortby, page, max_items, follow). The value of the search parameter is joined from parts with a single space, empty parts skipped: search itself (a string), then \"sortby \" + sortby (if sortby is not an empty string), then \"page \" + the number (if page is not None). Only three characters are encoded in the value: space → %20, = → %3D, * → %2A. The parameters go in the order search, max, follow; search is included only if its value is non-empty; max=<number> if max_items is not None (zero is included too); follow=<names joined by commas> if the follow list is non-empty. Join the parameters with &, do not put a ? in front. If there are no parameters, return an empty string.",
+   "hint": "First build a list of parts and join with a space, then three replace calls. Then a list of name=value pairs joined by '&'."
+  },
+  {
+   "id": "ov23-minimal-role",
+   "title": "The minimal role",
+   "statement": "Automation needs the role with the fewest permissions. You get roles, a dictionary role name → list of operations, and needed, a list of required operations. Write a function minimal_role(roles, needed): return the name of the role that contains all the needed operations and has the smallest number of distinct operations; on a tie, the alphabetically smaller name. If no role fits, return an empty string. With an empty needed any role fits.",
+   "hint": "Filter the roles for which set(needed) <= set(ops) and take the minimum by (len(set(ops)), name)."
+  },
+  {
+   "id": "ov23-allowed",
+   "title": "Permission check with inheritance",
+   "statement": "Permissions in oVirt are inherited downward through the hierarchy. Objects are written as paths like \"dc1/cl1/vm1\". You get: grants, a dictionary path → list of the user's roles on that object (the key \"\" means the whole system), and roles, a dictionary role → list of operations. Write a function allowed(grants, roles, path, op): return True if on the object path itself or on any of its ancestors (by whole segments: \"dc1\" is an ancestor of \"dc1/cl1\" but not of \"dc10/x\") the user has a role that contains the operation op. A role missing from roles gives nothing. Permissions on descendants do not act upward.",
+   "hint": "Build the path prefixes: '', 'dc1', 'dc1/cl1', ... and look each one up in grants."
+  },
+  {
+   "id": "ov23-login-times",
+   "title": "When the client takes a new token",
+   "statement": "An automation client calls the API at the moments request_times (integer seconds in ascending order). A token is issued for lifetime seconds from the moment it is obtained. The rules: on the first request the client obtains a token; on each following request at the moment t, if t >= t_issued + lifetime - skew (a margin of skew seconds before expiry), the client obtains a new token ahead of time at that same moment t. Otherwise it uses the old one. Write a function login_times(request_times, lifetime, skew): return the list of moments at which the client obtained a token. For an empty list of requests, return an empty list.",
+   "hint": "Keep the moment of the last issue; on each request compare t with issued + lifetime - skew."
+  },
+  {
+   "id": "ov23-event-digest",
+   "title": "Fresh events from the log",
+   "statement": "An external script polls the event log and gets lines like \"2026-10-30 12:00:01 | 42 | WARNING | VM web1 started on host h1\": a time, a numeric identifier, a severity (NORMAL, WARNING, or ERROR), and a text. A line is valid if split(\" | \", 3) gives exactly four parts, the identifier consists of digits (after strip), and the severity is one of the three. Invalid lines are skipped. If an identifier appears again, the first line wins. Write a function digest(lines, min_severity): return a tuple (last_id, alerts). last_id is the largest identifier among the valid lines of any severity (0 if there are none). alerts is a list of tuples (id, text) of the valid lines whose severity is not lower than min_severity (the order is NORMAL < WARNING < ERROR), sorted by id. The text has no spaces at the edges.",
+   "hint": "Parse each line with checks; a dictionary id → (severity, text) that never overwrites handles duplicates."
+  },
+  {
+   "id": "ov23-user-data",
+   "title": "Building cloud-init user data",
+   "statement": "Write a function build_user_data(hostname, users, packages, runcmd) that builds user-data text in YAML. The first line is always \"#cloud-config\". Then sections in this order, with empty ones and None skipped: \"hostname: <name>\"; \"users:\", and for each user (a dictionary with the fields name and keys) a line \"  - name: <name>\", and if the keys list is non-empty — \"    ssh_authorized_keys:\" and a line \"      - <key>\" for each key; \"packages:\" and lines \"  - <package>\"; \"runcmd:\" and lines \"  - <command>\". Lines are joined with \\n, with a single \\n at the end. Nothing needs escaping.",
+   "hint": "Accumulate a list of lines and add the sections one by one; at the end '\\n'.join(lines) + '\\n'."
+  },
+  {
+   "id": "ov23-network-config",
+   "title": "Network config for the first boot",
+   "statement": "Write a function build_network_config(nics) that builds a network configuration in YAML. nics is a list of dictionaries with the field name and optional ip, netmask (like \"255.255.255.0\"), gateway, dns (a list). The first line is \"version: 2\". If nics is empty, there is nothing more. Otherwise comes the line \"ethernets:\", and for each interface in the given order: \"  <name>:\". If ip is set — \"    addresses:\" and a line \"      - <ip>/<prefix>\", where the prefix is the number of one bits in the mask; then, if gateway is set, \"    gateway4: <gateway>\"; then, if dns is non-empty, \"    nameservers:\", \"      addresses:\" and a line \"        - <dns>\" for each server. If ip is not set — a single line \"    dhcp4: true\" (gateway and dns are ignored in this case). Lines are joined with \\n, with a single \\n at the end.",
+   "hint": "Prefix: sum(bin(int(o)).count('1') for o in netmask.split('.')). The rest is careful appends to a list of lines."
+  },
+  {
+   "id": "ov23-pool-plan",
+   "title": "A VM pool plan",
+   "statement": "A pool creates machines from a template by a name mask pattern. The '?' characters in the mask form one group (or are absent altogether): the prefix is everything before the group, the suffix everything after it. The name for number k (k >= 1) is prefix + k left-padded with zeros to the number of '?' characters (str(k).zfill(width)) + suffix; if there are no '?' characters, the suffix is empty, the width is 1, and the number is simply appended to the mask. The pool members are the names from existing that exactly match the name of some number (\"p-1-x\" with the mask \"p-??-x\" is not a member). Write a function pool_plan(pattern, size, existing, running, prestarted): new machines are created while the members number fewer than size, and they take the smallest free numbers in ascending order. Return a tuple (new_names, to_start). new_names are the names of the new machines in the order of creation. Then take all the members and the new names, sort them by name; the first min(prestarted, size) of them must be running, and to_start is those of them that are not in the running list, in the same order.",
+   "hint": "First a function name(k). To test a member, parse the middle part: str(int(mid)).zfill(width) == mid and int(mid) >= 1."
+  },
+  {
+   "id": "ov23-search-vms",
+   "title": "The oVirt search language",
+   "statement": "Implement a simplified search language. The function is search_vms(query, vms): vms is a list of machine dictionaries (the name field is always present, the others are arbitrary, for example status, cluster, memory). A query is terms joined by the words and and or (in any case, as separate words surrounded by spaces); and binds tighter than or. A term has the form field operator value, where the operator is one of =, !=, <, >, spaces around the operator are allowed, and the value contains no spaces. A field that the machine lacks makes the term false with any operator. For =, the value is compared with str(field) case-insensitively, and a * in the value stands for any (including empty) sequence of characters; != is the negation of =, but only for a present field. For < and > the field and the value are converted to int; if that fails, the term is false. An empty query matches everything. Return the list of names of the matching machines in the original order.",
+   "hint": "re.split(r'\\s+(and|or)\\s+', q, flags=re.I) gives term/word alternation. Split into groups by or, inside a group use all(). For * build a regex from re.escape pieces joined by '.*'."
+  },
+  {
+   "id": "ov23-walk-pages",
+   "title": "Walking the API pages",
+   "statement": "A client collects a whole collection page by page, max_items elements each. The fake server is given by the list pages: for a request of page number p (starting from one) it answers pages[p-1], and beyond the list with an empty list. The client requests pages 1, 2, 3, ... and after each reply adds to the result the elements that are not there yet (when pages shift between requests, elements may repeat); it stops right after the first reply with fewer than max_items elements (an empty reply counts too). Write a function walk_pages(pages, max_items): return a tuple (items, requests): the list of collected elements in the order of arrival and the number of requests made. Count the length of the server's reply, not of the collected elements (the reply length is compared with max_items before duplicates are removed).",
+   "hint": "A while True loop: request, add the new ones, check len(chunk) < max_items."
+  },
+  {
+   "id": "ov23-poll-backoff",
+   "title": "Waiting for a status with growing pauses",
+   "statement": "A script waits for a machine to reach the status target, polling the API with growing pauses. The replies are given by the list statuses: the n-th poll (from zero) returns statuses[n], and after the end of the list the last status repeats. The time model: poll 0 happens at the moment t = 0. The rules after each poll: if the status equals target — return ('ok', number_of_polls, t); if the status is in the fail list — return ('failed', number_of_polls, t); otherwise, if t + delay > deadline — return ('timeout', number_of_polls, t); otherwise wait: t += delay, then delay = min(delay * factor, cap), and the next poll. The first pause is initial. Write a function poll_backoff(statuses, target, fail, initial, factor, cap, deadline) and return that tuple.",
+   "hint": "Three variables: t, delay, polls. The poll's status is statuses[min(polls, len(statuses) - 1)] before polls is incremented."
+  },
+  {
+   "id": "ov23-plan-vms",
+   "title": "A plan to reach the described state",
+   "statement": "An idempotent planner, like the ovirt_vm module. current is a dictionary machine name → \"up\" or \"down\" (existing machines), desired is a dictionary name → desired state: \"present\", \"running\", \"stopped\", or \"absent\". The rules for a name from desired. present: if there is no machine — create (a new machine is off), otherwise nothing. running: no machine — create, start; off — start; on — nothing. stopped: no machine — create; on — stop; off — nothing. absent: no machine — nothing; off — remove; on — stop, remove. Machines in current that are not in desired are left alone. Write a function plan_vms(current, desired): return a list of tuples (name, action), ordered by name alphabetically, and for one machine in execution order. If everything already matches the description, the list is empty.",
+   "hint": "Loop over sorted(desired); inside, branches by state; current.get(name) is None when the machine does not exist."
+  },
+  {
+   "id": "ov23-retry-run",
+   "title": "Safe retries of a call",
+   "statement": "Model an API call with retries. The outcomes of attempts are given by the list outcomes: attempt n (from zero) gives outcomes[n], and after the end of the list the last one repeats. The outcomes: \"ok\" (success), \"bad_request\" (a client error, retrying is pointless), \"unauthorized\" (401: the token expired), \"timeout\" (unknown whether the request arrived), \"conflict\" and \"server_error\" (busy or failed, the request was not applied); any other outcome is a failure. The rules after an attempt with an outcome other than \"ok\": if the outcome is \"bad_request\" or unknown — failure; if max_attempts attempts have been made — failure; \"unauthorized\": get a new token and retry immediately with no pause, but only once per call (a second 401 is a failure); \"timeout\": with idempotent=False a failure (the request might have been applied), otherwise retry after a pause; \"conflict\" and \"server_error\" — retry after a pause. The pause number i (from zero among the pauses) equals min(base * 2**i, cap). Write a function run_with_retries(outcomes, idempotent, max_attempts, base, cap) and return the tuple (status, attempts, total_pause), where status is \"ok\" or \"failed\".",
+   "hint": "Counters: attempts, waits (the number of pauses), total, a renewed flag. The order of checks: ok, bad/unknown, attempt limit, unauthorized, timeout, pause."
+  }
+ ]
+}

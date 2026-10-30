@@ -1,0 +1,78 @@
+{
+ "book": 17,
+ "chapter": 19,
+ "tasks": [
+  {
+   "id": "ov19-host-history",
+   "title": "Host status history",
+   "statement": "A model of a host's life. Transitions (status, event) → new status: (Installing, install_ok) → Up; (Installing, install_fail) → InstallFailed; (InstallFailed, reinstall) → Installing; (Up, no_heartbeat) → Connecting; (Connecting, heartbeat) → Up; (Connecting, retries_exhausted) → NonResponsive; (NonResponsive, heartbeat) → Up; (NonResponsive, fenced) → Connecting; (Up, requirement_failed) → NonOperational; (NonOperational, requirement_ok) → Up; (Up, maintenance) → PreparingForMaintenance; (NonOperational, maintenance) → PreparingForMaintenance; (PreparingForMaintenance, evacuated) → Maintenance; (Maintenance, activate) → Up; (Maintenance, reinstall) → Installing. An event with no transition is ignored. Write a function host_history(start, events): return the list of statuses the host went through, starting with start; only real status changes are added (ignored events add nothing).",
+   "hint": "Keep the transitions in a dictionary keyed by a tuple; append the new status to the list only if it differs from the current one."
+  },
+  {
+   "id": "ov19-deploy-log",
+   "title": "Host deployment outcome",
+   "statement": "A host deployment log is a list of lines. A task line looks like \"<time> TASK <task name> -> <result>\": the time is one word without spaces, then the word TASK, then the name (it may contain spaces and even the characters \" -> \"), then the separator \" -> \" and the result. The result must be one of ok, changed, skipped, failed; the separator taken is the last one in the line. All other lines (including those with a different result) are ignored. Write a function deploy_result(lines): return a tuple (status, name of the first failed task, number of tasks with result changed). The status is \"InstallFailed\" if there was at least one task with result failed (the name is taken from the first one; an empty name is allowed); otherwise \"Up\" if there was at least one valid line; otherwise \"Installing\" with an empty name and zero. Tasks with changed are counted over all valid lines.",
+   "hint": "line.split(' ', 2) gives the time, the word TASK, and the rest; split the rest with rpartition(' -> ')."
+  },
+  {
+   "id": "ov19-vdsm-client",
+   "title": "Parsing a vdsm-client call",
+   "statement": "Write a function parse_vdsm_client(cmd) that parses a command line of the form \"vdsm-client <Namespace> <verb> key=value ...\". The line is split on whitespace (any number of spaces, no quoting). The first word must be vdsm-client, then a namespace and a verb are required, otherwise return None. Every remaining argument is key=value, split at the first = sign; the value may contain = and may be empty, but an empty key or a missing = gives None. Values are converted: exactly true and false become booleans; a string of decimal ASCII digits with an optional single leading minus (a minus plus digits, or digits only, but not just \"-\") becomes an integer; everything else stays a string (including \"1.5\"). If a key repeats, the last one wins. Return a tuple (namespace, verb, params) where params is a dictionary.",
+   "hint": "Use split() without arguments; tok.partition('=') gives key, sign, and value; for a number strip one leading '-' and check isdigit()."
+  },
+  {
+   "id": "ov19-fencing-candidate",
+   "title": "When a host becomes a candidate",
+   "statement": "The engine polls a host and records the results: polls is a list of pairs (time in seconds, ok) ordered by time. The host becomes a fencing candidate at the poll where two conditions hold at once: at least attempts consecutive failures (ok is False) have accumulated, and at least timeout seconds have passed since the time of the first failure of this streak. A successful poll resets the streak. Write a function fencing_candidate(polls, attempts, timeout): return the time of the first poll at which the host became a candidate, or -1 if it never did.",
+   "hint": "Keep a streak counter and the streak's start time; reset the counter on a successful poll."
+  },
+  {
+   "id": "ov19-host-verdict",
+   "title": "Host verdict",
+   "statement": "The engine checks a host in order and stops at the first problem. A host is described by a dictionary with the fields installed (bool), reachable (bool), missing_networks (a list of network names), cpu_ok (bool), storage_ok (bool). The rules in order: if not installed, (\"InstallFailed\", \"install failed\"); if not reachable, (\"NonResponsive\", \"unreachable\"); if missing_networks is not empty, (\"NonOperational\", \"network: \" + the names, sorted and joined with commas without spaces); if not cpu_ok, (\"NonOperational\", \"cpu\"); if not storage_ok, (\"NonOperational\", \"storage\"); otherwise (\"Up\", \"ok\"). Write a function host_verdict(h) that returns such a tuple.",
+   "hint": "A chain of ifs with early returns; for the networks use ','.join(sorted(...))."
+  },
+  {
+   "id": "ov19-evacuate",
+   "title": "Evacuating a host",
+   "statement": "A host is going into maintenance. vms is the list of machines on it, each a dictionary with the fields name, mem (MB) and pinned (bool); targets is a dictionary host name → free memory (MB) on the other hosts. Pinned machines cannot be moved and stay in place. The others are processed in descending order of mem, and by name on a tie. Each is put on the host with the most free memory among those where it fits (mem not greater than the free memory); on a tie, on the host with the smaller name; then that host's free memory is reduced. If no host fits, the machine stays. Write a function evacuate(vms, targets): return a tuple (status, placements, remaining). The status is \"Maintenance\" if no machines remain, otherwise \"PreparingForMaintenance\"; placements is a dictionary machine name → host; remaining is a sorted list of names.",
+   "hint": "Sort the movable ones by (-mem, name); to pick a host use min(fitting, key=lambda n: (-free[n], n))."
+  },
+  {
+   "id": "ov19-fence-proxy",
+   "title": "Choosing a fence proxy",
+   "statement": "The fencing command is run by another host. hosts is a list of dictionaries with the fields name, status, cluster, dc; target is the name of the host to fence; order is a list of search scopes from \"cluster\", \"dc\", \"other_dc\". Scope \"cluster\": hosts of the same data center and the same cluster; \"dc\": the same data center but another cluster; \"other_dc\": another data center. Only hosts with status \"Up\" qualify, other than target itself. The scopes are tried in the order of order, the first one with candidates is taken, and in it the host with the smallest name. Scopes not listed in order are not searched. Write a function pick_fence_proxy(hosts, target, order): return the proxy name, or an empty string if none qualifies or if target is not in the list.",
+   "hint": "Find target's record, then for each scope collect the names of qualifying hosts and take min."
+  },
+  {
+   "id": "ov19-fencing-policy",
+   "title": "Fencing policy",
+   "statement": "Write a function decide_fencing(policy, lease_age, statuses, bricks_up). policy is a dictionary of cluster settings; missing keys mean: enabled is True, skip_live_lease, skip_connectivity, skip_gluster_bricks are False, threshold is 50. lease_age is how many seconds ago the unresponsive host last renewed its storage lease (None if unknown); statuses is the list of statuses of all hosts in the cluster, including the unresponsive one; bricks_up says whether the Gluster bricks are running. Checks in order, the first that fires returns (\"skip\", reason): enabled false, \"fencing disabled\"; skip_live_lease and lease_age is not None and lease_age is strictly less than 80, \"live lease\"; skip_connectivity and statuses is not empty and the percentage of hosts with status \"NonResponsive\" is at least threshold (compare with integers: 100 * bad >= threshold * total), \"connectivity\"; skip_gluster_bricks and bricks_up, \"gluster bricks up\". If nothing fired, return (\"fence\", \"\").",
+   "hint": "Use policy.get(key, default); the checks are a chain of ifs with returns in the stated order."
+  },
+  {
+   "id": "ov19-fence-run",
+   "title": "The fencing run",
+   "statement": "Model a fencing run. Write a function fence_run(soft_ok, agents). Soft fencing always goes first: \"soft\" is appended to the log. If soft_ok is true, return (log, \"recovered\"). Otherwise, if agents is empty (no power management), return (log, \"manual_confirm\"). Otherwise the agents are tried in order, each a tuple (name, stop_ok, start_ok): for each one \"off:\" + name is appended to the log, and if its stop_ok is true the search stops and this agent becomes the chosen one. If no agent switched the host off, return (log, \"failed\"). After the switch-off, \"on:\" + the name of the same agent is appended to the log; if its start_ok is true the result is \"rebooted\", otherwise \"powered_off\". Return a tuple (log list, result).",
+   "hint": "Create a log list and a chosen variable; after the loop check whether an agent was found."
+  },
+  {
+   "id": "ov19-kdump-wait",
+   "title": "Wait for a kernel dump?",
+   "statement": "If the kdump integration is enabled, the engine listens to messages from the host. messages is a list of triples (time, host name, kind) in arbitrary order; the kind is \"started\", \"progress\" or \"done\". Write a function kdump_decision(messages, host, now, timeout). Only messages of the host host with a time not later than now are considered. If there are none, return \"fence\". Otherwise take the latest by time. If its kind is \"done\", return \"treat_as_rebooted\". If no more than timeout seconds have passed since its time (now - time <= timeout), return \"wait\", otherwise \"fence\".",
+   "hint": "Filter the messages, take the max by time, and compare the kind and the difference now - t."
+  },
+  {
+   "id": "ov19-restart-ha",
+   "title": "Restarting HA machines",
+   "statement": "A host has been fenced and its highly available machines must be restarted. vms is a list of dictionaries with the fields name, prio (an integer, higher is more important), mem (MB), and group (an anti-affinity group string or an empty string); hosts is a dictionary host name → free memory (MB). Machines are processed in descending prio, and by name on a tie. For each one the hosts are tried in alphabetical order, and the first is taken where the free memory suffices (mem not greater than the free memory) and, if group is not empty, no machine of the same group has yet been placed on it in this run. The chosen host's free memory is reduced. If no host fits, the machine goes to the pending list. Write a function restart_ha(vms, hosts): return a tuple (placements, pending), where placements is a dictionary machine name → host and pending is the list of names in processing order.",
+   "hint": "Keep for each host a set of groups already placed; sort vms by (-prio, name) and hosts by sorted(free)."
+  },
+  {
+   "id": "ov19-rolling-upgrade",
+   "title": "Rolling cluster upgrade",
+   "statement": "Model a sequential upgrade. hosts is a dictionary name → (number of VMs, capacity in VMs). The upgrade order is fixed once at the start: ascending by number of VMs, and by name on a tie. For each host h in turn: the free space on the other hosts is the sum of (capacity − current number of VMs) over all hosts except h. If it is less than the number of VMs on h, the upgrade stops and h is called the blocking host. Otherwise h's machines move to the other hosts: the hosts are taken in alphabetical order, and min(free space, machines left) is put on each. The number of VMs on h becomes 0, h counts as upgraded and stays in service, accepting machines in the next steps. Write a function rolling_upgrade(hosts): return a tuple (list of upgraded hosts in upgrade order, the blocking host name or an empty string).",
+   "hint": "Keep two dictionaries, vms and cap; compute the order up front and do not recompute it."
+  }
+ ]
+}

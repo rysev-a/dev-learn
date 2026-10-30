@@ -1,0 +1,78 @@
+{
+ "book": 17,
+ "chapter": 18,
+ "tasks": [
+  {
+   "id": "ov18-parse-answers",
+   "title": "Parsing an answer file",
+   "statement": "An engine-setup answer file is text made of lines like KEY=type:value. Write a function parse_answers(text) that returns a dictionary key → value. The key is the text before the first \"=\". The type is the text between that \"=\" and the next \":\", and the value is everything after that \":\" (it may itself contain \":\" and \"=\"). Types: str is the string as is; int is an integer; bool is True if the value equals \"True\" and False otherwise; none ignores the value and gives None. Empty lines, lines starting with \"#\" or \"[\", lines without \"=\" or without \":\" after it, and lines with an unknown type are skipped. Whitespace at the ends of a line is stripped. If a key appears again, the last line wins.",
+   "hint": "Use text.splitlines(), strip(), then split('=', 1) and split(':', 1); choose the type with if/elif."
+  },
+  {
+   "id": "ov18-rollup",
+   "title": "DWH metric rollup",
+   "statement": "DWH collects per-minute metrics and rolls them up into hourly ones. Write a function rollup(samples): samples is a list of tuples (minute, value), where minute is an integer count of minutes from the start and value is an integer. The hour is minute // 60. Return a list of tuples (hour, count, average, maximum) for every hour that has samples, ascending by hour. The average is sum/count rounded to one decimal with round(x, 1). The input may be unordered; for an empty list return an empty list.",
+   "hint": "Group values into a dictionary hour → list, then walk through sorted(groups.items())."
+  },
+  {
+   "id": "ov18-run-command",
+   "title": "A command with compensation",
+   "statement": "A model of an engine command. A command is a list of steps (name, succeeds, undoable). Steps run in order. A successful step writes the line \"do:name\" to the log. The first unsuccessful step writes \"fail:name\", after which the remaining steps do not run, and the steps already done are processed in reverse order: an undoable step writes \"undo:name\", a non-undoable one writes \"skip:name\". The failed step itself is not processed. Write a function run_command(steps): return a tuple (status, log), where status is \"FINISHED\" if no step failed and \"FAILED\" otherwise; the log is a list of strings.",
+   "hint": "Collect the done steps in a list; on failure walk over reversed(done)."
+  },
+  {
+   "id": "ov18-run-tree",
+   "title": "A tree of nested commands",
+   "statement": "Commands can be nested. A tree node is a tuple (name, succeeds, children), where children is a list of nodes of the same form. Execution is depth-first: a node first does its own work, then its child commands in turn. A successful node writes \"do:name\" and counts as done; an unsuccessful node writes \"fail:name\" and the whole execution stops immediately (its children and all following nodes do not start). If execution was interrupted, all previously done nodes are compensated — including the ancestors of the failed node — in the reverse order of \"do\", and each writes \"undo:name\". Write a function run_tree(root): return (status, log), where status is \"FINISHED\" or \"FAILED\".",
+   "hint": "A recursive function run(node) returns True/False; keep the list of done names in the closure."
+  },
+  {
+   "id": "ov18-job-status",
+   "title": "Job status from its steps",
+   "statement": "A job's status is built from its steps' statuses, and a step may have substeps. A step is a tuple (status, substeps), substeps being a list of the same steps. Statuses are ordered from best to worst: FINISHED < STARTED < ABORTED < FAILED. A step's status is the worst among its own status and the statuses of all its substeps (at any depth). Write a function job_status(steps): return the worst status among all top-level steps of the job; for a job with no steps return \"STARTED\".",
+   "hint": "Give the statuses numbers and write a recursive function worst(step) using max."
+  },
+  {
+   "id": "ov18-audit-summary",
+   "title": "Audit log summary",
+   "statement": "An audit log line: \"date time SEVERITY CODE: message\", for example \"2026-10-30 12:01:00 ERROR VDS_FAILURE: Host h1 is non responsive\". Severities from weakest to strongest: NORMAL, WARNING, ERROR, ALERT. Write a function audit_summary(lines, min_severity): split each line into four parts on whitespace (lines[i].split(None, 3)); a line is skipped if it has fewer than four parts, the severity is not in the list, or the fourth part has no \":\". The code is the text of the fourth part up to the first \":\", stripped. Return a tuple (codes, counts): codes is the list of codes in line order for events whose severity is not below min_severity; counts is a dictionary severity → how many valid lines had it (all valid lines regardless of min_severity; severities with no lines are absent).",
+   "hint": "Make the severity order a dictionary {'NORMAL': 0, ...}; count with counts.get(sev, 0) + 1."
+  },
+  {
+   "id": "ov18-trace-correlation",
+   "title": "A command's trace in engine.log",
+   "statement": "A line of engine.log in our model: \"date time LEVEL logger thread [cid] message\", all fields before the message are separated by spaces and contain none themselves; the message is the rest of the line. Write a function trace_correlation(lines, cid): split each line with lines[i].split(None, 6); skip a line if it has fewer than seven parts or the sixth part (index 5) is not enclosed in square brackets. A line belongs to the command if the text inside the brackets equals cid. Return a tuple (entries, first_error): entries is a list of tuples (level, message) for the command's lines in log order (the message stripped); first_error is the message of the first entry with level ERROR, or an empty string if there is none.",
+   "hint": "tag = parts[5]; check tag[0] == '[' and tag[-1] == ']', compare tag[1:-1] with cid."
+  },
+  {
+   "id": "ov18-effective-setting",
+   "title": "Effective setting",
+   "statement": "A setting's value is looked up on three levels, from the nearest one. First the machine's settings vm (a dictionary key → value): if the key is there, take it. Then the cluster's settings cluster (a dictionary): if the key is there, take it. Then the global keys global_cfg: a dictionary key → dictionary version → value, where the version \"general\" means the default for any version. For a global key take the value for the compatibility version cver, and if that version is absent, the \"general\" value; if that is missing too, or the key is missing altogether, the result is None. A value equal to 0, False or an empty string still counts as set. Write a function effective(key, cver, vm, cluster, global_cfg).",
+   "hint": "Check presence with `key in vm`, not by the truthiness of the value."
+  },
+  {
+   "id": "ov18-can",
+   "title": "Permission check with inheritance",
+   "statement": "A permission model. The dictionary model contains: parents — a dictionary object → parent (the root has no parent entry; there are no cycles); roles — a dictionary role → list of actions (the action \"*\" allows anything); groups — a dictionary user → list of their groups; perms — a list of permissions (subject, role, object), where the subject is a user or group name. Write a function can(user, action, obj, model): return True if there is a permission whose subject is user or one of their groups, whose object is obj or any of its ancestors (following parents), and whose role (if it exists in roles) allows the action. An unknown role allows nothing. Otherwise return False.",
+   "hint": "Build the chain obj, parents[obj], ... in a while loop; then iterate over perms."
+  },
+  {
+   "id": "ov18-tokens",
+   "title": "Token lifetimes",
+   "statement": "A model of OAuth tokens. Events come in chronological order and are of three kinds: (\"issue\", t, token, ttl) — the token is issued at time t and is valid for times from t to t + ttl − 1 inclusive; (\"revoke\", t, token) — the token is revoked (revoking an unknown token does nothing); (\"use\", t, token) — an attempt to use the token. Issuing a token with the same name again replaces the old record entirely, including clearing a revocation. Write a function check_tokens(events): return a list of booleans — one for each \"use\" event, in order: True if the token was issued, is not revoked and has not expired at the time of use.",
+   "hint": "Store for each token its end time and a revoked flag; the event kind is ev[0]."
+  },
+  {
+   "id": "ov18-cert-report",
+   "title": "Certificate expiry report",
+   "statement": "Certificates form chains: each is signed by an issuer, and a certificate's lifetime is no longer than its issuer's. You get a list certs of tuples (name, days_left, issuer); the issuer is the name of another certificate in the list, and an empty string or a name not in the list means a root. A certificate's effective lifetime is the minimum of its own and its issuer's effective lifetime. Write a function cert_report(certs, warn_days, alert_days): for each certificate determine the status from the effective lifetime e: \"EXPIRED\" if e <= 0; otherwise \"ALERT\" if e <= alert_days; otherwise \"WARNING\" if e <= warn_days; otherwise the certificate is left out of the report. Return a list of tuples (name, status, e), sorted by e ascending, and by name on a tie.",
+   "hint": "A dictionary name → (days, issuer) and a recursive eff(name) with memoization; a root is when the issuer is not in the dictionary."
+  },
+  {
+   "id": "ov18-retention",
+   "title": "Backup retention",
+   "statement": "A retention policy for engine-backup copies. Copies are given by day numbers days (unique integers, any order). Parameters: daily — how many of the newest copies to keep unconditionally, weekly — for how many more weeks to keep one copy each. Among the remaining (older) copies, the week of a copy is day // 7. For every week that has remaining copies, the candidate is the newest copy of that week. Of the candidates, the copies of the weekly newest weeks are kept. Everything else is deleted. Write a function backups_to_delete(days, daily, weekly): return the list of day numbers whose copies must be deleted, sorted ascending.",
+   "hint": "sorted(days, reverse=True); keep the first daily, and from the rest build a dictionary week → first (newest) day."
+  }
+ ]
+}

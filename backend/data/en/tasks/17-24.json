@@ -1,0 +1,90 @@
+{
+ "book": 17,
+ "chapter": 24,
+ "tasks": [
+  {
+   "id": "ov24-backup-scope",
+   "title": "What the backups cover",
+   "statement": "The engine-backup utility makes a backup by scope. Rules of the model: scope 'all' covers the resources 'engine_db', 'engine_files' and 'dwh_db'; scope 'files' covers only 'engine_files'; scope 'db' only 'engine_db'; scope 'dwhdb' only 'dwh_db'. Unknown scopes cover nothing. Write a function uncovered(required, scopes): required is a list of resources that must be protected (it may include ones that no scope covers, for example 'vm_disks'), scopes is the list of scopes the backups were taken with. Return a sorted list of the required resources not covered by any backup, without duplicates.",
+   "hint": "Build the covered set from a dictionary scope → set of resources, then subtract it from the set of required."
+  },
+  {
+   "id": "ov24-backup-log",
+   "title": "Backup log verdict",
+   "statement": "An engine-backup log consists of lines like '<date> <time> <LEVEL>: <message>', for example '2026-03-01 02:00:01 INFO: Done.'. The levels are INFO:, WARNING:, ERROR:. A line that does not have four space-separated parts (date, time, level, message) or has another level is ignored. Write a function backup_status(lines): return a tuple (status, number of WARNING, number of ERROR). The status is 'failed' if there was at least one ERROR line; otherwise 'ok' if the message of the last counted line equals 'Done.'; otherwise 'incomplete'. An empty log gives ('incomplete', 0, 0).",
+   "hint": "line.split(' ', 3) gives the date, the time, the level and the rest as the message; remember the last counted line in the loop."
+  },
+  {
+   "id": "ov24-snapshot-chain",
+   "title": "Snapshot chain growth",
+   "statement": "A model of a disk's layer chain. At the start there is one base layer of size 0 (index 0). Operations: ['write', n] writes n MB into the top layer (layers grow); ['snapshot'] adds a new empty top layer; ['delete', i] deletes snapshot i: if 1 <= i < the number of layers, the size of layer i is added to layer i-1 (merge downward) and layer i disappears; otherwise the operation is ignored (the base layer cannot be deleted). Write a function chain_after(ops): return the list of layer sizes from the base to the top after all the operations in order.",
+   "hint": "Keep a list of sizes layers; a write is layers[-1] += n; a delete is layers[i-1] += layers[i]; del layers[i]."
+  },
+  {
+   "id": "ov24-snapshot-kind",
+   "title": "Snapshot consistency",
+   "statement": "A snapshot model. Parameters: vm_up (the machine is on), agent (the guest agent is running), quiesce (freezing the file systems was requested), memory (saving the memory was requested). Rules. If the machine is off, the snapshot kind is 'offline' and restoring a running state is impossible. If it is on, quiesce was requested and the agent is running, the kind is 'application'. Otherwise the kind is 'crash'; if quiesce was requested in that case (no agent), the warnings list gets 'quiesce_skipped'. For a machine that is on, restoring the running state is possible if and only if memory is true. Write a function snapshot_kind(vm_up, agent, quiesce, memory): return a tuple (kind, can_restore_running_state, list of warnings).",
+   "hint": "Handle the machine that is off first, then the condition quiesce and agent; return the boolean memory as it is."
+  },
+  {
+   "id": "ov24-dirty-blocks",
+   "title": "Which blocks to copy",
+   "statement": "A model of change bitmaps. The disk's event log events is a list of: ['write', b] (block b was written), ['checkpoint', name] (a checkpoint was created; names are unique) and ['reset'] (the change bitmaps were lost, for example the disk was swapped). Write a function blocks_to_copy(events, num_blocks, from_checkpoint). If from_checkpoint is None, this is a full backup: return the list of all block numbers from 0 to num_blocks-1. Otherwise it is an incremental backup: return the sorted list, without duplicates, of the blocks written after the checkpoint event with this name (count only blocks with 0 <= b < num_blocks). If there is no such checkpoint in the log, or a reset happened after it, an incremental backup is impossible: return None.",
+   "hint": "Find the index of the checkpoint event, then walk the tail: a reset gives None at once, a write adds the block to a set."
+  },
+  {
+   "id": "ov24-restore-chain",
+   "title": "Restore from a chain",
+   "statement": "A disk's backup chain chain is a list of items [name, kind, blocks] in order of creation. The kind is 'full' or 'inc'; blocks is a dictionary 'block name → content' (strings). For an incremental backup the value None means the block is empty again (remove it from the result). Write a function restore(chain, point): return the dictionary with the disk contents at the moment of the backup named point. To do that, find the last full backup not later than point and apply it and all the following backups up to and including point, in order. If there is no backup named point or no full backup before it, return None.",
+   "hint": "Find the index of point, walk back to a 'full', then apply the dictionaries with update; None means pop."
+  },
+  {
+   "id": "ov24-restorable",
+   "title": "Which backups are still restorable",
+   "statement": "Every backup has a pair [from, to]: from is the checkpoint the changes were counted from (None for a full backup), to is the checkpoint created by this backup (the to values are unique). A backup is restorable if it is full, or its from equals the to of some backup that is still in the dictionary and is itself restorable. A backup whose parent was deleted, and backups in a cycle, are not restorable. Write a function restorable(backups): backups is a dictionary 'backup id → [from, to]'; return a sorted list of the ids of the restorable backups.",
+   "hint": "Build a dictionary 'to → id' and climb through from recursively; track visited ones so you do not loop."
+  },
+  {
+   "id": "ov24-retention",
+   "title": "Grandfather-father-son retention",
+   "statement": "Backups are given as a list [id, day, parent], day is an integer (the day number), parent is the id of the previous backup of the chain or None for a full backup. The retention policy for the current day today: (1) daily: keep the backups with today - day < daily; (2) weekly: a backup's week is day // 7; for each of the last weekly weeks (those with today // 7 - week < weekly) keep the backup of the week with the latest day (on equal days, the later one in the list); (3) monthly: the same, but the month is day // 30 and the last monthly months. (4) A kept backup pulls in all of its ancestors along the chain of parents: they must not be deleted either. Write a function prune(backups, today, daily, weekly, monthly): return a sorted list of the ids of the backups that stay. A parent that is not in the list is simply skipped.",
+   "hint": "First collect the keep set by the three rules, then for every kept backup climb through the parents and add them."
+  },
+  {
+   "id": "ov24-worst-rpo",
+   "title": "Worst RPO of a schedule",
+   "statement": "RPO is how much data (in minutes of work) you can lose. The worst loss equals the longest gap between two successful backups. You get a list of attempts, pairs [minute, whether the attempt succeeded], and the length of the observation window window in minutes. Assume a good backup already exists at minute 0 and that a failure can happen up to and including minute window. Count only successful attempts with a minute from 0 to window. Write a function worst_rpo(attempts, window): return the largest gap between neighboring moments of the set {0} ∪ {successful attempts} ∪ {window}.",
+   "hint": "Sort the minutes of the successful attempts, add 0 and window, and take the maximum of the neighbor differences."
+  },
+  {
+   "id": "ov24-rto-path",
+   "title": "RTO by the critical path",
+   "statement": "A recovery plan consists of steps; steps that do not depend on each other run in parallel, and a step starts only after all the steps it depends on have finished. You get a dictionary steps: step name → [duration in minutes, list of names of the steps it depends on]. A dependency on a step that is not in the dictionary is ignored. There are no cycles. Write a function rto(steps): return the recovery time in minutes, the latest finish moment among all steps (the length of the critical path). For an empty dictionary, return 0.",
+   "hint": "finish(n) = duration of n + the maximum of finish over its dependencies; memoize the results in a dictionary."
+  },
+  {
+   "id": "ov24-dr-mapping",
+   "title": "Validating the DR mapping file",
+   "statement": "Before a disaster, the mapping file is validated. You get: used, a dictionary 'resource kind → list of primary-site names that the machines use' (kinds such as 'cluster', 'domain', 'network'); mapping, a dictionary 'kind → list of pairs [primary name, secondary name]'; secondary, a dictionary 'kind → list of names that really exist on the secondary site'. Write a function validate_mapping(used, mapping, secondary): return a sorted list, without duplicates, of problem strings. The kinds of problems: 'unmapped:<kind>:<name>' means a used name has no pair at all; 'conflict:<kind>:<name>' means one primary name is mapped to two or more different secondary names (check all pairs of mapping); 'missing_target:<kind>:<name>' means the secondary name from a pair is absent from secondary of its kind. A kind that is missing from one of the dictionaries counts as an empty list.",
+   "hint": "For each kind build a dictionary 'primary name → set of secondary names'; the three checks are three loops over it and over used."
+  },
+  {
+   "id": "ov24-failover-order",
+   "title": "Startup order during failover",
+   "statement": "During a failover, machines are started by priority while respecting dependencies. You get a dictionary vms: name → [priority, list of names that must be started earlier]. A smaller number means a higher priority. At each step, among the machines whose dependencies have all been started, the one with the smallest (priority, name) is taken. A dependency on a name that is not in vms is ignored. Machines that could not be started because of a circular dependency (or a dependency on such a machine) go to the blocked list. Write a function failover_order(vms): return a tuple (the start order, the sorted list blocked).",
+   "hint": "Kahn's algorithm with a heap: keep (priority, name) pairs of the machines with zero in-degree in the heap."
+  },
+  {
+   "id": "ov24-split-ranges",
+   "title": "Splitting a disk into ranges",
+   "statement": "A disk of size bytes is downloaded in parallel in pieces. Write a function split_ranges(size, chunk, align, max_ranges): return a list of tuples (start, end) with an inclusive end, covering bytes 0..size-1 consecutively and without overlaps. The piece size c is chunk rounded up to a multiple of align. If that c would give more than max_ranges pieces, use instead the smallest c that is a multiple of align and not less than ceil(size / max_ranges). The last piece may be shorter. For size <= 0 return an empty list. All numbers are positive integers (except size).",
+   "hint": "Rounding up: -(-x // a) * a. Then range(0, size, c) and min(s + c, size) - 1 for the end."
+  },
+  {
+   "id": "ov24-reassembly",
+   "title": "Checking a reassembled image",
+   "statement": "After a parallel download you must be sure the image was assembled without holes and overlaps. The image size is size bytes, the received pieces received are a list of pairs [start, end] (end inclusive). Pieces are clipped to the bounds 0..size-1; a piece that lies completely outside the image or has a start greater than its end is ignored. Write a function check_ranges(size, received): return a tuple (gaps, overlaps), where gaps is a sorted list of tuples (start, end) of the maximal contiguous stretches not covered by any piece, and overlaps is a similar list of stretches covered by two or more pieces. For size <= 0 return ([], []).",
+   "hint": "Use a difference array: +1 at a piece's start and −1 after its end; walk the sorted boundaries and merge adjacent stretches of the same kind."
+  }
+ ]
+}

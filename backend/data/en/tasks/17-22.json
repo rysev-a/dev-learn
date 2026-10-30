@@ -1,0 +1,90 @@
+{
+ "book": 17,
+ "chapter": 22,
+ "tasks": [
+  {
+   "id": "ov22-filter-hosts",
+   "title": "Scheduler filters",
+   "statement": "Filters drop the hosts where a machine cannot be started. A host is suitable if all three conditions hold at once: its free memory free_mb is at least the machine's mem_mb; its cores count is at least the machine's vcpus; and every network in the machine's nets is among the host's nets. Write a function filter_hosts(hosts, vm): hosts is a dictionary name → {\"free_mb\": number, \"cores\": number, \"nets\": list of names}, vm is {\"mem_mb\": number, \"vcpus\": number, \"nets\": list of names}. Return the list of suitable hosts sorted by name.",
+   "hint": "For the networks, compare sets: set(vm['nets']) <= set(h['nets'])."
+  },
+  {
+   "id": "ov22-schedule-host",
+   "title": "Host choice: filters and weights",
+   "statement": "Implement the whole scheduler. First apply the filters from the previous task (memory, cores, networks); a host has the same fields free_mb, cores, nets, plus vms (the number of machines) and cpu (load in percent). Then the weights. The policy is a list of pairs [module, factor]. Each module defines a host key: vm_count is vms, cpu_load is cpu, free_mem is minus free_mb (the more free memory, the better). A host's score for a module is its rank among the remaining hosts: the number of remaining hosts with a strictly smaller key (the best gets 0, equal keys get the same rank). A host's total is the sum of factor × rank over all modules of the policy. The host with the lowest total wins, on a tie the one with the smaller name. Write a function schedule_host(hosts, vm, policy): return the host name, or an empty string if no host is suitable. With an empty policy all totals are zero.",
+   "hint": "Filter first, then for each module compute the rank as sum(1 for m in ok if key(m) < key(n)) and accumulate totals per host."
+  },
+  {
+   "id": "ov22-scheduling-memory",
+   "title": "Scheduling memory of a host",
+   "statement": "The cluster's memory optimization sets the multiplier of scheduling memory: mode \"none\" is 100 percent, \"server\" is 150, \"desktop\" is 200. A host's scheduling memory is phys_mb × percent // 100 (integer division) minus reserved_mb minus the sum of the memory of all running and starting machines running_mb (a list of numbers). Write a function scheduling_free(phys_mb, mode, reserved_mb, running_mb): return the remainder (it can be negative if the host is already overloaded).",
+   "hint": "A dictionary mode → percent, then one formula."
+  },
+  {
+   "id": "ov22-balancer-step",
+   "title": "A balancer step",
+   "statement": "The balancer migrates at most one machine per pass. The hosts: hosts is a dictionary name → {\"cpu\": load in percent, \"vms\": {machine name: the machine's contribution to the load in percentage points}}; high is the overload threshold; pinned is a list of machine names that must not be migrated. Rules. A host is overloaded if its cpu is strictly greater than high; if there are none, return None. The source is the most loaded of the overloaded hosts (on a tie the smaller name). The destination is the least loaded of the other hosts (on a tie the smaller name); if there are no other hosts, None. The candidates are the source's machines not in pinned for which the destination's cpu plus the machine's contribution is at most high. Among the candidates choose the machine with the largest contribution (on a tie the smaller name); no candidates means None. Write a function pick_balancing_vm(hosts, high, pinned): return a tuple (machine, source, destination) or None.",
+   "hint": "Split into steps: overloaded hosts, source, destination, candidates, a choice by the key (-contribution, name)."
+  },
+  {
+   "id": "ov22-affinity-check",
+   "title": "Checking affinity groups",
+   "statement": "You get a placement, a dictionary machine → host (machines that are not running are absent), and a list of groups; a group is {\"vms\": list of machines, \"positive\": bool, \"enforcing\": bool}. A positive group is violated if the group's running machines stand on more than one host. A negative group is violated if at least two running machines of the group stand on the same host. Machines that are not running are ignored. Write a function affinity_violations(groups, placement): return a tuple of two lists of group indexes (zero-based, ascending): first the violated hard (enforcing) groups, then the violated soft ones.",
+   "hint": "where = [placement[v] for v in g['vms'] if v in placement]; positive is violated when len(set(where)) > 1, negative when len(set(where)) < len(where)."
+  },
+  {
+   "id": "ov22-affinity-place",
+   "title": "Placement with hard groups",
+   "statement": "Find a placement of machines that satisfies all hard groups. You get vms, a list of machine names in placement order; hosts, a list of pairs (host name, capacity in machines) in trial order; and groups {\"vms\": [...], \"positive\": bool, \"enforcing\": bool}; ignore soft groups (enforcing is False). A positive hard group requires all its placed machines to stand on one host, a negative one requires that no two stand on the same host. A host holds at most its capacity of machines. Machines of groups that are not in vms are not counted. Write a function place_vms(vms, hosts, groups): return a list of hosts parallel to vms that is the first one found when placing machines in order and trying hosts in order (lexicographically smallest by host order); if there is no solution, return None. You will need a search with backtracking.",
+   "hint": "Recurse over the machine index: for each host in order check the capacity and the groups against already placed machines, place, go deeper, undo on failure."
+  },
+  {
+   "id": "ov22-ha-restart",
+   "title": "HA restart after a host failure",
+   "statement": "A host failed, and its highly available machines must be restarted. vms is a list of tuples (name, priority, mem_mb, ha): priority is a number (low 1, medium 50, high 100), ha is a bool; free is a dictionary live host → free memory in MB. Machines without ha are not restarted. The rest are processed in order: priority descending, name ascending on a tie. Each machine goes to the host with the most free memory (on a tie the smaller name) if the memory is enough (free is at least the machine's memory); that host's free memory then decreases. Otherwise the machine is not restarted and processing continues with the next one (a smaller machine after a failure may still fit). Write a function ha_restart(vms, free): return a tuple (restarted, failed): restarted is a list of pairs (machine, host) in processing order, failed is a list of names of machines not restarted in processing order. If there are no live hosts, all HA machines go to failed.",
+   "hint": "Sort the HA machines by (-priority, name); for each take the host with the most memory, conveniently sorted(free, key=lambda h: (-free[h], h))[0]."
+  },
+  {
+   "id": "ov22-precopy",
+   "title": "Pre-copy simulation",
+   "statement": "Simulate a live migration. The VM memory is mem_mb MB, the guest's write rate is dirty_mbs MB/s, the bandwidth is bw_mbs MB/s, the allowed downtime is max_downtime_ms milliseconds, the round limit is max_rounds. Pass i (i from 1 to max_rounds) sends the current remainder remaining (in pass 1 it equals mem_mb) in remaining / bw_mbs seconds; during that time the guest manages to dirty min(mem_mb, dirty_mbs × time) MB, which is the new remainder. If after a pass the time to send the new remainder (remainder / bw_mbs seconds) is at most max_downtime_ms, the migration finishes with a stop: the remainder is sent, and the downtime equals its sending time. If the condition never held within max_rounds passes, the migration has failed. Write a function precopy(mem_mb, dirty_mbs, bw_mbs, max_downtime_ms, max_rounds): return a tuple (\"done\", pass_number, downtime_ms, total_time_ms) or (\"failed\", max_rounds, 0, total_time_ms), where the total time is the sum of the times of all passes (plus the final send on success) in milliseconds; round both times to integers with the round function. Use fractions (the fractions module) so that no error accumulates.",
+   "hint": "Keep the remainder and the total time as Fraction. In the loop: dur = remaining / bw; total += dur; remaining = min(mem, dirty * dur); check remainder / bw * 1000 <= max_downtime_ms."
+  },
+  {
+   "id": "ov22-migration-policy",
+   "title": "Downtime steps of a migration policy",
+   "statement": "Simulate a migration policy over QEMU iterations. times is a list of times in milliseconds needed to send the remainder at each iteration (zero-based indexes). The allowed downtime limit starts at 100. At iteration i, stalling is checked first: if i is greater than 0 and times[i] is not less than times[i-1], the counter stalls grows by one. For stalls from 1 to 6, limit becomes: 1 → 150, 2 → 200, 3 → 300, 4 and 5 → 400, 6 → 500. When stalls equals 7, behavior depends on the policy: \"minimal\" aborts the migration, \"postcopy\" switches to post-copy, \"suspend\" sets limit to 5000. When stalls reaches 8 (possible only for \"suspend\"), the migration is aborted. Abort and switch happen immediately, before the completion check. If not aborted, completion is checked next: times[i] is at most limit. Write a function migration_outcome(policy, times): return (\"done\", i, times[i]) at the first iteration where the migration finished; (\"aborted\", i) on abort; (\"postcopy\", i) on a switch; and if the list ended with none of these, (\"running\", len(times)).",
+   "hint": "Keep limit and stalls between iterations; keep the steps as a list of pairs (stalls, limit) and take the last one that applies."
+  },
+  {
+   "id": "ov22-migration-log",
+   "title": "Parsing a migration log",
+   "statement": "The engine's event log contains lines like \"2026-01-05 10:01:02 migration vm=web src=h1 dst=h2 state=started\". The first two words are the date and the time, the third word is the event type, then come key=value pairs in any order. A completed migration also has duration=seconds, a failed one has reason=text. Only the lines whose third word is migration and which have the keys vm and state are processed; skip the rest. Write a function migration_log(lines): return a dictionary machine → tuple (last_state, attempts, seconds). Attempts is how many state=started events the machine had; seconds is the duration value of the last event if its state is completed, otherwise 0. The lines come in chronological order.",
+   "hint": "line.split(); parts[2] == 'migration'; pairs: dict(p.split('=', 1) for p in parts[3:] if '=' in p)."
+  },
+  {
+   "id": "ov22-resilience-order",
+   "title": "Cluster resilience policy",
+   "statement": "A host has become non-operational. The resilience policy policy is one of: \"migrate_all\" migrates all machines, \"migrate_ha\" only the highly available ones, \"do_not_migrate\" none. vms is a list of tuples (name, ha, priority), where ha is a bool and priority is a number. Write a function resilience_order(policy, vms): return the list of names of machines to migrate, in migration order: by priority descending, by name on a tie.",
+   "hint": "First select machines by policy, then sorted with the key (-priority, name)."
+  },
+  {
+   "id": "ov22-migration-queue",
+   "title": "Migration queue and bandwidth",
+   "statement": "A host runs at most max_parallel migrations at once, the rest wait. The total bandwidth is set by mode: \"manual\" is the number custom_mbps; \"auto\" is the smallest speed in the list links_mbps (if the list is empty, as in the default mode); any other mode (\"default\") is 256 Mbit/s. Every migration gets a constant share per = max(total // max_parallel, 1) Mbit/s, regardless of how many are running at the moment. Migrating a machine with mem_mb MB of memory takes ceil(mem_mb × 8 / per) seconds (integer division rounded up). The migrations in vms (tuples (name, mem_mb)) are taken strictly in order; each starts on the slot that frees up earliest (on a tie, the slot with the lower index), and the slots are free from second 0. Write a function migration_finish_times(vms, mode, links_mbps, custom_mbps, max_parallel): return a dictionary name → finish second.",
+   "hint": "A list slots of max_parallel zeros holds the moments the slots free up. For each migration take the slot with the minimal (time, index) and add the duration."
+  },
+  {
+   "id": "ov22-numa-assign",
+   "title": "Placing virtual NUMA nodes",
+   "statement": "A host has NUMA nodes with remaining resources host_nodes, a list of pairs (cores, memory_gb). The machine has virtual nodes vnodes, also a list of pairs (cores, memory_gb). Each virtual node is placed whole onto one host node that has enough cores and memory; several virtual nodes may go onto one host node as long as resources suffice. Write a function numa_assign(vnodes, host_nodes): return a list of host node indexes parallel to vnodes, the first one found by search with backtracking (virtual nodes in order, host nodes in index order); if it cannot be placed, return None. For an empty vnodes return an empty list.",
+   "hint": "Recurse over the virtual node index; at each step try the host nodes in order, subtract the resources, and roll back on failure."
+  },
+  {
+   "id": "ov22-cpu-shares",
+   "title": "CPU shares and ceilings",
+   "statement": "When the processor is short, time is divided in proportion to the shares (CPU shares), and a QoS ceiling limits a machine's consumption. total is the total processor time (a number, for example in percent of one core), vms is a dictionary name → (shares, ceiling), the ceiling is a number or None (no limit). The algorithm: while there are unassigned machines, compute each one's portion as remainder × its shares / sum of unassigned shares; machines whose portion is strictly greater than the ceiling get exactly the ceiling (all such machines at once), the remainder decreases by what was given, and repeat; if none exceed, all unassigned machines get their portions and the algorithm ends. Unused time, if all machines hit their ceilings, just stays unused. Write a function cpu_allocation(total, vms): return a dictionary name → allocated time (a float rounded with round(x, 2)).",
+   "hint": "Loop while active: find the machines over their ceiling; if there are none, hand out the remainder proportionally and exit; otherwise fix the ceilings and subtract them from the remainder."
+  }
+ ]
+}
