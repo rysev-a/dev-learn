@@ -685,16 +685,16 @@ mod tests {
     #[test]
     fn long_names_wrap_into_two_lines() {
         let _ru = locales::guard(i18n::Locale::Ru);
-        assert_eq!(name_lines("Кэш"), ["Кэш"]);
-        assert_eq!(name_lines("Сервер приложения"), ["Сервер приложения"]);
-        assert_eq!(name_lines("Сервер приложения 2"), ["Сервер приложения", "2"]);
-        assert_eq!(name_lines("Объектное хранилище"), ["Объектное", "хранилище"]);
-        assert_eq!(name_lines("Сервис ранжирования"), ["Сервис", "ранжирования"]);
-        let long = name_lines("Очень_длинное_название_без_пробелов");
+        assert_eq!(name_lines("Cache"), ["Cache"]);
+        assert_eq!(name_lines("App server"), ["App server"]);
+        assert_eq!(name_lines("Application server 2"), ["Application", "server 2"]);
+        assert_eq!(name_lines("Object storage service"), ["Object storage", "service"]);
+        assert_eq!(name_lines("Ranking service backend"), ["Ranking service", "backend"]);
+        let long = name_lines("Very_long_name_without_spaces");
         assert_eq!(long.len(), 1);
         assert_eq!(long[0].chars().count(), 17);
         assert!(long[0].ends_with('…'));
-        let tail = name_lines("Платёжный шлюз-посредник очень длинный хвост");
+        let tail = name_lines("Payment gateway proxy with a very long tail");
         assert_eq!(tail.len(), 2);
         assert!(tail[1].chars().count() <= 17);
     }
@@ -855,9 +855,9 @@ mod tests {
     fn draft_written_by_react_is_restored_with_positions() {
         let _ru = locales::guard(i18n::Locale::Ru);
         let sc = scenario(sample());
-        let react = r#"{"nodes":[{"id":"users","kind":"clients","name":"Пользователи","x":70,"y":235,"params":{}},
-            {"id":"app","kind":"app","name":"Сервер приложения","x":220,"y":235,"params":{"instances":1,"size":"L","sessions":"local","zone":"single","weight":1,"idempotency":false,"retries":0,"breaker":false,"feed":"pull","deploy":"all","pricing":"ondemand"}},
-            {"id":"cache1","kind":"cache","name":"Кэш","x":370,"y":120,"params":{"sizeGB":8,"ttl":300}}],
+        let react = r#"{"nodes":[{"id":"users","kind":"clients","name":"Users","x":70,"y":235,"params":{}},
+            {"id":"app","kind":"app","name":"App server","x":220,"y":235,"params":{"instances":1,"size":"L","sessions":"local","zone":"single","weight":1,"idempotency":false,"retries":0,"breaker":false,"feed":"pull","deploy":"all","pricing":"ondemand"}},
+            {"id":"cache1","kind":"cache","name":"Cache","x":370,"y":120,"params":{"sizeGB":8,"ttl":300}}],
             "edges":[{"from":"users","to":"app"}]}"#;
         let s = restore(&sc, react);
         assert_eq!(s.nodes.len(), 3);

@@ -388,7 +388,7 @@ mod tests {
         let _ru = locales::guard(i18n::Locale::Ru);
         let spec: TaskSpec = serde_json::from_value(serde_json::json!({
             "profile": "board", "starter": "", "data": "",
-            "tests": [{ "check": { "kind": "reg", "reg": 10, "expected": 5, "ok": "готово" } }],
+            "tests": [{ "check": { "kind": "reg", "reg": 10, "expected": 5, "ok": "done" } }],
         }))
         .expect("spec");
         let program = "  li a0, 5\n  ebreak\n";
@@ -397,7 +397,7 @@ mod tests {
         m.step();
         assert_eq!(evaluate(&spec, &asm, &m, program), None);
         m.step();
-        assert_eq!(evaluate(&spec, &asm, &m, program), Some(RunResult { ok: true, message: "готово".into() }));
+        assert_eq!(evaluate(&spec, &asm, &m, program), Some(RunResult { ok: true, message: "done".into() }));
     }
 
     #[test]
@@ -417,7 +417,7 @@ mod tests {
         let spec: TaskSpec = serde_json::from_value(serde_json::json!({
             "profile": "board", "starter": "", "data": "",
             "tests": [{ "switches": 178, "regs": [{ "reg": 10, "value": 7 }],
-                        "check": { "kind": "leds", "expected": 0, "ok": "ок" } }],
+                        "check": { "kind": "leds", "expected": 0, "ok": "ok" } }],
         }))
         .expect("spec");
         let m = build_machine(&spec, &assemble("  ebreak\n")).expect("assembled");

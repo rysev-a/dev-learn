@@ -94,7 +94,7 @@ fn compare_summary(id: &str, what: &str, got: &[Value], want: &Value, errs: &mut
 
 #[test]
 fn цели_совпадают_с_typescript() {
-    locales::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::En);
     let gold = golden();
     let mut errs = Vec::new();
     let all = tasks();
@@ -112,7 +112,7 @@ fn цели_совпадают_с_typescript() {
 
 #[test]
 fn решённая_сеть_совпадает_с_typescript() {
-    locales::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::En);
     let gold = golden();
     let mut errs = Vec::new();
     for t in &tasks() {
@@ -167,7 +167,7 @@ fn run_cmds(id: &str, label: &str, state: &NetState, cmds: &Value, errs: &mut Ve
 
 #[test]
 fn команды_терминала_совпадают_с_typescript() {
-    locales::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::En);
     let gold = golden();
     let mut errs = Vec::new();
     let mut total = 0;
@@ -182,7 +182,7 @@ fn команды_терминала_совпадают_с_typescript() {
 
 #[test]
 fn решение_применяется_без_ошибок() {
-    locales::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::En);
     for t in &tasks() {
         let mut s = t.spec.start_state();
         apply_ops(&mut s, &t.spec.solution).unwrap_or_else(|e| panic!("{}: {e}", t.id));
@@ -191,7 +191,7 @@ fn решение_применяется_без_ошибок() {
 
 #[test]
 fn краевые_команды_совпадают_с_typescript() {
-    locales::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::En);
     let gold = golden();
     let template: Vec<String> =
         gold["edge_template"].as_array().expect("шаблон").iter().map(|v| v.as_str().unwrap_or("").to_string()).collect();
@@ -227,7 +227,7 @@ fn краевые_команды_совпадают_с_typescript() {
 
 #[test]
 fn цели_на_промежуточных_и_испорченных_сетях_совпадают_с_typescript() {
-    locales::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::En);
     let gold = golden();
     let template: Vec<String> =
         gold["edge_template"].as_array().expect("шаблон").iter().map(|v| v.as_str().unwrap_or("").to_string()).collect();
@@ -263,7 +263,7 @@ fn цели_на_промежуточных_и_испорченных_сетях
 
 #[test]
 fn синтетические_цели_совпадают_с_typescript() {
-    locales::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::En);
     let gold = golden();
     let mut errs = Vec::new();
     let mut n = 0;
@@ -276,4 +276,80 @@ fn синтетические_цели_совпадают_с_typescript() {
     }
     assert!(n > 1000, "синтетических целей {n}");
     assert!(errs.is_empty(), "{} расхождений из {n}:\n{}", errs.len(), errs.iter().take(30).cloned().collect::<Vec<_>>().join("\n"));
+}
+
+/// Recomputes the hash fields of `tests/golden.json` for the current locale (English): they hash message text, so a translation changes them.
+/// Everything else in the file (counts, `ok`, structure) stays from the TypeScript engine. Run:
+/// `cargo test --test golden -- --ignored regenerate_text_hashes`.
+fn regen_summary(got: &[Value], want: &mut Value) {
+    for (g, w) in got.iter().zip(want.as_array_mut().expect("summary")) {
+        for key in ["ev_hash", "hop_hash"] {
+            w[key] = g[key].clone();
+        }
+    }
+}
+
+fn regen_cmds(state: &NetState, cmds: &mut Value) {
+    let mut s = state.stripped();
+    for c in cmds.as_array_mut().expect("cmds") {
+        let (dev, line) = (c[0].as_str().unwrap_or("").to_string(), c[1].as_str().unwrap_or("").to_string());
+        let r = exec(&mut s, &dev, &line);
+        let tag = match r.changed {
+            None => "u",
+            Some(true) => "t",
+            Some(false) => "f",
+        };
+        c[2] = Value::String(hash(&format!("{tag}|{}", r.out)));
+    }
+}
+
+#[test]
+#[ignore]
+fn regenerate_text_hashes() {
+    locales::set_locale(i18n::Locale::En);
+    let mut gold = golden();
+    let template: Vec<String> =
+        gold["edge_template"].as_array().expect("template").iter().map(|v| v.as_str().unwrap_or("").to_string()).collect();
+    let fill = |tmpl: &str, run: &Value| {
+        let var = |k: &str| run["vars"][k].as_str().unwrap_or("").to_string();
+        tmpl.replace("{if}", &var("if")).replace("{ip}", &var("ip")).replace("{own}", &var("own")).replace("{gw}", &var("gw"))
+    };
+    for t in &tasks() {
+        let g = &mut gold["scenarios"][&t.id];
+        let solved = t.spec.solved_state().expect("solution");
+        regen_summary(&summarize(&check_goals(&t.spec.start_state(), &t.spec.goals)), &mut g["start"]);
+        regen_summary(&summarize(&check_goals(&solved, &t.spec.goals)), &mut g["solved"]);
+        regen_cmds(&t.spec.start_state(), &mut g["cmds_start"]);
+        regen_cmds(&solved, &mut g["cmds_solved"]);
+        let goals: Vec<netlab::check::Goal> = serde_json::from_value(g["synth"]["goals"].clone()).expect("goals");
+        regen_summary(&summarize(&check_goals(&t.spec.start_state(), &goals)), &mut g["synth"]["start"]);
+        regen_summary(&summarize(&check_goals(&solved, &goals)), &mut g["synth"]["solved"]);
+        let mut s = t.spec.start_state();
+        let n = g["partial"].as_array().map_or(0, |a| a.len());
+        for k in 0..n {
+            apply_ops(&mut s, &t.spec.solution[k..k + 1]).expect("step");
+            regen_summary(&summarize(&check_goals(&s, &t.spec.goals)), &mut g["partial"][k]);
+        }
+        let mut s = t.spec.start_state();
+        let mut e = t.spec.start_state();
+        let runs = g["edge"].as_array().cloned().unwrap_or_default();
+        for (ri, run) in runs.iter().enumerate() {
+            let dev = run["dev"].as_str().unwrap_or("");
+            let mut hashes = String::new();
+            for tmpl in &template {
+                let r = exec(&mut s, dev, &fill(tmpl, run));
+                let tag = match r.changed {
+                    None => "u",
+                    Some(true) => "t",
+                    Some(false) => "f",
+                };
+                hashes.push_str(&fnv(&format!("{tag}|{}", r.out), 0x811c9dc5));
+                exec(&mut e, dev, &fill(tmpl, run));
+            }
+            g["edge"][ri]["hashes"] = Value::String(hashes);
+        }
+        regen_summary(&summarize(&check_goals(&e, &t.spec.goals)), &mut g["edge_goals"]);
+    }
+    let p = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/golden.json");
+    std::fs::write(p, serde_json::to_string(&gold).unwrap()).expect("write");
 }

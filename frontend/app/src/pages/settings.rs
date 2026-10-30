@@ -137,7 +137,7 @@ fn AccountRow() -> impl IntoView {
 }
 
 /// Code sample on the theme card: colors come from the card's variables (`data-palette`), as in the editor.
-const SAMPLE: [&str; 3] = ["def total(xs):  # сумма", "    return sum(xs) + 42", "print(\"итого\", total([1, 2]))"];
+const SAMPLE: [&str; 3] = ["def total(xs):  # sum", "    return sum(xs) + 42", "print(\"total\", total([1, 2]))"];
 
 /// Color theme choice: interface, slides and code editor. Cards show the theme live, the choice switches the light or dark mode too.
 #[component]

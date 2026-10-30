@@ -26,7 +26,7 @@ fn fmt_name(f: Fmt) -> &'static str {
 
 #[test]
 fn isa_tables_match_ts() {
-    locales::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::En);
     let g = load_golden().isa;
     assert_eq!(g.abi, isa::ABI_NAMES.to_vec());
     assert_eq!(g.ops.len(), isa::OPS.len());
@@ -59,7 +59,7 @@ fn isa_tables_match_ts() {
 
 #[test]
 fn decode_disassemble_and_fields_match_ts() {
-    locales::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::En);
     let g = load_golden();
     assert!(g.decode.len() > 2000);
     for d in &g.decode {
@@ -83,7 +83,7 @@ fn decode_disassemble_and_fields_match_ts() {
 
 #[test]
 fn assembler_matches_ts() {
-    locales::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::En);
     let g = load_golden();
     let mut with_errors = 0;
     for a in &g.asm {
@@ -144,7 +144,7 @@ fn final_of(m: &Machine) -> GFinal {
 
 #[test]
 fn execution_and_traces_match_ts() {
-    locales::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::En);
     let g = load_golden();
     let (mut traced, mut faulted, mut halted) = (0, 0, 0);
     for r in &g.runs {
@@ -188,7 +188,7 @@ fn execution_and_traces_match_ts() {
 
 #[test]
 fn run_traced_equals_run() {
-    locales::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::En);
     // tracing does not change the outcome: same state as a plain run
     let g = load_golden();
     for r in g.runs.iter().filter(|r| r.name.starts_with("task:") || r.name.starts_with("limit:")) {
@@ -202,7 +202,7 @@ fn run_traced_equals_run() {
 
 #[test]
 fn alu_table_matches_ts() {
-    locales::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::En);
     let g = load_golden();
     assert!(g.alu.len() > 4000);
     for (mn, a, b, want) in &g.alu {
@@ -243,7 +243,7 @@ fn mutate(program: &str, mutation: &str, line: Option<usize>) -> String {
 
 #[test]
 fn verdicts_match_ts() {
-    locales::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::En);
     let g = load_golden();
     let chapters = [load_chapter(16), load_chapter(17)];
     let mut stats = std::collections::BTreeMap::<String, usize>::new();
@@ -287,7 +287,7 @@ fn verdicts_match_ts() {
 
 #[test]
 fn project_and_zip_match_ts() {
-    locales::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::En);
     let g = load_golden().project;
     let files = project_files(&g.source);
     assert_eq!(files.len(), g.files.len());
@@ -317,7 +317,22 @@ fn rename_labels(msg: &str) -> String {
     ];
     let mut out = msg.to_string();
     for (ru, en) in L {
-        out = out.replace(&format!("«{ru}»"), &format!("«{en}»"));
+        out = out.replace(&format!("“{ru}”"), &format!("“{en}”"));
     }
     out
+}
+
+/// `project.zip_hex` holds the bytes of an archive with message text (Makefile comments), so it depends on the locale.
+/// The files themselves are compared by `project_and_zip_match_ts`; the archive format was verified against TypeScript
+/// in Russian. Recompute after changing the locale of this file: `cargo test --test golden -- --ignored regenerate_zip_hex`.
+#[test]
+#[ignore]
+fn regenerate_zip_hex() {
+    locales::set_locale(i18n::Locale::En);
+    let g = load_golden().project;
+    let files = project_files(&g.source);
+    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/golden.json");
+    let mut v: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&path).expect("read")).expect("json");
+    v["project"]["zip_hex"] = serde_json::Value::String(hex(&make_zip(&project_zip(&files))));
+    std::fs::write(&path, serde_json::to_string(&v).expect("serialize")).expect("write");
 }

@@ -72,7 +72,7 @@ fn run_case(task: &Task, c: &Case, count: &mut usize) {
 
 #[test]
 fn evaluate_and_goals_match_typescript() {
-    locales::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::En);
     let chapters = common::chapters();
     let golden = common::golden();
     assert_eq!(chapters.len(), golden.len());
@@ -94,7 +94,7 @@ fn evaluate_and_goals_match_typescript() {
 /// Node positions of the starting designs in the data were produced by the TypeScript `place`; the Rust version must give the same.
 #[test]
 fn layout_matches_typescript() {
-    locales::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::En);
     for ch in common::chapters() {
         for t in &ch.tasks {
             for (name, s) in [("start", &t.spec.start), ("solution", &t.spec.solution)] {
@@ -117,7 +117,7 @@ fn layout_matches_typescript() {
 
 #[test]
 fn suggest_edges_match_typescript() {
-    locales::set_locale(i18n::Locale::Ru);
+    locales::set_locale(i18n::Locale::En);
     let chapters = common::chapters();
     let golden = common::golden();
     let mut count = 0;

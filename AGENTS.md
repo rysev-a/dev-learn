@@ -129,8 +129,12 @@ the shared Rust crates `packages/{archlab,riscvlab,netlab,sdlab,virtlab}` (serde
 - **Data:** `backend/data/labs/<kind>/<book>-<chapter:02>.json` (`arch`, `riscv` — both in `labs/arch`, `net`, `virt`, `sd`): `LabChapter { book, chapter, lab,
   tasks: [{ id, title, statement, hint, spec }] }`; `spec` holds the scenario (initial scheme, goals, constraints) and the reference (`solution` / `reference`). The data files are canonical, they are edited
   directly (or written by a generator script) together with a crate test; the "golden" results of the old TypeScript engine are kept as fixtures of differential tests
-  (`packages/*/tests/golden*.json`) — the tests stay, and they cannot be recreated without the `legacy-react-python` tag. New exercises are added to the data, and the reference
-  must pass the engine's check while the initial scheme must not.
+  (`packages/*/tests/golden*.json`) — the tests stay, and they cannot be recreated without the `legacy-react-python` tag. The fixtures were translated to English on 30.10.2026:
+  the message strings are the English dictionary keys (the Russian ones were mapped back through `packages/locales/ru`), the golden tests run on `Locale::En`, and everything that is
+  not message text (numbers, structure, verdicts) is still the TypeScript engine's. Hashes of message text cannot be translated, so they are recomputed by the engine: netlab
+  (`regenerate_text_hashes`) and riscvlab's `project.zip_hex` (`regenerate_zip_hex`) — ignored tests, run with `cargo test --test golden -- --ignored <name>` after any message change;
+  for these fields parity with TypeScript was verified on the Russian version (git history) and is now a snapshot. Inputs of the engines (assembly sources, labels, UART text) stay Russian
+  on purpose: they test Unicode. New exercises are added to the data, and the reference must pass the engine's check while the initial scheme must not.
 - **Seed and API (`backend/src/labs.rs`):** the files go into the table `lab_tasks` (they are part of the re-seed hash); `GET /api/labs/{book}/{chapter}` returns exercises **without the reference**
   (`spec.solution` and `spec.reference` are stripped). `PUT /api/exercises/{book}/{chapter}/{id}/solved` for exercises with lab data re-checks the solution with the engine
   (`sd::verify_raw`, `net::verify_json`, `riscv::task::verify`, `virt::verify`, `arch.verify` — composite blocks are assembled from the student's own solutions, `code_drafts`) and on
