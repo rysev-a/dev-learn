@@ -1,0 +1,40 @@
+{
+  "book": 17,
+  "chapter": 17,
+  "lab": "virt",
+  "tasks": [
+    {
+      "id": "virt-sim-ovirt-dc",
+      "title": "Симулятор: поднимаем дата-центр oVirt",
+      "statement": "Соберите окружение oVirt так, как это делает администратор в Administration Portal: кластер, хосты, логическая сеть vm-net, домен хранилища и виртуальная машина. У каждого объекта свои состояния, и порядок действий важен: домен создаёт хост со статусом Up, дата-центр оживает только после активации главного домена, а сеть, обязательная для кластера, переводит хосты без неё в NonOperational. Упражнение решено, когда выполнены все три цели.",
+      "hint": "Начните с кластера и хоста. Сеть vm-net делает хосты без неё NonOperational — назначьте её на сетевые карты. Домен проходит три шага: создать, подключить, активировать. Чтобы хост ушёл в обслуживание, виртуальной машине нужен другой хост с её сетью.",
+      "spec": {
+        "sim": "ovirt_dc",
+        "goals": [
+          {
+            "id": "dc_up",
+            "text": "Bring the data center to Up: a host and the master storage domain are active",
+            "rule": {
+              "kind": "dc_up"
+            }
+          },
+          {
+            "id": "vm_net",
+            "text": "Run a VM whose NIC is on the vm-net network",
+            "rule": {
+              "kind": "vm_running",
+              "net": "vm_net"
+            }
+          },
+          {
+            "id": "migrate",
+            "text": "Put the host running the VM into maintenance so that the VM migrates to another host",
+            "rule": {
+              "kind": "migrated"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

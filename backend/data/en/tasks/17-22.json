@@ -3,6 +3,12 @@
  "chapter": 22,
  "tasks": [
   {
+   "id": "virt-sim-ovirt-sched",
+   "title": "Simulator: the oVirt scheduler",
+   "statement": "The scheduler picks a host for a virtual machine in two steps: filters throw out unsuitable hosts, weights rank the rest. In four scenarios choose the cluster policy: turn on the filters you need (memory, network, anti-affinity) and set the weights (even load, free memory, packing). Machines start one by one, and each one takes room on the chosen host. The exercise is solved when the goals of all scenarios are met.",
+   "hint": "Filters are hard conditions, weights are preferences. Without weights the first host by name wins. An even load and packing are opposite weights, do not turn them on together. A broken constraint that the policy did not check counts as a placement mistake."
+  },
+  {
    "id": "ov22-filter-hosts",
    "title": "Scheduler filters",
    "statement": "Filters drop the hosts where a machine cannot be started. A host is suitable if all three conditions hold at once: its free memory free_mb is at least the machine's mem_mb; its cores count is at least the machine's vcpus; and every network in the machine's nets is among the host's nets. Write a function filter_hosts(hosts, vm): hosts is a dictionary name → {\"free_mb\": number, \"cores\": number, \"nets\": list of names}, vm is {\"mem_mb\": number, \"vcpus\": number, \"nets\": list of names}. Return the list of suitable hosts sorted by name.",

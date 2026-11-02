@@ -26,7 +26,7 @@ fn round_trip<T: Serialize + DeserializeOwned + PartialEq + std::fmt::Debug>(x: 
 fn data_files_are_canonical_and_up_to_date() {
     // the scenario text inside `spec` is English; only title/statement/hint are Russian
     let built = i18n::with_locale(i18n::Locale::En, || build_chapters(include_str!("../data/tasks.json")).unwrap());
-    assert_eq!(built.iter().map(|c| c.chapter).collect::<Vec<_>>(), [2, 4, 6, 9, 10, 11]);
+    assert_eq!(built.iter().map(|c| c.chapter).collect::<Vec<_>>(), [2, 4, 6, 9, 10, 11, 17, 19, 22]);
     let mut files: Vec<_> =
         std::fs::read_dir(data_dir()).expect("data dir exists").map(|e| e.unwrap().file_name()).collect();
     files.sort();
@@ -166,5 +166,16 @@ fn validation_catches_broken_data() {
     assert!(spec.validate().is_err());
     assert!(build_chapters(r#"[{"chapter":2,"id":"virt-sim-nope","title":"","statement":"","hint":""}]"#).is_err());
     let v: Value = serde_json::from_str(include_str!("../data/tasks.json")).unwrap();
-    assert_eq!(v.as_array().unwrap().len(), 6);
+    assert_eq!(v.as_array().unwrap().len(), 9);
+}
+
+/// Writes the chapter files of `backend/data/labs/virt` from the definitions (`data/tasks.json`) and the built-in simulator descriptions:
+/// `cargo test --test data -- --ignored write_data_files`. Run it after changing a scenario or a definition.
+#[test]
+#[ignore]
+fn write_data_files() {
+    let built = i18n::with_locale(i18n::Locale::En, || build_chapters(include_str!("../data/tasks.json")).unwrap());
+    for c in &built {
+        std::fs::write(data_dir().join(c.file_name()), c.to_canonical_json().unwrap()).unwrap();
+    }
 }

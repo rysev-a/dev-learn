@@ -112,7 +112,7 @@ pub fn GoalList(goals: Goals, items: Vec<GoalItem>) -> impl IntoView {
             view! {
                 <li class:ok=move || goals.is_done(&a)>
                     <span class="vl-gm">{move || if goals.is_done(&b) { "✓" } else { "○" }}</span>
-                    <span>{g.text} {g.note.map(|n| view! { <em>{format!(" — {n}")}</em> })}</span>
+                    <span>{i18n::tr_dyn(&g.text)} {g.note.map(|n| view! { <em>{format!(" — {n}")}</em> })}</span>
                 </li>
             }
         })
@@ -144,7 +144,7 @@ pub fn Tab(
             on:click=move |_| on_pick.run(index)
         >
             <span class="vl-tab-mark">{move || if goals.is_done(&b) { "✓" } else { "" }}</span>
-            {title}
+            {i18n::tr_dyn(&title)}
         </button>
     }
 }

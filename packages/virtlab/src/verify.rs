@@ -9,6 +9,9 @@
 //! | `ept` | run settings `{mode, guest, host, workload}` | the model is re-run, the goal is checked against the result — **full re-check** |
 //! | `numa` | placement `{machine: {cpu, mem, vnuma}}` | the placement is re-evaluated — **full re-check** |
 //! | `migration` | parameters `{dirty, bw, downtimeMs, autoConverge, compress, postcopyAfter}` | rates are checked against the scenario, parameters against allowed bounds, the simulation is re-run — **full re-check** |
+//! | `ovirt_dc` | `{trace: [actions]}` | session replay; without a trace — [`GoalStatus::Unverified`] |
+//! | `ovirt_fence` | settings `{soft, power, skip_lease, skip_connectivity, threshold, vm_leases}` | the simulation is re-run — **full re-check** |
+//! | `ovirt_sched` | policy `{memory, network, affinity, even, free_mem, pack}` | the scheduling is re-run — **full re-check** |
 //! | `virtq`, `qcow2` | `true` (former client) or `{trace: [actions]}` | with `trace` — session replay; without — goal achievement cannot be checked (history is not sent): [`GoalStatus::Unverified`] |
 //!
 //! Mode [`Strictness::Lenient`] also accepts unverifiable goals (a correct structure with all goals), mode
@@ -19,7 +22,7 @@ use serde_json::Value;
 
 use crate::error::SpecError;
 use crate::spec::{base_map, Spec};
-use crate::{ept, hv, migration, numa, qcow2, virtq};
+use crate::{ept, hv, migration, numa, ovirt_dc, ovirt_fence, ovirt_sched, qcow2, virtq};
 
 /// Maximum action trace length: longer traces are rejected (protects the server from overload).
 pub const MAX_TRACE: usize = 2000;
@@ -233,6 +236,40 @@ fn check_goal(spec: &Spec, id: &str, info: &Value) -> Result<GoalStatus, SpecErr
                 Ok(GoalStatus::Verified)
             } else {
                 rejected(i18n::tr("the scenario goal is not reached with these parameters"))
+            }
+        }
+        Spec::OvirtDc { goals } => match trace_of::<ovirt_dc::Action>(info)? {
+            Some(actions) => {
+                if ovirt_dc::replay(goals, &actions).iter().any(|g| g == id) {
+                    Ok(GoalStatus::Verified)
+                } else {
+                    rejected(i18n::tr("the goal is not reached according to the action trace"))
+                }
+            }
+            None => Ok(GoalStatus::Unverified),
+        },
+        Spec::OvirtFence { scenarios } => {
+            let sc = scenarios.iter().find(|s| s.id == id).ok_or_else(|| SpecError::new(i18n::tr("no such scenario")))?;
+            let cfg: ovirt_fence::FenceConfig = parse(info)?;
+            if !ovirt_fence::valid(&cfg) {
+                return rejected(i18n::tr("the threshold must be from 1 to 100 percent"));
+            }
+            if sc.reached(&cfg) {
+                Ok(GoalStatus::Verified)
+            } else {
+                rejected(i18n::tr("the scenario goal is not reached with these settings"))
+            }
+        }
+        Spec::OvirtSched { scenarios } => {
+            let sc = scenarios.iter().find(|s| s.id == id).ok_or_else(|| SpecError::new(i18n::tr("no such scenario")))?;
+            let policy: ovirt_sched::Policy = parse(info)?;
+            if !ovirt_sched::valid(&policy) {
+                return rejected(i18n::trf!("weight factors must be from 0 to {0}", ovirt_sched::MAX_FACTOR));
+            }
+            if sc.reached(&policy) {
+                Ok(GoalStatus::Verified)
+            } else {
+                rejected(i18n::tr("the scenario goal is not reached with this policy"))
             }
         }
     }

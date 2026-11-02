@@ -63,6 +63,8 @@ registration and the admin panel are the shared lab crates (`auth`, `auth_api`, 
 (`/Users/rysev-a/Projects/lab/.worktrees/main/packages`; the structure standard is `web-services/standard.md` there). Versions and features are in `[workspace.dependencies]`
 of `backend/Cargo.toml`: the list is **1 to 1 as in lab** (`web-services/Cargo.toml`), `Cargo.lock` is taken from there too (so that the dependency graph and the prebuilt base images
 match); beyond the list there are only `rusqlite` (reading the seed SQL files) and `sha2`. When you update versions in lab, update them here too; do not diverge.
+The token of the registry is in `~/.cargo/credentials.toml` (`[registries.lab]`); when the lab servers are rebuilt the crates are republished with new checksums and the old token dies
+(`401`, "checksum changed between lock files"): get a new token and copy `Cargo.lock` from lab again (31.10.2026: `auth` 0.2.5, `auth_api` 0.2.3).
 
 - Layout: `lib.rs` (router, `build()` — schema, seed, auth, background tasks), `config.rs` (environment), `db.rs` (SurrealDB connection and table schema),
   `seed.rs` (seeding content from `backend/data`: `textbook/**/*.md`, `slides`, `labs` and `sql/{books.sql,tasks,quizzes,answers}` — the SQL
@@ -140,7 +142,7 @@ the shared Rust crates `packages/{archlab,riscvlab,netlab,sdlab,virtlab}` (serde
   (`sd::verify_raw`, `net::verify_json`, `riscv::task::verify`, `virt::verify`, `arch.verify` — composite blocks are assembled from the student's own solutions, `code_drafts`) and on
   rejection answers 422 with the reason. Exercises without lab data are accepted as before (with a warning in the log).
 - **Backend tests (`backend/tests/api.rs`):** the references of all exercises are accepted, the initial schemes are not (system design, networks: all 79, architecture: all 103
-  in course order, RISC-V, virtualization by `trace`).
+  in course order, RISC-V, virtualization by `trace`; the three oVirt simulators: `ovirt_simulators_are_verified_by_the_server`).
 - **Leptos interface:** `frontend/app/src/components/labs/` — `LabHost` (loading the chapter scenarios, submitting the solution and showing the rejection reason) and one module per lab
   kind (`sd`, `virt`, `net`, `arch`, `riscv`); the shared board code is `board_view.rs`. The "Practice" tab of a chapter made only of lab exercises gets the class
   `lab-pr` (an exercise strip at the top).
@@ -624,7 +626,7 @@ chapter is a separate `textbook/15-networks/networks-NN.md` with its own `#SECTI
   - Check the scene layout with the heuristic "text fits in cells, nothing is outside the canvas or overlapping" (the linter lives outside the
     repository); colors only `--s-*`.
 
-## Book 17 "Virtualization": fully written (16 chapters)
+## Book 17 "Virtualization": fully written (25 chapters: 1–16 virtualization, 17–25 oVirt)
 
 It comes right after "Computer Networks" (field `ord` = 7, `audio_prefix` = `virt-ch`, the icon is in
 `BookIcon.tsx`): it needs both Linux (KVM, cgroups, namespaces) and networks (virtio-net, bridges, veth).
@@ -656,6 +658,17 @@ extras" (15 nested virtualization, 16 practice with QEMU/KVM and observability).
   `virt-sim-qcow2` (chapter 9, `qcow2.ts` + `Qcow2Lab.tsx`: snapshots, layers, merging, rollback),
   `virt-sim-migration` (chapter 10, `migration.ts` + `MigrationLab.tsx`: pre-copy, auto-converge, post-copy, three scenarios).
   A new simulator = model + component + an entry in `LABS` + a definition in `labs.py`; the goals must be reachable.
+- **oVirt section (chapters 17–25, added 31.10.2026):** two more sections after "Practice and extras": "oVirt: the platform core" (17 architecture and objects, 18 engine and database, 19 hosts, VDSM and fencing,
+  20 storage domains, SPM and image chains, 21 networks) and "oVirt: running and operating" (22 scheduler, migration and HA, 23 automation: REST, SDK, Ansible, templates, 24 backup and disaster recovery,
+  25 upgrades, troubleshooting and the future of the project). Same format (10 paragraphs = 10 scenes of 4 frames, 5 quiz questions, 10–14 `func` tasks each with English-only task data, `ov-…`/`ovNN-…` ids), written from a spec
+  by an authoring script that is **not in the repository** (the files in `backend/data` are canonical now); the facts were partly written from memory and still need a check against ovirt.org before publishing
+  (table names, `engine-setup` flags, `engine-backup` modes, log paths). Three more simulators (below) are the first task of chapters 17, 19 and 22 (`ord` 0, the `func` tasks follow).
+- **oVirt simulators (`packages/virtlab/src/ovirt_{dc,fence,sched}.rs`, UI `frontend/app/src/components/labs/virt/ovirt_*.rs`):** `virt-sim-ovirt-dc` (chapter 17: Administration Portal operations — cluster, hosts, required network `vm-net`,
+  storage domain create/attach/activate, VM run, maintenance with migration; a session with `{trace}` replayed by the server like `qcow2`), `virt-sim-ovirt-fence` (chapter 19: soft fencing → cluster policy (live lease, share of unreachable hosts) → power
+  management, VM leases; five situations, the goal data is the settings, the server re-simulates), `virt-sim-ovirt-sched` (chapter 22: filters memory/network/anti-affinity and rank weights even/free memory/pack, four scenarios, the goal data is the policy).
+  They are **models with stated rules, not copies of real oVirt numbers** (the order soft fencing → policy is the lab's rule). New definitions go into `packages/virtlab/data/tasks.json` (Russian title/statement/hint), the data files are written by
+  `cd packages/virtlab && cargo test --test data -- --ignored write_data_files`, English texts in `backend/data/en/labs/virt/17-NN.json` and `en/tasks/17-NN.json`, the lab row in `sql/tasks/17-virt-NN.sql`. Scenario goal texts live in the code as `tr(…)` keys and
+  are shown with `tr_dyn`. Tests: `packages/virtlab/tests/ovirt.rs`, the module tests next to the components; e2e for these three simulators does not exist yet.
 - Chapter numbers are part of the slide, quiz, task keys and audio ids (`virt-ch<N>-l<i>`): **do not insert a chapter in the middle**.
 - No voice-over (see the mandatory rule at the beginning of the file): `cues` are computed by character share.
 

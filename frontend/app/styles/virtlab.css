@@ -464,3 +464,88 @@
   gap: 3px;
   color: var(--muted);
 }
+
+/* oVirt simulators */
+.vl-chip {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  font-size: 12px;
+}
+.vl-chip.ok {
+  border-color: var(--s-accent);
+  color: var(--s-accent);
+}
+.vl-chip.warn {
+  border-color: var(--amber);
+  color: var(--amber);
+}
+.vl-chip.bad {
+  border-color: var(--error);
+  color: var(--error);
+}
+.vl-muted {
+  color: var(--muted);
+  font-size: 12px;
+}
+.vl-env,
+.vl-env ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.vl-env li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  font-size: 13px;
+}
+.vl-env li.vl-env-sub {
+  display: block;
+  padding-left: 18px;
+  border-left: 2px solid var(--border);
+}
+.vl-env-k {
+  min-width: 96px;
+  color: var(--muted);
+}
+.vl-vm {
+  padding: 0 6px;
+  border-radius: 5px;
+  background: var(--s-accent);
+  color: var(--s-bg);
+  font-size: 11px;
+  font-weight: 600;
+}
+.vl-steps {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+}
+.vl-tbl {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.vl-tbl td {
+  padding: 3px 8px 3px 0;
+  vertical-align: top;
+}
+.vl-tbl tr.bad td {
+  color: var(--error);
+}
+.vl-weight {
+  align-items: center;
+}
+.vl-weight select {
+  flex: none;
+  width: 64px;
+}

@@ -148,6 +148,65 @@ async fn lab_solutions_are_checked_by_the_server_engine() {
 }
 
 #[tokio::test]
+async fn ovirt_simulators_are_verified_by_the_server() {
+    use virtlab::ovirt_dc::{Action as A, Net};
+
+    let app = app("").await;
+    let token = sign_in(&app, "ovirt@mail.com").await;
+    let put = |chapter: u32, task: &str, solution: Value| {
+        let (app, token) = (app.clone(), token.clone());
+        let uri = format!("/api/exercises/17/{chapter}/{task}/solved");
+        async move { call(&app, Method::PUT, &uri, Some(&token), Some(json!({ "solution": solution.to_string() }))).await }
+    };
+    for (chapter, task) in [(17, "virt-sim-ovirt-dc"), (19, "virt-sim-ovirt-fence"), (22, "virt-sim-ovirt-sched")] {
+        let (st, lab) = call(&app, Method::GET, &format!("/api/labs/17/{chapter}"), None, None).await;
+        assert_eq!(st, StatusCode::OK);
+        assert_eq!(lab["tasks"][0]["id"], task);
+        // nothing is submitted: the exercise is not solved
+        assert_eq!(put(chapter, task, json!({})).await.0, StatusCode::UNPROCESSABLE_ENTITY, "{task}: empty solution");
+    }
+
+    // chapter 17: a session of actions replayed by the server
+    let mut trace = vec![
+        A::AddCluster,
+        A::AddHost { host: 1 },
+        A::AddHost { host: 2 },
+        A::CreateNetwork,
+        A::AssignNetwork { host: 1 },
+        A::AssignNetwork { host: 2 },
+        A::CreateDomain,
+        A::AttachDomain,
+        A::ActivateDomain,
+        A::CreateVm { net: Net::VmNet },
+        A::RunVm,
+    ];
+    let all = |trace: &[A]| json!({ "dc_up": { "trace": trace }, "vm_net": { "trace": trace }, "migrate": { "trace": trace } });
+    let (st, _) = put(17, "virt-sim-ovirt-dc", all(&trace)).await;
+    assert_eq!(st, StatusCode::UNPROCESSABLE_ENTITY, "no maintenance, no migration");
+    trace.push(A::Maintenance { host: 1 });
+    let (st, body) = put(17, "virt-sim-ovirt-dc", all(&trace)).await;
+    assert_eq!(st, StatusCode::NO_CONTENT, "{body}");
+
+    // chapter 19: the settings are simulated again on every situation
+    let fence = json!({ "soft": true, "power": true, "skip_lease": true, "skip_connectivity": true, "threshold": 50, "vm_leases": true });
+    let solution: serde_json::Map<String, Value> = ["hung", "dead", "mgmt", "switch", "bmc"].iter().map(|id| ((*id).to_string(), fence.clone())).collect();
+    let (st, body) = put(19, "virt-sim-ovirt-fence", Value::Object(solution.clone())).await;
+    assert_eq!(st, StatusCode::NO_CONTENT, "{body}");
+    let mut weak = solution;
+    weak.insert("switch".into(), json!({ "soft": true, "power": true, "skip_lease": true, "skip_connectivity": false, "threshold": 50, "vm_leases": true }));
+    assert_eq!(put(19, "virt-sim-ovirt-fence", Value::Object(weak)).await.0, StatusCode::UNPROCESSABLE_ENTITY, "the share of unreachable hosts is ignored");
+
+    // chapter 22: the policy is used for placing the VMs again
+    let policy = |memory, network, affinity, even, pack| json!({ "memory": memory, "network": network, "affinity": affinity, "even": even, "free_mem": 0, "pack": pack });
+    let good = json!({ "even": policy(false, false, false, 1, 0), "nets": policy(false, true, false, 1, 0), "anti": policy(false, false, true, 1, 0), "pack": policy(true, false, false, 0, 0) });
+    let (st, body) = put(22, "virt-sim-ovirt-sched", good.clone()).await;
+    assert_eq!(st, StatusCode::NO_CONTENT, "{body}");
+    let mut bad = good;
+    bad["anti"] = policy(false, false, false, 1, 0);
+    assert_eq!(put(22, "virt-sim-ovirt-sched", bad).await.0, StatusCode::UNPROCESSABLE_ENTITY, "anti-affinity filter is off");
+}
+
+#[tokio::test]
 async fn riscv_programs_are_checked_by_running_them() {
     let app = app("").await;
     let token = sign_in(&app, "riscv@mail.com").await;

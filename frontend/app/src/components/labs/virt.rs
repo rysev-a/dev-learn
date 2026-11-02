@@ -1,8 +1,8 @@
-//! "Virtualization" lab: six simulators of book 17. The models, goals and solution re-check live in the `virtlab` crate
+//! "Virtualization" lab: nine simulators of book 17. The models, goals and solution re-check live in the `virtlab` crate
 //! (shared with the server); here is only the interface: a simulator is chosen from the exercise description (`Spec`), and once
 //! all goals are reached, the solution (JSON `{goal id: data}`) is sent to the server once through `LabProps::report`.
 //!
-//! For simulators with an action history (`hv`, `virtq`, `qcow2`) the goal data also holds a `trace` — the student's recorded actions:
+//! For simulators with an action history (`hv`, `virtq`, `qcow2`, `ovirt_dc`) the goal data also holds a `trace` — the student's recorded actions:
 //! the server replays the run from it and confirms the goal (`virtlab::verify`).
 
 use leptos::prelude::*;
@@ -16,6 +16,9 @@ mod ept;
 mod hv;
 mod migration;
 mod numa;
+mod ovirt_dc;
+mod ovirt_fence;
+mod ovirt_sched;
 mod qcow2;
 mod virtq;
 
@@ -56,6 +59,9 @@ pub fn VirtLab(props: LabProps) -> impl IntoView {
             view! { <qcow2::Qcow2Lab clusters=clusters base=base targets=targets goals=goals /> }.into_any()
         }
         Spec::Migration { scenarios } => view! { <migration::MigrationLab scenarios=scenarios goals=goals /> }.into_any(),
+        Spec::OvirtDc { goals: targets } => view! { <ovirt_dc::OvirtDcLab targets=targets goals=goals /> }.into_any(),
+        Spec::OvirtFence { scenarios } => view! { <ovirt_fence::OvirtFenceLab scenarios=scenarios goals=goals /> }.into_any(),
+        Spec::OvirtSched { scenarios } => view! { <ovirt_sched::OvirtSchedLab scenarios=scenarios goals=goals /> }.into_any(),
     }
 }
 

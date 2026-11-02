@@ -1,0 +1,13 @@
+{
+  "book": 17,
+  "chapter": 22,
+  "lab": "virt",
+  "tasks": [
+    {
+      "id": "virt-sim-ovirt-sched",
+      "title": "Simulator: the oVirt scheduler",
+      "statement": "The scheduler picks a host for a virtual machine in two steps: filters throw out unsuitable hosts, weights rank the rest. In four scenarios choose the cluster policy: turn on the filters you need (memory, network, anti-affinity) and set the weights (even load, free memory, packing). Machines start one by one, and each one takes room on the chosen host. The exercise is solved when the goals of all scenarios are met.",
+      "hint": "Filters are hard conditions, weights are preferences. Without weights the first host by name wins. An even load and packing are opposite weights, do not turn them on together. A broken constraint that the policy did not check counts as a placement mistake."
+    }
+  ]
+}

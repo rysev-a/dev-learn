@@ -1,0 +1,303 @@
+{
+  "book": 17,
+  "chapter": 22,
+  "lab": "virt",
+  "tasks": [
+    {
+      "id": "virt-sim-ovirt-sched",
+      "title": "Симулятор: планировщик oVirt",
+      "statement": "Планировщик выбирает хост для запуска виртуальной машины в два шага: фильтры отбрасывают неподходящие хосты, веса ранжируют оставшиеся. В четырёх сценариях подберите политику кластера: включите нужные фильтры (память, сеть, антиаффинность) и расставьте веса (равномерная нагрузка, свободная память, упаковка). Машины запускаются по одной, каждая занимает место на выбранном хосте. Упражнение решено, когда цели всех сценариев выполнены.",
+      "hint": "Фильтры — жёсткие условия, веса — предпочтения. Без весов побеждает первый по имени хост. Равномерность и упаковка — противоположные веса, их не включают вместе. Нарушенное ограничение, которое политика не проверяла, считается ошибкой размещения.",
+      "spec": {
+        "sim": "ovirt_sched",
+        "scenarios": [
+          {
+            "id": "even",
+            "title": "Even load",
+            "goal": "Start 6 VMs so that hosts differ by at most one VM",
+            "hint": "Without weights all hosts look the same and the first by name wins every time. Weights rank the hosts.",
+            "hosts": [
+              {
+                "name": "host1",
+                "mem": 32,
+                "vms": 0,
+                "nets": [
+                  "ovirtmgmt"
+                ]
+              },
+              {
+                "name": "host2",
+                "mem": 32,
+                "vms": 0,
+                "nets": [
+                  "ovirtmgmt"
+                ]
+              },
+              {
+                "name": "host3",
+                "mem": 32,
+                "vms": 0,
+                "nets": [
+                  "ovirtmgmt"
+                ]
+              }
+            ],
+            "vms": [
+              {
+                "name": "vm1",
+                "mem": 2,
+                "nets": [
+                  "ovirtmgmt"
+                ]
+              },
+              {
+                "name": "vm2",
+                "mem": 2,
+                "nets": [
+                  "ovirtmgmt"
+                ]
+              },
+              {
+                "name": "vm3",
+                "mem": 2,
+                "nets": [
+                  "ovirtmgmt"
+                ]
+              },
+              {
+                "name": "vm4",
+                "mem": 2,
+                "nets": [
+                  "ovirtmgmt"
+                ]
+              },
+              {
+                "name": "vm5",
+                "mem": 2,
+                "nets": [
+                  "ovirtmgmt"
+                ]
+              },
+              {
+                "name": "vm6",
+                "mem": 2,
+                "nets": [
+                  "ovirtmgmt"
+                ]
+              }
+            ],
+            "check": {
+              "max_spread": 1
+            }
+          },
+          {
+            "id": "nets",
+            "title": "Networks",
+            "goal": "Start 4 VMs on hosts that have their networks, with a spread of at most one VM",
+            "hint": "Not every host has every VLAN. A VM that lands on a host without its network starts with a dead NIC — the network filter prevents that.",
+            "hosts": [
+              {
+                "name": "host1",
+                "mem": 32,
+                "vms": 0,
+                "nets": [
+                  "ovirtmgmt",
+                  "vlan10"
+                ]
+              },
+              {
+                "name": "host2",
+                "mem": 32,
+                "vms": 0,
+                "nets": [
+                  "ovirtmgmt",
+                  "vlan10",
+                  "vlan20"
+                ]
+              },
+              {
+                "name": "host3",
+                "mem": 32,
+                "vms": 0,
+                "nets": [
+                  "ovirtmgmt",
+                  "vlan20"
+                ]
+              }
+            ],
+            "vms": [
+              {
+                "name": "web1",
+                "mem": 4,
+                "nets": [
+                  "vlan20"
+                ]
+              },
+              {
+                "name": "web2",
+                "mem": 4,
+                "nets": [
+                  "vlan20"
+                ]
+              },
+              {
+                "name": "db1",
+                "mem": 4,
+                "nets": [
+                  "vlan10"
+                ]
+              },
+              {
+                "name": "db2",
+                "mem": 4,
+                "nets": [
+                  "vlan10"
+                ]
+              }
+            ],
+            "check": {
+              "max_spread": 1
+            }
+          },
+          {
+            "id": "anti",
+            "title": "Anti-affinity",
+            "goal": "Start two database replicas on different hosts and two application VMs",
+            "hint": "The scheduler loves the emptiest host: without the affinity filter both replicas land there.",
+            "hosts": [
+              {
+                "name": "host1",
+                "mem": 32,
+                "vms": 0,
+                "nets": [
+                  "ovirtmgmt"
+                ]
+              },
+              {
+                "name": "host2",
+                "mem": 32,
+                "vms": 3,
+                "nets": [
+                  "ovirtmgmt"
+                ]
+              },
+              {
+                "name": "host3",
+                "mem": 32,
+                "vms": 3,
+                "nets": [
+                  "ovirtmgmt"
+                ]
+              }
+            ],
+            "vms": [
+              {
+                "name": "db1",
+                "mem": 8,
+                "nets": [
+                  "ovirtmgmt"
+                ],
+                "group": "db"
+              },
+              {
+                "name": "db2",
+                "mem": 8,
+                "nets": [
+                  "ovirtmgmt"
+                ],
+                "group": "db"
+              },
+              {
+                "name": "app1",
+                "mem": 4,
+                "nets": [
+                  "ovirtmgmt"
+                ]
+              },
+              {
+                "name": "app2",
+                "mem": 4,
+                "nets": [
+                  "ovirtmgmt"
+                ]
+              }
+            ],
+            "check": {}
+          },
+          {
+            "id": "pack",
+            "title": "Power saving",
+            "goal": "Start 5 VMs on at most two hosts so that every VM fits",
+            "hint": "Power saving is the opposite of an even load. But packing without the memory filter overfills the first host.",
+            "hosts": [
+              {
+                "name": "host1",
+                "mem": 16,
+                "vms": 0,
+                "nets": [
+                  "ovirtmgmt"
+                ]
+              },
+              {
+                "name": "host2",
+                "mem": 16,
+                "vms": 0,
+                "nets": [
+                  "ovirtmgmt"
+                ]
+              },
+              {
+                "name": "host3",
+                "mem": 16,
+                "vms": 0,
+                "nets": [
+                  "ovirtmgmt"
+                ]
+              }
+            ],
+            "vms": [
+              {
+                "name": "vm1",
+                "mem": 4,
+                "nets": [
+                  "ovirtmgmt"
+                ]
+              },
+              {
+                "name": "vm2",
+                "mem": 4,
+                "nets": [
+                  "ovirtmgmt"
+                ]
+              },
+              {
+                "name": "vm3",
+                "mem": 4,
+                "nets": [
+                  "ovirtmgmt"
+                ]
+              },
+              {
+                "name": "vm4",
+                "mem": 4,
+                "nets": [
+                  "ovirtmgmt"
+                ]
+              },
+              {
+                "name": "vm5",
+                "mem": 4,
+                "nets": [
+                  "ovirtmgmt"
+                ]
+              }
+            ],
+            "check": {
+              "max_used": 2
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

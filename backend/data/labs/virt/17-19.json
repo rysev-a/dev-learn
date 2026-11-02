@@ -1,0 +1,109 @@
+{
+  "book": 17,
+  "chapter": 19,
+  "lab": "virt",
+  "tasks": [
+    {
+      "id": "virt-sim-ovirt-fence",
+      "title": "Симулятор: ограждение хоста oVirt",
+      "statement": "Менеджер потерял связь с хостом и решает, что делать: мягко перезапустить VDSM по SSH, пропустить ограждение по политике кластера или выключить и включить сервер через управление питанием. В пяти ситуациях подберите настройки так, чтобы результат был правильным: не перезагружать живой сервер, не устраивать шторм перезагрузок и всё же перезапускать высокодоступные машины, когда хост точно мёртв. Упражнение решено, когда выполнены цели всех пяти ситуаций.",
+      "hint": "Мягкое ограждение идёт первым. Политика «живая аренда» защищает рабочий хост, чьё управление сломано, а порог связи — кластер при отказе коммутатора: он должен быть выше доли одного упавшего хоста, но не выше доли упавших при аварии. Если контроллер питания мёртв, остаётся только аренда на стороне виртуальной машины.",
+      "spec": {
+        "sim": "ovirt_fence",
+        "scenarios": [
+          {
+            "id": "hung",
+            "title": "VDSM hung",
+            "story": "One host of four stopped answering because the vdsmd process hung. The server itself works, its VMs run, SSH answers.",
+            "goal": "Bring the host back to Up without a reboot",
+            "hint": "The cheapest step comes first: restart the service, not the whole server.",
+            "situation": {
+              "hosts": 4,
+              "down": 1,
+              "alive": true,
+              "lease": true,
+              "ssh": true,
+              "bmc": true
+            },
+            "check": {
+              "outcome": "recovered"
+            }
+          },
+          {
+            "id": "dead",
+            "title": "The server died",
+            "story": "One host of four lost power. Its VMs are down, one of them is highly available. SSH does not answer, the controller works.",
+            "goal": "Switch the host off and on through power management and restart the highly available VM elsewhere",
+            "hint": "A VM may be started elsewhere only after the engine is sure the host is off. A threshold that is too low would also skip this case.",
+            "situation": {
+              "hosts": 4,
+              "down": 1,
+              "alive": false,
+              "lease": false,
+              "ssh": false,
+              "bmc": true
+            },
+            "check": {
+              "outcome": "fenced",
+              "ha_restarted": true
+            }
+          },
+          {
+            "id": "mgmt",
+            "title": "Management network down",
+            "story": "The management network cable of one host is broken. The host is alive, its VMs work and write to storage over another network, SSH is unreachable.",
+            "goal": "Do not touch the host: fencing is skipped because of the live lease",
+            "hint": "A reboot of a working host would kill its VMs. The lease on storage proves the host is alive.",
+            "situation": {
+              "hosts": 4,
+              "down": 1,
+              "alive": true,
+              "lease": true,
+              "ssh": false,
+              "bmc": true
+            },
+            "check": {
+              "outcome": "skipped_lease"
+            }
+          },
+          {
+            "id": "switch",
+            "title": "The switch failed",
+            "story": "The management switch failed: the engine lost contact with 3 of 4 hosts. The hosts are alive, but the storage runs through the same switch, so leases cannot be read.",
+            "goal": "Skip fencing because of connectivity issues, without a storm of reboots",
+            "hint": "Three of four is 75%. The threshold must be low enough to skip this, but high enough not to skip one dead host out of four.",
+            "situation": {
+              "hosts": 4,
+              "down": 3,
+              "alive": true,
+              "lease": false,
+              "ssh": false,
+              "bmc": true
+            },
+            "check": {
+              "outcome": "skipped_connectivity"
+            }
+          },
+          {
+            "id": "bmc",
+            "title": "The controller died too",
+            "story": "A host lost power together with its management controller: power management cannot reach it. A highly available VM was running on it.",
+            "goal": "Restart the highly available VM even though the host cannot be fenced",
+            "hint": "A VM with a lease on storage can be started elsewhere once the dead host stops renewing it.",
+            "situation": {
+              "hosts": 4,
+              "down": 1,
+              "alive": false,
+              "lease": false,
+              "ssh": false,
+              "bmc": false
+            },
+            "check": {
+              "ha_restarted": true
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

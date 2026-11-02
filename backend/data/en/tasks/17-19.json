@@ -3,6 +3,12 @@
  "chapter": 19,
  "tasks": [
   {
+   "id": "virt-sim-ovirt-fence",
+   "title": "Simulator: fencing an oVirt host",
+   "statement": "The engine lost contact with a host and decides what to do: restart VDSM over SSH (soft fencing), skip fencing by the cluster policy, or switch the server off and on through power management. In five situations choose settings so that the result is right: do not reboot a live server, do not start a storm of reboots, and still restart highly available machines when a host is certainly dead. The exercise is solved when the goals of all five situations are met.",
+   "hint": "Soft fencing comes first. The live-lease policy protects a working host whose management is broken, and the connectivity threshold protects the cluster when a switch fails: it must be higher than the share of one dead host but not higher than the share lost in the outage. If the power controller is dead too, only a lease on the VM side is left."
+  },
+  {
    "id": "ov19-host-history",
    "title": "Host status history",
    "statement": "A model of a host's life. Transitions (status, event) → new status: (Installing, install_ok) → Up; (Installing, install_fail) → InstallFailed; (InstallFailed, reinstall) → Installing; (Up, no_heartbeat) → Connecting; (Connecting, heartbeat) → Up; (Connecting, retries_exhausted) → NonResponsive; (NonResponsive, heartbeat) → Up; (NonResponsive, fenced) → Connecting; (Up, requirement_failed) → NonOperational; (NonOperational, requirement_ok) → Up; (Up, maintenance) → PreparingForMaintenance; (NonOperational, maintenance) → PreparingForMaintenance; (PreparingForMaintenance, evacuated) → Maintenance; (Maintenance, activate) → Up; (Maintenance, reinstall) → Installing. An event with no transition is ignored. Write a function host_history(start, events): return the list of statuses the host went through, starting with start; only real status changes are added (ignored events add nothing).",

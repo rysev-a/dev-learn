@@ -15,7 +15,7 @@ dependencies = [
 name = "admin_api"
 version = "0.2.1"
 source = "sparse+https://git.service-lab.dev/pkg/lab/lab_crates/cargo/index/"
-checksum = "ff144e83a64831d0016748d790a1fcb68d2a85f06ac7ccb05ab1bc8a27a9479d"
+checksum = "bc36f8cc89191be891624cd80c9623f13729cb4c143d895bbd1469cebaae5f27"
 dependencies = [
  "auth",
  "axum",
@@ -119,7 +119,7 @@ dependencies = [
 name = "archlab"
 version = "0.1.0"
 dependencies = [
- "i18n",
+ "i18n 0.2.0",
  "serde",
  "serde_json",
 ]
@@ -212,14 +212,15 @@ checksum = "1505bd5d3d116872e7271a6d4e16d81d0c8570876c8de68093a09ac269d8aac0"
 
 [[package]]
 name = "auth"
-version = "0.2.4"
+version = "0.2.5"
 source = "sparse+https://git.service-lab.dev/pkg/lab/lab_crates/cargo/index/"
-checksum = "e784279810ddf032ba284631f3753e7f50d1ddbc57c7fea10ef2be9b4003bba4"
+checksum = "8ebc8b718c1e4c9b43980b6fc5c6d6bb68d82615467720a0291b8d2631ce5ffa"
 dependencies = [
  "anyhow",
  "argon2 0.6.0",
  "axum",
  "chrono",
+ "i18n 0.1.0",
  "rand 0.10.3",
  "serde",
  "serde_json",
@@ -231,9 +232,9 @@ dependencies = [
 
 [[package]]
 name = "auth_api"
-version = "0.2.2"
+version = "0.2.3"
 source = "sparse+https://git.service-lab.dev/pkg/lab/lab_crates/cargo/index/"
-checksum = "2292d679523866750f48bf698a4e264060f87cd55cecb30bc66955890394333b"
+checksum = "8a101ea84639335d1c22faff3768f3cadfcf855b7c44967290537ca352482427"
 dependencies = [
  "auth",
  "axum",
@@ -886,7 +887,7 @@ dependencies = [
  "content",
  "dotenvy",
  "http-body-util",
- "i18n",
+ "i18n 0.2.0",
  "locales",
  "mail",
  "netlab",
@@ -2158,6 +2159,12 @@ dependencies = [
 
 [[package]]
 name = "i18n"
+version = "0.1.0"
+source = "sparse+https://git.service-lab.dev/pkg/lab/lab_crates/cargo/index/"
+checksum = "3eaa6a729e067350224ab83b9eab386616843946e836f3ce4fb931bacdf5514e"
+
+[[package]]
+name = "i18n"
 version = "0.2.0"
 dependencies = [
  "serde_json",
@@ -2614,7 +2621,7 @@ checksum = "47d9d19d1d6efa0109d2f65ff4c85cddd50bd572e5a00127ab10987290bcefae"
 name = "locales"
 version = "0.1.0"
 dependencies = [
- "i18n",
+ "i18n 0.2.0",
 ]
 
 [[package]]
@@ -2699,7 +2706,7 @@ checksum = "c41e0c4fef86961ac6d6f8a82609f55f31b05e4fce149ac5710e439df7619ba4"
 name = "mail"
 version = "0.2.4"
 source = "sparse+https://git.service-lab.dev/pkg/lab/lab_crates/cargo/index/"
-checksum = "cd9485f40bf3f70b61388c0e63c8ab4cd4ac4797d63cd12cdbcec0a41321f2f7"
+checksum = "483ecbf23431b9c871c50c5c35ee171cc99d43358395b7130790bc4e797a1a56"
 dependencies = [
  "anyhow",
  "lettre",
@@ -2893,7 +2900,7 @@ dependencies = [
 name = "netlab"
 version = "0.1.0"
 dependencies = [
- "i18n",
+ "i18n 0.2.0",
  "serde",
  "serde_json",
 ]
@@ -3083,7 +3090,7 @@ dependencies = [
 name = "observability"
 version = "0.1.3"
 source = "sparse+https://git.service-lab.dev/pkg/lab/lab_crates/cargo/index/"
-checksum = "652ad520b1f6cf8356da8e091b61a2c41ac3141224edfc3bd4ab23177cdab272"
+checksum = "9fa1acf37dcae28a10681719f83a7bb1c450317b079746a604aa66631b9fcca1"
 dependencies = [
  "axum",
  "axum-tracing-opentelemetry",
@@ -4032,7 +4039,7 @@ dependencies = [
 name = "riscvlab"
 version = "0.1.0"
 dependencies = [
- "i18n",
+ "i18n 0.2.0",
  "serde",
  "serde_json",
 ]
@@ -4417,7 +4424,7 @@ dependencies = [
 name = "sdlab"
 version = "0.1.0"
 dependencies = [
- "i18n",
+ "i18n 0.2.0",
  "serde",
  "serde_json",
 ]
@@ -5591,7 +5598,7 @@ dependencies = [
 name = "system_tasks"
 version = "0.2.2"
 source = "sparse+https://git.service-lab.dev/pkg/lab/lab_crates/cargo/index/"
-checksum = "bc1a5104874e18ad72ad98f918bfd6717fe98fd87d9e88105e60772cd9c9626f"
+checksum = "8caac216d755d94e7e85c2951e64e1d0570a7bde52de2a21f8fbadfa99da246b"
 dependencies = [
  "anyhow",
  "chrono",
@@ -6252,7 +6259,7 @@ checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
 name = "virtlab"
 version = "0.1.0"
 dependencies = [
- "i18n",
+ "i18n 0.2.0",
  "serde",
  "serde_json",
 ]
@@ -6442,7 +6449,7 @@ name = "weblab"
 version = "0.1.0"
 dependencies = [
  "ego-tree",
- "i18n",
+ "i18n 0.2.0",
  "scraper",
  "serde",
  "serde_json",

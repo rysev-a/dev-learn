@@ -2,7 +2,7 @@ import type { Locator, Page } from "@playwright/test";
 import { expect, loginFresh, test } from "../../support/fixtures";
 import { labTask, listItem, openTask, progressLabel, putSolved, statusOf, expectStatusOk } from "../../support/labs";
 
-/* Virtualization lab (book 17): six simulators. A solution is JSON `{goal id: data}` built by the interface itself;
+/* Virtualization lab (book 17): six simulators (the three oVirt ones are not covered yet). A solution is JSON `{goal id: data}` built by the interface itself;
    these exercises have no reference in the data, so they are solved by actions in the interface, and the submitted solution is then
    replayed by another student through the API (server-side re-check by the model). */
 

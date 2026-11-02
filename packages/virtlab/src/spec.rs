@@ -9,11 +9,20 @@ use serde::{Deserialize, Serialize};
 
 use crate::error::SpecError;
 use crate::goal::Goal;
-use crate::{ept, hv, migration, numa, qcow2, virtq};
+use crate::{ept, hv, migration, numa, ovirt_dc, ovirt_fence, ovirt_sched, qcow2, virtq};
 
 /// Exercise identifiers of book 17 (also `Task::id`).
-pub const LAB_IDS: [&str; 6] =
-    ["virt-sim-hv", "virt-sim-ept", "virt-sim-virtqueue", "virt-sim-qcow2", "virt-sim-migration", "virt-sim-numa"];
+pub const LAB_IDS: [&str; 9] = [
+    "virt-sim-hv",
+    "virt-sim-ept",
+    "virt-sim-virtqueue",
+    "virt-sim-qcow2",
+    "virt-sim-migration",
+    "virt-sim-numa",
+    "virt-sim-ovirt-dc",
+    "virt-sim-ovirt-fence",
+    "virt-sim-ovirt-sched",
+];
 
 /// Cluster of the qcow2 base layer (stored as a list, not a map: numeric keys as JSON strings are unwanted).
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -68,6 +77,21 @@ pub enum Spec {
         /// Scenarios; the goal is to meet the condition of each one.
         scenarios: Vec<migration::Scenario>,
     },
+    /// Bringing up an oVirt data center (chapter 17).
+    OvirtDc {
+        /// Goals.
+        goals: Vec<ovirt_dc::DcGoal>,
+    },
+    /// Fencing an oVirt host (chapter 19): the goal is to reach each scenario's result with the right settings.
+    OvirtFence {
+        /// Scenarios.
+        scenarios: Vec<ovirt_fence::Scenario>,
+    },
+    /// The oVirt scheduler (chapter 22): the goal is a good placement in each scenario.
+    OvirtSched {
+        /// Scenarios.
+        scenarios: Vec<ovirt_sched::Scenario>,
+    },
 }
 
 /// qcow2 base layer as a list → map.
@@ -98,6 +122,9 @@ impl Spec {
             Spec::Numa { .. } => "numa",
             Spec::Qcow2 { .. } => "qcow2",
             Spec::Migration { .. } => "migration",
+            Spec::OvirtDc { .. } => "ovirt_dc",
+            Spec::OvirtFence { .. } => "ovirt_fence",
+            Spec::OvirtSched { .. } => "ovirt_sched",
         }
     }
 
@@ -110,6 +137,9 @@ impl Spec {
             Spec::Numa { scenarios, .. } => scenarios.iter().map(numa::Scenario::as_goal).collect(),
             Spec::Qcow2 { goals, .. } => goals.iter().map(qcow2::Qcow2Goal::as_goal).collect(),
             Spec::Migration { scenarios, .. } => scenarios.iter().map(migration::Scenario::as_goal).collect(),
+            Spec::OvirtDc { goals } => goals.iter().map(ovirt_dc::DcGoal::as_goal).collect(),
+            Spec::OvirtFence { scenarios } => scenarios.iter().map(ovirt_fence::Scenario::as_goal).collect(),
+            Spec::OvirtSched { scenarios } => scenarios.iter().map(ovirt_sched::Scenario::as_goal).collect(),
         }
     }
 
@@ -161,6 +191,24 @@ impl Spec {
                     }
                 }
             }
+            Spec::OvirtDc { .. } => {}
+            Spec::OvirtFence { scenarios } => {
+                for s in scenarios {
+                    let t = &s.situation;
+                    if t.hosts == 0 || t.down == 0 || t.down > t.hosts {
+                        return Err(SpecError::new(i18n::trf!("scenario {0}: invalid number of hosts", s.id)));
+                    }
+                }
+            }
+            Spec::OvirtSched { scenarios } => {
+                for s in scenarios {
+                    if s.hosts.is_empty() || s.vms.is_empty() {
+                        return Err(SpecError::new(i18n::trf!("scenario {0}: no hosts or no machines", s.id)));
+                    }
+                    unique(i18n::tr("hosts"), s.hosts.iter().map(|h| h.name.clone()))?;
+                    unique(i18n::tr("machines"), s.vms.iter().map(|v| v.name.clone()))?;
+                }
+            }
         }
         Ok(())
     }
@@ -179,6 +227,9 @@ pub fn builtin(id: &str) -> Option<Spec> {
         },
         "virt-sim-migration" => Spec::Migration { scenarios: migration::default_scenarios() },
         "virt-sim-numa" => Spec::Numa { nodes: numa::default_nodes(), scenarios: numa::default_scenarios() },
+        "virt-sim-ovirt-dc" => Spec::OvirtDc { goals: ovirt_dc::default_goals() },
+        "virt-sim-ovirt-fence" => Spec::OvirtFence { scenarios: ovirt_fence::default_scenarios() },
+        "virt-sim-ovirt-sched" => Spec::OvirtSched { scenarios: ovirt_sched::default_scenarios() },
         _ => return None,
     })
 }

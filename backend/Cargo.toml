@@ -27,8 +27,8 @@ archlab = { path = "../packages/archlab" }
 netlab = { path = "../packages/netlab" }
 # shared crates (gitness registry `lab_crates`)
 admin_api = { version = "0.2.1", registry = "lab" }
-auth = { version = "0.2.4", registry = "lab" }
-auth_api = { version = "0.2.2", registry = "lab" }
+auth = { version = "0.2.5", registry = "lab" }
+auth_api = { version = "0.2.3", registry = "lab" }
 mail = { version = "0.2.4", registry = "lab" }
 notifications = { version = "0.2.1", registry = "lab" }
 observability = { version = "0.1.3", registry = "lab" }

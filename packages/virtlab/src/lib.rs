@@ -1,13 +1,16 @@
-//! Lab for the "Virtualization" book (book 17): six simulators as pure Rust models.
+//! Lab for the "Virtualization" book (book 17): nine simulators as pure Rust models.
 //!
 //! * [`hv`] — mini-hypervisor: traps, virtual registers, the POPF instruction and binary translation (chapter 2);
 //! * [`ept`] — guest address translation: shadow page tables and EPT/NPT, TLB, cost in memory accesses (chapter 4);
 //! * [`virtq`] — virtio rings and notification suppression (chapter 6);
 //! * [`qcow2`] — image layer chain: snapshots, copy-on-write, merging and rollback (chapter 9);
 //! * [`migration`] — live migration: pre-copy rounds, auto-converge, compression, post-copy (chapter 10);
-//! * [`numa`] — placing machines on NUMA nodes (chapter 11).
+//! * [`numa`] — placing machines on NUMA nodes (chapter 11);
+//! * [`ovirt_dc`] — bringing up an oVirt data center: cluster, hosts, network, storage domain, VM (chapter 17);
+//! * [`ovirt_fence`] — fencing a non-responsive oVirt host: soft fencing, cluster policy, power management (chapter 19);
+//! * [`ovirt_sched`] — the oVirt scheduler: filters, weights and anti-affinity (chapter 22).
 //!
-//! Model results match the former TypeScript models (`frontend/src/virtlab`) bit for bit — this is checked by
+//! Model results of the first six simulators match the former TypeScript models (`frontend/src/virtlab`) bit for bit — this is checked by
 //! differential tests against "golden" data (`tests/golden/virt.json`, exported by `frontend/scripts/virt-export.mjs`).
 //!
 //! Layout:
@@ -27,6 +30,9 @@ pub mod hv;
 pub mod labfile;
 pub mod migration;
 pub mod numa;
+pub mod ovirt_dc;
+pub mod ovirt_fence;
+pub mod ovirt_sched;
 pub mod qcow2;
 pub mod spec;
 pub mod verify;
