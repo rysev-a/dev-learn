@@ -1121,14 +1121,14 @@ h2 {
   fill: var(--s-red);
 }
 
-.slide-btn.slide-rec-del {
+.slide-btn.slide-rec-menu {
   padding-left: 9px;
   padding-right: 9px;
 }
 
-.slide-btn.slide-rec-del:hover {
-  color: var(--s-red);
-  border-color: var(--s-red);
+.slide-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
 }
 
 .slide-btn.slide-rec.on {
@@ -3777,4 +3777,154 @@ g.fk .sx-key {
   .mm-panel {
     transition: none;
   }
+}
+
+/* ---------- window "Recordings of this slide": the takes, the choice of the voice-over, delete ---------- */
+
+.rd {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.rd.open {
+  display: flex;
+}
+
+.rd-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.rd-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(520px, 100%);
+  max-height: min(80vh, 640px);
+  padding: 16px;
+  background: var(--s-panel);
+  border: 1px solid var(--s-border);
+  border-radius: 14px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+}
+
+.rd-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.rd-head h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--s-text);
+}
+
+.rd-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-y: auto;
+}
+
+.rd-row {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.rd-pick {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--s-border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--s-text);
+  font: inherit;
+  font-size: 13.5px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.rd-pick:hover:not(:disabled) {
+  border-color: var(--s-accent-a45);
+}
+
+.rd-row.on .rd-pick {
+  color: var(--s-accent);
+  border-color: var(--s-accent);
+  background: var(--s-green);
+}
+
+.rd-radio {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--s-muted);
+  border-radius: 50%;
+}
+
+.rd-radio.on {
+  border-color: var(--s-accent);
+  background: radial-gradient(var(--s-accent) 40%, transparent 45%);
+}
+
+.rd-name {
+  font-weight: 600;
+}
+
+.rd-meta {
+  margin-left: auto;
+  color: var(--s-muted);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11.5px;
+}
+
+.rd-del {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  flex-shrink: 0;
+  border: 1px solid var(--s-border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--s-muted);
+  cursor: pointer;
+}
+
+.rd-del:hover:not(:disabled) {
+  color: var(--s-red);
+  border-color: var(--s-red);
+}
+
+.rd-del:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.rd-note {
+  margin: 4px 2px;
+  color: var(--s-muted);
+  font-size: 13px;
+}
+
+.rd-note.error {
+  color: var(--s-red);
 }

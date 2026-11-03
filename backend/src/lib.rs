@@ -102,6 +102,7 @@ pub fn router(state: AppState, auth: Auth, tasks: Tasks) -> Router {
 /// Schema, content seed, auth, background tasks; returns the ready router.
 pub async fn build(db: Db, cfg: Config) -> anyhow::Result<(Router, AppState)> {
     locales::install(); // Russian lab engine messages (checking solutions in the request language)
+    records::migrate(&cfg.records_dir);
     db::init_schema(&db).await?;
     if let Err(e) = seed::run(&db, &cfg).await {
         tracing::error!("content seed failed: {e:#}");

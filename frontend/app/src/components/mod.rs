@@ -6,6 +6,7 @@ pub mod fullscreen;
 pub mod labs;
 pub mod mobile_menu;
 pub mod overload;
+pub mod records_dialog;
 pub mod results;
 pub mod slides;
 pub mod sql_diff;

@@ -1,33 +1,41 @@
-//! Voice recordings for slides: the interface sends audio recorded in the browser (`MediaRecorder`), the server puts the file into
-//! `records_dir/<book>/<chapter>/<slide>.<extension>` for the Russian text and `records_dir/en/<book>/<chapter>/…` for the English one
-//! (a slide has one file per language: an earlier recording with another extension is deleted). The language is the one the book is served in:
-//! a book without a translation into the request language is Russian, and so is its recording.
-//! This is an author tool, not student progress: only administrators may write to or delete from the server disk.
+//! Voice recordings for slides: the interface sends audio recorded in the browser (`MediaRecorder`, converted to WAV), the server keeps
+//! every recording as a separate "take": `records_dir/<book>/<chapter>/<slide>/<take>.<extension>` for the Russian text and
+//! `records_dir/en/<book>/<chapter>/…` for the English one (the language is the one the book is served in: a book without a translation
+//! into the request language is Russian, and so is its recording). Each "Record" makes a new take; the take that voices the slide is the
+//! chosen one (file `selected` next to the takes), by default the first. Only administrators write to or delete from the server disk.
+
+use std::path::{Path as FsPath, PathBuf};
 
 use auth::Identity;
 use axum::{
     body::{Body, Bytes},
     extract::{DefaultBodyLimit, Path, Request, State},
-    http::{header, HeaderMap, StatusCode},
+    http::{header, HeaderMap},
     response::Response,
-    routing::{get, post},
+    routing::{delete, get, put},
     Extension, Json, Router,
 };
+use serde::Deserialize;
+use serde_json::{json, Value};
 use tower::ServiceExt;
 use tower_http::services::ServeFile;
-use serde_json::{json, Value};
 
 use crate::{
     error::{ApiError, ApiResult},
     lang::{self, Lang},
     progress::check_range,
-    AppState,
+    wav, AppState,
 };
 
 const MAX_BYTES: usize = 64 * 1024 * 1024;
+/// File with the number of the chosen take.
+const SELECTED: &str = "selected";
 
 pub fn private() -> Router<AppState> {
-    Router::new().route("/api/records/{book}/{chapter}/{slide}", post(save).layer(DefaultBodyLimit::max(MAX_BYTES)).delete(remove))
+    Router::new()
+        .route("/api/records/{book}/{chapter}/{slide}", get(list).post(save).layer(DefaultBodyLimit::max(MAX_BYTES)))
+        .route("/api/records/{book}/{chapter}/{slide}/selected", put(select))
+        .route("/api/records/{book}/{chapter}/{slide}/{take}", delete(remove))
 }
 
 /// Listening to a recording: a plain `<audio>` element cannot send the session header, so this route is public (like the lesson audio).
@@ -35,21 +43,68 @@ pub fn public() -> Router<AppState> {
     Router::new().route("/api/records/{book}/{chapter}/{slide}/audio", get(audio))
 }
 
-/// Folder of a chapter's recordings in a language: Russian (the base text) keeps the original layout, other languages get their own subfolder.
-pub fn chapter_dir(records_dir: &std::path::Path, lang: Lang, book: i64, chapter: i64) -> std::path::PathBuf {
+/// Folder of a chapter's recordings in a language: Russian (the base text) is the root, other languages get their own subfolder.
+pub fn chapter_dir(records_dir: &FsPath, lang: Lang, book: i64, chapter: i64) -> PathBuf {
     let base = if lang == Lang::Ru { records_dir.to_path_buf() } else { records_dir.join(lang.code()) };
     base.join(book.to_string()).join(chapter.to_string())
 }
 
-/// The recorded voice-over of a slide, if there is one in a format the player can seek in (`wav`; the browser converts its recording to it).
-pub fn wav_path(records_dir: &std::path::Path, lang: Lang, book: i64, chapter: i64, slide: i64) -> Option<std::path::PathBuf> {
-    let p = chapter_dir(records_dir, lang, book, chapter).join(format!("{slide}.wav"));
-    p.is_file().then_some(p)
+fn slide_dir(records_dir: &FsPath, lang: Lang, book: i64, chapter: i64, slide: i64) -> PathBuf {
+    chapter_dir(records_dir, lang, book, chapter).join(slide.to_string())
 }
 
-/// Address of a slide's recording for the player: the language is in the query because `<audio src>` sends no headers.
-pub fn audio_url(lang: Lang, book: i64, chapter: i64, slide: i64) -> String {
-    format!("/api/records/{book}/{chapter}/{slide}/audio?lang={}", lang.code())
+/// A recorded take of a slide in a format the player can seek in (`wav`; the browser converts its recording to it).
+pub struct Take {
+    pub id: i64,
+    pub path: PathBuf,
+    /// time of recording, seconds since the epoch
+    pub at: u64,
+}
+
+/// The takes of a slide, by number.
+pub fn takes(records_dir: &FsPath, lang: Lang, book: i64, chapter: i64, slide: i64) -> Vec<Take> {
+    let Ok(entries) = std::fs::read_dir(slide_dir(records_dir, lang, book, chapter, slide)) else { return Vec::new() };
+    let mut all: Vec<Take> = entries
+        .flatten()
+        .filter_map(|e| {
+            let path = e.path();
+            (path.extension()?.to_str()? == "wav").then_some(())?;
+            let at = std::fs::metadata(&path).and_then(|m| m.modified()).ok().and_then(|m| m.duration_since(std::time::UNIX_EPOCH).ok()).map_or(0, |d| d.as_secs());
+            Some(Take { id: path.file_stem()?.to_str()?.parse().ok()?, path, at })
+        })
+        .collect();
+    all.sort_by_key(|t| t.id);
+    all
+}
+
+/// The take that voices the slide: the chosen one if it still exists, otherwise the first.
+pub fn selected(records_dir: &FsPath, lang: Lang, book: i64, chapter: i64, slide: i64) -> Option<Take> {
+    let mut all = takes(records_dir, lang, book, chapter, slide);
+    let chosen = std::fs::read_to_string(slide_dir(records_dir, lang, book, chapter, slide).join(SELECTED)).ok().and_then(|s| s.trim().parse::<i64>().ok());
+    let at = chosen.and_then(|c| all.iter().position(|t| t.id == c)).unwrap_or(0);
+    (!all.is_empty()).then(|| all.swap_remove(at))
+}
+
+/// Address of a take for the player: the language and the take are in the query because `<audio src>` sends no headers;
+/// `v` (the time of recording) changes when a take number is used again, so the browser does not play a cached older file.
+pub fn audio_url(lang: Lang, book: i64, chapter: i64, slide: i64, take: &Take) -> String {
+    format!("/api/records/{book}/{chapter}/{slide}/audio?lang={}&take={}&v={}", lang.code(), take.id, take.at)
+}
+
+fn rounded(seconds: f64) -> f64 {
+    (seconds * 10.0).round() / 10.0
+}
+
+/// What the interface needs about a slide's recordings: the takes (number, length, time of recording), the chosen one and its address and length.
+fn state_json(records_dir: &FsPath, lang: Lang, book: i64, chapter: i64, slide: i64) -> Value {
+    let listed: Vec<Value> = takes(records_dir, lang, book, chapter, slide)
+        .iter()
+        .map(|t| json!({ "id": t.id, "dur": rounded(wav::duration(&t.path)), "at": t.at }))
+        .collect();
+    match selected(records_dir, lang, book, chapter, slide) {
+        Some(t) => json!({ "takes": listed, "selected": t.id, "audio": audio_url(lang, book, chapter, slide, &t), "dur": rounded(wav::duration(&t.path)) }),
+        None => json!({ "takes": listed, "selected": null, "audio": null, "dur": 0.0 }),
+    }
 }
 
 /// The language a book is recorded in for the request language: the request one if the book is translated into it, otherwise Russian.
@@ -57,14 +112,33 @@ async fn recorded_lang(state: &AppState, lang: Lang, book: i64) -> ApiResult<Lan
     Ok(if lang::translated(&state.db, lang, book).await? { lang } else { Lang::Ru })
 }
 
-/// `GET /api/records/{book}/{chapter}/{slide}/audio?lang=` - the file with `Range` support (seeking in the player).
+fn admin_only(me: &Identity, book: i64, chapter: i64, slide: i64) -> ApiResult<()> {
+    if !me.has_role(Identity::SUPERUSER_ROLE) {
+        return Err(ApiError::new(403, "Recording is available to administrators only"));
+    }
+    check_range("book", book, 1, 1000)?;
+    check_range("chapter", chapter, 0, 1000)?;
+    check_range("slide", slide, 0, 500)
+}
+
+/// `take=<n>` from the query string.
+fn query_take(query: Option<&str>) -> Option<i64> {
+    query?.split('&').find_map(|kv| kv.strip_prefix("take=")?.parse().ok())
+}
+
+/// `GET /api/records/{book}/{chapter}/{slide}/audio?lang=&take=` - the file with `Range` support (seeking in the player);
+/// without `take` the chosen take.
 async fn audio(State(state): State<AppState>, lang: Lang, Path((book, chapter, slide)): Path<(i64, i64, i64)>, req: Request) -> ApiResult<Response> {
-    let path = wav_path(&state.cfg.records_dir, lang, book, chapter, slide).ok_or_else(|| ApiError::not_found("Audio not found"))?;
-    serve(path, req).await
+    let dir = &state.cfg.records_dir;
+    let take = match query_take(req.uri().query()) {
+        Some(id) => takes(dir, lang, book, chapter, slide).into_iter().find(|t| t.id == id),
+        None => selected(dir, lang, book, chapter, slide),
+    };
+    serve(take.ok_or_else(|| ApiError::not_found("Audio not found"))?.path, req).await
 }
 
 /// A file as a response with `Range`, `Content-Type` and `Last-Modified` (without it the browser cannot seek in the audio).
-pub async fn serve(path: std::path::PathBuf, req: Request) -> ApiResult<Response> {
+pub async fn serve(path: PathBuf, req: Request) -> ApiResult<Response> {
     let res = ServeFile::new(path).oneshot(req).await.map_err(|_| ApiError::not_found("Audio not found"))?;
     Ok(res.map(Body::new))
 }
@@ -83,14 +157,17 @@ pub fn extension(content_type: &str) -> Option<&'static str> {
     }
 }
 
-/// `POST /api/records/{book}/{chapter}/{slide}` - the whole request body, type in `Content-Type`; the response - the file path and size.
+/// `GET /api/records/{book}/{chapter}/{slide}` - the slide's takes in the request language (administrators only).
+async fn list(State(state): State<AppState>, Extension(me): Extension<Identity>, lang: Lang, Path((book, chapter, slide)): Path<(i64, i64, i64)>) -> ApiResult<Json<Value>> {
+    admin_only(&me, book, chapter, slide)?;
+    let lang = recorded_lang(&state, lang, book).await?;
+    Ok(Json(state_json(&state.cfg.records_dir, lang, book, chapter, slide)))
+}
+
+/// `POST /api/records/{book}/{chapter}/{slide}` - the whole request body is a new take, type in `Content-Type`; the response is the slide's state
+/// plus the new take's `id`, `path` and `bytes`. The new take does not replace the chosen one (the first take voices the slide until another is chosen).
 async fn save(State(state): State<AppState>, Extension(me): Extension<Identity>, lang: Lang, Path((book, chapter, slide)): Path<(i64, i64, i64)>, headers: HeaderMap, body: Bytes) -> ApiResult<Json<Value>> {
-    if !me.has_role(Identity::SUPERUSER_ROLE) {
-        return Err(ApiError::new(403, "Recording is available to administrators only"));
-    }
-    check_range("book", book, 1, 1000)?;
-    check_range("chapter", chapter, 0, 1000)?;
-    check_range("slide", slide, 0, 500)?;
+    admin_only(&me, book, chapter, slide)?;
     let content_type = headers.get(header::CONTENT_TYPE).and_then(|v| v.to_str().ok()).unwrap_or("");
     let ext = extension(content_type).ok_or_else(|| ApiError::invalid("Unsupported recording format"))?;
     if body.is_empty() {
@@ -98,59 +175,109 @@ async fn save(State(state): State<AppState>, Extension(me): Extension<Identity>,
     }
 
     let lang = recorded_lang(&state, lang, book).await?;
-    let dir = chapter_dir(&state.cfg.records_dir, lang, book, chapter);
-    let path = dir.join(format!("{slide}.{ext}"));
+    let records = state.cfg.records_dir.clone();
+    let dir = slide_dir(&records, lang, book, chapter, slide);
     let bytes = body.len();
-    let written = path.clone();
-    tokio::task::spawn_blocking(move || -> std::io::Result<()> {
+    let (id, path) = tokio::task::spawn_blocking(move || -> std::io::Result<(i64, PathBuf)> {
         std::fs::create_dir_all(&dir)?;
-        remove_slide_files(&dir, slide, Some(&written))?;
-        std::fs::write(&written, &body)
+        let last = std::fs::read_dir(&dir)?.flatten().filter_map(|e| e.path().file_stem()?.to_str()?.parse::<i64>().ok()).max().unwrap_or(0);
+        let path = dir.join(format!("{}.{ext}", last + 1));
+        std::fs::write(&path, &body)?;
+        Ok((last + 1, path))
     })
     .await
     .map_err(|e| anyhow::anyhow!("writing file: {e}"))?
-    .map_err(|e| anyhow::anyhow!("writing file {}: {e}", path.display()))?;
-    tracing::info!("slide recording {lang:?} {book}/{chapter}/{slide}: {} ({bytes} bytes)", path.display());
-    Ok(Json(json!({ "path": path.to_string_lossy(), "bytes": bytes, "audio": audio_url(lang, book, chapter, slide), "lang": lang.code() })))
+    .map_err(|e| anyhow::anyhow!("writing recording: {e}"))?;
+    tracing::info!("slide recording {lang:?} {book}/{chapter}/{slide}: take {id}, {} ({bytes} bytes)", path.display());
+    let mut out = state_json(&records, lang, book, chapter, slide);
+    out["id"] = json!(id);
+    out["path"] = json!(path.to_string_lossy());
+    out["bytes"] = json!(bytes);
+    Ok(Json(out))
 }
 
-/// Deletes the files of a slide (any extension) in a chapter folder, except `keep`; returns how many were removed.
-fn remove_slide_files(dir: &std::path::Path, slide: i64, keep: Option<&std::path::Path>) -> std::io::Result<usize> {
-    let prefix = format!("{slide}.");
-    let mut removed = 0;
-    for entry in std::fs::read_dir(dir)?.flatten() {
-        if entry.file_name().to_string_lossy().starts_with(&prefix) && Some(entry.path().as_path()) != keep {
-            std::fs::remove_file(entry.path())?;
-            removed += 1;
-        }
-    }
-    Ok(removed)
+#[derive(Deserialize)]
+struct Choice {
+    id: i64,
 }
 
-/// `DELETE /api/records/{book}/{chapter}/{slide}` - deletes the slide's recording in the request language (administrators only); 404 if there is none.
-async fn remove(State(state): State<AppState>, Extension(me): Extension<Identity>, lang: Lang, Path((book, chapter, slide)): Path<(i64, i64, i64)>) -> ApiResult<StatusCode> {
-    if !me.has_role(Identity::SUPERUSER_ROLE) {
-        return Err(ApiError::new(403, "Recording is available to administrators only"));
-    }
-    check_range("book", book, 1, 1000)?;
-    check_range("chapter", chapter, 0, 1000)?;
-    check_range("slide", slide, 0, 500)?;
+/// `PUT /api/records/{book}/{chapter}/{slide}/selected` `{id}` - the take that voices the slide.
+async fn select(State(state): State<AppState>, Extension(me): Extension<Identity>, lang: Lang, Path((book, chapter, slide)): Path<(i64, i64, i64)>, Json(choice): Json<Choice>) -> ApiResult<Json<Value>> {
+    admin_only(&me, book, chapter, slide)?;
     let lang = recorded_lang(&state, lang, book).await?;
-    let dir = chapter_dir(&state.cfg.records_dir, lang, book, chapter);
-    let removed = tokio::task::spawn_blocking(move || if dir.is_dir() { remove_slide_files(&dir, slide, None) } else { Ok(0) })
-        .await
-        .map_err(|e| anyhow::anyhow!("deleting file: {e}"))?
-        .map_err(|e| anyhow::anyhow!("deleting recording: {e}"))?;
+    let records = state.cfg.records_dir.clone();
+    if !takes(&records, lang, book, chapter, slide).iter().any(|t| t.id == choice.id) {
+        return Err(ApiError::not_found("Recording not found"));
+    }
+    let file = slide_dir(&records, lang, book, chapter, slide).join(SELECTED);
+    std::fs::write(&file, choice.id.to_string()).map_err(|e| anyhow::anyhow!("writing {}: {e}", file.display()))?;
+    Ok(Json(state_json(&records, lang, book, chapter, slide)))
+}
+
+/// `DELETE /api/records/{book}/{chapter}/{slide}/{take}` - deletes one take (administrators only); 404 if there is none.
+/// The response is the slide's state: if the chosen take was deleted, the first one voices the slide.
+async fn remove(State(state): State<AppState>, Extension(me): Extension<Identity>, lang: Lang, Path((book, chapter, slide, take)): Path<(i64, i64, i64, i64)>) -> ApiResult<Json<Value>> {
+    admin_only(&me, book, chapter, slide)?;
+    let lang = recorded_lang(&state, lang, book).await?;
+    let records = state.cfg.records_dir.clone();
+    let dir = slide_dir(&records, lang, book, chapter, slide);
+    let removed = tokio::task::spawn_blocking(move || -> std::io::Result<usize> {
+        let Ok(entries) = std::fs::read_dir(&dir) else { return Ok(0) };
+        let mut removed = 0;
+        for entry in entries.flatten() {
+            if entry.path().file_stem().and_then(|s| s.to_str()).and_then(|s| s.parse::<i64>().ok()) == Some(take) {
+                std::fs::remove_file(entry.path())?;
+                removed += 1;
+            }
+        }
+        let chosen = std::fs::read_to_string(dir.join(SELECTED)).ok().and_then(|s| s.trim().parse::<i64>().ok());
+        if chosen == Some(take) {
+            let _ = std::fs::remove_file(dir.join(SELECTED));
+        }
+        let _ = std::fs::remove_dir(&dir); // only when it is empty
+        Ok(removed)
+    })
+    .await
+    .map_err(|e| anyhow::anyhow!("deleting file: {e}"))?
+    .map_err(|e| anyhow::anyhow!("deleting recording: {e}"))?;
     if removed == 0 {
         return Err(ApiError::not_found("Recording not found"));
     }
-    tracing::info!("slide recording deleted {lang:?} {book}/{chapter}/{slide}");
-    Ok(StatusCode::NO_CONTENT)
+    tracing::info!("slide recording deleted {lang:?} {book}/{chapter}/{slide}: take {take}");
+    Ok(Json(state_json(&records, lang, book, chapter, slide)))
+}
+
+/// One-time move of the earlier layout (one file per slide, `<chapter>/<slide>.<ext>`) into takes (`<chapter>/<slide>/1.<ext>`);
+/// it runs at start and does nothing when there is nothing to move.
+pub fn migrate(records_dir: &FsPath) {
+    let numbered = |dir: &FsPath| -> Vec<PathBuf> {
+        let Ok(entries) = std::fs::read_dir(dir) else { return Vec::new() };
+        entries.flatten().map(|e| e.path()).filter(|p| p.is_dir() && p.file_name().and_then(|n| n.to_str()).is_some_and(|n| n.parse::<i64>().is_ok())).collect()
+    };
+    let bases = std::iter::once(records_dir.to_path_buf()).chain(Lang::ALL.into_iter().filter(|l| *l != Lang::Ru).map(|l| records_dir.join(l.code())));
+    for base in bases {
+        for chapter in numbered(&base).iter().flat_map(|book| numbered(book)) {
+            let Ok(entries) = std::fs::read_dir(&chapter) else { continue };
+            for entry in entries.flatten() {
+                let path = entry.path();
+                let (Some(stem), Some(ext)) = (path.file_stem().and_then(|s| s.to_str()), path.extension().and_then(|e| e.to_str())) else { continue };
+                if !path.is_file() || stem.parse::<i64>().is_err() {
+                    continue;
+                }
+                let dir = chapter.join(stem);
+                let target = dir.join(format!("1.{ext}"));
+                match std::fs::create_dir_all(&dir).and_then(|_| std::fs::rename(&path, &target)) {
+                    Ok(()) => tracing::info!("slide recording moved: {} -> {}", path.display(), target.display()),
+                    Err(e) => tracing::warn!("slide recording {} was not moved: {e}", path.display()),
+                }
+            }
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::extension;
+    use super::{extension, query_take};
 
     #[test]
     fn extension_follows_the_container_and_ignores_codecs() {
@@ -159,5 +286,14 @@ mod tests {
         assert_eq!(extension("AUDIO/OGG; codecs=opus"), Some("ogg"));
         assert_eq!(extension("text/plain"), None);
         assert_eq!(extension(""), None);
+    }
+
+    #[test]
+    fn the_take_is_read_from_the_query() {
+        assert_eq!(query_take(Some("lang=en&take=3")), Some(3));
+        assert_eq!(query_take(Some("take=12")), Some(12));
+        assert_eq!(query_take(Some("lang=en")), None);
+        assert_eq!(query_take(Some("take=x")), None);
+        assert_eq!(query_take(None), None);
     }
 }
