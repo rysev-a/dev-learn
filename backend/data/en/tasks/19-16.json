@@ -3,6 +3,18 @@
  "chapter": 16,
  "tasks": [
   {
+   "id": "virt-sim-lvm-grow",
+   "title": "LVM board: from disks to a volume and its growth",
+   "statement": "Build a server's storage the way an administrator does: disks, physical volumes (pvcreate), a volume group (vgextend), logical volumes (lvcreate) and filesystems. The board counts the extents itself: a physical volume is a little smaller than its disk (the first megabyte holds metadata), a volume takes a whole number of extents, and the filesystem has to grow together with the volume (lvextend -r). Four scenarios: build a volume from two disks, extend a volume, add a disk to a full group, and find the physical volume that was never added to the group. The exercise is solved when all scenarios are solved.",
+   "hint": "Select an object and read its status and the reason on the right. Free space is counted in extents of the group: a 50 GiB volume does not fit on a single 50 GiB disk. If you grew the volume, grow the filesystem too."
+  },
+  {
+   "id": "virt-sim-lvm-resilience",
+   "title": "LVM board: evacuate a disk, mirrors, VM disks",
+   "statement": "The same objects, but the questions are about failure and replacement. Four scenarios: free a physical volume for pvmove (is there room on the others), a mirrored volume that survives the loss of any disk, VM disks in the volume group of a block domain (every VM disk is a logical volume), and retiring an old disk. The exercise is solved when all scenarios are solved.",
+   "hint": "The data of a physical volume can be moved only if the other physical volumes of the group have enough free extents. A mirror copy lives on a separate physical volume, so a mirror needs two physical volumes in the group."
+  },
+  {
    "id": "la16-lv-size",
    "title": "Volume size in extents",
    "statement": "The lvcreate -L option takes a size as a number with an optional unit. Input units are always binary and the case does not matter: b is bytes, s is 512-byte sectors, k is KiB, m is MiB, g is GiB, t is TiB; with no unit the number means mebibytes. The number may be fractional, for example 1.5g. A volume's size is a multiple of the physical extent, and the requested size is rounded up to a whole number of extents. Write a function lv_extents(pe_kib, size): pe_kib is the extent size in KiB, size is a string such as \"10G\", \"512k\" or \"1.5g\". Return a tuple (number of extents, resulting size in KiB). A zero size gives (0, 0).",

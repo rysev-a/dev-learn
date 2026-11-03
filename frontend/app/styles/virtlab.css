@@ -1064,6 +1064,515 @@
   color: var(--s-red);
 }
 
+
+/* LVM board */
+.vl-lvm-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+@container (min-width: 900px) {
+  .vl-lvm-main {
+    grid-template-columns: minmax(0, 1.7fr) minmax(280px, 1fr);
+  }
+}
+.vl-lvm-work,
+.vl-lvm-side {
+  min-width: 0;
+}
+.vl-lvm-side {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.vl-lvm-boardwrap {
+  min-width: 0;
+}
+.vl-lvm-toolbar {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.vl-lvm-spacer {
+  flex: 1;
+}
+.vl-lvm-add {
+  font: inherit;
+  font-size: 12px;
+  padding: 4px 9px;
+  border-radius: 8px;
+  border: 1px dashed var(--s-border);
+  background: var(--s-bg);
+  color: var(--s-text);
+  cursor: pointer;
+}
+.vl-lvm-addico {
+  width: 14px;
+  height: 14px;
+  margin-right: 4px;
+  vertical-align: -2px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.vl-lvm-add:hover {
+  border-color: var(--s-accent);
+  color: var(--s-accent);
+}
+.vl-lvm-viewport {
+  position: relative;
+  height: clamp(340px, 62vh, 620px);
+}
+.vl-lvm-board {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: var(--s-bg);
+  border-radius: 8px;
+  border: 1px solid var(--s-border);
+  user-select: none;
+  touch-action: none;
+}
+.vl-lvm-board.panning,
+.vl-lvm-board.panning .vl-lvm-bg {
+  cursor: grabbing;
+}
+.vl-lvm-board.placing {
+  cursor: copy;
+}
+.vl-lvm-bg {
+  cursor: grab;
+}
+.vl-lvm-dot {
+  fill: var(--s-border);
+}
+.vl-lvm-tip {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--s-muted);
+}
+.vl-lvm-notice {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--s-red);
+}
+
+/* links */
+.vl-lvm-edge .line {
+  fill: none;
+  stroke: var(--s-muted);
+  stroke-width: 2;
+  pointer-events: none;
+}
+.vl-lvm-edge .hit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 14;
+  cursor: pointer;
+}
+.vl-lvm-edge:hover .line {
+  stroke: var(--s-accent);
+}
+.vl-lvm-edge.on .line {
+  stroke: var(--s-amber);
+  stroke-width: 3;
+}
+.vl-lvm-edge .lbl {
+  font-size: 9px;
+  fill: var(--s-text);
+  stroke: var(--s-bg);
+  stroke-width: 3px;
+  paint-order: stroke;
+  opacity: 0;
+  pointer-events: none;
+}
+.vl-lvm-edge:hover .lbl,
+.vl-lvm-edge.on .lbl,
+.vl-lvm-edge.path .lbl,
+.vl-lvm-edge.bad .lbl {
+  opacity: 1;
+}
+.vl-lvm-edge.path .line {
+  stroke: var(--s-accent);
+  stroke-width: 3.5;
+  stroke-dasharray: 9 6;
+  animation: vl-lvm-flow 0.9s linear infinite;
+}
+.vl-lvm-edge.bad .line {
+  stroke: var(--s-red);
+  stroke-width: 3.5;
+}
+@keyframes vl-lvm-flow {
+  to {
+    stroke-dashoffset: -15;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vl-lvm-edge.path .line {
+    animation: none;
+  }
+}
+.vl-lvm-missing {
+  stroke: var(--s-red);
+  stroke-width: 2.5;
+  stroke-dasharray: 5 5;
+  pointer-events: none;
+}
+.vl-lvm-pending {
+  fill: none;
+  stroke: var(--s-accent);
+  stroke-width: 2;
+  stroke-dasharray: 6 5;
+  pointer-events: none;
+}
+.vl-lvm-pending.ok {
+  stroke-dasharray: none;
+}
+.vl-lvm-pending.bad {
+  stroke: var(--s-red);
+}
+
+/* pins */
+.vl-lvm-pin {
+  stroke: var(--s-muted);
+  stroke-width: 2;
+  cursor: crosshair;
+  transition: r 0.1s;
+}
+.vl-lvm-pin.in {
+  fill: var(--s-bg);
+}
+.vl-lvm-pin.out {
+  fill: var(--s-accent);
+  stroke: var(--s-accent);
+}
+.vl-lvm-pin:hover {
+  r: 7.5;
+  stroke: var(--s-accent);
+}
+.vl-lvm-pin.ok {
+  fill: var(--s-accent);
+  stroke: var(--s-accent);
+  r: 7;
+}
+.vl-lvm-pin.bad {
+  opacity: 0.25;
+}
+@media (prefers-reduced-motion: reduce) {
+  .vl-lvm-pin {
+    transition: none;
+  }
+}
+
+/* objects */
+.vl-lvm-node {
+  cursor: grab;
+}
+.vl-lvm-node.moving {
+  cursor: grabbing;
+}
+.vl-lvm-node.ghost {
+  opacity: 0.6;
+  pointer-events: none;
+}
+.vl-lvm-node.ghost rect:first-of-type {
+  stroke-dasharray: 5 4;
+}
+.vl-lvm-node rect:first-of-type {
+  fill: var(--s-panel);
+  stroke: var(--s-border);
+  stroke-width: 1.5;
+}
+.vl-lvm-node.warn rect:first-of-type {
+  stroke: var(--s-amber);
+  stroke-width: 2.5;
+}
+.vl-lvm-node.bad rect:first-of-type {
+  stroke: var(--s-red);
+  stroke-width: 2.5;
+}
+.vl-lvm-node.on rect:first-of-type {
+  stroke: var(--s-text);
+  stroke-width: 3;
+}
+.vl-lvm-node.path rect:first-of-type {
+  stroke: var(--s-accent);
+  stroke-width: 3;
+}
+.vl-lvm-node.path-bad rect:first-of-type {
+  stroke: var(--s-red);
+  stroke-width: 3;
+}
+.vl-lvm-node.hover-ok rect:first-of-type {
+  stroke: var(--s-accent);
+  stroke-width: 3;
+}
+.vl-lvm-node.hover-bad rect:first-of-type {
+  stroke: var(--s-red);
+  stroke-width: 3;
+}
+.vl-lvm-ico {
+  fill: none;
+  stroke: var(--s-muted);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.vl-lvm-name {
+  font-size: 10.5px;
+  font-weight: 600;
+  fill: var(--s-text);
+}
+.vl-lvm-badge {
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  fill: var(--s-accent);
+}
+.vl-lvm-badge.over {
+  fill: var(--s-red);
+}
+.vl-lvm-chipbox {
+  overflow: visible;
+}
+.vl-lvm-status {
+  display: flex;
+  justify-content: center;
+}
+.vl-lvm-status .vl-chip {
+  font-size: 9.5px;
+  line-height: 16px;
+  padding: 0 5px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: var(--s-panel);
+  color: var(--s-muted);
+  border-color: var(--s-border);
+}
+.vl-lvm-status .vl-chip.ok {
+  color: var(--s-accent);
+  border-color: var(--s-accent);
+}
+.vl-lvm-status .vl-chip.warn {
+  color: var(--s-amber);
+  border-color: var(--s-amber);
+}
+.vl-lvm-status .vl-chip.bad {
+  color: var(--s-red);
+  border-color: var(--s-red);
+}
+
+/* panels */
+.vl-lvm-kind {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+.vl-lvm-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+}
+.vl-lvm-field.row {
+  flex-direction: row;
+  align-items: center;
+}
+.vl-lvm-field input[type="text"],
+.vl-lvm-field select {
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font: inherit;
+}
+.vl-lvm-field input[type="checkbox"] {
+  accent-color: var(--accent);
+}
+.vl-lvm-state {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.vl-lvm-why,
+.vl-lvm-hops,
+.vl-lvm-tree {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+}
+.vl-lvm-why li {
+  color: var(--muted);
+}
+.vl-lvm-ops {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.vl-lvm-op.on {
+  border-color: var(--accent);
+}
+.vl-lvm-hophead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.vl-lvm-hophead p {
+  margin: 0;
+  font-size: 13px;
+}
+.vl-lvm-hops li {
+  display: flex;
+  gap: 8px;
+  padding: 4px 6px;
+  border-radius: 6px;
+}
+.vl-lvm-hops li.ok .vl-gm {
+  color: var(--s-accent);
+}
+.vl-lvm-hops li.bad,
+.vl-lvm-hops li.bad .vl-gm {
+  color: var(--s-red);
+}
+.vl-lvm-tree-head {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.vl-lvm-tree-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  padding-right: 6px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.vl-lvm-tree-row:hover,
+.vl-lvm-tree-row.on {
+  background: var(--panel-2);
+}
+.vl-lvm-dotk {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--s-muted);
+  flex: none;
+}
+.vl-lvm-nm {
+  font-weight: 600;
+}
+.vl-lvm-kd {
+  color: var(--muted);
+  font-size: 12px;
+}
+.vl-lvm-invalid {
+  color: var(--s-red);
+}
+.vl-lvm-hophead p.vl-no {
+  color: var(--s-red);
+}
+
+/* kinds of the LVM board */
+.vl-lvm-node.disk rect:first-of-type {
+  stroke: var(--s-muted);
+}
+.vl-lvm-node.pv rect:first-of-type,
+.vl-lvm-node.fs rect:first-of-type {
+  stroke: var(--s-blue);
+}
+.vl-lvm-node.vg rect:first-of-type {
+  stroke: var(--s-violet);
+}
+.vl-lvm-node.lv rect:first-of-type {
+  stroke: var(--s-green);
+}
+.vl-lvm-node.thin_pool rect:first-of-type,
+.vl-lvm-node.thin_lv rect:first-of-type {
+  stroke: var(--s-accent);
+}
+.vl-lvm-node.snapshot rect:first-of-type,
+.vl-lvm-node.vm rect:first-of-type {
+  stroke: var(--s-amber);
+}
+.vl-lvm-node.disk .vl-lvm-ico {
+  stroke: var(--s-muted);
+}
+.vl-lvm-node.pv .vl-lvm-ico,
+.vl-lvm-node.fs .vl-lvm-ico {
+  stroke: var(--s-blue);
+}
+.vl-lvm-node.vg .vl-lvm-ico {
+  stroke: var(--s-violet);
+}
+.vl-lvm-node.lv .vl-lvm-ico {
+  stroke: var(--s-green);
+}
+.vl-lvm-node.thin_pool .vl-lvm-ico,
+.vl-lvm-node.thin_lv .vl-lvm-ico {
+  stroke: var(--s-accent);
+}
+.vl-lvm-node.snapshot .vl-lvm-ico,
+.vl-lvm-node.vm .vl-lvm-ico {
+  stroke: var(--s-amber);
+}
+.vl-lvm-tree-row.disk .vl-lvm-dotk {
+  background: var(--s-muted);
+}
+.vl-lvm-tree-row.pv .vl-lvm-dotk,
+.vl-lvm-tree-row.fs .vl-lvm-dotk {
+  background: var(--s-blue);
+}
+.vl-lvm-tree-row.vg .vl-lvm-dotk {
+  background: var(--s-violet);
+}
+.vl-lvm-tree-row.lv .vl-lvm-dotk {
+  background: var(--s-green);
+}
+.vl-lvm-tree-row.thin_pool .vl-lvm-dotk,
+.vl-lvm-tree-row.thin_lv .vl-lvm-dotk {
+  background: var(--s-accent);
+}
+.vl-lvm-tree-row.snapshot .vl-lvm-dotk,
+.vl-lvm-tree-row.vm .vl-lvm-dotk {
+  background: var(--s-amber);
+}
+.vl-lvm-ops {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+.vl-lvm-ops select {
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font: inherit;
+}
+.vl-lvm-workload {
+  margin: 0;
+}
+
 /* boards beside the results of the Python tasks of the oVirt book (read-only pictures) */
 .vl-pic {
   margin-top: 14px;

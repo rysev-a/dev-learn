@@ -13,6 +13,7 @@
 //! | `ovirt_fence` | settings `{soft, power, skip_lease, skip_connectivity, threshold, vm_leases}` | the simulation is re-run — **full re-check** |
 //! | `ovirt_sched` | policy `{memory, network, affinity, even, free_mem, pack}` | the scheduling is re-run — **full re-check** |
 //! | `ovirt_topo` | the whole board `{nodes, edges}` | the rules of the board are checked, the statuses are derived again and the scenario goals checked — **full re-check** |
+//! | `lvm_board` | the whole board `{nodes, edges}` | the same, with the write load of the scenario — **full re-check** |
 //! | `virtq`, `qcow2` | `true` (former client) or `{trace: [actions]}` | with `trace` — session replay; without — goal achievement cannot be checked (history is not sent): [`GoalStatus::Unverified`] |
 //!
 //! Mode [`Strictness::Lenient`] also accepts unverifiable goals (a correct structure with all goals), mode
@@ -23,7 +24,7 @@ use serde_json::Value;
 
 use crate::error::SpecError;
 use crate::spec::{base_map, Spec};
-use crate::{ept, hv, migration, numa, ovirt_dc, ovirt_fence, ovirt_sched, ovirt_topo, qcow2, virtq};
+use crate::{ept, hv, lvm_board, migration, numa, ovirt_dc, ovirt_fence, ovirt_sched, ovirt_topo, qcow2, virtq};
 
 /// Maximum action trace length: longer traces are rejected (protects the server from overload).
 pub const MAX_TRACE: usize = 2000;
@@ -276,6 +277,18 @@ fn check_goal(spec: &Spec, id: &str, info: &Value) -> Result<GoalStatus, SpecErr
         Spec::OvirtTopo { scenarios, .. } => {
             let sc = scenarios.iter().find(|s| s.id == id).ok_or_else(|| SpecError::new(i18n::tr("no such scenario")))?;
             let board: ovirt_topo::Topology = parse(info)?;
+            if let Some(reason) = sc.invalid(&board) {
+                return rejected(reason);
+            }
+            if sc.reached(&board) {
+                Ok(GoalStatus::Verified)
+            } else {
+                rejected(i18n::tr("the scenario goals are not reached on this board"))
+            }
+        }
+        Spec::LvmBoard { scenarios, .. } => {
+            let sc = scenarios.iter().find(|s| s.id == id).ok_or_else(|| SpecError::new(i18n::tr("no such scenario")))?;
+            let board: lvm_board::Topology = parse(info)?;
             if let Some(reason) = sc.invalid(&board) {
                 return rejected(reason);
             }

@@ -14,6 +14,7 @@ use super::LabProps;
 mod common;
 mod ept;
 mod hv;
+mod lvm_board;
 mod migration;
 mod numa;
 mod ovirt_dc;
@@ -67,6 +68,9 @@ pub fn VirtLab(props: LabProps) -> impl IntoView {
         // the reference boards are never sent to the client; the draft holds the student's boards, one per scenario
         Spec::OvirtTopo { scenarios, .. } => {
             view! { <ovirt_topo::OvirtTopoLab scenarios=scenarios goals=goals draft=props.draft on_draft=props.on_draft /> }.into_any()
+        }
+        Spec::LvmBoard { scenarios, .. } => {
+            view! { <lvm_board::LvmBoardLab scenarios=scenarios goals=goals draft=props.draft on_draft=props.on_draft /> }.into_any()
         }
     }
 }

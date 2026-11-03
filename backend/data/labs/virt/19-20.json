@@ -1,0 +1,870 @@
+{
+  "book": 19,
+  "chapter": 20,
+  "lab": "virt",
+  "tasks": [
+    {
+      "id": "virt-sim-lvm-snapshots",
+      "title": "Доска LVM: снимки и тонкие пулы",
+      "statement": "Снимки для резервных копий и тонкие пулы с нагрузкой на запись. У сценария есть нагрузка: сколько гибибайт меняется за окно бэкапа и сколько записано в тонкие тома. Классический снимок переполняется, если изменилось больше, чем он вмещает, и тогда копия теряется; тонкий пул заполняется данными и метаданными. Пять сценариев: размер снимка, сильная запись, пул с переподпиской, метаданные пула и снимок тонкого тома. Упражнение решено, когда решены все сценарии.",
+      "hint": "Снимок не может понадобиться больше, чем сам том. У тонкого пула смотрите на Data% и на Meta%: метаданные могут закончиться раньше данных. Автоподрастание (autoextend) помогает, только пока в группе есть свободное место.",
+      "spec": {
+        "sim": "lvm_board",
+        "scenarios": [
+          {
+            "id": "cow-size",
+            "title": "A snapshot for the backup",
+            "story": "The backup reads the data volume for a while, and about 8 GiB change in it meanwhile. A classic snapshot keeps the old blocks in its own area; if that area fills up, the snapshot is lost and the backup with it.",
+            "goal": "The data volume has a snapshot that holds the changes of the backup window",
+            "hint": "Take a snapshot of the volume and give it more room than the changes: 8 GiB need at least a 10 GiB snapshot.",
+            "palette": [
+              "snapshot"
+            ],
+            "max_nodes": 10,
+            "start": {
+              "nodes": [
+                {
+                  "id": "d1",
+                  "kind": "disk",
+                  "name": "sda",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "pv1",
+                  "kind": "pv",
+                  "name": "pv1",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "vg",
+                  "kind": "vg",
+                  "name": "vg0",
+                  "x": 310.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "data",
+                  "kind": "lv",
+                  "name": "data",
+                  "x": 450.0,
+                  "y": 60.0,
+                  "params": {
+                    "size": "50"
+                  }
+                },
+                {
+                  "id": "fs-data",
+                  "kind": "fs",
+                  "name": "ext4",
+                  "x": 730.0,
+                  "y": 60.0,
+                  "params": {
+                    "size": "50"
+                  }
+                }
+              ],
+              "edges": [
+                {
+                  "from": "d1",
+                  "to": "pv1"
+                },
+                {
+                  "from": "pv1",
+                  "to": "vg"
+                },
+                {
+                  "from": "vg",
+                  "to": "data"
+                },
+                {
+                  "from": "data",
+                  "to": "fs-data"
+                }
+              ]
+            },
+            "workload": {
+              "changed_gib": 8,
+              "written_gib": 0
+            },
+            "goals": [
+              {
+                "kind": "healthy"
+              },
+              {
+                "kind": "snapshot_valid"
+              }
+            ]
+          },
+          {
+            "id": "heavy-writes",
+            "title": "Heavy writes",
+            "story": "A busy database changes about 40 GiB of the 50 GiB volume during the backup. The snapshot has to hold all of it, and the group has just under 50 GiB free.",
+            "goal": "The snapshot survives the backup window and everything works",
+            "hint": "Only a snapshot of 50 GiB holds 40 GiB of changes, and the group has a little less than that. Add a disk to the group first.",
+            "palette": [
+              "disk",
+              "pv",
+              "snapshot"
+            ],
+            "max_nodes": 12,
+            "start": {
+              "nodes": [
+                {
+                  "id": "d1",
+                  "kind": "disk",
+                  "name": "sda",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "pv1",
+                  "kind": "pv",
+                  "name": "pv1",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "vg",
+                  "kind": "vg",
+                  "name": "vg0",
+                  "x": 310.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "data",
+                  "kind": "lv",
+                  "name": "data",
+                  "x": 450.0,
+                  "y": 60.0,
+                  "params": {
+                    "size": "50"
+                  }
+                },
+                {
+                  "id": "fs-data",
+                  "kind": "fs",
+                  "name": "ext4",
+                  "x": 730.0,
+                  "y": 60.0,
+                  "params": {
+                    "size": "50"
+                  }
+                }
+              ],
+              "edges": [
+                {
+                  "from": "d1",
+                  "to": "pv1"
+                },
+                {
+                  "from": "pv1",
+                  "to": "vg"
+                },
+                {
+                  "from": "vg",
+                  "to": "data"
+                },
+                {
+                  "from": "data",
+                  "to": "fs-data"
+                }
+              ]
+            },
+            "workload": {
+              "changed_gib": 40,
+              "written_gib": 0
+            },
+            "goals": [
+              {
+                "kind": "healthy"
+              },
+              {
+                "kind": "snapshot_valid"
+              }
+            ]
+          },
+          {
+            "id": "thin-grow",
+            "title": "An overprovisioned pool",
+            "story": "Three thin volumes of 50 GiB share a thin pool of 50 GiB: the pool promises three times what it has. Together they already hold 45 GiB of real data, so the pool is 90% full. When it reaches 100%, writes fail.",
+            "goal": "The thin pool is below 80% used",
+            "hint": "Make the pool larger. The group has room, and a pool that grows by itself (autoextend) would also keep up.",
+            "palette": [
+              "thin_lv"
+            ],
+            "max_nodes": 12,
+            "start": {
+              "nodes": [
+                {
+                  "id": "d1",
+                  "kind": "disk",
+                  "name": "sda",
+                  "x": 70.0,
+                  "y": 60.0,
+                  "params": {
+                    "size": "200"
+                  }
+                },
+                {
+                  "id": "pv1",
+                  "kind": "pv",
+                  "name": "pv1",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "vg",
+                  "kind": "vg",
+                  "name": "vg0",
+                  "x": 310.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "pool",
+                  "kind": "thin_pool",
+                  "name": "pool0",
+                  "x": 450.0,
+                  "y": 380.0
+                },
+                {
+                  "id": "t1",
+                  "kind": "thin_lv",
+                  "name": "vm-a",
+                  "x": 590.0,
+                  "y": 380.0
+                },
+                {
+                  "id": "t2",
+                  "kind": "thin_lv",
+                  "name": "vm-b",
+                  "x": 590.0,
+                  "y": 460.0
+                },
+                {
+                  "id": "t3",
+                  "kind": "thin_lv",
+                  "name": "vm-c",
+                  "x": 590.0,
+                  "y": 540.0
+                }
+              ],
+              "edges": [
+                {
+                  "from": "d1",
+                  "to": "pv1"
+                },
+                {
+                  "from": "pv1",
+                  "to": "vg"
+                },
+                {
+                  "from": "vg",
+                  "to": "pool"
+                },
+                {
+                  "from": "pool",
+                  "to": "t1"
+                },
+                {
+                  "from": "pool",
+                  "to": "t2"
+                },
+                {
+                  "from": "pool",
+                  "to": "t3"
+                }
+              ]
+            },
+            "workload": {
+              "changed_gib": 0,
+              "written_gib": 45
+            },
+            "goals": [
+              {
+                "kind": "healthy"
+              },
+              {
+                "kind": "pool_fits"
+              }
+            ]
+          },
+          {
+            "id": "thin-meta",
+            "title": "The metadata run out first",
+            "story": "Only a third of the data space of the pool is used, but writes fail: a thin pool keeps a map of its blocks in a separate metadata area, and in this lab it takes 1 MiB per GiB written. 70 GiB are written and the area is 64 MiB.",
+            "goal": "The thin pool is below 80% used, data and metadata",
+            "hint": "Watch Meta% as well as Data%. Choose a larger metadata size for the pool.",
+            "palette": [
+              "thin_lv"
+            ],
+            "max_nodes": 10,
+            "start": {
+              "nodes": [
+                {
+                  "id": "d1",
+                  "kind": "disk",
+                  "name": "sda",
+                  "x": 70.0,
+                  "y": 60.0,
+                  "params": {
+                    "size": "500"
+                  }
+                },
+                {
+                  "id": "pv1",
+                  "kind": "pv",
+                  "name": "pv1",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "vg",
+                  "kind": "vg",
+                  "name": "vg0",
+                  "x": 310.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "pool",
+                  "kind": "thin_pool",
+                  "name": "pool0",
+                  "x": 450.0,
+                  "y": 380.0,
+                  "params": {
+                    "meta": "64",
+                    "size": "200"
+                  }
+                },
+                {
+                  "id": "t1",
+                  "kind": "thin_lv",
+                  "name": "vm-a",
+                  "x": 590.0,
+                  "y": 380.0,
+                  "params": {
+                    "size": "500"
+                  }
+                }
+              ],
+              "edges": [
+                {
+                  "from": "d1",
+                  "to": "pv1"
+                },
+                {
+                  "from": "pv1",
+                  "to": "vg"
+                },
+                {
+                  "from": "vg",
+                  "to": "pool"
+                },
+                {
+                  "from": "pool",
+                  "to": "t1"
+                }
+              ]
+            },
+            "workload": {
+              "changed_gib": 0,
+              "written_gib": 70
+            },
+            "goals": [
+              {
+                "kind": "healthy"
+              },
+              {
+                "kind": "pool_fits"
+              }
+            ]
+          },
+          {
+            "id": "thin-snapshot",
+            "title": "A snapshot of a thin volume",
+            "story": "A snapshot of a thin volume needs no size of its own: it shares the pool, and only the blocks that change take new space. 15 GiB are written already, and 10 GiB will change while the snapshot exists. The pool is 20 GiB.",
+            "goal": "The thin volume has a snapshot and the pool stays below 80% used",
+            "hint": "15 GiB plus 10 GiB of changes do not fit into 20 GiB. Take the snapshot and make the pool larger.",
+            "palette": [
+              "snapshot"
+            ],
+            "max_nodes": 10,
+            "start": {
+              "nodes": [
+                {
+                  "id": "d1",
+                  "kind": "disk",
+                  "name": "sda",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "pv1",
+                  "kind": "pv",
+                  "name": "pv1",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "vg",
+                  "kind": "vg",
+                  "name": "vg0",
+                  "x": 310.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "pool",
+                  "kind": "thin_pool",
+                  "name": "pool0",
+                  "x": 450.0,
+                  "y": 380.0,
+                  "params": {
+                    "size": "20"
+                  }
+                },
+                {
+                  "id": "vm-disk",
+                  "kind": "thin_lv",
+                  "name": "vm-disk",
+                  "x": 590.0,
+                  "y": 380.0
+                }
+              ],
+              "edges": [
+                {
+                  "from": "d1",
+                  "to": "pv1"
+                },
+                {
+                  "from": "pv1",
+                  "to": "vg"
+                },
+                {
+                  "from": "vg",
+                  "to": "pool"
+                },
+                {
+                  "from": "pool",
+                  "to": "vm-disk"
+                }
+              ]
+            },
+            "workload": {
+              "changed_gib": 10,
+              "written_gib": 15
+            },
+            "goals": [
+              {
+                "kind": "healthy"
+              },
+              {
+                "kind": "snapshot_valid"
+              },
+              {
+                "kind": "pool_fits"
+              }
+            ]
+          }
+        ],
+        "solution": {
+          "cow-size": {
+            "nodes": [
+              {
+                "id": "d1",
+                "kind": "disk",
+                "name": "sda",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "pv1",
+                "kind": "pv",
+                "name": "pv1",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "vg",
+                "kind": "vg",
+                "name": "vg0",
+                "x": 310.0,
+                "y": 60.0
+              },
+              {
+                "id": "data",
+                "kind": "lv",
+                "name": "data",
+                "x": 450.0,
+                "y": 60.0,
+                "params": {
+                  "size": "50"
+                }
+              },
+              {
+                "id": "fs-data",
+                "kind": "fs",
+                "name": "ext4",
+                "x": 730.0,
+                "y": 60.0,
+                "params": {
+                  "size": "50"
+                }
+              },
+              {
+                "id": "snap",
+                "kind": "snapshot",
+                "name": "data-snap",
+                "x": 590.0,
+                "y": 60.0,
+                "params": {
+                  "size": "10"
+                }
+              }
+            ],
+            "edges": [
+              {
+                "from": "d1",
+                "to": "pv1"
+              },
+              {
+                "from": "pv1",
+                "to": "vg"
+              },
+              {
+                "from": "vg",
+                "to": "data"
+              },
+              {
+                "from": "data",
+                "to": "fs-data"
+              },
+              {
+                "from": "data",
+                "to": "snap"
+              }
+            ]
+          },
+          "heavy-writes": {
+            "nodes": [
+              {
+                "id": "d1",
+                "kind": "disk",
+                "name": "sda",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "pv1",
+                "kind": "pv",
+                "name": "pv1",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "vg",
+                "kind": "vg",
+                "name": "vg0",
+                "x": 310.0,
+                "y": 60.0
+              },
+              {
+                "id": "data",
+                "kind": "lv",
+                "name": "data",
+                "x": 450.0,
+                "y": 60.0,
+                "params": {
+                  "size": "50"
+                }
+              },
+              {
+                "id": "fs-data",
+                "kind": "fs",
+                "name": "ext4",
+                "x": 730.0,
+                "y": 60.0,
+                "params": {
+                  "size": "50"
+                }
+              },
+              {
+                "id": "d2",
+                "kind": "disk",
+                "name": "sdb",
+                "x": 70.0,
+                "y": 140.0
+              },
+              {
+                "id": "pv2",
+                "kind": "pv",
+                "name": "pv2",
+                "x": 190.0,
+                "y": 140.0
+              },
+              {
+                "id": "snap",
+                "kind": "snapshot",
+                "name": "data-snap",
+                "x": 590.0,
+                "y": 60.0,
+                "params": {
+                  "size": "50"
+                }
+              }
+            ],
+            "edges": [
+              {
+                "from": "d1",
+                "to": "pv1"
+              },
+              {
+                "from": "pv1",
+                "to": "vg"
+              },
+              {
+                "from": "vg",
+                "to": "data"
+              },
+              {
+                "from": "data",
+                "to": "fs-data"
+              },
+              {
+                "from": "d2",
+                "to": "pv2"
+              },
+              {
+                "from": "pv2",
+                "to": "vg"
+              },
+              {
+                "from": "data",
+                "to": "snap"
+              }
+            ]
+          },
+          "thin-grow": {
+            "nodes": [
+              {
+                "id": "d1",
+                "kind": "disk",
+                "name": "sda",
+                "x": 70.0,
+                "y": 60.0,
+                "params": {
+                  "size": "200"
+                }
+              },
+              {
+                "id": "pv1",
+                "kind": "pv",
+                "name": "pv1",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "vg",
+                "kind": "vg",
+                "name": "vg0",
+                "x": 310.0,
+                "y": 60.0
+              },
+              {
+                "id": "pool",
+                "kind": "thin_pool",
+                "name": "pool0",
+                "x": 450.0,
+                "y": 380.0,
+                "params": {
+                  "size": "100"
+                }
+              },
+              {
+                "id": "t1",
+                "kind": "thin_lv",
+                "name": "vm-a",
+                "x": 590.0,
+                "y": 380.0
+              },
+              {
+                "id": "t2",
+                "kind": "thin_lv",
+                "name": "vm-b",
+                "x": 590.0,
+                "y": 460.0
+              },
+              {
+                "id": "t3",
+                "kind": "thin_lv",
+                "name": "vm-c",
+                "x": 590.0,
+                "y": 540.0
+              }
+            ],
+            "edges": [
+              {
+                "from": "d1",
+                "to": "pv1"
+              },
+              {
+                "from": "pv1",
+                "to": "vg"
+              },
+              {
+                "from": "vg",
+                "to": "pool"
+              },
+              {
+                "from": "pool",
+                "to": "t1"
+              },
+              {
+                "from": "pool",
+                "to": "t2"
+              },
+              {
+                "from": "pool",
+                "to": "t3"
+              }
+            ]
+          },
+          "thin-meta": {
+            "nodes": [
+              {
+                "id": "d1",
+                "kind": "disk",
+                "name": "sda",
+                "x": 70.0,
+                "y": 60.0,
+                "params": {
+                  "size": "500"
+                }
+              },
+              {
+                "id": "pv1",
+                "kind": "pv",
+                "name": "pv1",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "vg",
+                "kind": "vg",
+                "name": "vg0",
+                "x": 310.0,
+                "y": 60.0
+              },
+              {
+                "id": "pool",
+                "kind": "thin_pool",
+                "name": "pool0",
+                "x": 450.0,
+                "y": 380.0,
+                "params": {
+                  "size": "200"
+                }
+              },
+              {
+                "id": "t1",
+                "kind": "thin_lv",
+                "name": "vm-a",
+                "x": 590.0,
+                "y": 380.0,
+                "params": {
+                  "size": "500"
+                }
+              }
+            ],
+            "edges": [
+              {
+                "from": "d1",
+                "to": "pv1"
+              },
+              {
+                "from": "pv1",
+                "to": "vg"
+              },
+              {
+                "from": "vg",
+                "to": "pool"
+              },
+              {
+                "from": "pool",
+                "to": "t1"
+              }
+            ]
+          },
+          "thin-snapshot": {
+            "nodes": [
+              {
+                "id": "d1",
+                "kind": "disk",
+                "name": "sda",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "pv1",
+                "kind": "pv",
+                "name": "pv1",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "vg",
+                "kind": "vg",
+                "name": "vg0",
+                "x": 310.0,
+                "y": 60.0
+              },
+              {
+                "id": "pool",
+                "kind": "thin_pool",
+                "name": "pool0",
+                "x": 450.0,
+                "y": 380.0
+              },
+              {
+                "id": "vm-disk",
+                "kind": "thin_lv",
+                "name": "vm-disk",
+                "x": 590.0,
+                "y": 380.0
+              },
+              {
+                "id": "snap",
+                "kind": "snapshot",
+                "name": "vm-disk-snap",
+                "x": 590.0,
+                "y": 60.0
+              }
+            ],
+            "edges": [
+              {
+                "from": "d1",
+                "to": "pv1"
+              },
+              {
+                "from": "pv1",
+                "to": "vg"
+              },
+              {
+                "from": "vg",
+                "to": "pool"
+              },
+              {
+                "from": "pool",
+                "to": "vm-disk"
+              },
+              {
+                "from": "vm-disk",
+                "to": "snap"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

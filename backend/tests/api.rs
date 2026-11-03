@@ -187,42 +187,51 @@ async fn ovirt_simulators_are_verified_by_the_server() {
     let (st, body) = put(17, "virt-sim-ovirt-dc", all(&trace)).await;
     assert_eq!(st, StatusCode::NO_CONTENT, "{body}");
 
-    // the boards (chapters 17, 20, 21): the reference boards are accepted, the starting ones and boards that break a rule are not
-    let mut boards: Vec<(u32, String)> = vec![];
+    // the boards (oVirt chapters 17-25 of book 17, LVM chapters 16 and 20 of book 19): the reference boards are accepted, the starting ones and boards that break a rule are not
+    let mut boards: Vec<(u32, u32, String)> = vec![];
     for entry in std::fs::read_dir("data/labs/virt").unwrap() {
         let path = entry.unwrap().path();
-        let chapter: u32 = path.file_stem().unwrap().to_str().unwrap().trim_start_matches("17-").parse().unwrap();
+        let stem = path.file_stem().unwrap().to_str().unwrap().to_string();
+        let (book, chapter) = stem.split_once('-').map(|(b, c)| (b.parse::<u32>().unwrap(), c.parse::<u32>().unwrap())).unwrap();
         let file: Value = serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
         for t in file["tasks"].as_array().unwrap() {
-            if t["spec"]["sim"] == "ovirt_topo" {
-                boards.push((chapter, t["id"].as_str().unwrap().to_string()));
+            if t["spec"]["sim"] == "ovirt_topo" || t["spec"]["sim"] == "lvm_board" {
+                boards.push((book, chapter, t["id"].as_str().unwrap().to_string()));
             }
         }
     }
     boards.sort();
-    assert!(boards.len() >= 11, "every board exercise is found: {boards:?}");
-    for (chapter, task) in boards.iter().map(|(c, t)| (*c, t.as_str())) {
-        let (_, lab) = call(&app, Method::GET, &format!("/api/labs/17/{chapter}"), None, None).await;
+    assert!(boards.len() >= 14, "every board exercise is found: {boards:?}");
+    for lvm in ["virt-sim-lvm-grow", "virt-sim-lvm-resilience", "virt-sim-lvm-snapshots"] {
+        assert!(boards.iter().any(|(b, _, t)| *b == 19 && t == lvm), "{lvm} is a board exercise of book 19");
+    }
+    for (book, chapter, task) in boards.iter().map(|(b, c, t)| (*b, *c, t.as_str())) {
+        let put = |solution: Value| {
+            let (app, token) = (app.clone(), token.clone());
+            let uri = format!("/api/exercises/{book}/{chapter}/{task}/solved");
+            async move { call(&app, Method::PUT, &uri, Some(&token), Some(json!({ "solution": solution.to_string() }))).await }
+        };
+        let (_, lab) = call(&app, Method::GET, &format!("/api/labs/{book}/{chapter}"), None, None).await;
         let public = lab["tasks"].as_array().unwrap().iter().find(|t| t["id"] == task).expect("the board exercise");
         assert!(public["spec"].get("solution").is_none(), "{task}: the reference boards are not sent to the client");
-        let file: Value = serde_json::from_slice(&std::fs::read(format!("data/labs/virt/17-{chapter}.json")).unwrap()).unwrap();
+        let file: Value = serde_json::from_slice(&std::fs::read(format!("data/labs/virt/{book}-{chapter}.json")).unwrap()).unwrap();
         let spec = &file["tasks"].as_array().unwrap().iter().find(|t| t["id"] == task).unwrap()["spec"];
         let reference = spec["solution"].clone();
         let scenarios = spec["scenarios"].as_array().unwrap();
         assert_eq!(reference.as_object().map(|m| m.len()), Some(scenarios.len()));
         let starts: serde_json::Map<String, Value> = scenarios.iter().map(|s| (s["id"].as_str().unwrap().to_string(), s["start"].clone())).collect();
-        let (st, _) = put(chapter, task, Value::Object(starts)).await;
+        let (st, _) = put(Value::Object(starts)).await;
         assert_eq!(st, StatusCode::UNPROCESSABLE_ENTITY, "{task}: the starting boards do not solve the exercise");
         let first = scenarios[0]["id"].as_str().unwrap();
         let mut broken = reference.clone();
         let link = broken[first]["edges"][0].clone();
         broken[first]["edges"].as_array_mut().unwrap().push(link);
-        let (st, _) = put(chapter, task, broken).await;
+        let (st, _) = put(broken).await;
         assert_eq!(st, StatusCode::UNPROCESSABLE_ENTITY, "{task}: a duplicate link breaks a rule of the board");
         let mut missing = reference.clone();
         missing.as_object_mut().unwrap().remove(first);
-        assert_eq!(put(chapter, task, missing).await.0, StatusCode::UNPROCESSABLE_ENTITY, "{task}: every scenario has to be solved");
-        let (st, body) = put(chapter, task, reference).await;
+        assert_eq!(put(missing).await.0, StatusCode::UNPROCESSABLE_ENTITY, "{task}: every scenario has to be solved");
+        let (st, body) = put(reference).await;
         assert_eq!(st, StatusCode::NO_CONTENT, "{task}: {body}");
     }
 

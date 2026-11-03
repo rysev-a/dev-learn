@@ -1,0 +1,13 @@
+{
+ "book": 19,
+ "chapter": 20,
+ "lab": "virt",
+ "tasks": [
+  {
+   "id": "virt-sim-lvm-snapshots",
+   "title": "LVM board: snapshots and thin pools",
+   "statement": "Snapshots for backups and thin pools under write load. A scenario has a workload: how many gibibytes change during the backup window and how many are written to the thin volumes. A classic snapshot overflows when more has changed than it can hold, and then the copy is lost; a thin pool fills up with data and with metadata. Five scenarios: snapshot size, heavy writes, an overprovisioned pool, pool metadata, and a snapshot of a thin volume. The exercise is solved when all scenarios are solved.",
+   "hint": "A snapshot never needs more room than the volume itself. For a thin pool watch both Data% and Meta%: the metadata can run out before the data. Autoextend helps only while the volume group has free space."
+  }
+ ]
+}

@@ -1,4 +1,4 @@
-//! Chapter data file: `backend/data/labs/virt/<book>-<chapter:02>.json`.
+//! Chapter data file: `backend/data/labs/virt/<book>-<chapter:02>.json` (book 17 "Virtualization", book 19 "Linux Administration").
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -32,7 +32,7 @@ impl Task {
 /// Chapter file: simulator exercises of one chapter of one book.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct LabChapter {
-    /// Book number (17).
+    /// Book number (17, or 19 for the LVM board).
     pub book: u32,
     /// Chapter number.
     pub chapter: u32,
@@ -83,6 +83,9 @@ impl LabChapter {
 /// Exercise definition from `labs.py` (`data/tasks.json` is a snapshot of the former implementation's definitions, a test fixture).
 #[derive(Clone, Debug, Deserialize)]
 struct Definition {
+    /// Book the exercise belongs to (17 when the definition does not say).
+    #[serde(default = "default_book")]
+    book: u32,
     chapter: u32,
     id: String,
     title: String,
@@ -90,19 +93,23 @@ struct Definition {
     hint: String,
 }
 
-/// Book the exercises belong to.
+/// Book the exercises belong to unless a definition says otherwise.
 pub const BOOK: u32 = 17;
 
+fn default_book() -> u32 {
+    BOOK
+}
+
 /// Build chapter files: definitions (id, title, statement, hint, chapter) from the `labs.py` export plus the default
-/// simulator description ([`crate::builtin`]). Chapters in ascending number order.
+/// simulator description ([`crate::builtin`]). Chapter files in ascending order of the book and then of the chapter.
 pub fn build_chapters(definitions_json: &str) -> Result<Vec<LabChapter>, SpecError> {
     let defs: Vec<Definition> =
         serde_json::from_str(definitions_json).map_err(|e| SpecError::new(i18n::trf!("parsing definitions: {0}", e)))?;
-    let mut by_chapter: std::collections::BTreeMap<u32, Vec<Task>> = Default::default();
+    let mut by_chapter: std::collections::BTreeMap<(u32, u32), Vec<Task>> = Default::default();
     for d in defs {
         let spec =
             crate::builtin(&d.id).ok_or_else(|| SpecError::new(i18n::trf!("no description for simulator “{0}”", d.id)))?;
-        by_chapter.entry(d.chapter).or_default().push(Task {
+        by_chapter.entry((d.book, d.chapter)).or_default().push(Task {
             id: d.id,
             title: d.title,
             statement: d.statement,
@@ -112,7 +119,7 @@ pub fn build_chapters(definitions_json: &str) -> Result<Vec<LabChapter>, SpecErr
     }
     let chapters: Vec<LabChapter> = by_chapter
         .into_iter()
-        .map(|(chapter, tasks)| LabChapter { book: BOOK, chapter, lab: "virt".into(), tasks })
+        .map(|((book, chapter), tasks)| LabChapter { book, chapter, lab: "virt".into(), tasks })
         .collect();
     for c in &chapters {
         c.validate()?;

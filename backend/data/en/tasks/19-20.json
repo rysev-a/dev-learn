@@ -3,6 +3,12 @@
  "chapter": 20,
  "tasks": [
   {
+   "id": "virt-sim-lvm-snapshots",
+   "title": "LVM board: snapshots and thin pools",
+   "statement": "Snapshots for backups and thin pools under write load. A scenario has a workload: how many gibibytes change during the backup window and how many are written to the thin volumes. A classic snapshot overflows when more has changed than it can hold, and then the copy is lost; a thin pool fills up with data and with metadata. Five scenarios: snapshot size, heavy writes, an overprovisioned pool, pool metadata, and a snapshot of a thin volume. The exercise is solved when all scenarios are solved.",
+   "hint": "A snapshot never needs more room than the volume itself. For a thin pool watch both Data% and Meta%: the metadata can run out before the data. Autoextend helps only while the volume group has free space."
+  },
+  {
    "id": "la20-itemize",
    "title": "Parsing rsync -i output",
    "statement": "text is the output of rsync with --itemize-changes. Write a function itemize_summary(text): return a dictionary with five keys new, updated, linked, attrs, deleted, whose values are lists of names in order of appearance. An itemize line is 11 characters YXcstpoguax, a space, and the name. Y: < or > (a file was transferred), c (an item was created or changed, such as a directory or a link), h (a hard link), . (nothing transferred, attributes may have changed). X: f, d, L, D, S. The other 9 characters: + everywhere means the item was created; dots and spaces mean nothing changed; letters and ? mean a change. Rules. A line starting with *deleting gives a name for deleted (the name is everything after that word, stripped). Y equal to h: the name goes to linked. Y equal to . : skip directories (X equal to d); for the others, if the 9 characters contain a letter or + or ?, the name goes to attrs, otherwise skip it. Y equal to <, > or c: if all 9 characters are + the name goes to new (directories and links included), otherwise if X is not d the name goes to updated, otherwise skip it. For symbolic links and hard links the name is printed with a tail ' -> target' or ' => target': drop the tail. Skip lines that do not fit the format (the header, the totals, blank lines).",

@@ -26,9 +26,10 @@ fn round_trip<T: Serialize + DeserializeOwned + PartialEq + std::fmt::Debug>(x: 
 fn data_files_are_canonical_and_up_to_date() {
     // the scenario text inside `spec` is English; only title/statement/hint are Russian
     let built = i18n::with_locale(i18n::Locale::En, || build_chapters(include_str!("../data/tasks.json")).unwrap());
-    let chapters: Vec<u32> = built.iter().map(|c| c.chapter).collect();
+    let chapters: Vec<(u32, u32)> = built.iter().map(|c| (c.book, c.chapter)).collect();
     assert!(chapters.windows(2).all(|w| w[0] < w[1]), "chapters ascend: {chapters:?}");
-    assert_eq!(chapters, [2, 4, 6, 9, 10, 11, 17, 18, 19, 20, 21, 22, 24, 25]);
+    let book17 = [2, 4, 6, 9, 10, 11, 17, 18, 19, 20, 21, 22, 24, 25].map(|c| (17, c));
+    assert_eq!(chapters, [&book17[..], &[(19, 16), (19, 20)]].concat());
     let mut files: Vec<_> =
         std::fs::read_dir(data_dir()).expect("data dir exists").map(|e| e.unwrap().file_name()).collect();
     files.sort();
@@ -40,7 +41,7 @@ fn data_files_are_canonical_and_up_to_date() {
         parsed.validate().unwrap();
         assert_eq!(&parsed, c, "{}: file is stale relative to definitions, run import", c.file_name());
         assert_eq!(parsed.to_canonical_json().unwrap(), text, "{}: file is not canonical", c.file_name());
-        assert_eq!((parsed.book, parsed.lab.as_str()), (17, "virt"));
+        assert!(matches!(parsed.book, 17 | 19) && parsed.lab == "virt", "{}", c.file_name());
         // chapter order and ids match labs.py
         assert!(parsed.tasks.iter().all(|t| t.id.starts_with("virt-sim-")));
     }

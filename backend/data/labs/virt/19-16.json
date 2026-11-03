@@ -1,0 +1,1614 @@
+{
+  "book": 19,
+  "chapter": 16,
+  "lab": "virt",
+  "tasks": [
+    {
+      "id": "virt-sim-lvm-grow",
+      "title": "Доска LVM: от дисков к тому и его рост",
+      "statement": "Соберите хранилище сервера так, как это делает администратор: диски, физические тома (pvcreate), группа томов (vgextend), логические тома (lvcreate) и файловые системы. Доска сама считает экстенты: физический том чуть меньше диска (первый мегабайт занят метаданными), том занимает целое число экстентов, а файловая система должна вырасти вместе с томом (lvextend -r). Четыре сценария: собрать том из двух дисков, расширить том, добавить диск в заполненную группу и найти физический том, который забыли добавить в группу. Упражнение решено, когда решены все сценарии.",
+      "hint": "Выберите объект и посмотрите его статус и причину справа. Свободное место считается в экстентах группы: том в 50 ГиБ не помещается на один диск в 50 ГиБ. Увеличили том — увеличьте и файловую систему.",
+      "spec": {
+        "sim": "lvm_board",
+        "scenarios": [
+          {
+            "id": "build",
+            "title": "Disks into a volume",
+            "story": "Two empty 50 GiB disks have just been added to the server. Make physical volumes of them, put them into one volume group, carve a volume of 50 GiB and put a filesystem on it. A physical volume is a little smaller than its disk: the first MiB holds the label and the metadata.",
+            "goal": "A working volume of 50 GiB with a filesystem of the same size",
+            "hint": "The extents of one 50 GiB disk are just short of 50 GiB, so a volume of 50 GiB needs both disks in the group. Choose the size of the volume, then the same size for the filesystem.",
+            "palette": [
+              "pv",
+              "vg",
+              "lv",
+              "fs"
+            ],
+            "max_nodes": 12,
+            "start": {
+              "nodes": [
+                {
+                  "id": "d1",
+                  "kind": "disk",
+                  "name": "sdb",
+                  "x": 70.0,
+                  "y": 60.0,
+                  "params": {
+                    "size": "50"
+                  }
+                },
+                {
+                  "id": "d2",
+                  "kind": "disk",
+                  "name": "sdc",
+                  "x": 70.0,
+                  "y": 140.0,
+                  "params": {
+                    "size": "50"
+                  }
+                }
+              ],
+              "edges": []
+            },
+            "workload": {
+              "changed_gib": 0,
+              "written_gib": 0
+            },
+            "goals": [
+              {
+                "kind": "healthy"
+              },
+              {
+                "kind": "has",
+                "node": "pv",
+                "min": 2
+              },
+              {
+                "kind": "lv_size",
+                "min_gib": 50,
+                "count": 1
+              },
+              {
+                "kind": "fs_fits"
+              }
+            ]
+          },
+          {
+            "id": "extend",
+            "title": "Room to grow",
+            "story": "The data volume is 20 GiB and almost full. The group has plenty of free space. Make the volume 50 GiB; a bigger volume is no use until the filesystem on it grows too (lvextend -r does both).",
+            "goal": "The data volume is 50 GiB and its filesystem has grown with it",
+            "hint": "Set the size of the volume, then the size of the filesystem on it.",
+            "palette": [
+              "lv",
+              "fs"
+            ],
+            "max_nodes": 12,
+            "start": {
+              "nodes": [
+                {
+                  "id": "d1",
+                  "kind": "disk",
+                  "name": "sda",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "pv1",
+                  "kind": "pv",
+                  "name": "pv1",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "vg",
+                  "kind": "vg",
+                  "name": "vg0",
+                  "x": 310.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "data",
+                  "kind": "lv",
+                  "name": "data",
+                  "x": 450.0,
+                  "y": 60.0,
+                  "params": {
+                    "size": "20"
+                  }
+                },
+                {
+                  "id": "fs-data",
+                  "kind": "fs",
+                  "name": "ext4",
+                  "x": 730.0,
+                  "y": 60.0,
+                  "params": {
+                    "size": "20"
+                  }
+                }
+              ],
+              "edges": [
+                {
+                  "from": "d1",
+                  "to": "pv1"
+                },
+                {
+                  "from": "pv1",
+                  "to": "vg"
+                },
+                {
+                  "from": "vg",
+                  "to": "data"
+                },
+                {
+                  "from": "data",
+                  "to": "fs-data"
+                }
+              ]
+            },
+            "workload": {
+              "changed_gib": 0,
+              "written_gib": 0
+            },
+            "goals": [
+              {
+                "kind": "healthy"
+              },
+              {
+                "kind": "lv_size",
+                "lv": "data",
+                "min_gib": 50,
+                "count": 1
+              },
+              {
+                "kind": "fs_fits"
+              }
+            ]
+          },
+          {
+            "id": "add-disk",
+            "title": "The group is full",
+            "story": "The only disk is almost fully used: data and logs take 20 GiB each and about 10 GiB are free. The data volume has to be 50 GiB. Bring in a new disk and add it to the group, then grow the volume and its filesystem.",
+            "goal": "The data volume is 50 GiB, its filesystem has grown with it, and everything works",
+            "hint": "A new disk becomes a physical volume, and the physical volume joins the group. Only then does the group have room for the bigger volume.",
+            "palette": [
+              "disk",
+              "pv"
+            ],
+            "max_nodes": 14,
+            "start": {
+              "nodes": [
+                {
+                  "id": "d1",
+                  "kind": "disk",
+                  "name": "sda",
+                  "x": 70.0,
+                  "y": 60.0,
+                  "params": {
+                    "size": "50"
+                  }
+                },
+                {
+                  "id": "pv1",
+                  "kind": "pv",
+                  "name": "pv1",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "vg",
+                  "kind": "vg",
+                  "name": "vg0",
+                  "x": 310.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "data",
+                  "kind": "lv",
+                  "name": "data",
+                  "x": 450.0,
+                  "y": 60.0,
+                  "params": {
+                    "size": "20"
+                  }
+                },
+                {
+                  "id": "logs",
+                  "kind": "lv",
+                  "name": "logs",
+                  "x": 450.0,
+                  "y": 140.0,
+                  "params": {
+                    "size": "20"
+                  }
+                },
+                {
+                  "id": "fs-data",
+                  "kind": "fs",
+                  "name": "ext4",
+                  "x": 730.0,
+                  "y": 60.0,
+                  "params": {
+                    "size": "20"
+                  }
+                }
+              ],
+              "edges": [
+                {
+                  "from": "d1",
+                  "to": "pv1"
+                },
+                {
+                  "from": "pv1",
+                  "to": "vg"
+                },
+                {
+                  "from": "vg",
+                  "to": "data"
+                },
+                {
+                  "from": "vg",
+                  "to": "logs"
+                },
+                {
+                  "from": "data",
+                  "to": "fs-data"
+                }
+              ]
+            },
+            "workload": {
+              "changed_gib": 0,
+              "written_gib": 0
+            },
+            "goals": [
+              {
+                "kind": "healthy"
+              },
+              {
+                "kind": "lv_size",
+                "lv": "data",
+                "min_gib": 50,
+                "count": 1
+              },
+              {
+                "kind": "fs_fits"
+              }
+            ]
+          },
+          {
+            "id": "orphan-pv",
+            "title": "The new disk is not in the group",
+            "story": "A second disk was prepared with pvcreate, but nobody ran vgextend: its physical volume belongs to no group, so the group still has one disk. The data volume has to grow to 50 GiB.",
+            "goal": "The new physical volume is in the group, and the data volume is 50 GiB with a filesystem that has grown with it",
+            "hint": "Link the physical volume to the group. A physical volume in no group gives the group nothing.",
+            "palette": [
+              "pv",
+              "lv",
+              "fs"
+            ],
+            "max_nodes": 14,
+            "start": {
+              "nodes": [
+                {
+                  "id": "d1",
+                  "kind": "disk",
+                  "name": "sda",
+                  "x": 70.0,
+                  "y": 60.0,
+                  "params": {
+                    "size": "50"
+                  }
+                },
+                {
+                  "id": "pv1",
+                  "kind": "pv",
+                  "name": "pv1",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "vg",
+                  "kind": "vg",
+                  "name": "vg0",
+                  "x": 310.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "data",
+                  "kind": "lv",
+                  "name": "data",
+                  "x": 450.0,
+                  "y": 60.0,
+                  "params": {
+                    "size": "20"
+                  }
+                },
+                {
+                  "id": "fs-data",
+                  "kind": "fs",
+                  "name": "ext4",
+                  "x": 730.0,
+                  "y": 60.0,
+                  "params": {
+                    "size": "20"
+                  }
+                },
+                {
+                  "id": "d2",
+                  "kind": "disk",
+                  "name": "sdb",
+                  "x": 70.0,
+                  "y": 140.0,
+                  "params": {
+                    "size": "50"
+                  }
+                },
+                {
+                  "id": "pv2",
+                  "kind": "pv",
+                  "name": "pv2",
+                  "x": 190.0,
+                  "y": 140.0
+                }
+              ],
+              "edges": [
+                {
+                  "from": "d1",
+                  "to": "pv1"
+                },
+                {
+                  "from": "pv1",
+                  "to": "vg"
+                },
+                {
+                  "from": "vg",
+                  "to": "data"
+                },
+                {
+                  "from": "data",
+                  "to": "fs-data"
+                },
+                {
+                  "from": "d2",
+                  "to": "pv2"
+                }
+              ]
+            },
+            "workload": {
+              "changed_gib": 0,
+              "written_gib": 0
+            },
+            "goals": [
+              {
+                "kind": "healthy"
+              },
+              {
+                "kind": "lv_size",
+                "lv": "data",
+                "min_gib": 50,
+                "count": 1
+              },
+              {
+                "kind": "fs_fits"
+              }
+            ]
+          }
+        ],
+        "solution": {
+          "add-disk": {
+            "nodes": [
+              {
+                "id": "d1",
+                "kind": "disk",
+                "name": "sda",
+                "x": 70.0,
+                "y": 60.0,
+                "params": {
+                  "size": "50"
+                }
+              },
+              {
+                "id": "pv1",
+                "kind": "pv",
+                "name": "pv1",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "vg",
+                "kind": "vg",
+                "name": "vg0",
+                "x": 310.0,
+                "y": 60.0
+              },
+              {
+                "id": "data",
+                "kind": "lv",
+                "name": "data",
+                "x": 450.0,
+                "y": 60.0,
+                "params": {
+                  "size": "50"
+                }
+              },
+              {
+                "id": "logs",
+                "kind": "lv",
+                "name": "logs",
+                "x": 450.0,
+                "y": 140.0,
+                "params": {
+                  "size": "20"
+                }
+              },
+              {
+                "id": "fs-data",
+                "kind": "fs",
+                "name": "ext4",
+                "x": 730.0,
+                "y": 60.0,
+                "params": {
+                  "size": "50"
+                }
+              },
+              {
+                "id": "d2",
+                "kind": "disk",
+                "name": "sdb",
+                "x": 70.0,
+                "y": 140.0
+              },
+              {
+                "id": "pv2",
+                "kind": "pv",
+                "name": "pv2",
+                "x": 190.0,
+                "y": 140.0
+              }
+            ],
+            "edges": [
+              {
+                "from": "d1",
+                "to": "pv1"
+              },
+              {
+                "from": "pv1",
+                "to": "vg"
+              },
+              {
+                "from": "vg",
+                "to": "data"
+              },
+              {
+                "from": "vg",
+                "to": "logs"
+              },
+              {
+                "from": "data",
+                "to": "fs-data"
+              },
+              {
+                "from": "d2",
+                "to": "pv2"
+              },
+              {
+                "from": "pv2",
+                "to": "vg"
+              }
+            ]
+          },
+          "build": {
+            "nodes": [
+              {
+                "id": "d1",
+                "kind": "disk",
+                "name": "sdb",
+                "x": 70.0,
+                "y": 60.0,
+                "params": {
+                  "size": "50"
+                }
+              },
+              {
+                "id": "d2",
+                "kind": "disk",
+                "name": "sdc",
+                "x": 70.0,
+                "y": 140.0,
+                "params": {
+                  "size": "50"
+                }
+              },
+              {
+                "id": "pv1",
+                "kind": "pv",
+                "name": "pv1",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "pv2",
+                "kind": "pv",
+                "name": "pv2",
+                "x": 190.0,
+                "y": 140.0
+              },
+              {
+                "id": "vg",
+                "kind": "vg",
+                "name": "vg0",
+                "x": 310.0,
+                "y": 60.0
+              },
+              {
+                "id": "data",
+                "kind": "lv",
+                "name": "data",
+                "x": 450.0,
+                "y": 60.0,
+                "params": {
+                  "size": "50"
+                }
+              },
+              {
+                "id": "fs",
+                "kind": "fs",
+                "name": "ext4",
+                "x": 730.0,
+                "y": 60.0,
+                "params": {
+                  "size": "50"
+                }
+              }
+            ],
+            "edges": [
+              {
+                "from": "d1",
+                "to": "pv1"
+              },
+              {
+                "from": "d2",
+                "to": "pv2"
+              },
+              {
+                "from": "pv1",
+                "to": "vg"
+              },
+              {
+                "from": "pv2",
+                "to": "vg"
+              },
+              {
+                "from": "vg",
+                "to": "data"
+              },
+              {
+                "from": "data",
+                "to": "fs"
+              }
+            ]
+          },
+          "extend": {
+            "nodes": [
+              {
+                "id": "d1",
+                "kind": "disk",
+                "name": "sda",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "pv1",
+                "kind": "pv",
+                "name": "pv1",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "vg",
+                "kind": "vg",
+                "name": "vg0",
+                "x": 310.0,
+                "y": 60.0
+              },
+              {
+                "id": "data",
+                "kind": "lv",
+                "name": "data",
+                "x": 450.0,
+                "y": 60.0,
+                "params": {
+                  "size": "50"
+                }
+              },
+              {
+                "id": "fs-data",
+                "kind": "fs",
+                "name": "ext4",
+                "x": 730.0,
+                "y": 60.0,
+                "params": {
+                  "size": "50"
+                }
+              }
+            ],
+            "edges": [
+              {
+                "from": "d1",
+                "to": "pv1"
+              },
+              {
+                "from": "pv1",
+                "to": "vg"
+              },
+              {
+                "from": "vg",
+                "to": "data"
+              },
+              {
+                "from": "data",
+                "to": "fs-data"
+              }
+            ]
+          },
+          "orphan-pv": {
+            "nodes": [
+              {
+                "id": "d1",
+                "kind": "disk",
+                "name": "sda",
+                "x": 70.0,
+                "y": 60.0,
+                "params": {
+                  "size": "50"
+                }
+              },
+              {
+                "id": "pv1",
+                "kind": "pv",
+                "name": "pv1",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "vg",
+                "kind": "vg",
+                "name": "vg0",
+                "x": 310.0,
+                "y": 60.0
+              },
+              {
+                "id": "data",
+                "kind": "lv",
+                "name": "data",
+                "x": 450.0,
+                "y": 60.0,
+                "params": {
+                  "size": "50"
+                }
+              },
+              {
+                "id": "fs-data",
+                "kind": "fs",
+                "name": "ext4",
+                "x": 730.0,
+                "y": 60.0,
+                "params": {
+                  "size": "50"
+                }
+              },
+              {
+                "id": "d2",
+                "kind": "disk",
+                "name": "sdb",
+                "x": 70.0,
+                "y": 140.0,
+                "params": {
+                  "size": "50"
+                }
+              },
+              {
+                "id": "pv2",
+                "kind": "pv",
+                "name": "pv2",
+                "x": 190.0,
+                "y": 140.0
+              }
+            ],
+            "edges": [
+              {
+                "from": "d1",
+                "to": "pv1"
+              },
+              {
+                "from": "pv1",
+                "to": "vg"
+              },
+              {
+                "from": "vg",
+                "to": "data"
+              },
+              {
+                "from": "data",
+                "to": "fs-data"
+              },
+              {
+                "from": "d2",
+                "to": "pv2"
+              },
+              {
+                "from": "pv2",
+                "to": "vg"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "virt-sim-lvm-resilience",
+      "title": "Доска LVM: вывести диск, зеркало, диски ВМ",
+      "statement": "Те же объекты, но вопросы про отказ и замену. Четыре сценария: освободить физический том для pvmove (хватит ли места на остальных), зеркальный том, который переживает потерю любого диска, диски виртуальных машин в группе блочного домена (каждый диск ВМ — логический том) и вывод старого диска из эксплуатации. Упражнение решено, когда решены все сценарии.",
+      "hint": "Данные физического тома можно переместить, только если на остальных физических томах группы хватает свободных экстентов. Копия зеркала лежит на отдельном физическом томе, поэтому для зеркала нужны два физических тома в группе.",
+      "spec": {
+        "sim": "lvm_board",
+        "scenarios": [
+          {
+            "id": "evacuate",
+            "title": "Empty a disk",
+            "story": "The first disk has to be retired. pvmove can empty a physical volume only if the other physical volumes of the group have room for its extents. Right now the second disk is too full for that.",
+            "goal": "The data of the first physical volume fit on the other physical volumes",
+            "hint": "Add a disk, make a physical volume of it and put it into the group: the group gets free extents that pvmove can use.",
+            "palette": [
+              "disk",
+              "pv"
+            ],
+            "max_nodes": 12,
+            "start": {
+              "nodes": [
+                {
+                  "id": "d1",
+                  "kind": "disk",
+                  "name": "sda",
+                  "x": 70.0,
+                  "y": 60.0,
+                  "params": {
+                    "size": "50"
+                  }
+                },
+                {
+                  "id": "d2",
+                  "kind": "disk",
+                  "name": "sdb",
+                  "x": 70.0,
+                  "y": 140.0,
+                  "params": {
+                    "size": "50"
+                  }
+                },
+                {
+                  "id": "pv1",
+                  "kind": "pv",
+                  "name": "pv1",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "pv2",
+                  "kind": "pv",
+                  "name": "pv2",
+                  "x": 190.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "vg",
+                  "kind": "vg",
+                  "name": "vg0",
+                  "x": 310.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "data",
+                  "kind": "lv",
+                  "name": "data",
+                  "x": 450.0,
+                  "y": 60.0,
+                  "params": {
+                    "size": "20"
+                  }
+                },
+                {
+                  "id": "db",
+                  "kind": "lv",
+                  "name": "db",
+                  "x": 450.0,
+                  "y": 140.0,
+                  "params": {
+                    "size": "50"
+                  }
+                }
+              ],
+              "edges": [
+                {
+                  "from": "d1",
+                  "to": "pv1"
+                },
+                {
+                  "from": "d2",
+                  "to": "pv2"
+                },
+                {
+                  "from": "pv1",
+                  "to": "vg"
+                },
+                {
+                  "from": "pv2",
+                  "to": "vg"
+                },
+                {
+                  "from": "vg",
+                  "to": "data"
+                },
+                {
+                  "from": "vg",
+                  "to": "db"
+                }
+              ]
+            },
+            "workload": {
+              "changed_gib": 0,
+              "written_gib": 0
+            },
+            "goals": [
+              {
+                "kind": "healthy"
+              },
+              {
+                "kind": "evacuable",
+                "pv": "pv1"
+              },
+              {
+                "kind": "has",
+                "node": "pv",
+                "min": 3
+              }
+            ]
+          },
+          {
+            "id": "mirror",
+            "title": "Survive a disk failure",
+            "story": "Both volumes live on one disk, so the loss of that disk loses both. A second disk is in the server but unused. A mirror keeps a copy of a volume on each of two physical volumes.",
+            "goal": "After losing any single disk no volume is lost",
+            "hint": "A mirror needs two physical volumes in the group: prepare the second disk and add it to the group. Then ask for two copies on each volume.",
+            "palette": [
+              "pv"
+            ],
+            "max_nodes": 10,
+            "start": {
+              "nodes": [
+                {
+                  "id": "d1",
+                  "kind": "disk",
+                  "name": "sda",
+                  "x": 70.0,
+                  "y": 60.0,
+                  "params": {
+                    "size": "50"
+                  }
+                },
+                {
+                  "id": "d2",
+                  "kind": "disk",
+                  "name": "sdb",
+                  "x": 70.0,
+                  "y": 140.0,
+                  "params": {
+                    "size": "50"
+                  }
+                },
+                {
+                  "id": "pv1",
+                  "kind": "pv",
+                  "name": "pv1",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "vg",
+                  "kind": "vg",
+                  "name": "vg0",
+                  "x": 310.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "db",
+                  "kind": "lv",
+                  "name": "db",
+                  "x": 450.0,
+                  "y": 60.0,
+                  "params": {
+                    "size": "20"
+                  }
+                },
+                {
+                  "id": "web",
+                  "kind": "lv",
+                  "name": "web",
+                  "x": 450.0,
+                  "y": 140.0
+                }
+              ],
+              "edges": [
+                {
+                  "from": "d1",
+                  "to": "pv1"
+                },
+                {
+                  "from": "pv1",
+                  "to": "vg"
+                },
+                {
+                  "from": "vg",
+                  "to": "db"
+                },
+                {
+                  "from": "vg",
+                  "to": "web"
+                }
+              ]
+            },
+            "workload": {
+              "changed_gib": 0,
+              "written_gib": 0
+            },
+            "goals": [
+              {
+                "kind": "healthy"
+              },
+              {
+                "kind": "survive_disk_loss"
+              },
+              {
+                "kind": "has",
+                "node": "pv",
+                "min": 2
+              }
+            ]
+          },
+          {
+            "id": "vm-disks",
+            "title": "Disks for a third VM",
+            "story": "A block storage domain is a volume group on a LUN, and every VM disk is a logical volume in it. Two VMs run on a 200 GiB LUN and about 50 GiB are free. The third VM needs a 50 GiB disk.",
+            "goal": "Three VMs run, each with a disk of 50 GiB or more",
+            "hint": "A 50 GiB volume needs a little more than the 50 GiB that are free. Bring another LUN into the group, carve the volume and attach it to the new VM.",
+            "palette": [
+              "disk",
+              "pv",
+              "lv",
+              "vm"
+            ],
+            "max_nodes": 16,
+            "start": {
+              "nodes": [
+                {
+                  "id": "d1",
+                  "kind": "disk",
+                  "name": "mpatha",
+                  "x": 70.0,
+                  "y": 60.0,
+                  "params": {
+                    "size": "200"
+                  }
+                },
+                {
+                  "id": "pv1",
+                  "kind": "pv",
+                  "name": "pv1",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "vg",
+                  "kind": "vg",
+                  "name": "vg0",
+                  "x": 310.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "vm1-disk",
+                  "kind": "lv",
+                  "name": "vm1-disk",
+                  "x": 450.0,
+                  "y": 60.0,
+                  "params": {
+                    "size": "100"
+                  }
+                },
+                {
+                  "id": "vm2-disk",
+                  "kind": "lv",
+                  "name": "vm2-disk",
+                  "x": 450.0,
+                  "y": 140.0,
+                  "params": {
+                    "size": "50"
+                  }
+                },
+                {
+                  "id": "vm1",
+                  "kind": "vm",
+                  "name": "vm1",
+                  "x": 870.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "vm2",
+                  "kind": "vm",
+                  "name": "vm2",
+                  "x": 870.0,
+                  "y": 140.0
+                }
+              ],
+              "edges": [
+                {
+                  "from": "d1",
+                  "to": "pv1"
+                },
+                {
+                  "from": "pv1",
+                  "to": "vg"
+                },
+                {
+                  "from": "vg",
+                  "to": "vm1-disk"
+                },
+                {
+                  "from": "vg",
+                  "to": "vm2-disk"
+                },
+                {
+                  "from": "vm1-disk",
+                  "to": "vm1"
+                },
+                {
+                  "from": "vm2-disk",
+                  "to": "vm2"
+                }
+              ]
+            },
+            "workload": {
+              "changed_gib": 0,
+              "written_gib": 0
+            },
+            "goals": [
+              {
+                "kind": "healthy"
+              },
+              {
+                "kind": "has",
+                "node": "vm",
+                "min": 3
+              },
+              {
+                "kind": "lv_size",
+                "min_gib": 50,
+                "count": 3
+              }
+            ]
+          },
+          {
+            "id": "retire",
+            "title": "Remove the old disk",
+            "story": "The old 50 GiB disk goes away, and only the new disk stays. Before the old physical volume can be removed, everything on it must fit on the new one. A 20 GiB volume needs 5120 extents, and a 20 GiB disk gives 5119: the first MiB is metadata.",
+            "goal": "One disk and one physical volume are left, and the 20 GiB data volume still works",
+            "hint": "Make the new disk larger, then remove the old physical volume and its disk from the board.",
+            "palette": [
+              "disk",
+              "pv"
+            ],
+            "max_nodes": 10,
+            "start": {
+              "nodes": [
+                {
+                  "id": "d-old",
+                  "kind": "disk",
+                  "name": "sda",
+                  "x": 70.0,
+                  "y": 60.0,
+                  "params": {
+                    "size": "50"
+                  }
+                },
+                {
+                  "id": "d-new",
+                  "kind": "disk",
+                  "name": "sdb",
+                  "x": 70.0,
+                  "y": 140.0,
+                  "params": {
+                    "size": "20"
+                  }
+                },
+                {
+                  "id": "pv-old",
+                  "kind": "pv",
+                  "name": "pv-old",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "pv-new",
+                  "kind": "pv",
+                  "name": "pv-new",
+                  "x": 190.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "vg",
+                  "kind": "vg",
+                  "name": "vg0",
+                  "x": 310.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "data",
+                  "kind": "lv",
+                  "name": "data",
+                  "x": 450.0,
+                  "y": 60.0,
+                  "params": {
+                    "size": "20"
+                  }
+                }
+              ],
+              "edges": [
+                {
+                  "from": "d-old",
+                  "to": "pv-old"
+                },
+                {
+                  "from": "d-new",
+                  "to": "pv-new"
+                },
+                {
+                  "from": "pv-old",
+                  "to": "vg"
+                },
+                {
+                  "from": "pv-new",
+                  "to": "vg"
+                },
+                {
+                  "from": "vg",
+                  "to": "data"
+                }
+              ]
+            },
+            "workload": {
+              "changed_gib": 0,
+              "written_gib": 0
+            },
+            "goals": [
+              {
+                "kind": "healthy"
+              },
+              {
+                "kind": "at_most",
+                "node": "disk",
+                "max": 1
+              },
+              {
+                "kind": "at_most",
+                "node": "pv",
+                "max": 1
+              },
+              {
+                "kind": "lv_size",
+                "lv": "data",
+                "min_gib": 20,
+                "count": 1
+              }
+            ]
+          }
+        ],
+        "solution": {
+          "evacuate": {
+            "nodes": [
+              {
+                "id": "d1",
+                "kind": "disk",
+                "name": "sda",
+                "x": 70.0,
+                "y": 60.0,
+                "params": {
+                  "size": "50"
+                }
+              },
+              {
+                "id": "d2",
+                "kind": "disk",
+                "name": "sdb",
+                "x": 70.0,
+                "y": 140.0,
+                "params": {
+                  "size": "50"
+                }
+              },
+              {
+                "id": "pv1",
+                "kind": "pv",
+                "name": "pv1",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "pv2",
+                "kind": "pv",
+                "name": "pv2",
+                "x": 190.0,
+                "y": 140.0
+              },
+              {
+                "id": "vg",
+                "kind": "vg",
+                "name": "vg0",
+                "x": 310.0,
+                "y": 60.0
+              },
+              {
+                "id": "data",
+                "kind": "lv",
+                "name": "data",
+                "x": 450.0,
+                "y": 60.0,
+                "params": {
+                  "size": "20"
+                }
+              },
+              {
+                "id": "db",
+                "kind": "lv",
+                "name": "db",
+                "x": 450.0,
+                "y": 140.0,
+                "params": {
+                  "size": "50"
+                }
+              },
+              {
+                "id": "d3",
+                "kind": "disk",
+                "name": "sdc",
+                "x": 70.0,
+                "y": 220.0,
+                "params": {
+                  "size": "50"
+                }
+              },
+              {
+                "id": "pv3",
+                "kind": "pv",
+                "name": "pv3",
+                "x": 190.0,
+                "y": 220.0
+              }
+            ],
+            "edges": [
+              {
+                "from": "d1",
+                "to": "pv1"
+              },
+              {
+                "from": "d2",
+                "to": "pv2"
+              },
+              {
+                "from": "pv1",
+                "to": "vg"
+              },
+              {
+                "from": "pv2",
+                "to": "vg"
+              },
+              {
+                "from": "vg",
+                "to": "data"
+              },
+              {
+                "from": "vg",
+                "to": "db"
+              },
+              {
+                "from": "d3",
+                "to": "pv3"
+              },
+              {
+                "from": "pv3",
+                "to": "vg"
+              }
+            ]
+          },
+          "mirror": {
+            "nodes": [
+              {
+                "id": "d1",
+                "kind": "disk",
+                "name": "sda",
+                "x": 70.0,
+                "y": 60.0,
+                "params": {
+                  "size": "50"
+                }
+              },
+              {
+                "id": "d2",
+                "kind": "disk",
+                "name": "sdb",
+                "x": 70.0,
+                "y": 140.0,
+                "params": {
+                  "size": "50"
+                }
+              },
+              {
+                "id": "pv1",
+                "kind": "pv",
+                "name": "pv1",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "vg",
+                "kind": "vg",
+                "name": "vg0",
+                "x": 310.0,
+                "y": 60.0
+              },
+              {
+                "id": "db",
+                "kind": "lv",
+                "name": "db",
+                "x": 450.0,
+                "y": 60.0,
+                "params": {
+                  "mirror": "2",
+                  "size": "20"
+                }
+              },
+              {
+                "id": "web",
+                "kind": "lv",
+                "name": "web",
+                "x": 450.0,
+                "y": 140.0,
+                "params": {
+                  "mirror": "2"
+                }
+              },
+              {
+                "id": "pv2",
+                "kind": "pv",
+                "name": "pv2",
+                "x": 190.0,
+                "y": 140.0
+              }
+            ],
+            "edges": [
+              {
+                "from": "d1",
+                "to": "pv1"
+              },
+              {
+                "from": "pv1",
+                "to": "vg"
+              },
+              {
+                "from": "vg",
+                "to": "db"
+              },
+              {
+                "from": "vg",
+                "to": "web"
+              },
+              {
+                "from": "d2",
+                "to": "pv2"
+              },
+              {
+                "from": "pv2",
+                "to": "vg"
+              }
+            ]
+          },
+          "retire": {
+            "nodes": [
+              {
+                "id": "d-new",
+                "kind": "disk",
+                "name": "sdb",
+                "x": 70.0,
+                "y": 140.0,
+                "params": {
+                  "size": "50"
+                }
+              },
+              {
+                "id": "pv-new",
+                "kind": "pv",
+                "name": "pv-new",
+                "x": 190.0,
+                "y": 140.0
+              },
+              {
+                "id": "vg",
+                "kind": "vg",
+                "name": "vg0",
+                "x": 310.0,
+                "y": 60.0
+              },
+              {
+                "id": "data",
+                "kind": "lv",
+                "name": "data",
+                "x": 450.0,
+                "y": 60.0,
+                "params": {
+                  "size": "20"
+                }
+              }
+            ],
+            "edges": [
+              {
+                "from": "d-new",
+                "to": "pv-new"
+              },
+              {
+                "from": "pv-new",
+                "to": "vg"
+              },
+              {
+                "from": "vg",
+                "to": "data"
+              }
+            ]
+          },
+          "vm-disks": {
+            "nodes": [
+              {
+                "id": "d1",
+                "kind": "disk",
+                "name": "mpatha",
+                "x": 70.0,
+                "y": 60.0,
+                "params": {
+                  "size": "200"
+                }
+              },
+              {
+                "id": "pv1",
+                "kind": "pv",
+                "name": "pv1",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "vg",
+                "kind": "vg",
+                "name": "vg0",
+                "x": 310.0,
+                "y": 60.0
+              },
+              {
+                "id": "vm1-disk",
+                "kind": "lv",
+                "name": "vm1-disk",
+                "x": 450.0,
+                "y": 60.0,
+                "params": {
+                  "size": "100"
+                }
+              },
+              {
+                "id": "vm2-disk",
+                "kind": "lv",
+                "name": "vm2-disk",
+                "x": 450.0,
+                "y": 140.0,
+                "params": {
+                  "size": "50"
+                }
+              },
+              {
+                "id": "vm1",
+                "kind": "vm",
+                "name": "vm1",
+                "x": 870.0,
+                "y": 60.0
+              },
+              {
+                "id": "vm2",
+                "kind": "vm",
+                "name": "vm2",
+                "x": 870.0,
+                "y": 140.0
+              },
+              {
+                "id": "d2",
+                "kind": "disk",
+                "name": "mpathb",
+                "x": 70.0,
+                "y": 140.0
+              },
+              {
+                "id": "pv2",
+                "kind": "pv",
+                "name": "pv2",
+                "x": 190.0,
+                "y": 140.0
+              },
+              {
+                "id": "vm3-disk",
+                "kind": "lv",
+                "name": "vm3-disk",
+                "x": 450.0,
+                "y": 220.0,
+                "params": {
+                  "size": "50"
+                }
+              },
+              {
+                "id": "vm3",
+                "kind": "vm",
+                "name": "vm3",
+                "x": 870.0,
+                "y": 220.0
+              }
+            ],
+            "edges": [
+              {
+                "from": "d1",
+                "to": "pv1"
+              },
+              {
+                "from": "pv1",
+                "to": "vg"
+              },
+              {
+                "from": "vg",
+                "to": "vm1-disk"
+              },
+              {
+                "from": "vg",
+                "to": "vm2-disk"
+              },
+              {
+                "from": "vm1-disk",
+                "to": "vm1"
+              },
+              {
+                "from": "vm2-disk",
+                "to": "vm2"
+              },
+              {
+                "from": "d2",
+                "to": "pv2"
+              },
+              {
+                "from": "pv2",
+                "to": "vg"
+              },
+              {
+                "from": "vg",
+                "to": "vm3-disk"
+              },
+              {
+                "from": "vm3-disk",
+                "to": "vm3"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}
