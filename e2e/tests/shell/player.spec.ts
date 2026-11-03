@@ -334,3 +334,40 @@ test("switching tabs during reading stops the player", async ({ page, request })
   await page.locator(".ch-tab", { hasText: "Теория" }).click();
   await expect(play(page)).toHaveText("Играть");
 });
+
+test("the chapter slider rewinds: the slide, the time and the text follow, a paused player stays paused", async ({ page, request }) => {
+  const { ch, durs, total } = await setup(page, request);
+  await open(page, ch);
+  const seek = page.locator(".slide-seek");
+  await expect(seek).toHaveAttribute("max", String(total));
+  const target = Math.ceil(durs[0]! + durs[1]!) + 2;
+  await seek.fill(String(target));
+  await expect(num(page)).toHaveText(pageNum(ch, 3)); // the third paragraph
+  await expect(voice(page)).toHaveText(words(ch.lessons[2]!.text));
+  await expect(play(page)).toHaveText("Пауза"); // a stopped player starts from the chosen place
+  expect(await position(page)).toBeGreaterThanOrEqual(Math.floor(target));
+  expect(await position(page)).toBeLessThanOrEqual(Math.ceil(target + 1));
+  // back to the start while paused: stays paused
+  await play(page).click();
+  await expect(play(page)).toHaveText("Играть");
+  await seek.fill("0");
+  await expect(num(page)).toHaveText(pageNum(ch, 1));
+  await expect(play(page)).toHaveText("Играть");
+  await page.clock.runFor(5000);
+  await expect(clockText(page)).toContainText("0:00 / ");
+});
+
+test("volume: the slider and the mute button, the level is remembered", async ({ page, request }) => {
+  const { ch } = await setup(page, request);
+  await open(page, ch);
+  const range = page.locator(".slide-vol-range");
+  await expect(range).toHaveValue("1");
+  await range.fill("0.4");
+  await expect.poll(() => stored(page, "cs-core-volume")).toBe("0.4");
+  await page.locator(".slide-vol-btn").click(); // mute
+  await expect(range).toHaveValue("0");
+  await page.locator(".slide-vol-btn").click(); // back to the previous level
+  await expect(range).toHaveValue("0.4");
+  await page.reload();
+  await expect(page.locator(".slide-vol-range")).toHaveValue("0.4");
+});

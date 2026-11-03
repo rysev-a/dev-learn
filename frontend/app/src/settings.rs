@@ -10,6 +10,8 @@ pub const PALETTE_LIGHT: &str = "cs-core-palette-light";
 pub const ASIDE: &str = "cs-core-aside-collapsed";
 pub const ANIM: &str = "cs-core-anim-auto";
 pub const VOICE_H: &str = "cs-core-voice-h";
+/// Voice-over volume, 0..1.
+pub const VOLUME: &str = "cs-core-volume";
 pub const TOKEN: &str = "cs-core-token";
 /// Interface language (`en` or `ru`); with no value - the browser language.
 pub const LANG: &str = "cs-core-lang";

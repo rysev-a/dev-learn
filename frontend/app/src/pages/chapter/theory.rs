@@ -16,7 +16,7 @@ use crate::{
         voice_popup::VoicePopup,
     },
     hooks::{client, use_load, Load},
-    player::{estimate_seconds, Player},
+    player::{estimate_seconds, locate, Player},
     progress::ProgressStore,
     recorder,
     session::Session,
@@ -26,6 +26,11 @@ use crate::{
 /// Chapter paragraph durations: voice-over if the file exists, otherwise the virtual clock.
 pub fn durations(ch: &Chapter) -> Vec<f64> {
     ch.lessons.iter().map(|l| if l.dur > 0.0 { l.dur } else { estimate_seconds(&l.text) }).collect()
+}
+
+/// Sound of the paragraphs: the file address if it exists (the server gives `dur` > 0 only for a file), otherwise `None` - the paragraph is read silently.
+pub fn sounds(ch: &Chapter) -> Vec<Option<String>> {
+    ch.lessons.iter().map(|l| (l.dur > 0.0).then(|| l.audio.clone())).collect()
 }
 
 /// Position in the chapter: sum of paragraphs before the shown one plus the time within it.
@@ -93,8 +98,10 @@ fn Slides(book: i64, chapter: Chapter, deck: Deck) -> impl IntoView {
     let count = deck.count;
     let titles = deck.titles;
     let (manual, set_manual) = query_signal::<usize>("slide");
-    let durs = durations(&chapter);
-    let total: f64 = durs.iter().sum();
+    // durations and sound files of the paragraphs: a fresh recording replaces its entry without reloading the chapter
+    let parts = RwSignal::new(durations(&chapter).into_iter().zip(sounds(&chapter)).collect::<Vec<(f64, Option<String>)>>());
+    let durs = Signal::derive(move || parts.with(|p| p.iter().map(|x| x.0).collect::<Vec<f64>>()));
+    let total = Signal::derive(move || durs.with(|d| d.iter().sum::<f64>()));
     let num = chapter.num;
     on_cleanup(move || player.stop());
 
@@ -104,16 +111,24 @@ fn Slides(book: i64, chapter: Chapter, deck: Deck) -> impl IntoView {
     // the viewed slide goes to progress (dashboard on the home page)
     Effect::new(move |_| progress.mark_slide(book, num, idx.get()));
 
-    let start_from = {
-        let durs = durs.clone();
-        move |i: usize| {
-            player.start(durs.clone(), i);
-            set_manual.set(None);
-        }
+    let start_from = move |i: usize| {
+        let (d, u): (Vec<f64>, Vec<Option<String>>) = parts.get_untracked().into_iter().unzip();
+        player.start(d, u, i);
+        set_manual.set(None);
     };
+    // rewind to a place in the chapter: a stopped player starts from there, a paused one stays paused
+    let on_seek = Callback::new(move |pos: f64| {
+        let (d, u): (Vec<f64>, Vec<Option<String>>) = parts.get_untracked().into_iter().unzip();
+        let (i, t) = locate(&d, pos);
+        let was_paused = player.playing.get_untracked().is_some() && player.paused.get_untracked();
+        player.start_at(d, u, i, t);
+        set_manual.set(None);
+        if was_paused {
+            player.toggle_pause();
+        }
+    });
     // click on a slide: if the chapter is playing - start from this part, otherwise just show the slide
     let on_pick = {
-        let start_from = start_from.clone();
         Callback::new(move |i: usize| {
             if player.playing.get_untracked().is_some() {
                 if player.playing.get_untracked() == Some(i) && player.paused.get_untracked() {
@@ -150,16 +165,30 @@ fn Slides(book: i64, chapter: Chapter, deck: Deck) -> impl IntoView {
             };
             set_manual.set(Some(back));
             player.stop();
+            player.silent.set(false);
             let Some(Some(rec)) = live.try_update_value(|v| v.take()) else { return };
             status.set(Some(i18n::tr("Saving the recording…").to_string()));
             rec.stop(move |blob| {
-                spawn_local(async move {
-                    let msg = match client().upload_record(book, num, i, &blob).await {
-                        Ok(path) => i18n::trf!("Saved: {}", path),
-                        Err(e) => e.message,
-                    };
-                    let _ = status.try_set(Some(msg));
-                })
+                // a WAV is rewound exactly and has a known length; from now on the slide is played with this sound
+                recorder::to_wav(blob, move |file, secs| {
+                    spawn_local(async move {
+                        let msg = match client().upload_record(book, num, i, &file).await {
+                            Ok(path) => {
+                                if let Some(secs) = secs.filter(|s| *s > 0.0) {
+                                    let url = format!("/api/records/{book}/{num}/{i}/audio?v={}", js_sys::Date::now() as u64);
+                                    let _ = parts.try_update(|p| {
+                                        if let Some(x) = p.get_mut(i) {
+                                            *x = ((secs * 10.0).round() / 10.0, Some(url));
+                                        }
+                                    });
+                                }
+                                i18n::trf!("Saved: {}", path)
+                            }
+                            Err(e) => e.message,
+                        };
+                        let _ = status.try_set(Some(msg));
+                    })
+                });
             });
         };
         Effect::new(move |_| {
@@ -181,6 +210,7 @@ fn Slides(book: i64, chapter: Chapter, deck: Deck) -> impl IntoView {
                 Ok(rec) => {
                     live.set_value(Some(rec));
                     status.set(None);
+                    player.silent.set(true); // the old sound must not leak into the microphone
                     start_from(i);
                     recording.set(Some(i));
                 }
@@ -204,14 +234,11 @@ fn Slides(book: i64, chapter: Chapter, deck: Deck) -> impl IntoView {
         }
     });
 
-    let time = {
-        let durs = durs.clone();
-        Signal::derive(move || {
-            let shown = idx.get();
-            let inside = player.audio_time(shown);
-            (chapter_position(&durs, shown, inside), total)
-        })
-    };
+    let time = Signal::derive(move || {
+        let shown = idx.get();
+        let inside = player.audio_time(shown);
+        (durs.with(|d| chapter_position(d, shown, inside)), total.get())
+    });
     let stage = {
         let frame = deck.frame.clone();
         Callback::new(move |i: usize| {
@@ -221,19 +248,16 @@ fn Slides(book: i64, chapter: Chapter, deck: Deck) -> impl IntoView {
         })
     };
     let lessons = chapter.lessons;
-    let popup = {
-        let durs = durs.clone();
-        move || {
-            let i = idx.get();
-            let lesson = lessons.iter().find(|l| l.ord == i)?;
-            let (text, d) = (lesson.text.clone(), durs.get(i).copied().unwrap_or(3.0));
-            Some(view! { <VoicePopup text=text t=Signal::derive(move || player.audio_time(i)) d=d /> })
-        }
+    let popup = move || {
+        let i = idx.get();
+        let lesson = lessons.iter().find(|l| l.ord == i)?;
+        let (text, d) = (lesson.text.clone(), durs.with(|d| d.get(i).copied()).unwrap_or(3.0));
+        Some(view! { <VoicePopup text=text t=Signal::derive(move || player.audio_time(i)) d=d /> })
     };
     view! {
         <div>
             {popup}
-            <SlidePanel idx=idx count=count titles=titles time=time playing=playing on_play=on_play on_pause=on_pause on_pick=on_pick stage=stage record=record />
+            <SlidePanel idx=idx count=count titles=titles time=time playing=playing on_play=on_play on_pause=on_pause on_pick=on_pick stage=stage record=record on_seek=on_seek volume=player.volume on_volume=Callback::new(move |v| player.set_volume(v)) />
         </div>
     }
 }

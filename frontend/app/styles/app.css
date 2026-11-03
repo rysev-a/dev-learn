@@ -1123,7 +1123,7 @@ h2 {
   border-color: var(--s-accent-a45);
 }
 
-/* "Play + record": red dot by the triangle, while recording the button is red and blinks */
+/* "Record": a plain red dot, while recording the button is red and blinks */
 .slide-btn.slide-rec .rec-dot {
   fill: var(--s-red);
 }
@@ -3102,7 +3102,6 @@ html {
 
 .voice-pop-text .now {
   color: var(--s-accent);
-  font-weight: 600;
 }
 
 /* the player sits above the text window, and page content does not hide under them */
@@ -3572,4 +3571,48 @@ g.fk .sx-key {
 
 .sd-note {
   flex-basis: 100%;
+}
+
+/* chapter position slider and volume in the player header */
+.slide-seek,
+.slide-vol-range {
+  height: 14px;
+  margin: 0;
+  accent-color: var(--s-accent);
+  cursor: pointer;
+}
+
+.slide-seek {
+  flex: 1;
+  min-width: 60px;
+}
+
+.slide-vol {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.slide-vol-range {
+  width: 72px;
+}
+
+.slide-vol-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px;
+  background: none;
+  border: none;
+  color: var(--s-muted);
+  cursor: pointer;
+}
+
+.slide-vol-btn:hover {
+  color: var(--s-accent);
+}
+
+@media (max-width: 640px) {
+  .slide-vol-range {
+    display: none;
+  }
 }

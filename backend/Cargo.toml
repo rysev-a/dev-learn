@@ -85,10 +85,10 @@ serde_json.workspace = true
 sha2.workspace = true
 surrealdb.workspace = true
 tokio.workspace = true
+tower = { version = "0.5", features = ["util"] } # the same version as in Cargo.lock (axum): serving files with Range
 tower-http.workspace = true
 tracing.workspace = true
 uuid.workspace = true
 
 [dev-dependencies]
-tower = { version = "0.5", features = ["util"] }
 http-body-util = "0.1"

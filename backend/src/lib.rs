@@ -80,7 +80,7 @@ pub fn router(state: AppState, auth: Auth, tasks: Tasks) -> Router {
         .merge(exercises::private())
         .merge(records::private())
         .layer(require);
-    let public = Router::new().merge(courses::routes()).merge(slides::routes()).merge(labs::routes()).merge(quizzes::public()).merge(answers::public()).merge(exercises::public()).merge(worker_api::routes(state.clone()));
+    let public = Router::new().merge(courses::routes()).merge(records::public()).merge(slides::routes()).merge(labs::routes()).merge(quizzes::public()).merge(answers::public()).merge(exercises::public()).merge(worker_api::routes(state.clone()));
 
     let auth_api = auth_api::routes(auth.clone(), tasks.clone(), auth_api::Config::from_env());
     let admin = admin_api::routes(auth.clone()).merge(admin_api::task_routes(auth, tasks));

@@ -38,9 +38,8 @@ pub struct RecordCtl {
 
 fn record_icon() -> impl IntoView {
     view! {
-        <svg width="14" height="11" viewBox="0 0 15 12" fill="currentColor">
-            <path d="M1 1.2v9.6L8.5 6z" />
-            <circle cx="12.2" cy="6" r="2.4" class="rec-dot" />
+        <svg width="11" height="11" viewBox="0 0 12 12" fill="currentColor">
+            <circle cx="6" cy="6" r="4.5" class="rec-dot" />
         </svg>
     }
 }
@@ -49,6 +48,16 @@ fn stop_icon() -> impl IntoView {
     view! {
         <svg width="11" height="11" viewBox="0 0 12 12" fill="currentColor">
             <rect x="2" y="2" width="8" height="8" rx="1" />
+        </svg>
+    }
+}
+
+fn volume_icon(level: f64) -> impl IntoView {
+    view! {
+        <svg width="14" height="12" viewBox="0 0 14 12" fill="currentColor">
+            <path d="M1 4.2h2.4L6.6 1.5v9L3.4 7.8H1z" />
+            {(level > 0.0).then(|| view! { <path d="M8.4 4a2.9 2.9 0 0 1 0 4" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" /> })}
+            {(level > 0.5).then(|| view! { <path d="M10 2.4a5.2 5.2 0 0 1 0 7.2" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" /> })}
         </svg>
     }
 }
@@ -83,10 +92,36 @@ pub fn SlidePanel(
     stage: Callback<usize, AnyView>,
     /// "Play + record" button next to "Play"; `None` - do not show
     record: Option<RecordCtl>,
+    /// rewind to a place in the chapter, seconds from its start
+    on_seek: Callback<f64>,
+    /// voice-over volume 0..1 and its change
+    #[prop(into)]
+    volume: Signal<f64>,
+    on_volume: Callback<f64>,
 ) -> impl IntoView {
+    // while the slider is dragged it shows the finger, and the rewind happens on release
+    let scrub = RwSignal::new(None::<f64>);
+    // the volume before mute: the speaker button returns to it
+    let loud = StoredValue::new(1.0_f64);
     let controls = move || {
         view! {
             <span class="slide-panel-num">{move || format!("{:02} / {count:02}", idx.get() + 1)}</span>
+            <input
+                class="slide-seek"
+                type="range"
+                min="0"
+                max=move || time.get().1.to_string()
+                step="0.1"
+                aria-label=i18n::tr("Position in the chapter")
+                prop:value=move || scrub.get().unwrap_or_else(|| time.get().0).to_string()
+                on:input=move |ev| scrub.set(event_target_value(&ev).parse().ok())
+                on:change=move |ev| {
+                    scrub.set(None);
+                    if let Ok(v) = event_target_value(&ev).parse() {
+                        on_seek.run(v);
+                    }
+                }
+            />
             <span class="s-time-mono">{move || { let (t, d) = time.get(); format!("{} / {}", fmt_time(t), fmt_time(d)) }}</span>
             {record.map(|r| view! {
                 <span class="slide-rec-status" title=move || r.status.get().unwrap_or_default()>{move || r.status.get()}</span>
@@ -99,6 +134,37 @@ pub fn SlidePanel(
                 {move || if playing.get() { pause_icon().into_any() } else { play_icon().into_any() }}
                 <span>{move || if playing.get() { i18n::tr("Pause") } else { i18n::tr("Play") }}</span>
             </button>
+            <span class="slide-vol">
+                <button
+                    class="slide-vol-btn"
+                    title=move || { if volume.get() > 0.0 { i18n::tr("Mute") } else { i18n::tr("Unmute") } }
+                    on:click=move |_| {
+                        let v = volume.get_untracked();
+                        if v > 0.0 {
+                            loud.set_value(v);
+                            on_volume.run(0.0);
+                        } else {
+                            on_volume.run(loud.get_value());
+                        }
+                    }
+                >
+                    {move || volume_icon(volume.get())}
+                </button>
+                <input
+                    class="slide-vol-range"
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.05"
+                    aria-label=i18n::tr("Volume")
+                    prop:value=move || volume.get().to_string()
+                    on:input=move |ev| {
+                        if let Ok(v) = event_target_value(&ev).parse() {
+                            on_volume.run(v);
+                        }
+                    }
+                />
+            </span>
         }
     };
     // the mode is chosen at creation: when fullscreen changes the tab is recreated

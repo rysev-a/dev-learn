@@ -287,15 +287,19 @@ when a chapter has more than one part. Therefore:
   you edit a paragraph's text, regenerate its wav (the seed skips existing
   files), and if the number of paragraphs changes, the whole chapter.
 
-## Recording a voice for a slide: "Play + record"
+## Recording a voice for a slide: "Play + record", and the player that plays it back
 
 An authoring tool in the slide header (`components/slides.rs`, `RecordCtl`; the button is visible **to administrators only**): next to "Play" there is
-"Record": the slide plays from the current position, the microphone is recorded through `MediaRecorder` (`frontend/app/src/recorder.rs`, webm/opus, or mp4 in Safari);
-recording ends with the "Stop" button or when the player leaves this slide (the player stops, the slide stays). The file goes to
-`POST /api/records/{book}/{chapter}/{slide}` (`backend/src/records.rs`, the body is the file as is, the type is `Content-Type`, 403 for a non-administrator) and is stored in
+"Record": the slide plays from the current position (the "Off-screen" text runs on the virtual clock, existing sound is muted: `Player::silent`), the microphone is recorded through `MediaRecorder` (`frontend/app/src/recorder.rs`, webm/opus, or mp4 in Safari);
+recording ends with the "Stop" button or when the player leaves this slide (the player stops, the slide stays). The recording is **converted in the browser to a 16-bit mono WAV** (`recorder::to_wav`: `decodeAudioData` + `encode_wav`; `MediaRecorder` files have no length and cannot be rewound exactly)
+and goes to `POST /api/records/{book}/{chapter}/{slide}` (`backend/src/records.rs`, the body is the file as is, the type is `Content-Type`, 403 for a non-administrator), stored in
 `RECORDS_DIR` (by default `media/records` in the repository root, not tracked by git) as `<book>/<chapter>/<slide 0-based>.<webm|m4a|ogg|wav>`;
-a slide has one file — a previous one with another extension is deleted. Promises in `recorder.rs` are handled with callbacks: `wasm-bindgen-futures`
+a slide has one file — a previous one with another extension is deleted. If the browser cannot decode the recording, the original container is uploaded and kept, but not played. Promises in `recorder.rs` are handled with callbacks: `wasm-bindgen-futures`
 is not in the dependency set. The test is `slide_recordings_are_saved_by_administrators_only` (`backend/tests/api.rs`).
+
+**Playback:** `GET /api/chapters/{id}` gives each lesson `audio` and `dur`; `dur > 0` means a sound file exists (a `.wav` recording of the slide wins over the generated `audio_dir` wav, address `/api/records/{book}/{chapter}/{slide}/audio`, public like the lesson audio, served with `Range`
+so that rewinding works). `Player` (`frontend/app/src/player.rs`) plays a paragraph with a file through an `<audio>` element and the slides follow its time; a paragraph without a file is read silently by the 14 chars/s clock, **no sound — nothing is played**.
+The panel header has the chapter position slider (`.slide-seek`, rewinds through `Player::start_at`, `player::locate`), the volume slider and the mute button (`.slide-vol`, remembered in `cs-core-volume`). A fresh recording replaces the slide's entry in the page state without reloading the chapter.
 
 ## Header and settings
 

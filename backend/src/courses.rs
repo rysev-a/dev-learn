@@ -14,7 +14,7 @@ use serde_json::{json, Value};
 use crate::{
     error::{i, s, ApiError, ApiResult},
     lang::{self, Lang},
-    wav, AppState,
+    records, wav, AppState,
 };
 
 pub fn routes() -> Router<AppState> {
@@ -119,12 +119,19 @@ async fn chapter(State(state): State<AppState>, lang: Lang, Path(chapter_id): Pa
     let lessons: Vec<Value> = res.take(1)?;
     let mut sec = state.db.query(format!("SELECT VALUE title FROM {sections_t} WHERE sid = $s{cond}")).bind(("s", i(&ch, "sid"))).bind(("l", lang.code())).await?;
     let section: Vec<String> = sec.take(0)?;
+    let num = i(&ch, "num");
     let lessons: Vec<Value> = lessons
         .iter()
         .map(|l| {
             let id = s(l, "lid");
-            let dur = audio_path(&state, &id).map(|p| wav::duration(&p)).unwrap_or(0.0);
-            json!({ "id": id, "ord": i(l, "ord"), "text": s(l, "text"), "audio": format!("/api/lesson/{id}/audio"), "dur": (dur * 10.0).round() / 10.0 })
+            let ord = i(l, "ord");
+            // the author's recording of the slide wins over the generated voice-over; no file - `dur` is 0 and the player stays silent
+            let (audio, path) = match records::wav_path(&state.cfg.records_dir, book, num, ord) {
+                Some(p) => (format!("/api/records/{book}/{num}/{ord}/audio"), Some(p)),
+                None => (format!("/api/lesson/{id}/audio"), audio_path(&state, &id)),
+            };
+            let dur = path.map(|p| wav::duration(&p)).unwrap_or(0.0);
+            json!({ "id": id, "ord": ord, "text": s(l, "text"), "audio": audio, "dur": (dur * 10.0).round() / 10.0 })
         })
         .collect();
     Ok(Json(json!({
@@ -149,10 +156,9 @@ fn safe_filename(v: &str) -> String {
     cleaned.trim().chars().take(80).collect()
 }
 
-async fn lesson_audio(State(state): State<AppState>, Path(lesson_id): Path<String>) -> ApiResult<Response> {
+async fn lesson_audio(State(state): State<AppState>, Path(lesson_id): Path<String>, req: axum::extract::Request) -> ApiResult<Response> {
     let path = audio_path(&state, &lesson_id).ok_or_else(|| ApiError::not_found("Audio not found"))?;
-    let bytes = tokio::fs::read(path).await.map_err(|_| ApiError::not_found("Audio not found"))?;
-    Ok(wav_response(bytes, None))
+    records::serve(path, req).await
 }
 
 async fn lesson_download(State(state): State<AppState>, Path(lesson_id): Path<String>) -> ApiResult<Response> {
