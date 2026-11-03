@@ -3,6 +3,7 @@
 use leptos::prelude::*;
 use leptos_router::hooks::{use_location, use_navigate};
 
+use super::mobile_menu::Burger;
 use crate::{
     hooks::client,
     player::Player,
@@ -77,7 +78,10 @@ pub fn Topbar(theme: RwSignal<Theme>) -> impl IntoView {
     let email = move || session.identity.get().map(|i| i.user.email).unwrap_or_default();
     view! {
         <header class="topbar">
-            <button class="logo" title=i18n::tr("Home") on:click=move |_| { player.stop(); navigate("/", Default::default()) }>"CS.Core"</button>
+            <div class="topbar-left">
+                <Burger />
+                <button class="logo" title=i18n::tr("Home") on:click=move |_| { player.stop(); navigate("/", Default::default()) }>"CS.Core"</button>
+            </div>
             <div class="topbar-right">
                 <button
                     type="button"
@@ -99,7 +103,7 @@ pub fn Topbar(theme: RwSignal<Theme>) -> impl IntoView {
                 <ThemeButton theme=theme />
                 <span class="user-chip" title=email>
                     <span class="user-ava">{move || login().chars().next().map(|c| c.to_uppercase().to_string()).unwrap_or_default()}</span>
-                    {login}
+                    <span class="user-name">{login}</span>
                 </span>
                 <button type="button" class="btn-icon" title=i18n::tr("Sign out") aria-label=i18n::tr("Sign out of your account") on:click=move |_| { player.stop(); session.logout(client()) }>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

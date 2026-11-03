@@ -42,6 +42,7 @@ export default defineConfig({
       DEMO_USER_PASSWORD: "student",
       DEMO_ADMIN_EMAIL: "programmer@mail.com",
       DEMO_ADMIN_PASSWORD: "programmer",
+      RECORDS_DIR: path.join(root, "e2e", ".records"),
       RUST_LOG: "warn",
     },
   },

@@ -730,13 +730,44 @@ async fn slide_recordings_are_saved_by_administrators_only() {
     assert_eq!(upload(&app, &admin, "/api/records/13/1/0", "audio/wav", &wav).await.0, StatusCode::OK);
     let lessons = chapter(&app).await["lessons"].clone();
     assert_eq!(lessons[0]["dur"], 1.0);
-    assert_eq!(lessons[0]["audio"], "/api/records/13/1/0/audio");
+    assert_eq!(lessons[0]["audio"], "/api/records/13/1/0/audio?lang=ru");
     assert_eq!(lessons[1]["dur"], 0.0, "the other slides stay silent");
-    let req = Request::builder().uri("/api/records/13/1/0/audio").header(header::RANGE, "bytes=0-9").body(Body::empty()).unwrap();
+    let req = Request::builder().uri("/api/records/13/1/0/audio?lang=ru").header(header::RANGE, "bytes=0-9").body(Body::empty()).unwrap();
     let res = app.clone().oneshot(req).await.unwrap();
     assert_eq!(res.status(), StatusCode::PARTIAL_CONTENT);
     assert_eq!(res.headers()[header::CONTENT_TYPE], "audio/wav");
     assert_eq!(res.into_body().collect().await.unwrap().to_bytes().len(), 10);
     assert_eq!(call(&app, Method::GET, "/api/records/13/1/1/audio", None, None).await.0, StatusCode::NOT_FOUND);
+
+    // the English version has its own recordings: another folder, another address, the Russian ones are not touched
+    let chapter_en = |app: &Router| {
+        let (app, uri) = (app.clone(), format!("/api/chapters/{chapter_id}?lang=en"));
+        async move { call(&app, Method::GET, &uri, None, None).await.1 }
+    };
+    assert_eq!(chapter_en(&app).await["lessons"][0]["dur"], 0.0, "the Russian recording is not the English one");
+    let (st, saved) = upload(&app, &admin, "/api/records/13/1/1?lang=en", "audio/wav", &wav).await;
+    assert_eq!(st, StatusCode::OK, "{saved}");
+    assert_eq!(saved["audio"], "/api/records/13/1/1/audio?lang=en");
+    assert!(dir.join("en").join("13").join("1").join("1.wav").is_file());
+    let lessons = chapter_en(&app).await["lessons"].clone();
+    assert_eq!(lessons[1]["dur"], 1.0);
+    assert_eq!(lessons[1]["audio"], "/api/records/13/1/1/audio?lang=en");
+    assert_eq!(lessons[0]["dur"], 0.0);
+    assert_eq!(chapter(&app).await["lessons"][1]["dur"], 0.0, "the Russian slide 2 stays silent");
+    assert_eq!(call(&app, Method::GET, "/api/records/13/1/1/audio?lang=en", None, None).await.0, StatusCode::OK);
+    assert_eq!(call(&app, Method::GET, "/api/records/13/1/1/audio?lang=ru", None, None).await.0, StatusCode::NOT_FOUND);
+
+    // deleting: administrators only, only the request language, a second delete finds nothing
+    assert_eq!(call(&app, Method::DELETE, "/api/records/13/1/0", Some(&student), None).await.0, StatusCode::FORBIDDEN);
+    assert_eq!(call(&app, Method::DELETE, "/api/records/13/1/0", None, None).await.0, StatusCode::UNAUTHORIZED);
+    assert_eq!(call(&app, Method::DELETE, "/api/records/13/1/0?lang=en", Some(&admin), None).await.0, StatusCode::NOT_FOUND, "no English recording of slide 1");
+    assert!(dir.join("13").join("1").join("0.wav").is_file());
+    assert_eq!(call(&app, Method::DELETE, "/api/records/13/1/0", Some(&admin), None).await.0, StatusCode::NO_CONTENT);
+    assert!(!dir.join("13").join("1").join("0.wav").exists());
+    assert_eq!(chapter(&app).await["lessons"][0]["dur"], 0.0, "no recording - no sound again");
+    assert_eq!(call(&app, Method::DELETE, "/api/records/13/1/0", Some(&admin), None).await.0, StatusCode::NOT_FOUND);
+    assert_eq!(call(&app, Method::DELETE, "/api/records/13/1/1?lang=en", Some(&admin), None).await.0, StatusCode::NO_CONTENT);
+    assert_eq!(chapter_en(&app).await["lessons"][1]["dur"], 0.0);
+    assert!(!dir.join("en").join("13").join("1").join("1.wav").exists());
     let _ = std::fs::remove_dir_all(&dir);
 }

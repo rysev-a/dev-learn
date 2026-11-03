@@ -293,9 +293,14 @@ An authoring tool in the slide header (`components/slides.rs`, `RecordCtl`; the 
 "Record": the slide plays from the current position (the "Off-screen" text runs on the virtual clock, existing sound is muted: `Player::silent`), the microphone is recorded through `MediaRecorder` (`frontend/app/src/recorder.rs`, webm/opus, or mp4 in Safari);
 recording ends with the "Stop" button or when the player leaves this slide (the player stops, the slide stays). The recording is **converted in the browser to a 16-bit mono WAV** (`recorder::to_wav`: `decodeAudioData` + `encode_wav`; `MediaRecorder` files have no length and cannot be rewound exactly)
 and goes to `POST /api/records/{book}/{chapter}/{slide}` (`backend/src/records.rs`, the body is the file as is, the type is `Content-Type`, 403 for a non-administrator), stored in
-`RECORDS_DIR` (by default `media/records` in the repository root, not tracked by git) as `<book>/<chapter>/<slide 0-based>.<webm|m4a|ogg|wav>`;
-a slide has one file — a previous one with another extension is deleted. If the browser cannot decode the recording, the original container is uploaded and kept, but not played. Promises in `recorder.rs` are handled with callbacks: `wasm-bindgen-futures`
+`RECORDS_DIR` (by default `media/records` in the repository root, not tracked by git) as `<book>/<chapter>/<slide 0-based>.<webm|m4a|ogg|wav>` for the Russian text and `en/<book>/<chapter>/<slide>.<ext>` for the English one;
+a slide has one file per language — a previous one with another extension is deleted. If the browser cannot decode the recording, the original container is uploaded and kept, but not played. Promises in `recorder.rs` are handled with callbacks: `wasm-bindgen-futures`
 is not in the dependency set. The test is `slide_recordings_are_saved_by_administrators_only` (`backend/tests/api.rs`).
+
+**Recordings are per language.** The recording belongs to the language the book is served in (`records::recorded_lang`: the request language — `Accept-Language` or `?lang=` — if the book is translated into it, otherwise Russian), so the English interface records and plays the English
+voice-over, the Russian one the Russian, and a book that has no English translation shares the Russian recordings. The upload response carries the player address `audio` (`/api/records/{book}/{chapter}/{slide}/audio?lang=<code>`: the language is in the query because `<audio src>` sends no headers).
+**Deleting:** `DELETE /api/records/{book}/{chapter}/{slide}` (administrators only, the request language, 404 when there is nothing to delete); in the interface it is the trash button next to "Record", shown to administrators for a slide that has a recording
+in the current language (after a confirmation); the other language's recording stays. e2e: `e2e/tests/shell/record.spec.ts` (the e2e server writes to `e2e/.records`).
 
 **Playback:** `GET /api/chapters/{id}` gives each lesson `audio` and `dur`; `dur > 0` means a sound file exists (a `.wav` recording of the slide wins over the generated `audio_dir` wav, address `/api/records/{book}/{chapter}/{slide}/audio`, public like the lesson audio, served with `Range`
 so that rewinding works). `Player` (`frontend/app/src/player.rs`) plays a paragraph with a file through an `<audio>` element and the slides follow its time; a paragraph without a file is read silently by the 14 chars/s clock, **no sound — nothing is played**.
@@ -405,6 +410,11 @@ The left menu (`components/AsideMenu.tsx`) collapses with a button in the header
 instead of titles — a column of square icons in the shadcn/lucide style (24×24,
 stroke 1.8; `components/BookIcon.tsx`, the icon is chosen by the name from the book's `icon` field, to add a new icon —
 add an entry to `ICONS`). The state is stored in `localStorage` (`cs-core-aside-collapsed`).
+
+**On a narrow screen (≤ 760 px) the side menus are not drawn in the page** (`.sidebar` and the chapter column `.lessons-menu` are `display: none`): the burger in the header
+(`components/mobile_menu.rs`, `Burger`) opens a drawer (`Drawer`, `.mm`) with the books; the book of the current page is expanded and shows its sections and chapters, a tap on another book expands it
+(the course is loaded on demand), a tap on a chapter opens it and closes the drawer, as do the backdrop, Escape and any navigation. On a wide screen the burger and the drawer are hidden by style.
+The e2e is `e2e/tests/shell/mobile-menu.spec.ts` (viewport 390 px).
 
 ## Chapter page: three tabs
 

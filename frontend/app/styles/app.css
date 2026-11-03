@@ -655,12 +655,9 @@ h2 {
     flex-direction: column;
   }
 
+  /* the books and chapters are in the drawer under the burger (components/mobile_menu.rs) */
   .sidebar {
-    width: 100%;
-    max-height: 40vh;
-    position: static;
-    border-right: none;
-    border-bottom: 1px solid var(--border);
+    display: none;
   }
 
   .content {
@@ -714,11 +711,7 @@ h2 {
 
 @media (max-width: 760px) {
   .lessons-menu {
-    width: 100%;
-    position: static;
-    max-height: 40vh;
-    border-right: none;
-    border-bottom: 1px solid var(--s-border);
+    display: none;
   }
 }
 
@@ -1126,6 +1119,16 @@ h2 {
 /* "Record": a plain red dot, while recording the button is red and blinks */
 .slide-btn.slide-rec .rec-dot {
   fill: var(--s-red);
+}
+
+.slide-btn.slide-rec-del {
+  padding-left: 9px;
+  padding-right: 9px;
+}
+
+.slide-btn.slide-rec-del:hover {
+  color: var(--s-red);
+  border-color: var(--s-red);
 }
 
 .slide-btn.slide-rec.on {
@@ -3614,5 +3617,164 @@ g.fk .sx-key {
 @media (max-width: 640px) {
   .slide-vol-range {
     display: none;
+  }
+
+  /* the slider gets its own row under the counter, the time and the buttons */
+  .slide-panel-head {
+    flex-wrap: wrap;
+  }
+
+  .slide-panel-head .slide-panel-num,
+  .slide-panel-head .s-time-mono,
+  .slide-panel-head .slide-btn {
+    white-space: nowrap;
+  }
+
+  .slide-seek {
+    order: 10;
+    flex: 1 0 100%;
+  }
+}
+
+/* ---------- mobile menu: burger in the header and a drawer with books and chapters ---------- */
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.burger,
+.mm {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .burger {
+    display: inline-flex;
+  }
+
+  /* the header must fit the phone width: tighter gaps, the user chip shrinks to the avatar */
+  .topbar {
+    gap: 0.4rem;
+  }
+
+  .topbar-left,
+  .topbar-right {
+    gap: 0.25rem;
+  }
+
+  .logo {
+    font-size: 1.05rem;
+    padding: 0.25rem 0.35rem;
+  }
+
+  .lang-btn {
+    min-width: 30px;
+    padding: 0 5px;
+  }
+
+  .user-chip {
+    padding: 0 5px;
+  }
+
+  .user-name {
+    display: none;
+  }
+
+  .mm {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    pointer-events: none;
+  }
+
+  .mm.open {
+    pointer-events: auto;
+  }
+
+  .mm-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .mm.open .mm-backdrop {
+    opacity: 1;
+  }
+
+  .mm-panel {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: min(86vw, 340px);
+    display: flex;
+    flex-direction: column;
+    background: var(--s-bg);
+    border-right: 1px solid var(--s-border);
+    transform: translateX(-102%);
+    visibility: hidden;
+    transition:
+      transform 0.22s ease,
+      visibility 0s 0.22s;
+  }
+
+  .mm.open .mm-panel {
+    transform: none;
+    visibility: visible;
+    transition: transform 0.22s ease;
+  }
+
+  .mm-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 0.8rem 0.4rem 1.1rem;
+  }
+
+  .mm-body {
+    flex: 1;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 0.4rem 0.6rem 1.4rem;
+  }
+
+  .mm-book-head {
+    width: 100%;
+    align-items: center;
+    padding: 10px;
+  }
+
+  .mm-book-head .fst-chev {
+    margin-left: auto;
+  }
+
+  .mm-chapters {
+    margin: 2px 0 8px 10px;
+    padding-left: 6px;
+    border-left: 1px solid var(--s-border);
+  }
+
+  .mm-chapters .slide-fs-toc-item {
+    width: 100%;
+    padding: 9px 10px;
+    font-size: 13px;
+  }
+
+  .mm-note {
+    margin: 6px 10px;
+    color: var(--s-muted);
+    font-size: 13px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mm-backdrop,
+  .mm-panel {
+    transition: none;
   }
 }

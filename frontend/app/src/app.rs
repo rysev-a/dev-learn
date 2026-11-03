@@ -9,6 +9,7 @@ use leptos_router::{
 use crate::{
     components::{
         aside::{provide_aside, Aside},
+        mobile_menu::{provide_mobile_menu, Drawer},
         topbar::Topbar,
     },
     hooks::{use_load, Load},
@@ -33,6 +34,7 @@ pub fn App() -> impl IntoView {
     let session = provide_session();
     provide_progress(session);
     provide_aside();
+    provide_mobile_menu();
     provide_player();
     view! {
         <Router>
@@ -69,6 +71,7 @@ fn Shell(theme: RwSignal<Theme>) -> impl IntoView {
                 view! {
                     <div class="app">
                         <Topbar theme=theme />
+                        <Drawer books=list />
                         <div class="layout">
                             <Aside books=list />
                             <Routes fallback=|| view! { <main class="content"><p class="empty">{i18n::tr("Page not found")}</p></main> }>

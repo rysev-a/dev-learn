@@ -173,9 +173,10 @@ fn Slides(book: i64, chapter: Chapter, deck: Deck) -> impl IntoView {
                 recorder::to_wav(blob, move |file, secs| {
                     spawn_local(async move {
                         let msg = match client().upload_record(book, num, i, &file).await {
-                            Ok(path) => {
-                                if let Some(secs) = secs.filter(|s| *s > 0.0) {
-                                    let url = format!("/api/records/{book}/{num}/{i}/audio?v={}", js_sys::Date::now() as u64);
+                            Ok((path, audio)) => {
+                                if let Some(secs) = secs.filter(|s| *s > 0.0).filter(|_| !audio.is_empty()) {
+                                    // the address already has `?lang=`; `v` makes the browser fetch the new file
+                                    let url = format!("{audio}&v={}", js_sys::Date::now() as u64);
                                     let _ = parts.try_update(|p| {
                                         if let Some(x) = p.get_mut(i) {
                                             *x = ((secs * 10.0).round() / 10.0, Some(url));
@@ -217,7 +218,32 @@ fn Slides(book: i64, chapter: Chapter, deck: Deck) -> impl IntoView {
                 Err(e) => status.set(Some(e)),
             });
         });
-        is_admin.then_some(RecordCtl { on: Signal::derive(move || recording.get().is_some()), toggle, status: status.into() })
+        // the shown slide has an author's recording (not the generated voice-over) in the interface language
+        let has = Signal::derive(move || parts.with(|p| p.get(idx.get()).and_then(|x| x.1.as_deref()).is_some_and(|u| u.starts_with("/api/records/"))));
+        let delete = Callback::new(move |()| {
+            let i = idx.get_untracked();
+            let asked = web_sys::window().and_then(|w| w.confirm_with_message(i18n::tr("Delete the recording of this slide?")).ok()).unwrap_or(false);
+            if !asked {
+                return;
+            }
+            player.stop();
+            status.set(None);
+            spawn_local(async move {
+                let msg = match client().delete_record(book, num, i).await {
+                    Ok(()) => {
+                        let _ = parts.try_update(|p| {
+                            if let Some(x) = p.get_mut(i) {
+                                *x = (0.0, None);
+                            }
+                        });
+                        i18n::tr("Recording deleted").to_string()
+                    }
+                    Err(e) => e.message,
+                };
+                let _ = status.try_set(Some(msg));
+            });
+        });
+        is_admin.then_some(RecordCtl { on: Signal::derive(move || recording.get().is_some()), toggle, status: status.into(), has, delete })
     };
     let on_play = Callback::new(move |()| {
         if player.playing.get_untracked().is_some() {

@@ -120,14 +120,16 @@ async fn chapter(State(state): State<AppState>, lang: Lang, Path(chapter_id): Pa
     let mut sec = state.db.query(format!("SELECT VALUE title FROM {sections_t} WHERE sid = $s{cond}")).bind(("s", i(&ch, "sid"))).bind(("l", lang.code())).await?;
     let section: Vec<String> = sec.take(0)?;
     let num = i(&ch, "num");
+    // recordings are per language; a book without a translation into the request language is served (and recorded) in Russian
+    let recorded = if tr { lang } else { Lang::Ru };
     let lessons: Vec<Value> = lessons
         .iter()
         .map(|l| {
             let id = s(l, "lid");
             let ord = i(l, "ord");
             // the author's recording of the slide wins over the generated voice-over; no file - `dur` is 0 and the player stays silent
-            let (audio, path) = match records::wav_path(&state.cfg.records_dir, book, num, ord) {
-                Some(p) => (format!("/api/records/{book}/{num}/{ord}/audio"), Some(p)),
+            let (audio, path) = match records::wav_path(&state.cfg.records_dir, recorded, book, num, ord) {
+                Some(p) => (records::audio_url(recorded, book, num, ord), Some(p)),
                 None => (format!("/api/lesson/{id}/audio"), audio_path(&state, &id)),
             };
             let dur = path.map(|p| wav::duration(&p)).unwrap_or(0.0);
