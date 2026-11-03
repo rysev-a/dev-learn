@@ -38,9 +38,8 @@ pub struct RecordCtl {
 
 fn record_icon() -> impl IntoView {
     view! {
-        <svg width="14" height="11" viewBox="0 0 15 12" fill="currentColor">
-            <path d="M1 1.2v9.6L8.5 6z" />
-            <circle cx="12.2" cy="6" r="2.4" class="rec-dot" />
+        <svg width="11" height="11" viewBox="0 0 12 12" fill="currentColor">
+            <circle cx="6" cy="6" r="4.5" class="rec-dot" />
         </svg>
     }
 }
