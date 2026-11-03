@@ -1,0 +1,66 @@
+{
+ "book": 19,
+ "chapter": 9,
+ "tasks": [
+  {
+   "id": "la9-addr-brief",
+   "title": "Parsing ip -br addr",
+   "statement": "Write a function addr_summary(text): text is the output of ip -br addr (each line: an interface name, a state, and zero or more addresses in the form address/length, all separated by spaces; the name may have a suffix @parent, for example bond0.100@bond0 or veth1@if7 - drop it). Return a dictionary with three keys: ipv4 - a dictionary {name: list of IPv4 addresses in line order} only for interfaces with at least one IPv4 address (an address is IPv4 if it contains a dot); up_without_ipv4 - the names of interfaces whose state is exactly UP and that have no IPv4 address, in line order; dual_stack - the names of interfaces that have an IPv4 address and also an IPv6 address (it contains a colon) that is not link-local (does not start with fe80:, case-insensitive) and is not ::1/128, in line order. Skip empty lines.",
+   "hint": "line.split(): name, state, the rest are addresses; cut the name at '@'."
+  },
+  {
+   "id": "la9-default-gateways",
+   "title": "Gateways from ip -j route",
+   "statement": "Write a function default_gateways(text): text is the output of ip -j route (a JSON array of route objects with fields dst, gateway, dev, metric, flags and others). Return a list of tuples (gateway, dev, metric) for all usable default gateways, sorted by metric ascending (equal metrics keep their order of appearance). A route is a default gateway if its dst is \"default\" or \"0.0.0.0/0\" and its type (the field type, \"unicast\" by default) is \"unicast\". A missing metric field means metric 0; a missing gateway is an empty string. A route may have a list nexthops (elements with fields gateway, dev, flags): then each element gives a separate tuple with the metric of the route itself, otherwise the route itself gives the tuple. Skip a candidate (the route or a nexthops element) whose flags list contains \"linkdown\" or \"dead\".",
+   "hint": "json.loads(text); hops = r.get('nexthops', [r]); sorting by metric is stable."
+  },
+  {
+   "id": "la9-route-lookup",
+   "title": "Route choice: prefix and metric",
+   "statement": "Write a function route_get(routes_text, dst): an imitation of ip route get for the main table and the IPv4 address dst. Routes are text in the ip route format: one line per route; an optional first word is the type (blackhole, unreachable, prohibit, throw, local, broadcast; without it unicast), then the destination (a subnet a.b.c.d/n, a single address a.b.c.d means /32, the word default means 0.0.0.0/0), then key and value pairs via, dev, proto, scope, src, metric, and single flags (linkdown, onlink). A missing metric is 0. Ignore routes with the flag linkdown (as if net.ipv4.conf.all.ignore_routes_with_linkdown = 1). Among the remaining routes that contain dst, the one with the longest prefix is chosen; for equal prefixes, the one with the smaller metric (equal prefix with equal metric does not occur). If there is no matching route, or the chosen route has type throw, return \"none\". If the chosen route is blackhole, unreachable or prohibit, return the type name. Otherwise return a string: dst, then \" via <gateway>\" if via is present, then \" dev <interface>\", then \" src <address>\" if src is present.",
+   "hint": "ipaddress.ip_network(dst, strict=False) also accepts '10.0.0.5' (that is /32); the comparison key is (prefixlen, -metric)."
+  },
+  {
+   "id": "la9-policy-lookup",
+   "title": "Policy routing: ip rule",
+   "statement": "Write a function policy_lookup(rules_text, tables, packet): an imitation of a route lookup with rules. rules_text is the output of ip rule: lines like \"100:<TAB>from 10.0.1.10 lookup isp1\" (priority, colon, a tab, then selectors and an action separated by spaces). Selectors: from <all|prefix> (a single address means /32), to <all|prefix>, iif <name>, fwmark <value>[/<mask>] (numbers in decimal or 0x form; without a mask the mask is 0xffffffff; it matches when mark & mask == value & mask). The action is lookup <table> or one of the words blackhole, unreachable, prohibit. Lines may come in any order: scan the rules in increasing priority. tables is a dictionary {table name or number as a string: routes text}; a missing table is empty. Routes are text in the ip route format: one line per route; an optional first word is the type (blackhole, unreachable, prohibit, throw, local, broadcast; without it unicast), then the destination (a subnet a.b.c.d/n, a single address a.b.c.d means /32, the word default means 0.0.0.0/0), then key and value pairs via, dev, proto, scope, src, metric, and single flags (linkdown, onlink). A missing metric is 0. packet is a dictionary with the keys src, dst (IPv4), iif (an interface name, an empty string for a packet created on this host) and mark (a number). A rule with the selector iif lo matches only a packet with an empty iif; any other name matches only a packet with the same iif. For a matching rule: if the action is a word, return (priority, word, \"\"); otherwise look the route up in the table as in an ordinary lookup (longest prefix, then smaller metric; ignore linkdown here). If there is no route or it has type throw, go on to the next rule. If the route has type blackhole, unreachable or prohibit, return (priority, type, prefix), where prefix is a string like 10.0.0.0/8 (default is written 0.0.0.0/0, a single address a.b.c.d/32). Otherwise return (priority, \"table \" + the table name from the rule, prefix). If no rule gave a result, return (-1, \"none\", \"\").",
+   "hint": "Parse each line into a rule dictionary, sort by priority and walk through them; str(ipaddress.ip_network(...)) gives the prefix."
+  },
+  {
+   "id": "la9-parse-route-get",
+   "title": "Parsing ip route get",
+   "statement": "Write a function parse_route_get(text): text is the output of ip route get (one record, possibly on several lines: after the main line comes a line with the word cache, flags in angle brackets and, for a packet from an interface, the word iif with a name; spaces and newlines separate words alike) or a single error line like \"RTNETLINK answers: <message>\". For an error, return a dictionary with kind \"error\", the field error and the other fields at their defaults; the error field is \"no-route\" for the message Network is unreachable, \"blackhole\" for Invalid argument, \"unreachable\" for No route to host, \"prohibit\" for Permission denied, and the message itself for any other message. Otherwise the record begins with an optional word local or broadcast (the type), then comes the destination address; then the keys from, via, dev, src, iif and uid, each followed by one value (uid is an integer); skip other words. Return a dictionary with the keys kind, dst, from, via, dev, src, iif, uid, error. Defaults are an empty string, and -1 for uid. kind is \"local\" or \"broadcast\" by the first word, otherwise \"gateway\" if via is present, otherwise \"direct\".",
+   "hint": "text.split() and a walk over the words with an index; skip two words for the keys that take a value."
+  },
+  {
+   "id": "la9-neigh-report",
+   "title": "An ip neigh report",
+   "statement": "Write a function neigh_report(text): text is the output of ip neigh: lines like \"192.168.1.1 dev eth0 lladdr 52:54:00:12:35:02 REACHABLE\"; after lladdr and the address the word router may appear; entries without a reply have no address (\"192.168.1.77 dev eth0  FAILED\"); the last word of a line is the state. Skip empty lines. Return a dictionary: states - {state: number of entries}; unresolved - the addresses of entries in state FAILED or INCOMPLETE; routers - the addresses of entries with the word router; shared_mac - {mac: list of IPv4 addresses} for every MAC (lower-case it) that appears with two or more different IPv4 addresses (addresses with a colon do not go into this dictionary). Sort all lists of addresses: IPv4 first, then IPv6, and by numeric value of the address within each group.",
+   "hint": "ipaddress.ip_address(a) compares only within one version; the sort key is (ip.version, int(ip))."
+  },
+  {
+   "id": "la9-neigh-state",
+   "title": "The life of a neighbor entry",
+   "statement": "A model of a neighbor table entry (simplified: no randomness and fixed timers). States: REACHABLE, STALE, DELAY, PROBE, FAILED, PERMANENT. Timers: a REACHABLE entry becomes STALE 30 seconds after the last confirmation; a DELAY entry becomes PROBE 5 seconds after entering DELAY; a PROBE entry becomes FAILED 3 seconds after entering PROBE. Events: \"confirm\" (a reply came in) moves any entry except PERMANENT to REACHABLE; \"use\" (a packet was sent to the neighbor) moves STALE to DELAY and changes nothing in the other states. Write a function neigh_state(start, events, end): start is the initial state at time 0 (REACHABLE means the confirmation came at time 0, DELAY and PROBE mean the entry entered the state at time 0), events is a list of tuples (time, event) in increasing time in whole seconds, end is the time at which the state is wanted (not earlier than the last event). A timer that expires at time t fires before an event at time t. Return the state at time end.",
+   "hint": "Keep the state and the time it was entered; a function advance(t) applies the timers in a loop while they fire."
+  },
+  {
+   "id": "la9-exposed-sockets",
+   "title": "Sockets open to the outside (ss)",
+   "statement": "Write a function exposed_sockets(text): text is the output of ss -tulpn (with the header Netid State Recv-Q Send-Q Local Address:Port Peer Address:Port Process, or without it). A data line holds Netid, State, Recv-Q, Send-Q, the local address:port, the remote address:port and possibly a last part with processes like users:((\"sshd\",pid=801,fd=3),(\"sshd\",pid=2,fd=4)) (a quoted process name may contain spaces, so do not cut it at spaces). Only listening sockets matter: tcp in state LISTEN and udp in state UNCONN. Of those, keep the ones that accept from outside: drop sockets whose local address is a loopback (127.0.0.0/8, ::1 and an IPv4 inside an IPv6 notation such as ::ffff:127.0.0.1); the address may be in square brackets, carry a suffix %interface (drop it) or be an asterisk * (all interfaces, not loopback). Return a sorted list without repeats of tuples (protocol, port as a number, process names): the names are the unique names from users:(...) in alphabetical order joined by commas, an empty string if there is no process column.",
+   "hint": "local.rpartition(':') separates the port from an address with colons; process names come from re.findall(r'\\(\"([^\"]*)\",pid=', rest)."
+  },
+  {
+   "id": "la9-route-problems",
+   "title": "Validating a routing table",
+   "statement": "Write a function route_problems(text): a check of the main table. Routes are text in the ip route format: one line per route; an optional first word is the type (blackhole, unreachable, prohibit, throw, local, broadcast; without it unicast), then the destination (a subnet a.b.c.d/n, a single address a.b.c.d means /32, the word default means 0.0.0.0/0), then key and value pairs via, dev, proto, scope, src, metric, and single flags (linkdown, onlink). A missing metric is 0. Return an alphabetically sorted list of unique problem strings: \"no-default\" - none of the unicast routes has a /0 prefix; \"bad-gateway <destination> via <gateway>\" - a unicast route has via without the flag onlink and the gateway address lies in no subnet of a \"direct\" route on the same interface (a direct route is a unicast route without via and with a prefix length above 0; the destination is written as it appears in the line); \"duplicate <prefix> metric <number>\" - two or more routes of any type with the same prefix (written a.b.c.d/n, default as 0.0.0.0/0) and the same metric.",
+   "hint": "Parse the lines into dictionaries; for duplicate count (str(network), metric) pairs in a dictionary; put the problems in a set and sort."
+  },
+  {
+   "id": "la9-rp-filter",
+   "title": "An rp_filter decision",
+   "statement": "Write a function rp_check(all_val, iface_val, routes_text, iif, src): will a packet with source address src (IPv4) that arrived on interface iif be accepted. The reverse path mode is the larger of all_val and iface_val (the values of net.ipv4.conf.all.rp_filter and net.ipv4.conf.<iif>.rp_filter). Mode 0: accept. Otherwise find the route to src in the main table as in an ordinary lookup (longest prefix, then smaller metric; ignore flags). Routes are text in the ip route format: one line per route; an optional first word is the type (blackhole, unreachable, prohibit, throw, local, broadcast; without it unicast), then the destination (a subnet a.b.c.d/n, a single address a.b.c.d means /32, the word default means 0.0.0.0/0), then key and value pairs via, dev, proto, scope, src, metric, and single flags (linkdown, onlink). A missing metric is 0. If there is no route, or its type is not unicast, the packet is dropped. Mode 1 (strict): accept only if the dev of the found route equals iif. Mode 2 (loose): accept, since a route was found. Return \"accept\" or \"drop\".",
+   "hint": "mode = max(all_val, iface_val); then the same route search as in route_get, but by the source address."
+  }
+ ]
+}

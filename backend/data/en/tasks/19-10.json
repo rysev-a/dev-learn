@@ -1,0 +1,60 @@
+{
+ "book": 19,
+ "chapter": 10,
+ "tasks": [
+  {
+   "id": "la10-stp-states",
+   "title": "A bridge and STP port states",
+   "statement": "Model a bridge without VLANs. ports is a dictionary {port: state}, where the state is one of disabled, blocking, listening, learning, forwarding. frames is a list of [ingress_port, source_mac, destination_mac]. Write a function bridge_run(ports, frames): return a tuple (outs, fdb), where outs has one item per frame: the sorted list of ports the bridge sent the frame to (an empty list if the frame is dropped or not sent anywhere), and fdb is the final dictionary {mac: port}. Rules in order. A frame with an invalid source (the lowest bit of the first byte is 1, i.e. a group address, or 00:00:00:00:00:00) is dropped without learning. A frame on a disabled, blocking or listening port is dropped without learning. Otherwise the source is learned: fdb[source] = ingress port (an existing entry is overwritten). A frame on a learning port is dropped after learning. A frame on a forwarding port is forwarded: if the destination is a group address (lowest bit of the first byte is 1, including ff:ff:ff:ff:ff:ff) or is not in fdb, the frame is flooded to all forwarding ports except the ingress port; if the destination is in fdb, the frame goes only to its port, provided that it is not the ingress port and is in the forwarding state, otherwise it goes nowhere.",
+   "hint": "First byte: int(mac.split(':')[0], 16) & 1. Order matters: drop checks first, then learning, then the destination decision."
+  },
+  {
+   "id": "la10-fdb-ageing",
+   "title": "FDB entry ageing",
+   "statement": "Model the learning of a bridge over time. All ports are forwarding, there are no VLANs. frames is a list of [t, ingress_port, source_mac, destination_mac], t is in seconds and never decreases. Write a function fdb_decisions(ageing, frames): for each frame return a string: 'flood' (the frame is flooded to all other ports), 'port:<name>' (the frame went to one port) or 'filter' (the destination is found behind the ingress port, so the frame is not forwarded). Steps for a frame at time t: 1) if ageing > 0, the source is learned as an entry (ingress port, time t); an existing entry is overwritten and its time refreshed; with ageing = 0 nothing is learned (the bridge always floods); 2) the destination entry is looked up; an entry is expired if t - entry_time >= ageing, an expired entry is deleted and treated as missing; 3) if the destination is a group address (the lowest bit of the first byte is 1) or there is no entry - 'flood'; if the entry's port equals the ingress port - 'filter'; otherwise 'port:<entry port>'. Forwarding frames to a destination does not refresh the time of its entry.",
+   "hint": "Keep table[mac] = (port, time). First the source entry, then the age check of the destination entry."
+  },
+  {
+   "id": "la10-vlan-forward",
+   "title": "A VLAN-aware bridge: the forwarding decision",
+   "statement": "Model a bridge with vlan_filtering 1. ports is a dictionary {port: {\"pvid\": a number or None, \"vlans\": {\"<vid>\": \"untagged\" or \"tagged\"}}} (the keys of vlans are strings with the VLAN number; untagged means the tag is removed on egress). frames is a list of [ingress_port, tag, source_mac, destination_mac], where tag is a number or None (None and 0 both mean an untagged frame). Write a function vlan_forward(ports, frames): return (outs, fdb). For each frame: a source with the lowest bit of the first byte 1 or 00:00:00:00:00:00 - the frame is dropped (an empty list). An untagged frame belongs to the port's pvid, and with pvid None it is dropped; a tagged frame is accepted only if its number is in the port's vlans, otherwise it is dropped. Call the frame's VLAN number vid. The source is learned: key (vid, mac) -> ingress port. Destination: if it is a group address (lowest bit of the first byte 1) or (vid, mac) is not in the table - flood to all ports except the ingress port; otherwise the single port of the entry, if it is not the ingress port. A frame reaches a port only if vid is in that port's vlans; a result item is a pair (port, tag): the tag is vid if the VLAN on that port is tagged and None if it is untagged. The list for a frame is sorted by port name. fdb is the final sorted list of tuples (vid, mac, port).",
+   "hint": "The table is keyed by the pair (vid, mac). VLAN membership is checked separately for the ingress port and for each egress port."
+  },
+  {
+   "id": "la10-vlan-show-parse",
+   "title": "Parsing bridge vlan show",
+   "statement": "Write a function parse_vlan_show(text): text is the output of the bridge vlan show command. The first line is the header 'port vlan-id' (skip it, and empty lines too). A line starting with a non-space opens a new port: the first word is the port name, followed by a VLAN entry; a line starting with a space is one more entry of the same port. An entry is a VLAN number or a range such as 10-12 (both ends inclusive), optionally followed by the flags PVID and Egress Untagged (two words). Return a dictionary {port: {\"pvid\": the VLAN number with the PVID flag or None, \"untagged\": a sorted list of VLANs with the Egress Untagged flag, \"vlans\": a sorted list of all VLANs of the port}}. Ranges are expanded into separate numbers; if a range has PVID, pvid is its first number. A port with no entries in the output does not appear.",
+   "hint": "An indented line belongs to the last port. 'Untagged' in words is enough to detect Egress Untagged."
+  },
+  {
+   "id": "la10-fdb-learned",
+   "title": "Learned addresses from bridge fdb show",
+   "statement": "Write a function learned_macs(text, bridge): text is the output of bridge fdb show, with lines like '<mac> dev <port> [vlan N] [flags] [master <bridge>] [state]'. A dynamic entry of bridge bridge is a line whose last two words are 'master <bridge>' (no state word permanent, static or stale follows the bridge name) and which has no extern_learn among its words (such entries were not learned by the bridge itself and do not age). Skip lines without 'master' (for example 'self permanent'), entries of other bridges and entries with a state at the end. Return a dictionary {port: sorted list of tuples (mac, vlan)}, where vlan is 0 if the line has no vlan word; convert the mac to lower case. Ports without dynamic entries do not appear in the dictionary.",
+   "hint": "line.split() and the check w[-2:] == ['master', bridge]; the VLAN number is the word after 'vlan'."
+  },
+  {
+   "id": "la10-vlan-devices",
+   "title": "VLAN interfaces from ip -d link",
+   "statement": "Write a function vlan_devices(text): text is the output of ip -d link show for several interfaces. An interface record is a header (a line from the first character, like '3: eth0.100@eth0: <FLAGS> ... mtu 1500 ...') and indented detail lines. An interface is a VLAN if its details contain a line 'vlan protocol <protocol> id <number>' with an optional '<FLAGS,SEPARATED,BY,COMMAS>' after the number. Return a dictionary {name: (parent, id, protocol, mtu, flags)} only for VLAN interfaces. The name is the word after 'N: ' up to '@' or ':'; the parent is the part after '@' (an empty string if there is no '@'); mtu is the number after 'mtu' in the header; the protocol is as printed (802.1Q or 802.1ad); flags is a sorted list of the words inside <...> after the id, an empty list if there are no angle brackets there. Detail lines of other interfaces (bridge, veth, bond) must not leak into the result; the vlan line may contain other words after the flags (for example bridge_slave state ...), ignore them.",
+   "hint": "Remember the current header and parse only indented lines starting with 'vlan protocol'. Regex: r'\\s*vlan protocol (\\S+) id (\\d+)(?: <([^>]*)>)?'."
+  },
+  {
+   "id": "la10-ip-script",
+   "title": "An ip link script: the resulting topology",
+   "statement": "Simulate a sequence of ip link commands. commands is a list of strings. Supported: 'ip link add NAME type bridge', 'ip link add NAME type dummy', 'ip link add NAME type veth peer name PEER' (creates two devices), 'ip link add link PARENT name NAME type vlan id N', 'ip link set NAME up', 'ip link set NAME down', 'ip link set NAME master BRIDGE', 'ip link set NAME nomaster', 'ip link del NAME' (and 'delete'). A new device is down and has no master. A command fails (counts as an error, the state does not change) if: the name is already taken when creating, a veth's peer name equals the device name or is taken; the VLAN parent does not exist; the VLAN id is outside 1..4094; that parent already has a VLAN with this id; the device does not exist (for set and del); the master is a nonexistent device, not a bridge, or the device itself; NAME itself is a bridge (a bridge cannot be made a port); the command is not in the list above. Deleting a device: its ports lose the master, all its VLAN interfaces are deleted (recursively), and the veth peer is deleted. nomaster on a device with no master is not an error. master on a device already in another bridge moves it. Write a function apply_script(commands): return (lines, failed), where lines are the lines '<name> <type> <up|down> <master or ->' sorted by name (type: bridge, dummy, veth, vlan), and failed is the number of failed commands.",
+   "hint": "A dictionary of devices name -> {type, up, master, parent, peer}. Write deletion as a function: it clears masters, children and the peer by itself."
+  },
+  {
+   "id": "la10-vm-diagnose",
+   "title": "Why a VM has no network",
+   "statement": "Write a function diagnose(link_text, vlan_text, filtering, bridge, tap, vid): link_text is the output of bridge link show, vlan_text is the output of bridge vlan show (the format from the previous tasks), filtering is True if the bridge has vlan_filtering 1, bridge is the expected bridge, tap is the VM's port, vid is the VLAN the machine must work in (it sends and receives untagged frames). A bridge link line looks like '12: vnet0: <FLAGS> mtu 1500 master br0 state forwarding priority 32 cost 100' (for veth the name looks like veth0@veth1, take the part before '@'). Return the first cause found, checking in order: 'no-port' - the port tap is not in link_text; 'wrong-bridge:<bridge>' - the port belongs to another bridge; 'state:<state>' - the port state is not forwarding; then, only if filtering is True: 'no-vlan' - vid is not among the port's VLANs; 'pvid:<n>' - the port's PVID differs from vid (n is its number or the word none if there is no PVID); 'tagged' - vid has no Egress Untagged flag (the machine would receive tagged frames). If everything is fine, return 'ok'.",
+   "hint": "From link_text get (master, state) for tap with a regex like '\\smaster (\\S+) state (\\S+)'; from vlan_text collect VLANs, PVID and untagged only for the lines of the port tap."
+  },
+  {
+   "id": "la10-stp-root",
+   "title": "The STP root bridge and path cost",
+   "statement": "Write a function stp_root(bridges, links): bridges is a dictionary {name: bridge_id}, with the bridge_id in the format of ip -d link output: 4 hexadecimal digits of priority, a dot, 12 digits of MAC, for example '8000.525400aabbcc'. links is a list [a, b, cost]: a link between bridges a and b with a port cost (the same on both sides; there may be several links between a pair of bridges). The graph is connected. The root is the bridge with the lowest bridge_id (the priority as a number first, then the MAC on a tie). A bridge's root path cost is the smallest sum of link costs on a path to the root. For every non-root bridge the root port leads to the neighbour giving the smallest total (the neighbour's path cost to the root plus the link cost); on a tie the neighbour with the lowest bridge_id is chosen. Return a tuple (root, a dictionary {bridge: (root path cost, neighbour)}) for all bridges except the root.",
+   "hint": "Dijkstra from the root over the symmetric costs; the comparison key of a bridge is (int(priority, 16), mac)."
+  }
+ ]
+}

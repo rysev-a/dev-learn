@@ -1,0 +1,66 @@
+{
+ "book": 19,
+ "chapter": 11,
+ "tasks": [
+  {
+   "id": "la11-bond-status",
+   "title": "Diagnosing a bond from /proc",
+   "statement": "Write a function bond_status(text): text is the content of /proc/net/bonding/bondN. Return a dictionary with the keys: mode, the short mode name from the Bonding Mode line (load balancing (round-robin) → balance-rr; fault-tolerance (active-backup) → active-backup, a suffix (fail_over_mac ...) may follow the name and must be dropped; load balancing (xor) → balance-xor; fault-tolerance (broadcast) → broadcast; IEEE 802.3ad Dynamic link aggregation → 802.3ad; transmit load balancing → balance-tlb; adaptive load balancing → balance-alb; otherwise an empty string); active, the name from the Currently Active Slave line, or an empty string if the line is missing or says None; down, the list of slaves whose MII Status line inside their block (a block starts with a Slave Interface line) is not up, so down, going down and going back all count as unhealthy, in file order; flapping, the list of slaves with a Link Failure Count above zero, in file order. MII Status lines before the first slave block belong to the bond itself and are ignored. Empty text gives empty strings for mode and active and empty lists.",
+   "hint": "Walk the lines, remember the current slave name after Slave Interface, and split each line on the first colon."
+  },
+  {
+   "id": "la11-tx-slave",
+   "title": "Which slave carries a flow",
+   "statement": "Write a function tx_slave(policy, n, flow): following the kernel documentation (a model, ignoring the byte order of a real CPU) return the index of the slave interface from 0 to n-1. flow is a dictionary with the keys smac and dmac (strings like \"52:54:00:aa:bb:01\"), eth (a number, the protocol type, 2048 for IPv4, 2054 for ARP), sip and dip (IPv4 strings, or None if the packet is not IP), sport and dport (numbers or None) and frag (True for an IP fragment). Let mac5(m) be the last byte of a MAC address as a number and ip(a) an IPv4 address as a 32-bit number (a.b.c.d = a·2^24 + b·2^16 + c·2^8 + d). layer2: h = mac5(smac) xor mac5(dmac) xor eth. layer2+3: h starts as in layer2, then h = h xor ip(sip) xor ip(dip); layer3+4: h = (sport·65536 + dport) xor ip(sip) xor ip(dip), where the ports count as zero if frag is True or sport or dport is None. For layer2+3 and layer3+4 the next steps are h = h xor (h >> 16), h = h xor (h >> 8) (all in 32 bits), and for layer3+4 also h = h >> 1. The answer is h mod n. If sip is None (not IP), layer2+3 and layer3+4 are computed as layer2. The policy names are \"layer2\", \"layer2+3\", \"layer3+4\".",
+   "hint": "Write two helpers, mac5 and ip; the shift tail (16 and 8) is common to the two policies."
+  },
+  {
+   "id": "la11-detect-time",
+   "title": "When the bond declares the failure",
+   "statement": "The driver polls the carrier at the moments miimon, 2·miimon, 3·miimon, ... milliseconds. Write a function down_time(miimon, downdelay, fail_at): the carrier is lost at the moment fail_at (ms) and never comes back. The first poll whose time is not less than fail_at sees the loss (if the loss happens exactly at a poll time, that poll sees it). The slave becomes down downdelay after the detection, but the delay is counted in whole polling periods, that is, rounded down to a multiple of miimon. Return the moment in milliseconds when the slave becomes down. If miimon is 0 (polling off), return -1.",
+   "hint": "The first poll is ceil(fail_at / miimon) periods, at least one; add (downdelay // miimon) * miimon."
+  },
+  {
+   "id": "la11-active-history",
+   "title": "Who is active after each poll",
+   "statement": "Simulate active-backup with MII monitoring. Write a function active_history(miimon, updelay, downdelay, initial, carrier): carrier is a list of pairs [name, list of booleans] in enslavement order, and the i-th element of the list says whether that interface has a carrier at the i-th poll (all lists have the same length). Before the first poll all interfaces are up and initial is active. The delays in milliseconds are converted to polls by integer division by miimon: d = downdelay // miimon, u = updelay // miimon. At every poll each interface is processed by its state. up: carrier present, stays up; carrier absent, delay = d, then proceed as in going down within the same poll. going down: carrier present, back to up; otherwise if delay <= 0 then down, else delay decreases by 1 (and it stays going down). down: no carrier, stays down; carrier present, delay = u, then proceed as in going back within the same poll. going back: no carrier, down again; otherwise if delay <= 0 then up, else delay decreases by 1. After all interfaces are processed, the active one is selected: while the active interface is up or going down it stays; otherwise the first interface in order that is up becomes active, and if there is none, nobody is (an empty string). If there is no active interface at the start of a poll (an empty string), the first interface in order that is in going back during that poll becomes up at once without waiting for the delay (this rule applies to at most one interface per poll). A returned interface does not take the activity back. Return the list of active names after each poll.",
+   "hint": "Keep a (state, delay) pair per interface; update all interfaces first, then choose the active one."
+  },
+  {
+   "id": "la11-lacp-verdicts",
+   "title": "LACP port verdicts",
+   "statement": "Write a function lacp_verdicts(text): text is the content of /proc/net/bonding/bondN for mode 802.3ad. The active aggregator number is the indented Aggregator ID line in the Active Aggregator Info section (if a line saying has no active aggregator stands in place of the section, there is no active aggregator). The block of each enslaved interface (it starts with a Slave Interface line) has MII Status, an unindented Aggregator ID line (the value may be N/A), and in the sections details actor lacp pdu and details partner lacp pdu the lines system mac address and port state (a number). Return a list of pairs (name, verdict) in file order. The verdict is the first that applies: link-down (MII Status is not up); no-partner (the partner's system mac address is 00:00:00:00:00:00); other-aggregator (the slave's Aggregator ID differs from the active aggregator number, including N/A or no active aggregator); not-distributing (the actor's port state does not have both the collecting 16 and distributing 32 bits set); ok.",
+   "hint": "Track the section: before the first Slave Interface you are in the header; inside a block remember whether you are in actor or partner."
+  },
+  {
+   "id": "la11-mtu-payload",
+   "title": "Largest size for ping -M do",
+   "statement": "Write a function max_ping_payload(path_mtus, encaps): path_mtus is a non-empty list of the MTUs of the underlay links, encaps is the list of encapsulations the VM traffic goes through. Costs in MTU: vlan is 0 (the tag is added to the frame, not the packet), vxlan is 50 (IPv4 underlay: 20 + 8 + 8 + 14), vxlan6 is 70 (IPv6 underlay: 40 + 8 + 8 + 14), ipip is 20. The MTU inside the tunnel is the smallest link MTU minus the sum of the costs of all encapsulations. Return the largest value of the -s option for ping -M do -s N over IPv4 inside the tunnel: the MTU minus 20 bytes of the IPv4 header and 8 bytes of the ICMP header, but not below zero.",
+   "hint": "min(path_mtus) - sum(cost[e] for e in encaps) - 28, then max with zero."
+  },
+  {
+   "id": "la11-ping-df",
+   "title": "How a ping with DF ends",
+   "statement": "Write a function ping_df(size, local_mtu, hops): size is the value of -s in ping -M do -s N (IPv4), the packet length is size + 28, local_mtu is the MTU of the outgoing interface, hops is a list of triples (name, next_link_mtu, sends_icmp) in path order: the router forwards the packet onto a link with that MTU and, if the packet is larger and sends_icmp is True, answers with a Frag needed message carrying that MTU, otherwise silently drops the packet. The result is a tuple: (\"local\", local_mtu) if the packet is larger than local_mtu (ping reports message too long and sends nothing); (\"frag-needed\", name, mtu) for the first router on the path whose link is smaller than the packet and which sends ICMP; (\"timeout\", name) if the first such router is silent; otherwise (\"ok\",). Routers after the first obstacle are not considered.",
+   "hint": "Length = size + 28; compare with local_mtu first, then find the first link whose mtu is below the length."
+  },
+  {
+   "id": "la11-stats-delta",
+   "title": "Growing error counters",
+   "statement": "Write a function error_deltas(before, after, seconds): before and after are two outputs of ethtool -S (the first line is NIC statistics:, then lines like \"     name: number\") taken seconds seconds apart (an integer, at least 1). Only counters that exist in both outputs and whose name (lowercase) contains one of the substrings err, drop, discard, crc, missed, fifo, timeout are considered. For each one the increase after - before is taken; counters with an increase of 0 and counters that decreased (the card or the driver was reloaded) are skipped. Return a list of triples (name, increase, increase_per_second) using integer division by seconds, sorted by increase descending and by name on a tie.",
+   "hint": "Parse each output into a dictionary, skipping the first line; then intersect the keys and filter by substrings."
+  },
+  {
+   "id": "la11-offload-report",
+   "title": "Offload report from ethtool -k",
+   "statement": "Write a function offload_report(text): text is the output of ethtool -k. The first line (Features for ...:) is skipped; every other line (including nested ones, indented with a tab) looks like \"name: on\" or \"name: off\" with an optional suffix [fixed] (cannot be changed), [requested on] or [requested off] (a change was requested but is not applied). Return a dictionary with the keys: on, the names whose active value is on and that have no suffix; off, the names whose active value is off and that have no suffix; fixed, the names with the [fixed] suffix (any value); pending, a list of pairs (name, requested value), where the requested value is taken from the suffix, for lines with [requested on] or [requested off]. All lists keep the line order. Empty lines are skipped.",
+   "hint": "Split the bracketed suffix from the value: rsplit(' [', 1) or an endswith check."
+  },
+  {
+   "id": "la11-choose-mode",
+   "title": "Choosing a bond mode",
+   "statement": "Write a function choose_mode(need, switch, speeds, rx_balance) that chooses a bond mode from the requirements. need is one of \"failover\" (only fault tolerance is needed), \"throughput\" (total throughput of many flows is needed), \"single_flow\" (one TCP connection must be faster than one interface). switch describes the switch: \"lacp\" (the ports can be combined into a LACP channel), \"static\" (only a static port group without LACP), \"none\" (it cannot be configured). speeds is the list of the interfaces' speeds (empty or one value counts as uniform), rx_balance says whether incoming traffic must be balanced too. The rules, in order. single_flow: \"balance-rr\" if switch is static, otherwise \"none\" (a string). failover: \"802.3ad\" if switch is lacp and all speeds are equal, otherwise \"active-backup\". throughput with switch lacp: \"802.3ad\" if all speeds are equal, otherwise \"balance-tlb\" (it allows different speeds and needs no switch configuration); with static: \"balance-xor\"; with none: \"balance-alb\" if rx_balance is True, otherwise \"balance-tlb\".",
+   "hint": "Start with uniform = len(set(speeds)) <= 1, then handle need in order."
+  }
+ ]
+}
