@@ -53,12 +53,8 @@ test("the burger opens the window with the takes: the first is chosen, another c
   await expect(dialog(page)).toHaveCount(0);
   await page.locator(".slide-dot").nth(0).click();
 
-  // cancelling the confirmation keeps the take; deleting the chosen one makes the first voice the slide
+  // deleting needs no confirmation; deleting the chosen one makes the first voice the slide
   await burger(page).click();
-  page.once("dialog", (d) => void d.dismiss());
-  await rows(page).nth(1).locator(".rd-del").click();
-  await expect(rows(page)).toHaveCount(2);
-  page.once("dialog", (d) => void d.accept());
   await rows(page).nth(1).locator(".rd-del").click();
   await expect(rows(page)).toHaveCount(1);
   await expect(rows(page).nth(0)).toHaveClass(/on/);
@@ -66,7 +62,6 @@ test("the burger opens the window with the takes: the first is chosen, another c
   expect(await durations(request, ch.id, "en"), "the English take is untouched").toEqual([0, 1, 0]);
 
   // deleting the last take: the slide is silent again
-  page.once("dialog", (d) => void d.accept());
   await rows(page).nth(0).locator(".rd-del").click();
   await expect(page.locator(".rd-note")).toContainText("Записей пока нет");
   expect(await durations(request, ch.id, "ru")).toEqual([0, 0, 0]);
@@ -88,7 +83,6 @@ test("the English interface has its own takes", async ({ page, request }) => {
   await page.locator(".slide-dot").nth(1).click();
   await burger(page).click();
   await expect(rows(page)).toHaveCount(1);
-  page.once("dialog", (d) => void d.accept());
   await rows(page).nth(0).locator(".rd-del").click();
   await expect(page.locator(".rd-note")).toContainText("No recordings yet");
   expect(await durations(request, ch.id, "en")).toEqual([0, 0, 0]);

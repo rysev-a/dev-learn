@@ -1,5 +1,5 @@
 //! "Recordings of this slide" window (author tool, administrators only): the takes of the shown slide in the interface language, a choice of the
-//! one that voices the slide (by default the first) and a trash button for each.
+//! one that voices the slide (by default the first) and a trash button for each (it deletes at once, without a confirmation).
 
 use api::dto::{Take, Takes};
 use leptos::{prelude::*, task::spawn_local};
@@ -80,11 +80,8 @@ pub fn RecordsDialog(open: RwSignal<bool>, book: i64, chapter: i64, #[prop(into)
         act(Box::pin(async move { client().select_record(book, chapter, i, id).await }));
     };
     let remove = move |id: i64| {
-        let asked = web_sys::window().and_then(|w| w.confirm_with_message(i18n::tr("Delete this recording?")).ok()).unwrap_or(false);
-        if asked {
-            let i = slide.get_untracked();
-            act(Box::pin(async move { client().delete_record(book, chapter, i, id).await }));
-        }
+        let i = slide.get_untracked();
+        act(Box::pin(async move { client().delete_record(book, chapter, i, id).await }));
     };
 
     let rows = move || {

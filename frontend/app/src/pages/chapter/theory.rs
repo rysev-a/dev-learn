@@ -29,6 +29,9 @@ pub fn durations(ch: &Chapter) -> Vec<f64> {
     ch.lessons.iter().map(|l| if l.dur > 0.0 { l.dur } else { estimate_seconds(&l.text) }).collect()
 }
 
+/// Seconds into a slide after which "Back" returns to the start of the same slide, not to the previous one.
+const BACK_AT_START: f64 = 1.5;
+
 /// Sound of the paragraphs: the file address if it exists (the server gives `dur` > 0 only for a file), otherwise `None` - the paragraph is read silently.
 pub fn sounds(ch: &Chapter) -> Vec<Option<String>> {
     ch.lessons.iter().map(|l| (l.dur > 0.0).then(|| l.audio.clone())).collect()
@@ -104,6 +107,8 @@ fn Slides(book: i64, chapter: Chapter, deck: Deck) -> impl IntoView {
     let durs = Signal::derive(move || parts.with(|p| p.iter().map(|x| x.0).collect::<Vec<f64>>()));
     let total = Signal::derive(move || durs.with(|d| d.iter().sum::<f64>()));
     let num = chapter.num;
+    // how long every slide is shown without sound: the reading time of its text (14 characters per second); a recording takes exactly this long
+    let reading: Vec<f64> = chapter.lessons.iter().map(|l| estimate_seconds(&l.text)).collect();
     on_cleanup(move || player.stop());
 
     // the slide follows the paragraph being read, otherwise manual choice (it lives in the address: reload returns to the same slide)
@@ -126,6 +131,30 @@ fn Slides(book: i64, chapter: Chapter, deck: Deck) -> impl IntoView {
         set_manual.set(None);
         if was_paused {
             player.toggle_pause();
+        }
+    });
+    // jump to the start of slide `i`: a playing chapter goes on from there (a paused one stays paused), a stopped one just shows the slide
+    let go = move |i: usize| {
+        if player.playing.get_untracked().is_some() {
+            let was_paused = player.paused.get_untracked();
+            start_from(i);
+            if was_paused {
+                player.toggle_pause();
+            }
+        } else {
+            set_manual.set(Some(i));
+        }
+    };
+    // "Back": to the start of the slide; when we are already at its start (or the player is stopped) - to the previous slide
+    let on_back = Callback::new(move |()| {
+        let i = idx.get_untracked();
+        let inside = if player.playing.get_untracked().is_some() { player.t.get_untracked() } else { 0.0 };
+        go(if inside > BACK_AT_START || i == 0 { i } else { i - 1 });
+    });
+    let on_forward = Callback::new(move |()| {
+        let i = idx.get_untracked();
+        if i + 1 < count {
+            go(i + 1);
         }
     });
     // click on a slide: if the chapter is playing - start from this part, otherwise just show the slide
@@ -206,26 +235,31 @@ fn Slides(book: i64, chapter: Chapter, deck: Deck) -> impl IntoView {
                 }
             }
         });
-        let start_from = start_from.clone();
+        let timings = reading.clone();
         let toggle = Callback::new(move |()| {
             if recording.get_untracked().is_some() {
                 return finish();
             }
             let i = idx.get_untracked();
-            let start_from = start_from.clone();
+            let timings = timings.clone();
             status.set(Some(i18n::tr("Microphone…").to_string()));
             recorder::start(move |res| match res {
                 Ok(rec) => {
                     live.set_value(Some(rec));
                     status.set(None);
-                    player.silent.set(true); // the old sound must not leak into the microphone
-                    start_from(i);
+                    // the slide is shown for its reading time whatever sound it has now: an earlier take must not shorten the recording
+                    player.silent.set(true);
+                    player.start(timings.clone(), vec![None; timings.len()], i);
+                    set_manual.set(None);
                     recording.set(Some(i));
                 }
                 Err(e) => status.set(Some(e)),
             });
         });
-        is_admin.then_some(RecordCtl { on: Signal::derive(move || recording.get().is_some()), toggle, status: status.into(), menu })
+        // seconds left of the slide while it is being recorded
+        let timings = reading.clone();
+        let left = Signal::derive(move || recording.get().map(|i| (timings.get(i).copied().unwrap_or(0.0) - player.t.get()).max(0.0)));
+        is_admin.then_some(RecordCtl { on: Signal::derive(move || recording.get().is_some()), toggle, status: status.into(), menu, left })
     };
     let on_play = Callback::new(move |()| {
         if player.playing.get_untracked().is_some() {
@@ -268,7 +302,7 @@ fn Slides(book: i64, chapter: Chapter, deck: Deck) -> impl IntoView {
         <div>
             {popup}
             {is_admin.then(|| view! { <RecordsDialog open=menu book=book chapter=num slide=idx on_change=Callback::new(move |(i, t): (usize, Takes)| { player.stop(); set_sound(i, &t) }) /> })}
-            <SlidePanel idx=idx count=count titles=titles time=time playing=playing on_play=on_play on_pause=on_pause on_pick=on_pick stage=stage record=record on_seek=on_seek volume=player.volume on_volume=Callback::new(move |v| player.set_volume(v)) />
+            <SlidePanel idx=idx count=count titles=titles time=time playing=playing on_play=on_play on_pause=on_pause on_pick=on_pick stage=stage record=record on_seek=on_seek on_back=on_back on_forward=on_forward volume=player.volume on_volume=Callback::new(move |v| player.set_volume(v)) />
         </div>
     }
 }

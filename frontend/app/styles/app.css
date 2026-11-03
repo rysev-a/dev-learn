@@ -1121,7 +1121,8 @@ h2 {
   fill: var(--s-red);
 }
 
-.slide-btn.slide-rec-menu {
+.slide-btn.slide-rec-menu,
+.slide-btn.slide-skip {
   padding-left: 9px;
   padding-right: 9px;
 }
@@ -3927,4 +3928,64 @@ g.fk .sx-key {
 
 .rd-note.error {
   color: var(--s-red);
+}
+
+/* ---------- pop-up at the top right while a slide is recorded: the countdown to the end of the slide ---------- */
+
+.rec-timer {
+  position: fixed;
+  top: 72px;
+  right: 16px;
+  z-index: 1250;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: var(--s-panel);
+  border: 1px solid var(--s-red);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  color: var(--s-text);
+  pointer-events: none;
+}
+
+.rec-timer-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--s-red);
+  animation: slide-rec-blink 1.2s steps(2, start) infinite;
+}
+
+.rec-timer-label {
+  color: var(--s-muted);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.rec-timer-time {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 26px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+@media (max-width: 760px) {
+  .rec-timer {
+    top: 64px;
+    right: 8px;
+    padding: 8px 12px;
+  }
+
+  .rec-timer-time {
+    font-size: 22px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rec-timer-dot {
+    animation: none;
+  }
 }

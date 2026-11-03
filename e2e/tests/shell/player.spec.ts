@@ -7,7 +7,9 @@ import { assertCleanBut404, controlClock, DM1, loadChapter, mmss, progressOf, se
 
 const num = (page: Page) => page.locator(".slide-panel-num");
 const clockText = (page: Page) => page.locator(".s-time-mono");
-const play = (page: Page) => page.locator(".slide-panel-head .slide-btn");
+const play = (page: Page) => page.locator(".slide-panel-head .slide-btn:not(.slide-skip)");
+const back = (page: Page) => page.getByRole("button", { name: /^Назад:/ });
+const forward = (page: Page) => page.getByRole("button", { name: /^Вперёд:/ });
 const voice = (page: Page) => page.locator(".voice-pop-text");
 const dot = (page: Page, i: number) => page.locator(".slide-dot").nth(i);
 /**
@@ -370,4 +372,70 @@ test("volume: the slider and the mute button, the level is remembered", async ({
   await expect(range).toHaveValue("0.4");
   await page.reload();
   await expect(page.locator(".slide-vol-range")).toHaveValue("0.4");
+});
+
+test("Back and Forward on a stopped player turn the slides: back from the start goes to the previous slide", async ({ page, request }) => {
+  const { ch } = await setup(page, request);
+  await open(page, ch);
+  await expect(play(page)).toHaveText("Играть");
+  await forward(page).click();
+  await page.clock.runFor(100); // a manual choice goes into the URL via a router timer
+  await expect(num(page)).toHaveText(pageNum(ch, 2));
+  await forward(page).click();
+  await page.clock.runFor(100); // a manual choice goes into the URL via a router timer
+  await expect(num(page)).toHaveText(pageNum(ch, 3));
+  await expect(play(page)).toHaveText("Играть"); // nothing starts by itself
+  await back(page).click();
+  await page.clock.runFor(100);
+  await expect(num(page)).toHaveText(pageNum(ch, 2));
+  await back(page).click();
+  await page.clock.runFor(100);
+  await expect(num(page)).toHaveText(pageNum(ch, 1));
+  await back(page).click();
+  await page.clock.runFor(100); // the first slide has no previous one
+  await expect(num(page)).toHaveText(pageNum(ch, 1));
+  await pick(page, ch.lessons.length - 1);
+  await expect(forward(page)).toBeDisabled();
+});
+
+test("Back during reading: to the start of the slide, and when already at the start - to the previous slide", async ({ page, request }) => {
+  const { ch } = await setup(page, request);
+  await open(page, ch);
+  await pick(page, 2);
+  await play(page).click();
+  await page.clock.runFor(6000);
+  expect(await nowWord(page)).toBeGreaterThan(2);
+  await back(page).click(); // far from the start: the same slide from its start
+  await expect(num(page)).toHaveText(pageNum(ch, 3));
+  await expect(page.locator(".voice-pop-text .past")).toHaveCount(0);
+  await expect(play(page)).toHaveText("Пауза");
+  await page.clock.runFor(500);
+  await back(page).click(); // at the start: the previous slide
+  await expect(num(page)).toHaveText(pageNum(ch, 2));
+  await expect(play(page)).toHaveText("Пауза");
+  await expect(page.locator(".voice-pop-text .past")).toHaveCount(0);
+  await forward(page).click();
+  await expect(num(page)).toHaveText(pageNum(ch, 3));
+  await expect(play(page)).toHaveText("Пауза"); // reading goes on
+  await page.clock.runFor(1000);
+  await expect(page.locator(".voice-pop-text .now")).toHaveCount(1);
+});
+
+test("Forward on a paused player moves to the next slide and stays paused", async ({ page, request }) => {
+  const { ch } = await setup(page, request);
+  await open(page, ch);
+  await play(page).click();
+  await page.clock.runFor(2000);
+  await play(page).click(); // pause
+  await expect(play(page)).toHaveText("Играть");
+  await forward(page).click();
+  await expect(num(page)).toHaveText(pageNum(ch, 2));
+  await expect(play(page)).toHaveText("Играть");
+  await page.clock.runFor(5000);
+  await expect(num(page)).toHaveText(pageNum(ch, 2));
+  await expect(page.locator(".voice-pop-text .past")).toHaveCount(0); // a pause does not read
+  await play(page).click();
+  await expect(play(page)).toHaveText("Пауза");
+  await page.clock.runFor(2000);
+  await expect(page.locator(".voice-pop-text .now")).toHaveCount(1);
 });

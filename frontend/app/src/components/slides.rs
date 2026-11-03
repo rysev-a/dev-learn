@@ -36,12 +36,32 @@ pub struct RecordCtl {
     pub status: Signal<Option<String>>,
     /// the "Recordings of this slide" window (opened by the burger next to "Play")
     pub menu: RwSignal<bool>,
+    /// seconds left of the recording (the slide is shown for its reading time); `None` - not recording
+    pub left: Signal<Option<f64>>,
 }
 
 fn record_icon() -> impl IntoView {
     view! {
         <svg width="11" height="11" viewBox="0 0 12 12" fill="currentColor">
             <circle cx="6" cy="6" r="4.5" class="rec-dot" />
+        </svg>
+    }
+}
+
+fn back_icon() -> impl IntoView {
+    view! {
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+            <rect x="1.5" y="1.5" width="1.6" height="9" rx="0.5" />
+            <path d="M10.5 1.6v8.8L4.6 6z" />
+        </svg>
+    }
+}
+
+fn forward_icon() -> impl IntoView {
+    view! {
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+            <path d="M1.5 1.6v8.8L7.4 6z" />
+            <rect x="8.9" y="1.5" width="1.6" height="9" rx="0.5" />
         </svg>
     }
 }
@@ -104,6 +124,10 @@ pub fn SlidePanel(
     record: Option<RecordCtl>,
     /// rewind to a place in the chapter, seconds from its start
     on_seek: Callback<f64>,
+    /// "Back": to the start of the slide, or to the previous one when already at the start
+    on_back: Callback<()>,
+    /// "Forward": to the next slide
+    on_forward: Callback<()>,
     /// voice-over volume 0..1 and its change
     #[prop(into)]
     volume: Signal<f64>,
@@ -113,6 +137,26 @@ pub fn SlidePanel(
     let scrub = RwSignal::new(None::<f64>);
     // the volume before mute: the speaker button returns to it
     let loud = StoredValue::new(1.0_f64);
+    // pop-up at the top right while recording: the countdown to the end of the slide
+    let timer = move || {
+        record.map(|r| {
+            view! {
+                {move || {
+                    r.left.get().map(|left| {
+                        view! {
+                            <div class="rec-timer" role="timer">
+                                <span class="rec-timer-dot"></span>
+                                <span class="rec-timer-label">{i18n::tr("Recording")}</span>
+                                <span class="rec-timer-time">{fmt_time(left.ceil())}</span>
+                            </div>
+                        }
+                    })
+                }}
+            }
+        })
+    };
+    // the jumps are off while a slide is being recorded (they would break the recording)
+    let recording = move || record.is_some_and(|r| r.on.get());
     let controls = move || {
         view! {
             <span class="slide-panel-num">{move || format!("{:02} / {count:02}", idx.get() + 1)}</span>
@@ -143,9 +187,15 @@ pub fn SlidePanel(
                     {menu_icon()}
                 </button>
             })}
+            <button class="slide-btn slide-skip" disabled=recording on:click=move |_| on_back.run(()) title=i18n::tr("Back: to the start of the slide, or to the previous one") aria-label=i18n::tr("Back: to the start of the slide, or to the previous one")>
+                {back_icon()}
+            </button>
             <button class="slide-btn" on:click=move |_| if playing.get() { on_pause.run(()) } else { on_play.run(()) } title=move || if playing.get() { i18n::tr("Pause") } else { i18n::tr("Play") }>
                 {move || if playing.get() { pause_icon().into_any() } else { play_icon().into_any() }}
                 <span>{move || if playing.get() { i18n::tr("Pause") } else { i18n::tr("Play") }}</span>
+            </button>
+            <button class="slide-btn slide-skip" disabled=move || { recording() || idx.get() + 1 >= count } on:click=move |_| on_forward.run(()) title=i18n::tr("Forward: to the next slide") aria-label=i18n::tr("Forward: to the next slide")>
+                {forward_icon()}
             </button>
             <span class="slide-vol">
                 <button
@@ -190,6 +240,7 @@ pub fn SlidePanel(
             }
         });
         return view! {
+            {timer()}
             <FsHead>{controls()}</FsHead>
             <FsItems>
                 {titles
@@ -210,6 +261,7 @@ pub fn SlidePanel(
         .collect_view();
     view! {
         <aside class="slide-panel">
+            {timer()}
             <div class="slide-panel-head">{controls()}</div>
             <div class="slide-stage">{move || stage.run(idx.get())}</div>
             <div class="slide-dots">{dots}</div>
