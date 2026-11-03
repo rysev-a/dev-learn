@@ -22,7 +22,9 @@ mod icons;
 mod lab;
 mod logic;
 mod panels;
+mod picture;
 
+pub use picture::task_body;
 use board::Board;
 use lab::Lab;
 use panels::{GoalsPanel, Inspector, PathPanel, Story, TreePanel};

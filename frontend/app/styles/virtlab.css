@@ -2232,7 +2232,7 @@
   font: inherit;
 }
 
-/* boards beside the results of the Python tasks of the oVirt book (read-only pictures) */
+/* boards beside the results of the Python tasks of the oVirt, LVM and network boards (read-only pictures) */
 .vl-pic {
   margin-top: 14px;
   padding: 12px;
@@ -2269,6 +2269,8 @@
   border: 1px solid var(--s-border);
   border-radius: 8px;
 }
-.vl-pic-svg .vl-topo-node {
+.vl-pic-svg .vl-topo-node,
+.vl-pic-svg .vl-lvm-node,
+.vl-pic-svg .vl-net-node {
   cursor: default;
 }

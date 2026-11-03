@@ -180,12 +180,25 @@ pub struct Task {
 }
 
 /// Boards of a code task: the boards of its tests (the answer is plain data) and the scenarios its repaired boards are judged by (the code returns a board).
-#[derive(Clone, Debug, Default, PartialEq, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize)]
 pub struct TaskBoards {
+    /// which board model the boards belong to: `ovirt_topo` (default), `lvm_board` or `net_board`
+    #[serde(default = "default_board_kind")]
+    pub kind: String,
     #[serde(default)]
     pub boards: Vec<Value>,
     #[serde(default)]
     pub checks: Vec<BoardCheck>,
+}
+
+fn default_board_kind() -> String {
+    "ovirt_topo".into()
+}
+
+impl Default for TaskBoards {
+    fn default() -> Self {
+        TaskBoards { kind: default_board_kind(), boards: Vec::new(), checks: Vec::new() }
+    }
 }
 
 /// One scenario of a pack, the way the server names it.

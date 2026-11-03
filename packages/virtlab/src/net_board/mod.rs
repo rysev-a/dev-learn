@@ -35,7 +35,7 @@ pub use goals::{GoalResult, NetGoal, Scenario};
 pub use judge::{find as scenario_of, judge, Judgement};
 pub use layout::{auto_layout, column, next_pos, NODE_H, NODE_W};
 pub(crate) use params::raw_specs;
-pub use packs::{pack, pack_chapter, pack_ids, PackDef, PACKS};
+pub use packs::{pack, pack_chapter, pack_ids, PackDef, FIX_PACK, PACKS};
 pub use params::{net_label, param_error, param_specs, param_to_text, ParamOption, ParamSpec, ParamTy};
 pub use rules::{add_error, connect_error, problems, prune, rel, Problem, Rel};
 pub use trace::{trace, Hop, Op, Trace};

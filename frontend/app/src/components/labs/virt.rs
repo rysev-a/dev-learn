@@ -22,8 +22,9 @@ mod ovirt_dc;
 mod ovirt_fence;
 mod ovirt_sched;
 mod ovirt_topo;
-pub use ovirt_topo::TaskBoards;
 mod qcow2;
+mod task_boards;
+pub use task_boards::TaskBoards;
 mod virtq;
 
 use common::Goals;

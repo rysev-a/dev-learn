@@ -24,7 +24,7 @@ mod logic;
 mod panels;
 mod picture;
 
-pub use picture::TaskBoards;
+pub use picture::task_body;
 use board::Board;
 use lab::Lab;
 use panels::{GoalsPanel, Inspector, PathPanel, Story, TreePanel};

@@ -5,10 +5,14 @@ mod bond;
 mod bridge;
 pub(crate) mod builder;
 mod nat;
+pub(crate) mod wiring;
 
 use std::collections::BTreeMap;
 
 use super::{Scenario, Topology};
+
+/// The task-only pack of the level-3 Python tasks (not an exercise, not in [`PACKS`]).
+pub const FIX_PACK: &str = wiring::ID;
 
 /// Scenarios of a pack and the reference boards by scenario identifier.
 pub type Built = (Vec<Scenario>, BTreeMap<String, Topology>);
@@ -31,6 +35,9 @@ pub const PACKS: &[PackDef] = &[
 
 /// The scenarios of a pack by the exercise identifier and the reference boards (never sent to the client); `None` for an unknown or empty pack.
 pub fn pack(id: &str) -> Option<Built> {
+    if id == wiring::ID {
+        return Some(wiring::build());
+    }
     let def = PACKS.iter().find(|p| p.id == id)?;
     let built = (def.build)();
     (!built.0.is_empty()).then_some(built)

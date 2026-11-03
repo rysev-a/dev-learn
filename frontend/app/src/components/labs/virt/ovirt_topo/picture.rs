@@ -90,84 +90,46 @@ fn goals_view(sc: &Scenario, board: &Topology) -> impl IntoView {
     }
 }
 
-/// The boards of a task beside its results. Renders nothing for a task without boards.
-#[component]
-pub fn TaskBoards(boards: api::dto::TaskBoards, res: Signal<Option<api::dto::RunResult>>) -> impl IntoView {
-    let fix = !boards.checks.is_empty();
-    let count = if fix { boards.checks.len() } else { boards.boards.len() };
-    let shown = RwSignal::new(0usize);
-    let after = RwSignal::new(true);
-
-    // level 2: after a run the first failing test is shown
-    Effect::new(move |_| {
-        if let Some(r) = res.get() {
-            if let Some(i) = r.results.iter().position(|t| !t.ok) {
-                shown.set(i.min(count.saturating_sub(1)));
-            }
-        }
-    });
-
-    let tabs = (0..count)
-        .map(|i| {
-            let mark = move || match res.get().and_then(|r| r.results.get(i).map(|t| t.ok)) {
-                Some(true) => "✓".to_string(),
-                Some(false) => "✗".to_string(),
-                None => (i + 1).to_string(),
-            };
+/// The body of the boards panel for the test (level 2) or the scenario (level 3) number `i` of an oVirt task; the tabs around it are `TaskBoards`.
+pub fn task_body(boards: &api::dto::TaskBoards, i: usize, after: RwSignal<bool>, res: Signal<Option<api::dto::RunResult>>) -> Option<AnyView> {
+    if !boards.checks.is_empty() {
+        let check = boards.checks.get(i)?;
+        let sc = scenario_of(&check.pack, &check.scenario)?;
+        let start = sc.start.clone();
+        let returned = res.get().and_then(|r| r.results.get(i).and_then(|t| t.board.as_ref().and_then(parse)));
+        let (board, fresh) = match (&returned, after.get()) {
+            (Some(b), true) => (b.clone(), b.edges.iter().filter(|e| !start.edges.contains(e)).cloned().collect::<Vec<_>>()),
+            _ => (start.clone(), Vec::new()),
+        };
+        let toggle = returned.is_some().then(|| {
             view! {
-                <button type="button" class="vl-tab" class:on=move || shown.get() == i class:ok=move || res.get().and_then(|r| r.results.get(i).map(|t| t.ok)) == Some(true) on:click=move |_| shown.set(i)>
-                    <span class="vl-tab-mark">{mark}</span>
-                    {if fix { i18n::tr("Board").to_string() } else { i18n::tr("Test").to_string() }}
-                </button>
+                <div class="vl-pic-toggle">
+                    <button type="button" class="vl-tab" class:on=move || !after.get() on:click=move |_| after.set(false)>{i18n::tr("Before")}</button>
+                    <button type="button" class="vl-tab" class:on=move || after.get() on:click=move |_| after.set(true)>{i18n::tr("After your fix")}</button>
+                </div>
             }
-        })
-        .collect_view();
-
-    let boards_for_view = boards.clone();
-    let body = move || {
-        let i = shown.get();
-        if fix {
-            let check = boards_for_view.checks.get(i)?;
-            let sc = scenario_of(&check.pack, &check.scenario)?;
-            let start = sc.start.clone();
-            let returned = res.get().and_then(|r| r.results.get(i).and_then(|t| t.board.as_ref().and_then(parse)));
-            let (board, fresh) = match (&returned, after.get()) {
-                (Some(b), true) => (b.clone(), b.edges.iter().filter(|e| !start.edges.contains(e)).cloned().collect::<Vec<_>>()),
-                _ => (start.clone(), Vec::new()),
-            };
-            let toggle = returned.is_some().then(|| {
-                view! {
-                    <div class="vl-pic-toggle">
-                        <button type="button" class="vl-tab" class:on=move || !after.get() on:click=move |_| after.set(false)>{i18n::tr("Before")}</button>
-                        <button type="button" class="vl-tab" class:on=move || after.get() on:click=move |_| after.set(true)>{i18n::tr("After your fix")}</button>
-                    </div>
-                }
-            });
-            Some(view! {
+        });
+        Some(
+            view! {
                 <div class="vl-pic-body">
                     <p class="vl-goal">{i18n::tr_dyn(&sc.story)}</p>
                     {toggle}
                     <BoardPicture board=board.clone() fresh=fresh />
                     {goals_view(&sc, &board)}
                 </div>
-            }.into_any())
-        } else {
-            let board = boards_for_view.boards.get(i).and_then(parse)?;
-            Some(view! {
+            }
+            .into_any(),
+        )
+    } else {
+        let board = boards.boards.get(i).and_then(parse)?;
+        Some(
+            view! {
                 <div class="vl-pic-body">
                     <p class="vl-pic-note">{i18n::tr("The board of this test, with the statuses the model derives from its links.")}</p>
                     <BoardPicture board=board />
                 </div>
-            }.into_any())
-        }
-    };
-    (count > 0).then(|| {
-        view! {
-            <div class="vl-pic">
-                <span class="s-label">{if fix { i18n::tr("Boards") } else { i18n::tr("Board of the test") }}</span>
-                <div class="vl-tabs">{tabs}</div>
-                {body}
-            </div>
-        }
-    })
+            }
+            .into_any(),
+        )
+    }
 }
