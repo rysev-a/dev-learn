@@ -1,7 +1,7 @@
 import type { APIRequestContext, Page } from "@playwright/test";
 import { expect, loginViaApi, test } from "../../support/fixtures";
 import { ADMIN, clearRecords, record } from "../../support/records";
-import { assertCleanBut404, DM1, loadChapter } from "../../support/shell";
+import { assertCleanBut404, controlClock, DM1, loadChapter } from "../../support/shell";
 
 /* Slide recordings (author tool, administrators only): every Record is a new take, a set of takes per language, the burger next to "Play" opens
    a window where the take that voices the slide is chosen and takes are deleted. Takes are mostly put on the server through the API;
@@ -67,6 +67,24 @@ test("the burger opens the window with the takes: the first is chosen, another c
   expect(await durations(request, ch.id, "ru")).toEqual([0, 0, 0]);
   await clearRecords(request, token, ch.num);
   assertCleanBut404(guard);
+});
+
+test("after the last take is deleted the slide is shown for its reading time, not skipped", async ({ page, request }) => {
+  const token = await loginViaApi(page, request, ADMIN);
+  const ch = await loadChapter(request, DM1);
+  await clearRecords(request, token, ch.num);
+  await record(request, token, ch.num, 0, "ru", 1);
+  await controlClock(page);
+  await page.goto(`/book/12/chapter/${ch.id}`);
+  await burger(page).click();
+  await rows(page).nth(0).locator(".rd-del").click();
+  await expect(page.locator(".rd-note")).toContainText("Записей пока нет");
+  await page.keyboard.press("Escape");
+  await page.locator(".slide-panel-head button", { hasText: "Играть" }).click();
+  await page.clock.runFor(6000);
+  await expect(page.locator(".slide-panel-num")).toHaveText(`01 / ${String(ch.lessons.length).padStart(2, "0")}`); // a zero-length slide would be gone at once
+  await expect(page.locator(".voice-pop-text .now")).toHaveCount(1);
+  await clearRecords(request, token, ch.num);
 });
 
 test("the English interface has its own takes", async ({ page, request }) => {

@@ -145,36 +145,36 @@ fn shapes_intro() -> SceneSpec {
 // --- 2. Set and list ---------------------------------------------------------------------------
 
 const SET_SLOTS: [(f64, f64); 3] = [(270.0, 62.0), (270.0, 88.0), (270.0, 114.0)];
-const GUESTS: [&str; 3] = ["Аня", "Борис", "Вера"];
-/// Guest list: name and position in the list before and after the reorder (on reorder the plates move rather than get recreated).
-const LIST: [(&str, [usize; 2]); 4] = [("Аня", [0, 1]), ("Борис", [1, 2]), ("Аня", [2, 3]), ("Вера", [3, 0])];
+const SONGS: [&str; 3] = ["Волна", "Заря", "Ночь"];
+/// Playlist: song and position in the list before and after the reorder (on reorder the plates move rather than get recreated).
+const LIST: [(&str, [usize; 2]); 4] = [("Волна", [0, 1]), ("Заря", [1, 2]), ("Волна", [2, 3]), ("Ночь", [3, 0])];
 
-/// Guest set (ring) and list: the second "Anya" merges, the list order changes, but the set is the same.
+/// Set of songs (ring) and playlist: the second "Волна" merges, the playlist order changes, but the set is the same.
 fn list_vs_set() -> SceneSpec {
     let shift = |s: usize| [0, 0, 1, 1, 2][s];
     let frames = (0..5)
         .map(|step| {
             let mut f = Frame::new();
-            for (i, name) in GUESTS.iter().enumerate() {
+            for (i, name) in SONGS.iter().enumerate() {
                 let (x, y) = SET_SLOTS[(i + shift(step)) % 3];
                 f = f.with(pill(&format!("g{i}"), x, y, 56.0, name, G).opacity(op(step >= 1)));
             }
-            // repeated "Anya": knocks from outside and merges with the real one
+            // repeated "Волна": knocks from outside and merges with the real one
             let (dx, dy) = if step >= 2 { SET_SLOTS[shift(step) % 3] } else { (180.0, 40.0) };
-            f = f.with(pill("dup", dx, dy, 56.0, "Аня", Y).opacity(if step == 1 { 0.9 } else { 0.0 }));
-            f = f.with(cap("dup-ask", 180.0, 22.0, "ещё одна «Аня»?").tone(Y).opacity(op(step == 1)));
+            f = f.with(pill("dup", dx, dy, 56.0, "Волна", Y).opacity(if step == 1 { 0.9 } else { 0.0 }));
+            f = f.with(cap("dup-ask", 180.0, 22.0, "ещё одна «Волна»?").tone(Y).opacity(op(step == 1)));
             let outsider = (1..=2).contains(&step);
-            f = f.with(pill("outsider", 336.0, 22.0, 40.0, "Глеб", M).opacity(if outsider { 0.55 } else { 0.0 }));
-            f = f.with(cap("outsider-no", 336.0, 42.0, "∉ гостей").opacity(op(outsider)));
+            f = f.with(pill("outsider", 336.0, 22.0, 40.0, "Дождь", M).opacity(if outsider { 0.55 } else { 0.0 }));
+            f = f.with(cap("outsider-no", 336.0, 42.0, "∉ песен").opacity(op(outsider)));
             // list
             f = f.with(hull("list-box", (14.0, 26.0, 118.0, 116.0), 10.0, Y, false).opacity(op(step >= 3)));
-            f = f.with(cap("list-title", 73.0, 164.0, "список гостей").opacity(op(step >= 3)));
+            f = f.with(cap("list-title", 73.0, 164.0, "плейлист").opacity(op(step >= 3)));
             for k in 0..4 {
                 f = f.with(mono(&format!("num{k}"), 28.0, 55.7 + k as f64 * 25.0, &(k + 1).to_string()).opacity(op(step >= 3)));
             }
             for (i, &(name, pos)) in LIST.iter().enumerate() {
                 let k = pos[usize::from(step >= 4)];
-                let tone = if name == "Аня" { Y } else { M };
+                let tone = if name == "Волна" { Y } else { M };
                 f = f.with(pill(&format!("l{i}"), 85.0, 52.0 + k as f64 * 25.0, 56.0, name, tone).opacity(op(step >= 3)));
             }
             f
@@ -184,14 +184,14 @@ fn list_vs_set() -> SceneSpec {
         &["Набор", "Состав", "Без повторов", "Список", "Порядок"],
         &[
             "Множество — набор элементов",
-            "Известно ровно две вещи: кто внутри и что больше никого нет",
-            "Ни порядка, ни повторов: вторая «Аня» в множество не добавляется",
-            "В списке один человек может встретиться дважды, в множестве — нет",
-            "Порядок в списке изменился — множество гостей то же самое",
+            "Известно ровно две вещи: какие песни в нём есть, а каких нет",
+            "Ни порядка, ни повторов: вторая «Волна» в множество не добавляется",
+            "В плейлисте одна песня может встретиться дважды, в множестве — нет",
+            "Порядок в плейлисте изменился — множество песен то же самое",
         ],
         frames,
     )
-    .base(Frame::new().with(circle("set-ring", 270.0, 88.0, 62.0).tone(G)).with(cap("set-title", 270.0, 164.0, "множество гостей")))
+    .base(Frame::new().with(circle("set-ring", 270.0, 88.0, 62.0).tone(G)).with(cap("set-title", 270.0, 164.0, "множество песен")))
     .cues(&[1.8, 8.5, 13.4, 20.4])
 }
 
