@@ -9,10 +9,10 @@ use serde::{Deserialize, Serialize};
 
 use crate::error::SpecError;
 use crate::goal::Goal;
-use crate::{ept, hv, migration, numa, ovirt_dc, ovirt_fence, ovirt_sched, qcow2, virtq};
+use crate::{ept, hv, migration, numa, ovirt_dc, ovirt_fence, ovirt_sched, ovirt_topo, qcow2, virtq};
 
-/// Exercise identifiers of book 17 (also `Task::id`).
-pub const LAB_IDS: [&str; 9] = [
+/// Exercise identifiers of book 17 that are not board packs (also `Task::id`).
+pub const BASE_LAB_IDS: [&str; 9] = [
     "virt-sim-hv",
     "virt-sim-ept",
     "virt-sim-virtqueue",
@@ -23,6 +23,13 @@ pub const LAB_IDS: [&str; 9] = [
     "virt-sim-ovirt-fence",
     "virt-sim-ovirt-sched",
 ];
+
+/// Identifiers of all exercises of book 17: the simulators and the board packs that have scenarios.
+pub fn lab_ids() -> Vec<&'static str> {
+    let mut ids = BASE_LAB_IDS.to_vec();
+    ids.extend(ovirt_topo::pack_ids());
+    ids
+}
 
 /// Cluster of the qcow2 base layer (stored as a list, not a map: numeric keys as JSON strings are unwanted).
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -92,6 +99,14 @@ pub enum Spec {
         /// Scenarios.
         scenarios: Vec<ovirt_sched::Scenario>,
     },
+    /// The oVirt topology board (chapters 17, 20, 21, 22–25): the goal is to assemble a working environment in each scenario.
+    OvirtTopo {
+        /// Scenarios.
+        scenarios: Vec<ovirt_topo::Scenario>,
+        /// Reference boards by scenario identifier (the server strips this field before sending the exercise to the client).
+        #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+        solution: BTreeMap<String, ovirt_topo::Topology>,
+    },
 }
 
 /// qcow2 base layer as a list → map.
@@ -125,6 +140,7 @@ impl Spec {
             Spec::OvirtDc { .. } => "ovirt_dc",
             Spec::OvirtFence { .. } => "ovirt_fence",
             Spec::OvirtSched { .. } => "ovirt_sched",
+            Spec::OvirtTopo { .. } => "ovirt_topo",
         }
     }
 
@@ -140,6 +156,7 @@ impl Spec {
             Spec::OvirtDc { goals } => goals.iter().map(ovirt_dc::DcGoal::as_goal).collect(),
             Spec::OvirtFence { scenarios } => scenarios.iter().map(ovirt_fence::Scenario::as_goal).collect(),
             Spec::OvirtSched { scenarios } => scenarios.iter().map(ovirt_sched::Scenario::as_goal).collect(),
+            Spec::OvirtTopo { scenarios, .. } => scenarios.iter().map(ovirt_topo::Scenario::as_goal).collect(),
         }
     }
 
@@ -209,6 +226,16 @@ impl Spec {
                     unique(i18n::tr("machines"), s.vms.iter().map(|v| v.name.clone()))?;
                 }
             }
+            Spec::OvirtTopo { scenarios, .. } => {
+                for s in scenarios {
+                    if s.palette.is_empty() || s.goals.is_empty() {
+                        return Err(SpecError::new(i18n::trf!("scenario {0}: no palette or no goals", s.id)));
+                    }
+                    if let Some(problem) = ovirt_topo::problems(&s.start).into_iter().next() {
+                        return Err(SpecError::new(i18n::trf!("scenario {0}: the starting board is invalid: {1}", s.id, problem.text)));
+                    }
+                }
+            }
         }
         Ok(())
     }
@@ -230,6 +257,9 @@ pub fn builtin(id: &str) -> Option<Spec> {
         "virt-sim-ovirt-dc" => Spec::OvirtDc { goals: ovirt_dc::default_goals() },
         "virt-sim-ovirt-fence" => Spec::OvirtFence { scenarios: ovirt_fence::default_scenarios() },
         "virt-sim-ovirt-sched" => Spec::OvirtSched { scenarios: ovirt_sched::default_scenarios() },
-        _ => return None,
+        _ => {
+            let (scenarios, solution) = ovirt_topo::pack(id)?;
+            Spec::OvirtTopo { scenarios, solution }
+        }
     })
 }

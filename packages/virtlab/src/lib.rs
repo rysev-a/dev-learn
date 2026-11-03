@@ -1,4 +1,4 @@
-//! Lab for the "Virtualization" book (book 17): nine simulators as pure Rust models.
+//! Lab for the "Virtualization" book (book 17): ten simulators as pure Rust models.
 //!
 //! * [`hv`] — mini-hypervisor: traps, virtual registers, the POPF instruction and binary translation (chapter 2);
 //! * [`ept`] — guest address translation: shadow page tables and EPT/NPT, TLB, cost in memory accesses (chapter 4);
@@ -33,6 +33,7 @@ pub mod numa;
 pub mod ovirt_dc;
 pub mod ovirt_fence;
 pub mod ovirt_sched;
+pub mod ovirt_topo;
 pub mod qcow2;
 pub mod spec;
 pub mod verify;
@@ -41,5 +42,5 @@ pub mod virtq;
 pub use error::SpecError;
 pub use goal::Goal;
 pub use labfile::{LabChapter, Task};
-pub use spec::{builtin, Spec, LAB_IDS};
+pub use spec::{builtin, lab_ids, Spec, BASE_LAB_IDS};
 pub use verify::{verify, verify_with, GoalStatus, GoalVerdict, Strictness, Verdict};

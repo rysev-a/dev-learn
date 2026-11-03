@@ -8,6 +8,24 @@
       "title": "Simulator: bring up an oVirt data center",
       "statement": "Build an oVirt environment the way an administrator does in the Administration Portal: a cluster, hosts, the logical network vm-net, a storage domain and a virtual machine. Every object has its own states and the order of actions matters: a domain is created by a host in Up status, the data center comes alive only after the master domain is activated, and a network that is required in the cluster makes hosts without it NonOperational. The exercise is solved when all three goals are met.",
       "hint": "Start with the cluster and a host. The vm-net network makes hosts without it NonOperational — assign it to their NICs. A domain takes three steps: create, attach, activate. For a host to go into maintenance, the virtual machine needs another host with its network."
+    },
+    {
+      "id": "virt-sim-ovirt-topo",
+      "title": "Board: assemble an oVirt environment",
+      "statement": "On the board you assemble an oVirt environment: add the engine, data centers, clusters, hosts, logical networks, storage domains and virtual machines, and connect them. The statuses follow from the links: a host without a required network is NonOperational, a host without a management network to the engine is NonResponsive, a data center without an active master domain is not Up. The “Message path” buttons show how an engine command travels over the networks and where it breaks. Assemble or repair the environment in five scenarios. The exercise is solved when the goals of all scenarios are met.",
+      "hint": "A link goes from the output of one object to the input of another: engine → data center → cluster → host. A network is defined in the data center, attached to the cluster and assigned to every host, and the engine needs a NIC in the management network. A storage domain is attached to the data center and then connected to every host. Click an object to see the reason for its status."
+    },
+    {
+      "id": "virt-sim-ovirt-clusters",
+      "title": "Board: clusters and placement",
+      "statement": "Build an oVirt environment on the board: clusters, hosts, networks and VMs. Five scenarios: place VMs on hosts so that each can be migrated; attach a network to all three clusters; move a host from one cluster to another; put a cluster that is outside any data center into one; move a cluster to another data center. The exercise is solved when every scenario is solved.",
+      "hint": "A cluster is the border of live migration, a data center is the border of networks and storage. Select an object to read the reason for its status."
+    },
+    {
+      "id": "virt-sim-ovirt-puzzles",
+      "title": "Board: hierarchy puzzles",
+      "statement": "Five puzzles on one board: an environment without an engine, a network in the wrong data center, a VM with a foreign disk, three data centers with a broken path from the engine, and an environment with three independent faults. Read the reasons of the statuses and follow the path of a command. The exercise is solved when every scenario is solved.",
+      "hint": "Go from the symptom to the cause: the status of an object, its reason, the link of the hierarchy that is missing."
     }
   ]
 }

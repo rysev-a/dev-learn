@@ -1,4 +1,4 @@
-//! "Virtualization" lab: nine simulators of book 17. The models, goals and solution re-check live in the `virtlab` crate
+//! "Virtualization" lab: ten simulators of book 17. The models, goals and solution re-check live in the `virtlab` crate
 //! (shared with the server); here is only the interface: a simulator is chosen from the exercise description (`Spec`), and once
 //! all goals are reached, the solution (JSON `{goal id: data}`) is sent to the server once through `LabProps::report`.
 //!
@@ -19,6 +19,7 @@ mod numa;
 mod ovirt_dc;
 mod ovirt_fence;
 mod ovirt_sched;
+mod ovirt_topo;
 mod qcow2;
 mod virtq;
 
@@ -62,6 +63,10 @@ pub fn VirtLab(props: LabProps) -> impl IntoView {
         Spec::OvirtDc { goals: targets } => view! { <ovirt_dc::OvirtDcLab targets=targets goals=goals /> }.into_any(),
         Spec::OvirtFence { scenarios } => view! { <ovirt_fence::OvirtFenceLab scenarios=scenarios goals=goals /> }.into_any(),
         Spec::OvirtSched { scenarios } => view! { <ovirt_sched::OvirtSchedLab scenarios=scenarios goals=goals /> }.into_any(),
+        // the reference boards are never sent to the client; the draft holds the student's boards, one per scenario
+        Spec::OvirtTopo { scenarios, .. } => {
+            view! { <ovirt_topo::OvirtTopoLab scenarios=scenarios goals=goals draft=props.draft on_draft=props.on_draft /> }.into_any()
+        }
     }
 }
 
@@ -74,7 +79,7 @@ mod tests {
     #[test]
     fn empty_spec_falls_back_to_builtin() {
         let _ru = locales::guard(i18n::Locale::Ru);
-        for id in virtlab::LAB_IDS {
+        for id in virtlab::lab_ids() {
             assert!(parse_spec(id, &Value::Null).is_ok(), "{id}");
             assert!(parse_spec(id, &json!({})).is_ok(), "{id}");
         }
@@ -84,7 +89,7 @@ mod tests {
     #[test]
     fn spec_from_json_roundtrip() {
         let _ru = locales::guard(i18n::Locale::Ru);
-        for id in virtlab::LAB_IDS {
+        for id in virtlab::lab_ids() {
             let Some(spec) = virtlab::builtin(id) else { panic!("{id}") };
             let raw = serde_json::to_value(&spec).expect("serialization");
             assert_eq!(parse_spec(id, &raw).expect("parse"), spec, "{id}");

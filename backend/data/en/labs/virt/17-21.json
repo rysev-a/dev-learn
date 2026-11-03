@@ -1,0 +1,25 @@
+{
+  "book": 17,
+  "chapter": 21,
+  "lab": "virt",
+  "tasks": [
+    {
+      "id": "virt-sim-ovirt-net",
+      "title": "Board: networks",
+      "statement": "On the board you build the network side of an oVirt environment. Four scenarios: an optional network that some hosts do not have, a dedicated migration network, a management network for every data center, and a VM with an optional network. A network is defined in the data center, attached to the cluster and assigned to hosts; it has a role, and a required network has to be on every host of the cluster. The exercise is solved when the goals of all scenarios are met.",
+      "hint": "A required network is needed on every host of the cluster, an optional one is not, but a VM with a NIC in such a network starts only where it is assigned. Select a network to change its role and “required” in the inspector. Migration goes over a network with the migration role if both hosts have it, otherwise over the management network."
+    },
+    {
+      "id": "virt-sim-ovirt-net-2",
+      "title": "Board: networks, level 2",
+      "statement": "You assemble and repair the networks of an oVirt environment on the board: you define networks, attach them to clusters and assign them to hosts. Five scenarios: a network that is defined but not attached, so a VM will not start; a console network that an old host cannot take; a second cluster that needs each network of the data center attached separately; a host without a management network that the “optional” flag does not rescue; adding a new host with all the networks and the storage. The exercise is solved when all scenarios are solved.",
+      "hint": "The chain is always the same: define the network in the data center, attach it to the cluster, assign it to the NIC of the host. Select a host or a VM and read what it is missing."
+    },
+    {
+      "id": "virt-sim-ovirt-net-3",
+      "title": "Board: networks, level 3",
+      "statement": "You follow live migration and growth over the networks of an oVirt environment: which network carries the memory of a VM and which hosts need which network. Five scenarios: a VM with two NICs and its migration; a migration network that is missing on some hosts, so the memory goes over the management network; a network with the VM role instead of the migration role; a required network added to a running cluster; one network for each role. The exercise is solved when all scenarios are solved.",
+      "hint": "A migration picks its network by role, and only if the network is assigned to both the source and the target; every NIC of the VM must find its network on the target host. Follow the path of a migration to see which network it takes."
+    }
+  ]
+}

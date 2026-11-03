@@ -3,9 +3,27 @@
  "chapter": 20,
  "tasks": [
   {
+   "id": "virt-sim-ovirt-storage",
+   "title": "Board: storage and the SPM",
+   "statement": "On the board you build an oVirt environment around its storage. Four scenarios: survive the loss of the master domain, prepare a successor for the SPM, repair a VM whose host does not see its disk, and attach an iSCSI domain that needs a storage network of its own. The statuses follow from the links, and the “Message path” buttons show the path of a command. The exercise is solved when the goals of all scenarios are met.",
+   "hint": "A host has to see every domain attached to its data center. The master domain is the first attached one; when it is lost the next one takes over. The SPM is one of the Up hosts, so fault tolerance needs at least two. An iSCSI domain needs a network with the storage role on every host."
+  },
+  {
+   "id": "virt-sim-ovirt-storage-2",
+   "title": "Board: storage, level 2",
+   "statement": "Assemble environments where storage works for real: five scenarios. A domain is attached to the data center but no host sees it. A domain with a VM disk is not attached at all. A second data center cannot use another one's domain. A domain is Inactive although the hosts see it, because the hosts are not Up for other reasons. A data center with a spare of both hosts and domains. The exercise is solved when all scenarios are solved.",
+   "hint": "A domain is Active only while an Up host sees it, and a host is Up only if it sees every domain of its data center and has all the networks it needs. Read the reason in the host status, and remember that a domain belongs to one data center."
+  },
+  {
+   "id": "virt-sim-ovirt-storage-3",
+   "title": "Board: storage, level 3",
+   "statement": "Bring block storage over iSCSI to a working state: five scenarios. One storage network serves several iSCSI domains. A network has the wrong role. A new host must get everything the others have. A VM with a disk on a LUN starts only when the whole chain works on its host. Changing a domain to iSCSI breaks a host that never worked with it. The exercise is solved when all scenarios are solved.",
+   "hint": "As soon as a data center has an iSCSI domain, every host of it needs a network with the storage role, attached to the cluster and assigned to the host. Read the reasons in the host status and follow the start of a VM hop by hop."
+  },
+  {
    "id": "ov20-domain-family",
    "title": "Domain family",
-   "statement": "A storage domain's type determines its family. Write a function domain_family(domain_type): the type arrives as a string in any letter case, possibly with spaces at the edges. The types NFS, POSIXFS, GLUSTERFS and LOCALFS are the family \"file\"; ISCSI and FCP are \"block\"; MANAGED_BLOCK is \"managed\"; any other type (including an empty string) is \"unknown\".",
+   "statement": "A storage domain's type determines its family. Write a function domain_family(domain_type): the type arrives as a string in any letter case, possibly with spaces at the edges. The types NFS, POSIXFS, GLUSTERFS and LOCALFS are the family \"file\"; ISCSI and FCP are \"block\"; MANAGED_BLOCK (the course's short alias of the engine's MANAGED_BLOCK_STORAGE type, which is neither a file nor a block family) is \"managed\"; any other type (including an empty string) is \"unknown\".",
    "hint": "Normalize with strip().upper() and test membership in sets."
   },
   {
@@ -77,7 +95,7 @@
   {
    "id": "ov20-lv-sizes",
    "title": "Logical volume sizes",
-   "statement": "A model of LV sizes on a block domain (all in MB, an LV size is a multiple of extent_mb: round up). Write a function lv_sizes(virtual_mb, kind, chunk_mb, extent_mb): return a tuple (initial_size, maximum_size). For kind == \"preallocated\" both equal the virtual size rounded up to a multiple of extent_mb. For kind == \"thin\" (qcow2 grows) the maximum is the virtual size plus a 10 percent reserve for qcow2 metadata (compute in integers: ceil(virtual_mb * 11 / 10)), rounded up to a multiple of extent_mb; the initial size is chunk_mb rounded up to a multiple of extent_mb, but not more than the maximum.",
+   "statement": "A model of LV sizes on a block domain (all in MB, an LV size is a multiple of extent_mb: round up). Write a function lv_sizes(virtual_mb, kind, chunk_mb, extent_mb): return a tuple (initial_size, maximum_size). For kind == \"preallocated\" both equal the virtual size rounded up to a multiple of extent_mb. For kind == \"thin\" (qcow2 grows) the maximum is the virtual size plus a 10 percent reserve for qcow2 metadata (compute in integers: ceil(virtual_mb * 11 / 10)), rounded up to a multiple of extent_mb; the initial size is chunk_mb rounded up to a multiple of extent_mb, but not more than the maximum. The 10 percent reserve and the chunk size are parameters of the teaching model, not oVirt constants.",
    "hint": "A round-up helper: -(-x // e) * e. For thin, compute the maximum first."
   },
   {
@@ -85,6 +103,48 @@
    "title": "Live storage migration rollback",
    "statement": "Live storage migration runs the steps in order: \"snapshot\", \"create_target\", \"mirror\", \"pivot\", \"delete_source\". Write a function lsm_run(fail_at): fail_at is the name of the step where a failure happens, or an empty string if there are no failures. Return a tuple (done, location, cleanup). done is the list of successfully completed steps in order (the failed step is not included; with no failure, all five). location is \"target\" if the pivot step completed successfully, otherwise \"source\". cleanup is the list of rollback actions in order: if the failure is at mirror or pivot, first \"abort_mirror\"; then, if the failure is at create_target, mirror, or pivot, \"remove_target\"; if the failure is at delete_source, the only action is \"retry_delete_source\"; with a failure at snapshot and with no failure cleanup is empty.",
    "hint": "steps.index(fail_at) gives the number of completed steps; then a few ifs for the rollback."
+  },
+  {
+   "id": "ovb20-domains",
+   "title": "Storage domains of a data center on the board",
+   "statement": "A storage domain is attached to a data center by a link data_center → storage_domain. Write domains_of(board, dc): return the list of ids of the domains attached to the data center dc, in the order of the links in edges. The board is a dictionary {\"nodes\": [...], \"edges\": [...]}. A node is {\"id\": ..., \"kind\": ..., \"name\": ...}; a network may also have \"params\": {\"role\": ..., \"required\": ...}. kind is one of engine, data_center, cluster, host, network, storage_domain, vm. A link {\"from\": id, \"to\": id} always goes in the direction of oVirt: engine → data_center → cluster → host → vm; data_center → network → cluster, host, vm; engine → network; data_center → storage_domain → host, vm. The order of the nodes and edges lists matters where the text says \"first\".",
+   "hint": "Walk through edges and keep the links whose from is dc and whose target node is a storage_domain. Collect the node kinds into a dictionary id → kind."
+  },
+  {
+   "id": "ovb20-master",
+   "title": "The master domain",
+   "statement": "The master domain of a data center is the one attached to it first. Write master_domain(board, dc): return the id of the domain whose link to the data center comes first in the edges list, or None if no domain is attached to the data center. The board is a dictionary {\"nodes\": [...], \"edges\": [...]}. A node is {\"id\": ..., \"kind\": ..., \"name\": ...}; a network may also have \"params\": {\"role\": ..., \"required\": ...}. kind is one of engine, data_center, cluster, host, network, storage_domain, vm. A link {\"from\": id, \"to\": id} always goes in the direction of oVirt: engine → data_center → cluster → host → vm; data_center → network → cluster, host, vm; engine → network; data_center → storage_domain → host, vm. The order of the nodes and edges lists matters where the text says \"first\".",
+   "hint": "It is the first element of the same list as in the previous task; do not forget the empty case."
+  },
+  {
+   "id": "ovb20-seen-by",
+   "title": "Who sees the domain",
+   "statement": "A host sees a domain if the board has a link storage_domain → host. Write hosts_seeing(board, domain): return the sorted list of ids of the hosts that see the domain. The board is a dictionary {\"nodes\": [...], \"edges\": [...]}. A node is {\"id\": ..., \"kind\": ..., \"name\": ...}; a network may also have \"params\": {\"role\": ..., \"required\": ...}. kind is one of engine, data_center, cluster, host, network, storage_domain, vm. A link {\"from\": id, \"to\": id} always goes in the direction of oVirt: engine → data_center → cluster → host → vm; data_center → network → cluster, host, vm; engine → network; data_center → storage_domain → host, vm. The order of the nodes and edges lists matters where the text says \"first\".",
+   "hint": "The link target is a node of kind host; then sorted()."
+  },
+  {
+   "id": "ovb20-domain-status",
+   "title": "Status of a domain",
+   "statement": "The hosts of a data center are the hosts of its clusters (data_center → cluster → host). Write domain_statuses(board, up): up is the list of ids of the hosts in status Up. A domain is \"Unattached\" if it is attached to no data center; \"Active\" if it is attached and at least one host from up that belongs to the same data center sees it; otherwise \"Inactive\". Return a dictionary domain id → status for all domains of the board. The board is a dictionary {\"nodes\": [...], \"edges\": [...]}. A node is {\"id\": ..., \"kind\": ..., \"name\": ...}; a network may also have \"params\": {\"role\": ..., \"required\": ...}. kind is one of engine, data_center, cluster, host, network, storage_domain, vm. A link {\"from\": id, \"to\": id} always goes in the direction of oVirt: engine → data_center → cluster → host → vm; data_center → network → cluster, host, vm; engine → network; data_center → storage_domain → host, vm. The order of the nodes and edges lists matters where the text says \"first\".",
+   "hint": "First find the data center of the domain, then its hosts; whether a host sees the domain is the link domain → host."
+  },
+  {
+   "id": "ovb20-dc-status",
+   "title": "Status of a data center",
+   "statement": "Write dc_statuses(board, up): up is the list of ids of the hosts in status Up. A data center is \"Non Responsive\" if none of its hosts is in up; otherwise \"Uninitialized\" if it has no master domain or its master domain is not \"Active\" (rules as in the two previous tasks); otherwise \"Up\". Return a dictionary data center id → status for all data centers of the board. The board is a dictionary {\"nodes\": [...], \"edges\": [...]}. A node is {\"id\": ..., \"kind\": ..., \"name\": ...}; a network may also have \"params\": {\"role\": ..., \"required\": ...}. kind is one of engine, data_center, cluster, host, network, storage_domain, vm. A link {\"from\": id, \"to\": id} always goes in the direction of oVirt: engine → data_center → cluster → host → vm; data_center → network → cluster, host, vm; engine → network; data_center → storage_domain → host, vm. The order of the nodes and edges lists matters where the text says \"first\".",
+   "hint": "The master domain is the first attached one; compute whether it is active as in the domain status task."
+  },
+  {
+   "id": "ovb20-spm",
+   "title": "Who is the SPM",
+   "statement": "The engine chooses the SPM among the hosts of the data center. In our model it is the first host in the nodes list that belongs to the data center and is in up, but only if the data center itself is \"Up\" (rules as in the previous task). Write spm_hosts(board, up): return a dictionary data center id → id of the SPM host, or None, for all data centers of the board. The board is a dictionary {\"nodes\": [...], \"edges\": [...]}. A node is {\"id\": ..., \"kind\": ..., \"name\": ...}; a network may also have \"params\": {\"role\": ..., \"required\": ...}. kind is one of engine, data_center, cluster, host, network, storage_domain, vm. A link {\"from\": id, \"to\": id} always goes in the direction of oVirt: engine → data_center → cluster → host → vm; data_center → network → cluster, host, vm; engine → network; data_center → storage_domain → host, vm. The order of the nodes and edges lists matters where the text says \"first\".",
+   "hint": "You have computed the data center status already — put it in a function; then take the first suitable host in the order of nodes."
+  },
+  {
+   "id": "ovb20-missing-storage",
+   "title": "Which storage a host misses",
+   "statement": "A host becomes NonOperational if it does not see a domain attached to its data center. Write missing_storage(board): for every host that is in a cluster of a data center, return the sorted list of ids of the domains attached to the data center of the host that the host does not see (no link domain → host). The dictionary must hold all such hosts, also those with an empty list; hosts outside a data center are not in it. The board is a dictionary {\"nodes\": [...], \"edges\": [...]}. A node is {\"id\": ..., \"kind\": ..., \"name\": ...}; a network may also have \"params\": {\"role\": ..., \"required\": ...}. kind is one of engine, data_center, cluster, host, network, storage_domain, vm. A link {\"from\": id, \"to\": id} always goes in the direction of oVirt: engine → data_center → cluster → host → vm; data_center → network → cluster, host, vm; engine → network; data_center → storage_domain → host, vm. The order of the nodes and edges lists matters where the text says \"first\".",
+   "hint": "The data center of a host is found through its cluster; the domains of a data center are the ones from the domains_of task."
   }
  ]
 }

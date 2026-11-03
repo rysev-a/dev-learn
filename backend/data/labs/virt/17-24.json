@@ -1,0 +1,4900 @@
+{
+  "book": 17,
+  "chapter": 24,
+  "lab": "virt",
+  "tasks": [
+    {
+      "id": "virt-sim-ovirt-backup",
+      "title": "Доска: резервные копии",
+      "statement": "Соберите защиту виртуальных машин на доске: у каждой машины должна быть копия, которая переживёт потерю домена с её диском. Пять сценариев: снимки, которые не являются копиями, тип копии под тип диска, машины второго домена, забытая машина и новая машина без диска и копии. Упражнение решено, когда решены все сценарии.",
+      "hint": "Снимок лежит на том же домене, что и диск, и погибает вместе с ним. Спасает только инкрементальная или полная копия. Инкрементальная требует диска qcow2 с отслеживанием изменений, сырой диск копируют целиком.",
+      "spec": {
+        "sim": "ovirt_topo",
+        "scenarios": [
+          {
+            "id": "snapshot-only",
+            "title": "Snapshots are not backups",
+            "story": "Every night all three VMs get a snapshot, and the audit still fails the setup: when nfs-data is lost, the snapshots are lost with it.",
+            "goal": "Every VM has a copy that survives the loss of its disk domain",
+            "hint": "A snapshot lives on the same storage domain as the disk it was taken from. Look at the type of the backup.",
+            "palette": [
+              "backup"
+            ],
+            "max_nodes": 13,
+            "start": {
+              "nodes": [
+                {
+                  "id": "engine",
+                  "kind": "engine",
+                  "name": "engine",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "dc1",
+                  "kind": "data_center",
+                  "name": "Default",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "cl1",
+                  "kind": "cluster",
+                  "name": "cluster-a",
+                  "x": 450.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "mgmt",
+                  "kind": "network",
+                  "name": "ovirtmgmt",
+                  "x": 310.0,
+                  "y": 60.0,
+                  "params": {
+                    "required": true,
+                    "role": "management"
+                  }
+                },
+                {
+                  "id": "h1",
+                  "kind": "host",
+                  "name": "host-1",
+                  "x": 590.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h2",
+                  "kind": "host",
+                  "name": "host-2",
+                  "x": 590.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "nfs",
+                  "kind": "storage_domain",
+                  "name": "nfs-data",
+                  "x": 450.0,
+                  "y": 380.0,
+                  "params": {
+                    "type": "nfs"
+                  }
+                },
+                {
+                  "id": "vm1",
+                  "kind": "vm",
+                  "name": "web-1",
+                  "x": 730.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "vm2",
+                  "kind": "vm",
+                  "name": "web-2",
+                  "x": 730.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "vm3",
+                  "kind": "vm",
+                  "name": "db-1",
+                  "x": 730.0,
+                  "y": 220.0
+                },
+                {
+                  "id": "bk1",
+                  "kind": "backup",
+                  "name": "nightly",
+                  "x": 870.0,
+                  "y": 60.0
+                }
+              ],
+              "edges": [
+                {
+                  "from": "engine",
+                  "to": "dc1"
+                },
+                {
+                  "from": "dc1",
+                  "to": "cl1"
+                },
+                {
+                  "from": "dc1",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "cl1"
+                },
+                {
+                  "from": "engine",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h1"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h2"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "nfs"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h2"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm1"
+                },
+                {
+                  "from": "h2",
+                  "to": "vm2"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm2"
+                },
+                {
+                  "from": "h2",
+                  "to": "vm3"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm3"
+                },
+                {
+                  "from": "vm1",
+                  "to": "bk1"
+                },
+                {
+                  "from": "vm2",
+                  "to": "bk1"
+                },
+                {
+                  "from": "vm3",
+                  "to": "bk1"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "healthy"
+              },
+              {
+                "kind": "vm_running",
+                "min": 3
+              },
+              {
+                "kind": "link",
+                "rel": "backup_of",
+                "min": 3
+              },
+              {
+                "kind": "all_vms_backed_up"
+              },
+              {
+                "kind": "restorable_after_domain_loss"
+              }
+            ]
+          },
+          {
+            "id": "right-type",
+            "title": "Full or incremental",
+            "story": "db-1 keeps its data on a raw disk, while app-1, app-2 and mail-1 use qcow2 disks. Two of the three backup jobs still make snapshots, which do not survive the loss of nfs-data.",
+            "goal": "Every VM is backed up off its domain: the raw disk with full copies, the qcow2 disks incrementally",
+            "hint": "Incremental backup tracks changed blocks in a qcow2 disk, so a raw disk can only be copied whole. Set the type of each job to match its disks.",
+            "palette": [
+              "backup"
+            ],
+            "max_nodes": 15,
+            "start": {
+              "nodes": [
+                {
+                  "id": "engine",
+                  "kind": "engine",
+                  "name": "engine",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "dc1",
+                  "kind": "data_center",
+                  "name": "Default",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "cl1",
+                  "kind": "cluster",
+                  "name": "cluster-a",
+                  "x": 450.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "mgmt",
+                  "kind": "network",
+                  "name": "ovirtmgmt",
+                  "x": 310.0,
+                  "y": 60.0,
+                  "params": {
+                    "required": true,
+                    "role": "management"
+                  }
+                },
+                {
+                  "id": "h1",
+                  "kind": "host",
+                  "name": "host-1",
+                  "x": 590.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h2",
+                  "kind": "host",
+                  "name": "host-2",
+                  "x": 590.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "nfs",
+                  "kind": "storage_domain",
+                  "name": "nfs-data",
+                  "x": 450.0,
+                  "y": 380.0,
+                  "params": {
+                    "type": "nfs"
+                  }
+                },
+                {
+                  "id": "vm1",
+                  "kind": "vm",
+                  "name": "app-1",
+                  "x": 730.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "vm2",
+                  "kind": "vm",
+                  "name": "app-2",
+                  "x": 730.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "vm3",
+                  "kind": "vm",
+                  "name": "db-1",
+                  "x": 730.0,
+                  "y": 220.0
+                },
+                {
+                  "id": "vm4",
+                  "kind": "vm",
+                  "name": "mail-1",
+                  "x": 730.0,
+                  "y": 300.0
+                },
+                {
+                  "id": "bk1",
+                  "kind": "backup",
+                  "name": "app-backup",
+                  "x": 870.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "bk2",
+                  "kind": "backup",
+                  "name": "db-backup",
+                  "x": 870.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "bk3",
+                  "kind": "backup",
+                  "name": "mail-backup",
+                  "x": 870.0,
+                  "y": 220.0,
+                  "params": {
+                    "type": "incremental"
+                  }
+                }
+              ],
+              "edges": [
+                {
+                  "from": "engine",
+                  "to": "dc1"
+                },
+                {
+                  "from": "dc1",
+                  "to": "cl1"
+                },
+                {
+                  "from": "dc1",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "cl1"
+                },
+                {
+                  "from": "engine",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h1"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h2"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "nfs"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h2"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm1"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm2"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm2"
+                },
+                {
+                  "from": "h2",
+                  "to": "vm3"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm3"
+                },
+                {
+                  "from": "h2",
+                  "to": "vm4"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm4"
+                },
+                {
+                  "from": "vm1",
+                  "to": "bk1"
+                },
+                {
+                  "from": "vm2",
+                  "to": "bk1"
+                },
+                {
+                  "from": "vm3",
+                  "to": "bk2"
+                },
+                {
+                  "from": "vm4",
+                  "to": "bk3"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "all_vms_backed_up"
+              },
+              {
+                "kind": "restorable_after_domain_loss"
+              },
+              {
+                "kind": "param_of",
+                "id": "bk1",
+                "key": "type",
+                "value": "incremental"
+              },
+              {
+                "kind": "param_of",
+                "id": "bk2",
+                "key": "type",
+                "value": "full"
+              }
+            ]
+          },
+          {
+            "id": "two-domains",
+            "title": "Two domains, two backup jobs",
+            "story": "web-nightly protects web-1 and web-2 on nfs-a. db-1 and db-2 live on nfs-b and have no backup at all, and every group of VMs is supposed to have a job of its own.",
+            "goal": "Every VM is backed up off its domain, with a separate job for the databases",
+            "hint": "A new backup job starts as a snapshot. Check that the VMs of each domain are covered by a job that survives losing that domain.",
+            "palette": [
+              "backup"
+            ],
+            "max_nodes": 15,
+            "start": {
+              "nodes": [
+                {
+                  "id": "engine",
+                  "kind": "engine",
+                  "name": "engine",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "dc1",
+                  "kind": "data_center",
+                  "name": "Default",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "cl1",
+                  "kind": "cluster",
+                  "name": "cluster-a",
+                  "x": 450.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "mgmt",
+                  "kind": "network",
+                  "name": "ovirtmgmt",
+                  "x": 310.0,
+                  "y": 60.0,
+                  "params": {
+                    "required": true,
+                    "role": "management"
+                  }
+                },
+                {
+                  "id": "h1",
+                  "kind": "host",
+                  "name": "host-1",
+                  "x": 590.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h2",
+                  "kind": "host",
+                  "name": "host-2",
+                  "x": 590.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "nfs-a",
+                  "kind": "storage_domain",
+                  "name": "nfs-a",
+                  "x": 450.0,
+                  "y": 380.0,
+                  "params": {
+                    "type": "nfs"
+                  }
+                },
+                {
+                  "id": "nfs-b",
+                  "kind": "storage_domain",
+                  "name": "nfs-b",
+                  "x": 450.0,
+                  "y": 460.0,
+                  "params": {
+                    "type": "nfs"
+                  }
+                },
+                {
+                  "id": "vm1",
+                  "kind": "vm",
+                  "name": "web-1",
+                  "x": 730.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "vm2",
+                  "kind": "vm",
+                  "name": "web-2",
+                  "x": 730.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "vm3",
+                  "kind": "vm",
+                  "name": "db-1",
+                  "x": 730.0,
+                  "y": 220.0
+                },
+                {
+                  "id": "vm4",
+                  "kind": "vm",
+                  "name": "db-2",
+                  "x": 730.0,
+                  "y": 300.0
+                },
+                {
+                  "id": "bk1",
+                  "kind": "backup",
+                  "name": "web-nightly",
+                  "x": 870.0,
+                  "y": 60.0,
+                  "params": {
+                    "type": "incremental"
+                  }
+                }
+              ],
+              "edges": [
+                {
+                  "from": "engine",
+                  "to": "dc1"
+                },
+                {
+                  "from": "dc1",
+                  "to": "cl1"
+                },
+                {
+                  "from": "dc1",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "cl1"
+                },
+                {
+                  "from": "engine",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h1"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h2"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "nfs-a"
+                },
+                {
+                  "from": "nfs-a",
+                  "to": "h1"
+                },
+                {
+                  "from": "nfs-a",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "nfs-b"
+                },
+                {
+                  "from": "nfs-b",
+                  "to": "h1"
+                },
+                {
+                  "from": "nfs-b",
+                  "to": "h2"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm1"
+                },
+                {
+                  "from": "nfs-a",
+                  "to": "vm1"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm2"
+                },
+                {
+                  "from": "nfs-a",
+                  "to": "vm2"
+                },
+                {
+                  "from": "h2",
+                  "to": "vm3"
+                },
+                {
+                  "from": "nfs-b",
+                  "to": "vm3"
+                },
+                {
+                  "from": "h2",
+                  "to": "vm4"
+                },
+                {
+                  "from": "nfs-b",
+                  "to": "vm4"
+                },
+                {
+                  "from": "vm1",
+                  "to": "bk1"
+                },
+                {
+                  "from": "vm2",
+                  "to": "bk1"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "healthy"
+              },
+              {
+                "kind": "has",
+                "node": "backup",
+                "min": 2
+              },
+              {
+                "kind": "link",
+                "rel": "backup_of",
+                "min": 4
+              },
+              {
+                "kind": "all_vms_backed_up"
+              },
+              {
+                "kind": "restorable_after_domain_loss"
+              }
+            ]
+          },
+          {
+            "id": "forgotten-vm",
+            "title": "The VM nobody backed up",
+            "story": "The audit counted eight VMs and only seven are covered by a backup job. Nobody remembers which one was left out.",
+            "goal": "All eight VMs are backed up off their domain",
+            "hint": "Follow the backup links of every VM. A VM that was added later than the others is the usual suspect.",
+            "palette": [
+              "backup"
+            ],
+            "max_nodes": 20,
+            "start": {
+              "nodes": [
+                {
+                  "id": "engine",
+                  "kind": "engine",
+                  "name": "engine",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "dc1",
+                  "kind": "data_center",
+                  "name": "Default",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "cl1",
+                  "kind": "cluster",
+                  "name": "cluster-a",
+                  "x": 450.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "mgmt",
+                  "kind": "network",
+                  "name": "ovirtmgmt",
+                  "x": 310.0,
+                  "y": 60.0,
+                  "params": {
+                    "required": true,
+                    "role": "management"
+                  }
+                },
+                {
+                  "id": "h1",
+                  "kind": "host",
+                  "name": "host-1",
+                  "x": 590.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h2",
+                  "kind": "host",
+                  "name": "host-2",
+                  "x": 590.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "h3",
+                  "kind": "host",
+                  "name": "host-3",
+                  "x": 590.0,
+                  "y": 220.0
+                },
+                {
+                  "id": "nfs",
+                  "kind": "storage_domain",
+                  "name": "nfs-data",
+                  "x": 450.0,
+                  "y": 380.0,
+                  "params": {
+                    "type": "nfs"
+                  }
+                },
+                {
+                  "id": "vm1",
+                  "kind": "vm",
+                  "name": "web-1",
+                  "x": 730.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "vm2",
+                  "kind": "vm",
+                  "name": "web-2",
+                  "x": 730.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "vm3",
+                  "kind": "vm",
+                  "name": "web-3",
+                  "x": 730.0,
+                  "y": 220.0
+                },
+                {
+                  "id": "vm4",
+                  "kind": "vm",
+                  "name": "app-1",
+                  "x": 730.0,
+                  "y": 300.0
+                },
+                {
+                  "id": "vm5",
+                  "kind": "vm",
+                  "name": "db-1",
+                  "x": 730.0,
+                  "y": 380.0
+                },
+                {
+                  "id": "vm6",
+                  "kind": "vm",
+                  "name": "db-2",
+                  "x": 730.0,
+                  "y": 460.0
+                },
+                {
+                  "id": "vm7",
+                  "kind": "vm",
+                  "name": "mail-1",
+                  "x": 730.0,
+                  "y": 540.0
+                },
+                {
+                  "id": "vm8",
+                  "kind": "vm",
+                  "name": "report-1",
+                  "x": 730.0,
+                  "y": 620.0
+                },
+                {
+                  "id": "bk1",
+                  "kind": "backup",
+                  "name": "tier-1",
+                  "x": 870.0,
+                  "y": 60.0,
+                  "params": {
+                    "type": "incremental"
+                  }
+                },
+                {
+                  "id": "bk2",
+                  "kind": "backup",
+                  "name": "tier-2",
+                  "x": 870.0,
+                  "y": 140.0,
+                  "params": {
+                    "type": "full"
+                  }
+                }
+              ],
+              "edges": [
+                {
+                  "from": "engine",
+                  "to": "dc1"
+                },
+                {
+                  "from": "dc1",
+                  "to": "cl1"
+                },
+                {
+                  "from": "dc1",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "cl1"
+                },
+                {
+                  "from": "engine",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h1"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h2"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h2"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h3"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h3"
+                },
+                {
+                  "from": "dc1",
+                  "to": "nfs"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h2"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h3"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm1"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm2"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm2"
+                },
+                {
+                  "from": "h2",
+                  "to": "vm3"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm3"
+                },
+                {
+                  "from": "h2",
+                  "to": "vm4"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm4"
+                },
+                {
+                  "from": "h3",
+                  "to": "vm5"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm5"
+                },
+                {
+                  "from": "h3",
+                  "to": "vm6"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm6"
+                },
+                {
+                  "from": "h3",
+                  "to": "vm7"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm7"
+                },
+                {
+                  "from": "h2",
+                  "to": "vm8"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm8"
+                },
+                {
+                  "from": "vm1",
+                  "to": "bk1"
+                },
+                {
+                  "from": "vm2",
+                  "to": "bk1"
+                },
+                {
+                  "from": "vm3",
+                  "to": "bk1"
+                },
+                {
+                  "from": "vm4",
+                  "to": "bk1"
+                },
+                {
+                  "from": "vm5",
+                  "to": "bk2"
+                },
+                {
+                  "from": "vm6",
+                  "to": "bk2"
+                },
+                {
+                  "from": "vm7",
+                  "to": "bk2"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "healthy"
+              },
+              {
+                "kind": "vm_running",
+                "min": 8
+              },
+              {
+                "kind": "link",
+                "rel": "backup_of",
+                "min": 8
+              },
+              {
+                "kind": "all_vms_backed_up"
+              },
+              {
+                "kind": "restorable_after_domain_loss"
+              }
+            ]
+          },
+          {
+            "id": "new-vm",
+            "title": "The VM created last week",
+            "story": "report-1 was created last week on host-2 and nobody finished it: it has no disk and no backup.",
+            "goal": "report-1 has a disk on nfs-data, and every VM is backed up off its domain",
+            "hint": "Compare report-1 with the other VMs: it is missing everything they have. Once it has a disk, the backup has to cover it as well.",
+            "palette": [
+              "backup"
+            ],
+            "max_nodes": 14,
+            "start": {
+              "nodes": [
+                {
+                  "id": "engine",
+                  "kind": "engine",
+                  "name": "engine",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "dc1",
+                  "kind": "data_center",
+                  "name": "Default",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "cl1",
+                  "kind": "cluster",
+                  "name": "cluster-a",
+                  "x": 450.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "mgmt",
+                  "kind": "network",
+                  "name": "ovirtmgmt",
+                  "x": 310.0,
+                  "y": 60.0,
+                  "params": {
+                    "required": true,
+                    "role": "management"
+                  }
+                },
+                {
+                  "id": "h1",
+                  "kind": "host",
+                  "name": "host-1",
+                  "x": 590.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h2",
+                  "kind": "host",
+                  "name": "host-2",
+                  "x": 590.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "nfs",
+                  "kind": "storage_domain",
+                  "name": "nfs-data",
+                  "x": 450.0,
+                  "y": 380.0,
+                  "params": {
+                    "type": "nfs"
+                  }
+                },
+                {
+                  "id": "vm1",
+                  "kind": "vm",
+                  "name": "web-1",
+                  "x": 730.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "vm2",
+                  "kind": "vm",
+                  "name": "web-2",
+                  "x": 730.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "vm3",
+                  "kind": "vm",
+                  "name": "db-1",
+                  "x": 730.0,
+                  "y": 220.0
+                },
+                {
+                  "id": "vm4",
+                  "kind": "vm",
+                  "name": "report-1",
+                  "x": 730.0,
+                  "y": 300.0
+                },
+                {
+                  "id": "bk1",
+                  "kind": "backup",
+                  "name": "nightly",
+                  "x": 870.0,
+                  "y": 60.0,
+                  "params": {
+                    "type": "incremental"
+                  }
+                }
+              ],
+              "edges": [
+                {
+                  "from": "engine",
+                  "to": "dc1"
+                },
+                {
+                  "from": "dc1",
+                  "to": "cl1"
+                },
+                {
+                  "from": "dc1",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "cl1"
+                },
+                {
+                  "from": "engine",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h1"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h2"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "nfs"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h2"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm1"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm2"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm2"
+                },
+                {
+                  "from": "h2",
+                  "to": "vm3"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm3"
+                },
+                {
+                  "from": "h2",
+                  "to": "vm4"
+                },
+                {
+                  "from": "vm1",
+                  "to": "bk1"
+                },
+                {
+                  "from": "vm2",
+                  "to": "bk1"
+                },
+                {
+                  "from": "vm3",
+                  "to": "bk1"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "healthy"
+              },
+              {
+                "kind": "link",
+                "rel": "disk",
+                "min": 4
+              },
+              {
+                "kind": "all_vms_backed_up"
+              },
+              {
+                "kind": "restorable_after_domain_loss"
+              }
+            ]
+          }
+        ],
+        "solution": {
+          "forgotten-vm": {
+            "nodes": [
+              {
+                "id": "engine",
+                "kind": "engine",
+                "name": "engine",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "dc1",
+                "kind": "data_center",
+                "name": "Default",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "cl1",
+                "kind": "cluster",
+                "name": "cluster-a",
+                "x": 450.0,
+                "y": 60.0
+              },
+              {
+                "id": "mgmt",
+                "kind": "network",
+                "name": "ovirtmgmt",
+                "x": 310.0,
+                "y": 60.0,
+                "params": {
+                  "required": true,
+                  "role": "management"
+                }
+              },
+              {
+                "id": "h1",
+                "kind": "host",
+                "name": "host-1",
+                "x": 590.0,
+                "y": 60.0
+              },
+              {
+                "id": "h2",
+                "kind": "host",
+                "name": "host-2",
+                "x": 590.0,
+                "y": 140.0
+              },
+              {
+                "id": "h3",
+                "kind": "host",
+                "name": "host-3",
+                "x": 590.0,
+                "y": 220.0
+              },
+              {
+                "id": "nfs",
+                "kind": "storage_domain",
+                "name": "nfs-data",
+                "x": 450.0,
+                "y": 380.0,
+                "params": {
+                  "type": "nfs"
+                }
+              },
+              {
+                "id": "vm1",
+                "kind": "vm",
+                "name": "web-1",
+                "x": 730.0,
+                "y": 60.0
+              },
+              {
+                "id": "vm2",
+                "kind": "vm",
+                "name": "web-2",
+                "x": 730.0,
+                "y": 140.0
+              },
+              {
+                "id": "vm3",
+                "kind": "vm",
+                "name": "web-3",
+                "x": 730.0,
+                "y": 220.0
+              },
+              {
+                "id": "vm4",
+                "kind": "vm",
+                "name": "app-1",
+                "x": 730.0,
+                "y": 300.0
+              },
+              {
+                "id": "vm5",
+                "kind": "vm",
+                "name": "db-1",
+                "x": 730.0,
+                "y": 380.0
+              },
+              {
+                "id": "vm6",
+                "kind": "vm",
+                "name": "db-2",
+                "x": 730.0,
+                "y": 460.0
+              },
+              {
+                "id": "vm7",
+                "kind": "vm",
+                "name": "mail-1",
+                "x": 730.0,
+                "y": 540.0
+              },
+              {
+                "id": "vm8",
+                "kind": "vm",
+                "name": "report-1",
+                "x": 730.0,
+                "y": 620.0
+              },
+              {
+                "id": "bk1",
+                "kind": "backup",
+                "name": "tier-1",
+                "x": 870.0,
+                "y": 60.0,
+                "params": {
+                  "type": "incremental"
+                }
+              },
+              {
+                "id": "bk2",
+                "kind": "backup",
+                "name": "tier-2",
+                "x": 870.0,
+                "y": 140.0,
+                "params": {
+                  "type": "full"
+                }
+              }
+            ],
+            "edges": [
+              {
+                "from": "engine",
+                "to": "dc1"
+              },
+              {
+                "from": "dc1",
+                "to": "cl1"
+              },
+              {
+                "from": "dc1",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "cl1"
+              },
+              {
+                "from": "engine",
+                "to": "mgmt"
+              },
+              {
+                "from": "cl1",
+                "to": "h1"
+              },
+              {
+                "from": "mgmt",
+                "to": "h1"
+              },
+              {
+                "from": "cl1",
+                "to": "h2"
+              },
+              {
+                "from": "mgmt",
+                "to": "h2"
+              },
+              {
+                "from": "cl1",
+                "to": "h3"
+              },
+              {
+                "from": "mgmt",
+                "to": "h3"
+              },
+              {
+                "from": "dc1",
+                "to": "nfs"
+              },
+              {
+                "from": "nfs",
+                "to": "h1"
+              },
+              {
+                "from": "nfs",
+                "to": "h2"
+              },
+              {
+                "from": "nfs",
+                "to": "h3"
+              },
+              {
+                "from": "h1",
+                "to": "vm1"
+              },
+              {
+                "from": "nfs",
+                "to": "vm1"
+              },
+              {
+                "from": "h1",
+                "to": "vm2"
+              },
+              {
+                "from": "nfs",
+                "to": "vm2"
+              },
+              {
+                "from": "h2",
+                "to": "vm3"
+              },
+              {
+                "from": "nfs",
+                "to": "vm3"
+              },
+              {
+                "from": "h2",
+                "to": "vm4"
+              },
+              {
+                "from": "nfs",
+                "to": "vm4"
+              },
+              {
+                "from": "h3",
+                "to": "vm5"
+              },
+              {
+                "from": "nfs",
+                "to": "vm5"
+              },
+              {
+                "from": "h3",
+                "to": "vm6"
+              },
+              {
+                "from": "nfs",
+                "to": "vm6"
+              },
+              {
+                "from": "h3",
+                "to": "vm7"
+              },
+              {
+                "from": "nfs",
+                "to": "vm7"
+              },
+              {
+                "from": "h2",
+                "to": "vm8"
+              },
+              {
+                "from": "nfs",
+                "to": "vm8"
+              },
+              {
+                "from": "vm1",
+                "to": "bk1"
+              },
+              {
+                "from": "vm2",
+                "to": "bk1"
+              },
+              {
+                "from": "vm3",
+                "to": "bk1"
+              },
+              {
+                "from": "vm4",
+                "to": "bk1"
+              },
+              {
+                "from": "vm5",
+                "to": "bk2"
+              },
+              {
+                "from": "vm6",
+                "to": "bk2"
+              },
+              {
+                "from": "vm7",
+                "to": "bk2"
+              },
+              {
+                "from": "vm8",
+                "to": "bk1"
+              }
+            ]
+          },
+          "new-vm": {
+            "nodes": [
+              {
+                "id": "engine",
+                "kind": "engine",
+                "name": "engine",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "dc1",
+                "kind": "data_center",
+                "name": "Default",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "cl1",
+                "kind": "cluster",
+                "name": "cluster-a",
+                "x": 450.0,
+                "y": 60.0
+              },
+              {
+                "id": "mgmt",
+                "kind": "network",
+                "name": "ovirtmgmt",
+                "x": 310.0,
+                "y": 60.0,
+                "params": {
+                  "required": true,
+                  "role": "management"
+                }
+              },
+              {
+                "id": "h1",
+                "kind": "host",
+                "name": "host-1",
+                "x": 590.0,
+                "y": 60.0
+              },
+              {
+                "id": "h2",
+                "kind": "host",
+                "name": "host-2",
+                "x": 590.0,
+                "y": 140.0
+              },
+              {
+                "id": "nfs",
+                "kind": "storage_domain",
+                "name": "nfs-data",
+                "x": 450.0,
+                "y": 380.0,
+                "params": {
+                  "type": "nfs"
+                }
+              },
+              {
+                "id": "vm1",
+                "kind": "vm",
+                "name": "web-1",
+                "x": 730.0,
+                "y": 60.0
+              },
+              {
+                "id": "vm2",
+                "kind": "vm",
+                "name": "web-2",
+                "x": 730.0,
+                "y": 140.0
+              },
+              {
+                "id": "vm3",
+                "kind": "vm",
+                "name": "db-1",
+                "x": 730.0,
+                "y": 220.0
+              },
+              {
+                "id": "vm4",
+                "kind": "vm",
+                "name": "report-1",
+                "x": 730.0,
+                "y": 300.0
+              },
+              {
+                "id": "bk1",
+                "kind": "backup",
+                "name": "nightly",
+                "x": 870.0,
+                "y": 60.0,
+                "params": {
+                  "type": "incremental"
+                }
+              }
+            ],
+            "edges": [
+              {
+                "from": "engine",
+                "to": "dc1"
+              },
+              {
+                "from": "dc1",
+                "to": "cl1"
+              },
+              {
+                "from": "dc1",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "cl1"
+              },
+              {
+                "from": "engine",
+                "to": "mgmt"
+              },
+              {
+                "from": "cl1",
+                "to": "h1"
+              },
+              {
+                "from": "mgmt",
+                "to": "h1"
+              },
+              {
+                "from": "cl1",
+                "to": "h2"
+              },
+              {
+                "from": "mgmt",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "nfs"
+              },
+              {
+                "from": "nfs",
+                "to": "h1"
+              },
+              {
+                "from": "nfs",
+                "to": "h2"
+              },
+              {
+                "from": "h1",
+                "to": "vm1"
+              },
+              {
+                "from": "nfs",
+                "to": "vm1"
+              },
+              {
+                "from": "h1",
+                "to": "vm2"
+              },
+              {
+                "from": "nfs",
+                "to": "vm2"
+              },
+              {
+                "from": "h2",
+                "to": "vm3"
+              },
+              {
+                "from": "nfs",
+                "to": "vm3"
+              },
+              {
+                "from": "h2",
+                "to": "vm4"
+              },
+              {
+                "from": "vm1",
+                "to": "bk1"
+              },
+              {
+                "from": "vm2",
+                "to": "bk1"
+              },
+              {
+                "from": "vm3",
+                "to": "bk1"
+              },
+              {
+                "from": "nfs",
+                "to": "vm4"
+              },
+              {
+                "from": "vm4",
+                "to": "bk1"
+              }
+            ]
+          },
+          "right-type": {
+            "nodes": [
+              {
+                "id": "engine",
+                "kind": "engine",
+                "name": "engine",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "dc1",
+                "kind": "data_center",
+                "name": "Default",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "cl1",
+                "kind": "cluster",
+                "name": "cluster-a",
+                "x": 450.0,
+                "y": 60.0
+              },
+              {
+                "id": "mgmt",
+                "kind": "network",
+                "name": "ovirtmgmt",
+                "x": 310.0,
+                "y": 60.0,
+                "params": {
+                  "required": true,
+                  "role": "management"
+                }
+              },
+              {
+                "id": "h1",
+                "kind": "host",
+                "name": "host-1",
+                "x": 590.0,
+                "y": 60.0
+              },
+              {
+                "id": "h2",
+                "kind": "host",
+                "name": "host-2",
+                "x": 590.0,
+                "y": 140.0
+              },
+              {
+                "id": "nfs",
+                "kind": "storage_domain",
+                "name": "nfs-data",
+                "x": 450.0,
+                "y": 380.0,
+                "params": {
+                  "type": "nfs"
+                }
+              },
+              {
+                "id": "vm1",
+                "kind": "vm",
+                "name": "app-1",
+                "x": 730.0,
+                "y": 60.0
+              },
+              {
+                "id": "vm2",
+                "kind": "vm",
+                "name": "app-2",
+                "x": 730.0,
+                "y": 140.0
+              },
+              {
+                "id": "vm3",
+                "kind": "vm",
+                "name": "db-1",
+                "x": 730.0,
+                "y": 220.0
+              },
+              {
+                "id": "vm4",
+                "kind": "vm",
+                "name": "mail-1",
+                "x": 730.0,
+                "y": 300.0
+              },
+              {
+                "id": "bk1",
+                "kind": "backup",
+                "name": "app-backup",
+                "x": 870.0,
+                "y": 60.0,
+                "params": {
+                  "type": "incremental"
+                }
+              },
+              {
+                "id": "bk2",
+                "kind": "backup",
+                "name": "db-backup",
+                "x": 870.0,
+                "y": 140.0,
+                "params": {
+                  "type": "full"
+                }
+              },
+              {
+                "id": "bk3",
+                "kind": "backup",
+                "name": "mail-backup",
+                "x": 870.0,
+                "y": 220.0,
+                "params": {
+                  "type": "incremental"
+                }
+              }
+            ],
+            "edges": [
+              {
+                "from": "engine",
+                "to": "dc1"
+              },
+              {
+                "from": "dc1",
+                "to": "cl1"
+              },
+              {
+                "from": "dc1",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "cl1"
+              },
+              {
+                "from": "engine",
+                "to": "mgmt"
+              },
+              {
+                "from": "cl1",
+                "to": "h1"
+              },
+              {
+                "from": "mgmt",
+                "to": "h1"
+              },
+              {
+                "from": "cl1",
+                "to": "h2"
+              },
+              {
+                "from": "mgmt",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "nfs"
+              },
+              {
+                "from": "nfs",
+                "to": "h1"
+              },
+              {
+                "from": "nfs",
+                "to": "h2"
+              },
+              {
+                "from": "h1",
+                "to": "vm1"
+              },
+              {
+                "from": "nfs",
+                "to": "vm1"
+              },
+              {
+                "from": "h1",
+                "to": "vm2"
+              },
+              {
+                "from": "nfs",
+                "to": "vm2"
+              },
+              {
+                "from": "h2",
+                "to": "vm3"
+              },
+              {
+                "from": "nfs",
+                "to": "vm3"
+              },
+              {
+                "from": "h2",
+                "to": "vm4"
+              },
+              {
+                "from": "nfs",
+                "to": "vm4"
+              },
+              {
+                "from": "vm1",
+                "to": "bk1"
+              },
+              {
+                "from": "vm2",
+                "to": "bk1"
+              },
+              {
+                "from": "vm3",
+                "to": "bk2"
+              },
+              {
+                "from": "vm4",
+                "to": "bk3"
+              }
+            ]
+          },
+          "snapshot-only": {
+            "nodes": [
+              {
+                "id": "engine",
+                "kind": "engine",
+                "name": "engine",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "dc1",
+                "kind": "data_center",
+                "name": "Default",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "cl1",
+                "kind": "cluster",
+                "name": "cluster-a",
+                "x": 450.0,
+                "y": 60.0
+              },
+              {
+                "id": "mgmt",
+                "kind": "network",
+                "name": "ovirtmgmt",
+                "x": 310.0,
+                "y": 60.0,
+                "params": {
+                  "required": true,
+                  "role": "management"
+                }
+              },
+              {
+                "id": "h1",
+                "kind": "host",
+                "name": "host-1",
+                "x": 590.0,
+                "y": 60.0
+              },
+              {
+                "id": "h2",
+                "kind": "host",
+                "name": "host-2",
+                "x": 590.0,
+                "y": 140.0
+              },
+              {
+                "id": "nfs",
+                "kind": "storage_domain",
+                "name": "nfs-data",
+                "x": 450.0,
+                "y": 380.0,
+                "params": {
+                  "type": "nfs"
+                }
+              },
+              {
+                "id": "vm1",
+                "kind": "vm",
+                "name": "web-1",
+                "x": 730.0,
+                "y": 60.0
+              },
+              {
+                "id": "vm2",
+                "kind": "vm",
+                "name": "web-2",
+                "x": 730.0,
+                "y": 140.0
+              },
+              {
+                "id": "vm3",
+                "kind": "vm",
+                "name": "db-1",
+                "x": 730.0,
+                "y": 220.0
+              },
+              {
+                "id": "bk1",
+                "kind": "backup",
+                "name": "nightly",
+                "x": 870.0,
+                "y": 60.0,
+                "params": {
+                  "type": "incremental"
+                }
+              }
+            ],
+            "edges": [
+              {
+                "from": "engine",
+                "to": "dc1"
+              },
+              {
+                "from": "dc1",
+                "to": "cl1"
+              },
+              {
+                "from": "dc1",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "cl1"
+              },
+              {
+                "from": "engine",
+                "to": "mgmt"
+              },
+              {
+                "from": "cl1",
+                "to": "h1"
+              },
+              {
+                "from": "mgmt",
+                "to": "h1"
+              },
+              {
+                "from": "cl1",
+                "to": "h2"
+              },
+              {
+                "from": "mgmt",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "nfs"
+              },
+              {
+                "from": "nfs",
+                "to": "h1"
+              },
+              {
+                "from": "nfs",
+                "to": "h2"
+              },
+              {
+                "from": "h1",
+                "to": "vm1"
+              },
+              {
+                "from": "nfs",
+                "to": "vm1"
+              },
+              {
+                "from": "h2",
+                "to": "vm2"
+              },
+              {
+                "from": "nfs",
+                "to": "vm2"
+              },
+              {
+                "from": "h2",
+                "to": "vm3"
+              },
+              {
+                "from": "nfs",
+                "to": "vm3"
+              },
+              {
+                "from": "vm1",
+                "to": "bk1"
+              },
+              {
+                "from": "vm2",
+                "to": "bk1"
+              },
+              {
+                "from": "vm3",
+                "to": "bk1"
+              }
+            ]
+          },
+          "two-domains": {
+            "nodes": [
+              {
+                "id": "engine",
+                "kind": "engine",
+                "name": "engine",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "dc1",
+                "kind": "data_center",
+                "name": "Default",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "cl1",
+                "kind": "cluster",
+                "name": "cluster-a",
+                "x": 450.0,
+                "y": 60.0
+              },
+              {
+                "id": "mgmt",
+                "kind": "network",
+                "name": "ovirtmgmt",
+                "x": 310.0,
+                "y": 60.0,
+                "params": {
+                  "required": true,
+                  "role": "management"
+                }
+              },
+              {
+                "id": "h1",
+                "kind": "host",
+                "name": "host-1",
+                "x": 590.0,
+                "y": 60.0
+              },
+              {
+                "id": "h2",
+                "kind": "host",
+                "name": "host-2",
+                "x": 590.0,
+                "y": 140.0
+              },
+              {
+                "id": "nfs-a",
+                "kind": "storage_domain",
+                "name": "nfs-a",
+                "x": 450.0,
+                "y": 380.0,
+                "params": {
+                  "type": "nfs"
+                }
+              },
+              {
+                "id": "nfs-b",
+                "kind": "storage_domain",
+                "name": "nfs-b",
+                "x": 450.0,
+                "y": 460.0,
+                "params": {
+                  "type": "nfs"
+                }
+              },
+              {
+                "id": "vm1",
+                "kind": "vm",
+                "name": "web-1",
+                "x": 730.0,
+                "y": 60.0
+              },
+              {
+                "id": "vm2",
+                "kind": "vm",
+                "name": "web-2",
+                "x": 730.0,
+                "y": 140.0
+              },
+              {
+                "id": "vm3",
+                "kind": "vm",
+                "name": "db-1",
+                "x": 730.0,
+                "y": 220.0
+              },
+              {
+                "id": "vm4",
+                "kind": "vm",
+                "name": "db-2",
+                "x": 730.0,
+                "y": 300.0
+              },
+              {
+                "id": "bk1",
+                "kind": "backup",
+                "name": "web-nightly",
+                "x": 870.0,
+                "y": 60.0,
+                "params": {
+                  "type": "incremental"
+                }
+              },
+              {
+                "id": "bk2",
+                "kind": "backup",
+                "name": "db-nightly",
+                "x": 870.0,
+                "y": 140.0,
+                "params": {
+                  "type": "incremental"
+                }
+              }
+            ],
+            "edges": [
+              {
+                "from": "engine",
+                "to": "dc1"
+              },
+              {
+                "from": "dc1",
+                "to": "cl1"
+              },
+              {
+                "from": "dc1",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "cl1"
+              },
+              {
+                "from": "engine",
+                "to": "mgmt"
+              },
+              {
+                "from": "cl1",
+                "to": "h1"
+              },
+              {
+                "from": "mgmt",
+                "to": "h1"
+              },
+              {
+                "from": "cl1",
+                "to": "h2"
+              },
+              {
+                "from": "mgmt",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "nfs-a"
+              },
+              {
+                "from": "nfs-a",
+                "to": "h1"
+              },
+              {
+                "from": "nfs-a",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "nfs-b"
+              },
+              {
+                "from": "nfs-b",
+                "to": "h1"
+              },
+              {
+                "from": "nfs-b",
+                "to": "h2"
+              },
+              {
+                "from": "h1",
+                "to": "vm1"
+              },
+              {
+                "from": "nfs-a",
+                "to": "vm1"
+              },
+              {
+                "from": "h1",
+                "to": "vm2"
+              },
+              {
+                "from": "nfs-a",
+                "to": "vm2"
+              },
+              {
+                "from": "h2",
+                "to": "vm3"
+              },
+              {
+                "from": "nfs-b",
+                "to": "vm3"
+              },
+              {
+                "from": "h2",
+                "to": "vm4"
+              },
+              {
+                "from": "nfs-b",
+                "to": "vm4"
+              },
+              {
+                "from": "vm1",
+                "to": "bk1"
+              },
+              {
+                "from": "vm2",
+                "to": "bk1"
+              },
+              {
+                "from": "vm3",
+                "to": "bk2"
+              },
+              {
+                "from": "vm4",
+                "to": "bk2"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "virt-sim-ovirt-dr",
+      "title": "Доска: аварийное восстановление",
+      "statement": "Постройте на доске аварийное восстановление между дата-центрами: реплика домена хранения должна жить в другом дата-центре и быть активной. Пять сценариев: первая реплика, реплика в дата-центре без хостов, две площадки, реплицирующиеся друг в друга, машина с дисками на двух доменах и копия, лежащая рядом с оригиналом. Упражнение решено, когда решены все сценарии.",
+      "hint": "Площадку переживает только реплика в другом дата-центре, и только активная: домен Active, когда его видит хост Up своего дата-центра. Покрыть нужно каждый домен с дисками машины, а у реплики один основной домен.",
+      "spec": {
+        "sim": "ovirt_topo",
+        "scenarios": [
+          {
+            "id": "first-replica",
+            "title": "A copy in the other data center",
+            "story": "All production VMs keep their disks on nfs-prod in the Default data center. The Recovery data center has a host and nothing else, and losing the Default site would lose every disk.",
+            "goal": "Every VM disk has a replica that is Active in the Recovery data center, and both data centers are Up",
+            "hint": "A replica is a storage domain of its own in the other data center. The hosts there must see it, or it stays Inactive.",
+            "palette": [
+              "storage_domain"
+            ],
+            "max_nodes": 16,
+            "start": {
+              "nodes": [
+                {
+                  "id": "engine",
+                  "kind": "engine",
+                  "name": "engine",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "dc1",
+                  "kind": "data_center",
+                  "name": "Default",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "dc2",
+                  "kind": "data_center",
+                  "name": "Recovery",
+                  "x": 190.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "cl1",
+                  "kind": "cluster",
+                  "name": "cluster-a",
+                  "x": 450.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "cl2",
+                  "kind": "cluster",
+                  "name": "cluster-b",
+                  "x": 450.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "mgmt",
+                  "kind": "network",
+                  "name": "ovirtmgmt",
+                  "x": 310.0,
+                  "y": 60.0,
+                  "params": {
+                    "required": true,
+                    "role": "management"
+                  }
+                },
+                {
+                  "id": "mgmt2",
+                  "kind": "network",
+                  "name": "ovirtmgmt-2",
+                  "x": 310.0,
+                  "y": 140.0,
+                  "params": {
+                    "required": true,
+                    "role": "management"
+                  }
+                },
+                {
+                  "id": "h1",
+                  "kind": "host",
+                  "name": "host-1",
+                  "x": 590.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h2",
+                  "kind": "host",
+                  "name": "host-2",
+                  "x": 590.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "h3",
+                  "kind": "host",
+                  "name": "host-3",
+                  "x": 590.0,
+                  "y": 220.0
+                },
+                {
+                  "id": "nfs",
+                  "kind": "storage_domain",
+                  "name": "nfs-prod",
+                  "x": 450.0,
+                  "y": 380.0,
+                  "params": {
+                    "type": "nfs"
+                  }
+                },
+                {
+                  "id": "vm1",
+                  "kind": "vm",
+                  "name": "web-1",
+                  "x": 730.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "vm2",
+                  "kind": "vm",
+                  "name": "db-1",
+                  "x": 730.0,
+                  "y": 140.0
+                }
+              ],
+              "edges": [
+                {
+                  "from": "engine",
+                  "to": "dc1"
+                },
+                {
+                  "from": "engine",
+                  "to": "dc2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "cl1"
+                },
+                {
+                  "from": "dc2",
+                  "to": "cl2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "cl1"
+                },
+                {
+                  "from": "engine",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "dc2",
+                  "to": "mgmt2"
+                },
+                {
+                  "from": "mgmt2",
+                  "to": "cl2"
+                },
+                {
+                  "from": "engine",
+                  "to": "mgmt2"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h1"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h2"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h2"
+                },
+                {
+                  "from": "cl2",
+                  "to": "h3"
+                },
+                {
+                  "from": "mgmt2",
+                  "to": "h3"
+                },
+                {
+                  "from": "dc1",
+                  "to": "nfs"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h2"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm1"
+                },
+                {
+                  "from": "h2",
+                  "to": "vm2"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm2"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "healthy"
+              },
+              {
+                "kind": "dc_up",
+                "min": 2
+              },
+              {
+                "kind": "link",
+                "rel": "replica",
+                "min": 1
+              },
+              {
+                "kind": "survive_site_loss"
+              }
+            ]
+          },
+          {
+            "id": "empty-site",
+            "title": "A replica nobody can open",
+            "story": "nfs-dr is configured as the replica of nfs-prod and attached to the Recovery data center, but the drill shows it Inactive and the Recovery data center is not Up.",
+            "goal": "The replica is Active in an Up Recovery data center, so the production disks survive the loss of the Default site",
+            "hint": "A domain is Active only while an Up host of its data center sees it. Look at what the Recovery data center has.",
+            "palette": [
+              "host"
+            ],
+            "max_nodes": 15,
+            "start": {
+              "nodes": [
+                {
+                  "id": "engine",
+                  "kind": "engine",
+                  "name": "engine",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "dc1",
+                  "kind": "data_center",
+                  "name": "Default",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "dc2",
+                  "kind": "data_center",
+                  "name": "Recovery",
+                  "x": 190.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "cl1",
+                  "kind": "cluster",
+                  "name": "cluster-a",
+                  "x": 450.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "cl2",
+                  "kind": "cluster",
+                  "name": "cluster-b",
+                  "x": 450.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "mgmt",
+                  "kind": "network",
+                  "name": "ovirtmgmt",
+                  "x": 310.0,
+                  "y": 60.0,
+                  "params": {
+                    "required": true,
+                    "role": "management"
+                  }
+                },
+                {
+                  "id": "mgmt2",
+                  "kind": "network",
+                  "name": "ovirtmgmt-2",
+                  "x": 310.0,
+                  "y": 140.0,
+                  "params": {
+                    "required": true,
+                    "role": "management"
+                  }
+                },
+                {
+                  "id": "h1",
+                  "kind": "host",
+                  "name": "host-1",
+                  "x": 590.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h2",
+                  "kind": "host",
+                  "name": "host-2",
+                  "x": 590.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "nfs",
+                  "kind": "storage_domain",
+                  "name": "nfs-prod",
+                  "x": 450.0,
+                  "y": 380.0,
+                  "params": {
+                    "type": "nfs"
+                  }
+                },
+                {
+                  "id": "dr",
+                  "kind": "storage_domain",
+                  "name": "nfs-dr",
+                  "x": 450.0,
+                  "y": 460.0,
+                  "params": {
+                    "type": "nfs"
+                  }
+                },
+                {
+                  "id": "vm1",
+                  "kind": "vm",
+                  "name": "web-1",
+                  "x": 730.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "vm2",
+                  "kind": "vm",
+                  "name": "db-1",
+                  "x": 730.0,
+                  "y": 140.0
+                }
+              ],
+              "edges": [
+                {
+                  "from": "engine",
+                  "to": "dc1"
+                },
+                {
+                  "from": "engine",
+                  "to": "dc2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "cl1"
+                },
+                {
+                  "from": "dc2",
+                  "to": "cl2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "cl1"
+                },
+                {
+                  "from": "engine",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "dc2",
+                  "to": "mgmt2"
+                },
+                {
+                  "from": "mgmt2",
+                  "to": "cl2"
+                },
+                {
+                  "from": "engine",
+                  "to": "mgmt2"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h1"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h2"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "nfs"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc2",
+                  "to": "dr"
+                },
+                {
+                  "from": "nfs",
+                  "to": "dr"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm1"
+                },
+                {
+                  "from": "h2",
+                  "to": "vm2"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm2"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "healthy"
+              },
+              {
+                "kind": "dc_up",
+                "min": 2
+              },
+              {
+                "kind": "hosts_up",
+                "min": 3
+              },
+              {
+                "kind": "survive_site_loss"
+              }
+            ]
+          },
+          {
+            "id": "both-ways",
+            "title": "Two sites, each other's backup",
+            "story": "East and West both run production VMs, and each site has a spare domain waiting for the copy of the other site's data. Nothing is replicated yet.",
+            "goal": "Losing either site loses no VM disk: each production domain is replicated into the other data center",
+            "hint": "A copy in the same data center does not survive the loss of that data center. Pair every production domain with the spare of the other site.",
+            "palette": [
+              "storage_domain"
+            ],
+            "max_nodes": 18,
+            "start": {
+              "nodes": [
+                {
+                  "id": "engine",
+                  "kind": "engine",
+                  "name": "engine",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "dc1",
+                  "kind": "data_center",
+                  "name": "East",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "dc2",
+                  "kind": "data_center",
+                  "name": "West",
+                  "x": 190.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "cl1",
+                  "kind": "cluster",
+                  "name": "cluster-a",
+                  "x": 450.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "cl2",
+                  "kind": "cluster",
+                  "name": "cluster-b",
+                  "x": 450.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "mgmt",
+                  "kind": "network",
+                  "name": "ovirtmgmt",
+                  "x": 310.0,
+                  "y": 60.0,
+                  "params": {
+                    "required": true,
+                    "role": "management"
+                  }
+                },
+                {
+                  "id": "mgmt2",
+                  "kind": "network",
+                  "name": "ovirtmgmt-2",
+                  "x": 310.0,
+                  "y": 140.0,
+                  "params": {
+                    "required": true,
+                    "role": "management"
+                  }
+                },
+                {
+                  "id": "h1",
+                  "kind": "host",
+                  "name": "host-1",
+                  "x": 590.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h2",
+                  "kind": "host",
+                  "name": "host-2",
+                  "x": 590.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "east",
+                  "kind": "storage_domain",
+                  "name": "east-data",
+                  "x": 450.0,
+                  "y": 380.0,
+                  "params": {
+                    "type": "nfs"
+                  }
+                },
+                {
+                  "id": "west",
+                  "kind": "storage_domain",
+                  "name": "west-data",
+                  "x": 450.0,
+                  "y": 460.0,
+                  "params": {
+                    "type": "nfs"
+                  }
+                },
+                {
+                  "id": "west-copy",
+                  "kind": "storage_domain",
+                  "name": "west-copy",
+                  "x": 450.0,
+                  "y": 540.0,
+                  "params": {
+                    "type": "nfs"
+                  }
+                },
+                {
+                  "id": "east-copy",
+                  "kind": "storage_domain",
+                  "name": "east-copy",
+                  "x": 450.0,
+                  "y": 620.0,
+                  "params": {
+                    "type": "nfs"
+                  }
+                },
+                {
+                  "id": "vm1",
+                  "kind": "vm",
+                  "name": "web-1",
+                  "x": 730.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "vm2",
+                  "kind": "vm",
+                  "name": "web-2",
+                  "x": 730.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "vm3",
+                  "kind": "vm",
+                  "name": "erp-1",
+                  "x": 730.0,
+                  "y": 220.0
+                }
+              ],
+              "edges": [
+                {
+                  "from": "engine",
+                  "to": "dc1"
+                },
+                {
+                  "from": "engine",
+                  "to": "dc2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "cl1"
+                },
+                {
+                  "from": "dc2",
+                  "to": "cl2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "cl1"
+                },
+                {
+                  "from": "engine",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "dc2",
+                  "to": "mgmt2"
+                },
+                {
+                  "from": "mgmt2",
+                  "to": "cl2"
+                },
+                {
+                  "from": "engine",
+                  "to": "mgmt2"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h1"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h1"
+                },
+                {
+                  "from": "cl2",
+                  "to": "h2"
+                },
+                {
+                  "from": "mgmt2",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "east"
+                },
+                {
+                  "from": "east",
+                  "to": "h1"
+                },
+                {
+                  "from": "dc2",
+                  "to": "west"
+                },
+                {
+                  "from": "west",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "west-copy"
+                },
+                {
+                  "from": "west-copy",
+                  "to": "h1"
+                },
+                {
+                  "from": "dc2",
+                  "to": "east-copy"
+                },
+                {
+                  "from": "east-copy",
+                  "to": "h2"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm1"
+                },
+                {
+                  "from": "east",
+                  "to": "vm1"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm2"
+                },
+                {
+                  "from": "east",
+                  "to": "vm2"
+                },
+                {
+                  "from": "h2",
+                  "to": "vm3"
+                },
+                {
+                  "from": "west",
+                  "to": "vm3"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "healthy"
+              },
+              {
+                "kind": "dc_up",
+                "min": 2
+              },
+              {
+                "kind": "link",
+                "rel": "replica",
+                "min": 2
+              },
+              {
+                "kind": "survive_site_loss"
+              }
+            ]
+          },
+          {
+            "id": "one-of-two",
+            "title": "One disk of two",
+            "story": "db-1 has disks on nfs-os and nfs-data. After the drill the Recovery site brought back its system disk but not the data disk.",
+            "goal": "Every disk domain of every VM has its own replica in the Recovery data center",
+            "hint": "Check each disk domain of db-1 for a copy in the other site. A copy belongs to one primary only.",
+            "palette": [
+              "storage_domain"
+            ],
+            "max_nodes": 18,
+            "start": {
+              "nodes": [
+                {
+                  "id": "engine",
+                  "kind": "engine",
+                  "name": "engine",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "dc1",
+                  "kind": "data_center",
+                  "name": "Default",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "dc2",
+                  "kind": "data_center",
+                  "name": "Recovery",
+                  "x": 190.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "cl1",
+                  "kind": "cluster",
+                  "name": "cluster-a",
+                  "x": 450.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "cl2",
+                  "kind": "cluster",
+                  "name": "cluster-b",
+                  "x": 450.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "mgmt",
+                  "kind": "network",
+                  "name": "ovirtmgmt",
+                  "x": 310.0,
+                  "y": 60.0,
+                  "params": {
+                    "required": true,
+                    "role": "management"
+                  }
+                },
+                {
+                  "id": "mgmt2",
+                  "kind": "network",
+                  "name": "ovirtmgmt-2",
+                  "x": 310.0,
+                  "y": 140.0,
+                  "params": {
+                    "required": true,
+                    "role": "management"
+                  }
+                },
+                {
+                  "id": "h1",
+                  "kind": "host",
+                  "name": "host-1",
+                  "x": 590.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h2",
+                  "kind": "host",
+                  "name": "host-2",
+                  "x": 590.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "h3",
+                  "kind": "host",
+                  "name": "host-3",
+                  "x": 590.0,
+                  "y": 220.0
+                },
+                {
+                  "id": "os",
+                  "kind": "storage_domain",
+                  "name": "nfs-os",
+                  "x": 450.0,
+                  "y": 380.0,
+                  "params": {
+                    "type": "nfs"
+                  }
+                },
+                {
+                  "id": "data",
+                  "kind": "storage_domain",
+                  "name": "nfs-data",
+                  "x": 450.0,
+                  "y": 460.0,
+                  "params": {
+                    "type": "nfs"
+                  }
+                },
+                {
+                  "id": "dr1",
+                  "kind": "storage_domain",
+                  "name": "dr-1",
+                  "x": 450.0,
+                  "y": 540.0,
+                  "params": {
+                    "type": "nfs"
+                  }
+                },
+                {
+                  "id": "dr2",
+                  "kind": "storage_domain",
+                  "name": "dr-2",
+                  "x": 450.0,
+                  "y": 620.0,
+                  "params": {
+                    "type": "nfs"
+                  }
+                },
+                {
+                  "id": "vm1",
+                  "kind": "vm",
+                  "name": "db-1",
+                  "x": 730.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "vm2",
+                  "kind": "vm",
+                  "name": "web-1",
+                  "x": 730.0,
+                  "y": 140.0
+                }
+              ],
+              "edges": [
+                {
+                  "from": "engine",
+                  "to": "dc1"
+                },
+                {
+                  "from": "engine",
+                  "to": "dc2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "cl1"
+                },
+                {
+                  "from": "dc2",
+                  "to": "cl2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "cl1"
+                },
+                {
+                  "from": "engine",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "dc2",
+                  "to": "mgmt2"
+                },
+                {
+                  "from": "mgmt2",
+                  "to": "cl2"
+                },
+                {
+                  "from": "engine",
+                  "to": "mgmt2"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h1"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h2"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h2"
+                },
+                {
+                  "from": "cl2",
+                  "to": "h3"
+                },
+                {
+                  "from": "mgmt2",
+                  "to": "h3"
+                },
+                {
+                  "from": "dc1",
+                  "to": "os"
+                },
+                {
+                  "from": "os",
+                  "to": "h1"
+                },
+                {
+                  "from": "os",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "data"
+                },
+                {
+                  "from": "data",
+                  "to": "h1"
+                },
+                {
+                  "from": "data",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc2",
+                  "to": "dr1"
+                },
+                {
+                  "from": "dr1",
+                  "to": "h3"
+                },
+                {
+                  "from": "dc2",
+                  "to": "dr2"
+                },
+                {
+                  "from": "dr2",
+                  "to": "h3"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm1"
+                },
+                {
+                  "from": "os",
+                  "to": "vm1"
+                },
+                {
+                  "from": "data",
+                  "to": "vm1"
+                },
+                {
+                  "from": "h2",
+                  "to": "vm2"
+                },
+                {
+                  "from": "os",
+                  "to": "vm2"
+                },
+                {
+                  "from": "os",
+                  "to": "dr1"
+                },
+                {
+                  "from": "os",
+                  "to": "dr2"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "healthy"
+              },
+              {
+                "kind": "dc_up",
+                "min": 2
+              },
+              {
+                "kind": "link",
+                "rel": "replica",
+                "min": 2
+              },
+              {
+                "kind": "survive_site_loss"
+              }
+            ]
+          },
+          {
+            "id": "same-site",
+            "title": "The copy sits next to the original",
+            "story": "nfs-copy is the replica of nfs-prod, but both domains are attached to the Default data center. The Recovery data center runs on its own nfs-local and has no copy of production.",
+            "goal": "The replica of nfs-prod is Active in the Recovery data center and both data centers are Up",
+            "hint": "A domain is attached to one data center. A copy in the same site disappears together with the original, so it has to be moved.",
+            "palette": [
+              "storage_domain"
+            ],
+            "max_nodes": 17,
+            "start": {
+              "nodes": [
+                {
+                  "id": "engine",
+                  "kind": "engine",
+                  "name": "engine",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "dc1",
+                  "kind": "data_center",
+                  "name": "Default",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "dc2",
+                  "kind": "data_center",
+                  "name": "Recovery",
+                  "x": 190.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "cl1",
+                  "kind": "cluster",
+                  "name": "cluster-a",
+                  "x": 450.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "cl2",
+                  "kind": "cluster",
+                  "name": "cluster-b",
+                  "x": 450.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "mgmt",
+                  "kind": "network",
+                  "name": "ovirtmgmt",
+                  "x": 310.0,
+                  "y": 60.0,
+                  "params": {
+                    "required": true,
+                    "role": "management"
+                  }
+                },
+                {
+                  "id": "mgmt2",
+                  "kind": "network",
+                  "name": "ovirtmgmt-2",
+                  "x": 310.0,
+                  "y": 140.0,
+                  "params": {
+                    "required": true,
+                    "role": "management"
+                  }
+                },
+                {
+                  "id": "h1",
+                  "kind": "host",
+                  "name": "host-1",
+                  "x": 590.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h2",
+                  "kind": "host",
+                  "name": "host-2",
+                  "x": 590.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "h3",
+                  "kind": "host",
+                  "name": "host-3",
+                  "x": 590.0,
+                  "y": 220.0
+                },
+                {
+                  "id": "nfs",
+                  "kind": "storage_domain",
+                  "name": "nfs-prod",
+                  "x": 450.0,
+                  "y": 380.0,
+                  "params": {
+                    "type": "nfs"
+                  }
+                },
+                {
+                  "id": "copy",
+                  "kind": "storage_domain",
+                  "name": "nfs-copy",
+                  "x": 450.0,
+                  "y": 460.0,
+                  "params": {
+                    "type": "nfs"
+                  }
+                },
+                {
+                  "id": "local",
+                  "kind": "storage_domain",
+                  "name": "nfs-local",
+                  "x": 450.0,
+                  "y": 540.0,
+                  "params": {
+                    "type": "nfs"
+                  }
+                },
+                {
+                  "id": "vm1",
+                  "kind": "vm",
+                  "name": "web-1",
+                  "x": 730.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "vm2",
+                  "kind": "vm",
+                  "name": "db-1",
+                  "x": 730.0,
+                  "y": 140.0
+                }
+              ],
+              "edges": [
+                {
+                  "from": "engine",
+                  "to": "dc1"
+                },
+                {
+                  "from": "engine",
+                  "to": "dc2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "cl1"
+                },
+                {
+                  "from": "dc2",
+                  "to": "cl2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "cl1"
+                },
+                {
+                  "from": "engine",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "dc2",
+                  "to": "mgmt2"
+                },
+                {
+                  "from": "mgmt2",
+                  "to": "cl2"
+                },
+                {
+                  "from": "engine",
+                  "to": "mgmt2"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h1"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h2"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h2"
+                },
+                {
+                  "from": "cl2",
+                  "to": "h3"
+                },
+                {
+                  "from": "mgmt2",
+                  "to": "h3"
+                },
+                {
+                  "from": "dc1",
+                  "to": "nfs"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "copy"
+                },
+                {
+                  "from": "copy",
+                  "to": "h1"
+                },
+                {
+                  "from": "copy",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc2",
+                  "to": "local"
+                },
+                {
+                  "from": "local",
+                  "to": "h3"
+                },
+                {
+                  "from": "nfs",
+                  "to": "copy"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm1"
+                },
+                {
+                  "from": "h2",
+                  "to": "vm2"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm2"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "healthy"
+              },
+              {
+                "kind": "dc_up",
+                "min": 2
+              },
+              {
+                "kind": "link",
+                "rel": "replica",
+                "min": 1
+              },
+              {
+                "kind": "survive_site_loss"
+              }
+            ]
+          }
+        ],
+        "solution": {
+          "both-ways": {
+            "nodes": [
+              {
+                "id": "engine",
+                "kind": "engine",
+                "name": "engine",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "dc1",
+                "kind": "data_center",
+                "name": "East",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "dc2",
+                "kind": "data_center",
+                "name": "West",
+                "x": 190.0,
+                "y": 140.0
+              },
+              {
+                "id": "cl1",
+                "kind": "cluster",
+                "name": "cluster-a",
+                "x": 450.0,
+                "y": 60.0
+              },
+              {
+                "id": "cl2",
+                "kind": "cluster",
+                "name": "cluster-b",
+                "x": 450.0,
+                "y": 140.0
+              },
+              {
+                "id": "mgmt",
+                "kind": "network",
+                "name": "ovirtmgmt",
+                "x": 310.0,
+                "y": 60.0,
+                "params": {
+                  "required": true,
+                  "role": "management"
+                }
+              },
+              {
+                "id": "mgmt2",
+                "kind": "network",
+                "name": "ovirtmgmt-2",
+                "x": 310.0,
+                "y": 140.0,
+                "params": {
+                  "required": true,
+                  "role": "management"
+                }
+              },
+              {
+                "id": "h1",
+                "kind": "host",
+                "name": "host-1",
+                "x": 590.0,
+                "y": 60.0
+              },
+              {
+                "id": "h2",
+                "kind": "host",
+                "name": "host-2",
+                "x": 590.0,
+                "y": 140.0
+              },
+              {
+                "id": "east",
+                "kind": "storage_domain",
+                "name": "east-data",
+                "x": 450.0,
+                "y": 380.0,
+                "params": {
+                  "type": "nfs"
+                }
+              },
+              {
+                "id": "west",
+                "kind": "storage_domain",
+                "name": "west-data",
+                "x": 450.0,
+                "y": 460.0,
+                "params": {
+                  "type": "nfs"
+                }
+              },
+              {
+                "id": "west-copy",
+                "kind": "storage_domain",
+                "name": "west-copy",
+                "x": 450.0,
+                "y": 540.0,
+                "params": {
+                  "type": "nfs"
+                }
+              },
+              {
+                "id": "east-copy",
+                "kind": "storage_domain",
+                "name": "east-copy",
+                "x": 450.0,
+                "y": 620.0,
+                "params": {
+                  "type": "nfs"
+                }
+              },
+              {
+                "id": "vm1",
+                "kind": "vm",
+                "name": "web-1",
+                "x": 730.0,
+                "y": 60.0
+              },
+              {
+                "id": "vm2",
+                "kind": "vm",
+                "name": "web-2",
+                "x": 730.0,
+                "y": 140.0
+              },
+              {
+                "id": "vm3",
+                "kind": "vm",
+                "name": "erp-1",
+                "x": 730.0,
+                "y": 220.0
+              }
+            ],
+            "edges": [
+              {
+                "from": "engine",
+                "to": "dc1"
+              },
+              {
+                "from": "engine",
+                "to": "dc2"
+              },
+              {
+                "from": "dc1",
+                "to": "cl1"
+              },
+              {
+                "from": "dc2",
+                "to": "cl2"
+              },
+              {
+                "from": "dc1",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "cl1"
+              },
+              {
+                "from": "engine",
+                "to": "mgmt"
+              },
+              {
+                "from": "dc2",
+                "to": "mgmt2"
+              },
+              {
+                "from": "mgmt2",
+                "to": "cl2"
+              },
+              {
+                "from": "engine",
+                "to": "mgmt2"
+              },
+              {
+                "from": "cl1",
+                "to": "h1"
+              },
+              {
+                "from": "mgmt",
+                "to": "h1"
+              },
+              {
+                "from": "cl2",
+                "to": "h2"
+              },
+              {
+                "from": "mgmt2",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "east"
+              },
+              {
+                "from": "east",
+                "to": "h1"
+              },
+              {
+                "from": "dc2",
+                "to": "west"
+              },
+              {
+                "from": "west",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "west-copy"
+              },
+              {
+                "from": "west-copy",
+                "to": "h1"
+              },
+              {
+                "from": "dc2",
+                "to": "east-copy"
+              },
+              {
+                "from": "east-copy",
+                "to": "h2"
+              },
+              {
+                "from": "h1",
+                "to": "vm1"
+              },
+              {
+                "from": "east",
+                "to": "vm1"
+              },
+              {
+                "from": "h1",
+                "to": "vm2"
+              },
+              {
+                "from": "east",
+                "to": "vm2"
+              },
+              {
+                "from": "h2",
+                "to": "vm3"
+              },
+              {
+                "from": "west",
+                "to": "vm3"
+              },
+              {
+                "from": "east",
+                "to": "east-copy"
+              },
+              {
+                "from": "west",
+                "to": "west-copy"
+              }
+            ]
+          },
+          "empty-site": {
+            "nodes": [
+              {
+                "id": "engine",
+                "kind": "engine",
+                "name": "engine",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "dc1",
+                "kind": "data_center",
+                "name": "Default",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "dc2",
+                "kind": "data_center",
+                "name": "Recovery",
+                "x": 190.0,
+                "y": 140.0
+              },
+              {
+                "id": "cl1",
+                "kind": "cluster",
+                "name": "cluster-a",
+                "x": 450.0,
+                "y": 60.0
+              },
+              {
+                "id": "cl2",
+                "kind": "cluster",
+                "name": "cluster-b",
+                "x": 450.0,
+                "y": 140.0
+              },
+              {
+                "id": "mgmt",
+                "kind": "network",
+                "name": "ovirtmgmt",
+                "x": 310.0,
+                "y": 60.0,
+                "params": {
+                  "required": true,
+                  "role": "management"
+                }
+              },
+              {
+                "id": "mgmt2",
+                "kind": "network",
+                "name": "ovirtmgmt-2",
+                "x": 310.0,
+                "y": 140.0,
+                "params": {
+                  "required": true,
+                  "role": "management"
+                }
+              },
+              {
+                "id": "h1",
+                "kind": "host",
+                "name": "host-1",
+                "x": 590.0,
+                "y": 60.0
+              },
+              {
+                "id": "h2",
+                "kind": "host",
+                "name": "host-2",
+                "x": 590.0,
+                "y": 140.0
+              },
+              {
+                "id": "nfs",
+                "kind": "storage_domain",
+                "name": "nfs-prod",
+                "x": 450.0,
+                "y": 380.0,
+                "params": {
+                  "type": "nfs"
+                }
+              },
+              {
+                "id": "dr",
+                "kind": "storage_domain",
+                "name": "nfs-dr",
+                "x": 450.0,
+                "y": 460.0,
+                "params": {
+                  "type": "nfs"
+                }
+              },
+              {
+                "id": "vm1",
+                "kind": "vm",
+                "name": "web-1",
+                "x": 730.0,
+                "y": 60.0
+              },
+              {
+                "id": "vm2",
+                "kind": "vm",
+                "name": "db-1",
+                "x": 730.0,
+                "y": 140.0
+              },
+              {
+                "id": "h3",
+                "kind": "host",
+                "name": "host-3",
+                "x": 590.0,
+                "y": 220.0
+              }
+            ],
+            "edges": [
+              {
+                "from": "engine",
+                "to": "dc1"
+              },
+              {
+                "from": "engine",
+                "to": "dc2"
+              },
+              {
+                "from": "dc1",
+                "to": "cl1"
+              },
+              {
+                "from": "dc2",
+                "to": "cl2"
+              },
+              {
+                "from": "dc1",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "cl1"
+              },
+              {
+                "from": "engine",
+                "to": "mgmt"
+              },
+              {
+                "from": "dc2",
+                "to": "mgmt2"
+              },
+              {
+                "from": "mgmt2",
+                "to": "cl2"
+              },
+              {
+                "from": "engine",
+                "to": "mgmt2"
+              },
+              {
+                "from": "cl1",
+                "to": "h1"
+              },
+              {
+                "from": "mgmt",
+                "to": "h1"
+              },
+              {
+                "from": "cl1",
+                "to": "h2"
+              },
+              {
+                "from": "mgmt",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "nfs"
+              },
+              {
+                "from": "nfs",
+                "to": "h1"
+              },
+              {
+                "from": "nfs",
+                "to": "h2"
+              },
+              {
+                "from": "dc2",
+                "to": "dr"
+              },
+              {
+                "from": "nfs",
+                "to": "dr"
+              },
+              {
+                "from": "h1",
+                "to": "vm1"
+              },
+              {
+                "from": "nfs",
+                "to": "vm1"
+              },
+              {
+                "from": "h2",
+                "to": "vm2"
+              },
+              {
+                "from": "nfs",
+                "to": "vm2"
+              },
+              {
+                "from": "cl2",
+                "to": "h3"
+              },
+              {
+                "from": "mgmt2",
+                "to": "h3"
+              },
+              {
+                "from": "dr",
+                "to": "h3"
+              }
+            ]
+          },
+          "first-replica": {
+            "nodes": [
+              {
+                "id": "engine",
+                "kind": "engine",
+                "name": "engine",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "dc1",
+                "kind": "data_center",
+                "name": "Default",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "dc2",
+                "kind": "data_center",
+                "name": "Recovery",
+                "x": 190.0,
+                "y": 140.0
+              },
+              {
+                "id": "cl1",
+                "kind": "cluster",
+                "name": "cluster-a",
+                "x": 450.0,
+                "y": 60.0
+              },
+              {
+                "id": "cl2",
+                "kind": "cluster",
+                "name": "cluster-b",
+                "x": 450.0,
+                "y": 140.0
+              },
+              {
+                "id": "mgmt",
+                "kind": "network",
+                "name": "ovirtmgmt",
+                "x": 310.0,
+                "y": 60.0,
+                "params": {
+                  "required": true,
+                  "role": "management"
+                }
+              },
+              {
+                "id": "mgmt2",
+                "kind": "network",
+                "name": "ovirtmgmt-2",
+                "x": 310.0,
+                "y": 140.0,
+                "params": {
+                  "required": true,
+                  "role": "management"
+                }
+              },
+              {
+                "id": "h1",
+                "kind": "host",
+                "name": "host-1",
+                "x": 590.0,
+                "y": 60.0
+              },
+              {
+                "id": "h2",
+                "kind": "host",
+                "name": "host-2",
+                "x": 590.0,
+                "y": 140.0
+              },
+              {
+                "id": "h3",
+                "kind": "host",
+                "name": "host-3",
+                "x": 590.0,
+                "y": 220.0
+              },
+              {
+                "id": "nfs",
+                "kind": "storage_domain",
+                "name": "nfs-prod",
+                "x": 450.0,
+                "y": 380.0,
+                "params": {
+                  "type": "nfs"
+                }
+              },
+              {
+                "id": "vm1",
+                "kind": "vm",
+                "name": "web-1",
+                "x": 730.0,
+                "y": 60.0
+              },
+              {
+                "id": "vm2",
+                "kind": "vm",
+                "name": "db-1",
+                "x": 730.0,
+                "y": 140.0
+              },
+              {
+                "id": "dr",
+                "kind": "storage_domain",
+                "name": "nfs-dr",
+                "x": 450.0,
+                "y": 460.0,
+                "params": {
+                  "type": "nfs"
+                }
+              }
+            ],
+            "edges": [
+              {
+                "from": "engine",
+                "to": "dc1"
+              },
+              {
+                "from": "engine",
+                "to": "dc2"
+              },
+              {
+                "from": "dc1",
+                "to": "cl1"
+              },
+              {
+                "from": "dc2",
+                "to": "cl2"
+              },
+              {
+                "from": "dc1",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "cl1"
+              },
+              {
+                "from": "engine",
+                "to": "mgmt"
+              },
+              {
+                "from": "dc2",
+                "to": "mgmt2"
+              },
+              {
+                "from": "mgmt2",
+                "to": "cl2"
+              },
+              {
+                "from": "engine",
+                "to": "mgmt2"
+              },
+              {
+                "from": "cl1",
+                "to": "h1"
+              },
+              {
+                "from": "mgmt",
+                "to": "h1"
+              },
+              {
+                "from": "cl1",
+                "to": "h2"
+              },
+              {
+                "from": "mgmt",
+                "to": "h2"
+              },
+              {
+                "from": "cl2",
+                "to": "h3"
+              },
+              {
+                "from": "mgmt2",
+                "to": "h3"
+              },
+              {
+                "from": "dc1",
+                "to": "nfs"
+              },
+              {
+                "from": "nfs",
+                "to": "h1"
+              },
+              {
+                "from": "nfs",
+                "to": "h2"
+              },
+              {
+                "from": "h1",
+                "to": "vm1"
+              },
+              {
+                "from": "nfs",
+                "to": "vm1"
+              },
+              {
+                "from": "h2",
+                "to": "vm2"
+              },
+              {
+                "from": "nfs",
+                "to": "vm2"
+              },
+              {
+                "from": "dc2",
+                "to": "dr"
+              },
+              {
+                "from": "dr",
+                "to": "h3"
+              },
+              {
+                "from": "nfs",
+                "to": "dr"
+              }
+            ]
+          },
+          "one-of-two": {
+            "nodes": [
+              {
+                "id": "engine",
+                "kind": "engine",
+                "name": "engine",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "dc1",
+                "kind": "data_center",
+                "name": "Default",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "dc2",
+                "kind": "data_center",
+                "name": "Recovery",
+                "x": 190.0,
+                "y": 140.0
+              },
+              {
+                "id": "cl1",
+                "kind": "cluster",
+                "name": "cluster-a",
+                "x": 450.0,
+                "y": 60.0
+              },
+              {
+                "id": "cl2",
+                "kind": "cluster",
+                "name": "cluster-b",
+                "x": 450.0,
+                "y": 140.0
+              },
+              {
+                "id": "mgmt",
+                "kind": "network",
+                "name": "ovirtmgmt",
+                "x": 310.0,
+                "y": 60.0,
+                "params": {
+                  "required": true,
+                  "role": "management"
+                }
+              },
+              {
+                "id": "mgmt2",
+                "kind": "network",
+                "name": "ovirtmgmt-2",
+                "x": 310.0,
+                "y": 140.0,
+                "params": {
+                  "required": true,
+                  "role": "management"
+                }
+              },
+              {
+                "id": "h1",
+                "kind": "host",
+                "name": "host-1",
+                "x": 590.0,
+                "y": 60.0
+              },
+              {
+                "id": "h2",
+                "kind": "host",
+                "name": "host-2",
+                "x": 590.0,
+                "y": 140.0
+              },
+              {
+                "id": "h3",
+                "kind": "host",
+                "name": "host-3",
+                "x": 590.0,
+                "y": 220.0
+              },
+              {
+                "id": "os",
+                "kind": "storage_domain",
+                "name": "nfs-os",
+                "x": 450.0,
+                "y": 380.0,
+                "params": {
+                  "type": "nfs"
+                }
+              },
+              {
+                "id": "data",
+                "kind": "storage_domain",
+                "name": "nfs-data",
+                "x": 450.0,
+                "y": 460.0,
+                "params": {
+                  "type": "nfs"
+                }
+              },
+              {
+                "id": "dr1",
+                "kind": "storage_domain",
+                "name": "dr-1",
+                "x": 450.0,
+                "y": 540.0,
+                "params": {
+                  "type": "nfs"
+                }
+              },
+              {
+                "id": "dr2",
+                "kind": "storage_domain",
+                "name": "dr-2",
+                "x": 450.0,
+                "y": 620.0,
+                "params": {
+                  "type": "nfs"
+                }
+              },
+              {
+                "id": "vm1",
+                "kind": "vm",
+                "name": "db-1",
+                "x": 730.0,
+                "y": 60.0
+              },
+              {
+                "id": "vm2",
+                "kind": "vm",
+                "name": "web-1",
+                "x": 730.0,
+                "y": 140.0
+              }
+            ],
+            "edges": [
+              {
+                "from": "engine",
+                "to": "dc1"
+              },
+              {
+                "from": "engine",
+                "to": "dc2"
+              },
+              {
+                "from": "dc1",
+                "to": "cl1"
+              },
+              {
+                "from": "dc2",
+                "to": "cl2"
+              },
+              {
+                "from": "dc1",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "cl1"
+              },
+              {
+                "from": "engine",
+                "to": "mgmt"
+              },
+              {
+                "from": "dc2",
+                "to": "mgmt2"
+              },
+              {
+                "from": "mgmt2",
+                "to": "cl2"
+              },
+              {
+                "from": "engine",
+                "to": "mgmt2"
+              },
+              {
+                "from": "cl1",
+                "to": "h1"
+              },
+              {
+                "from": "mgmt",
+                "to": "h1"
+              },
+              {
+                "from": "cl1",
+                "to": "h2"
+              },
+              {
+                "from": "mgmt",
+                "to": "h2"
+              },
+              {
+                "from": "cl2",
+                "to": "h3"
+              },
+              {
+                "from": "mgmt2",
+                "to": "h3"
+              },
+              {
+                "from": "dc1",
+                "to": "os"
+              },
+              {
+                "from": "os",
+                "to": "h1"
+              },
+              {
+                "from": "os",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "data"
+              },
+              {
+                "from": "data",
+                "to": "h1"
+              },
+              {
+                "from": "data",
+                "to": "h2"
+              },
+              {
+                "from": "dc2",
+                "to": "dr1"
+              },
+              {
+                "from": "dr1",
+                "to": "h3"
+              },
+              {
+                "from": "dc2",
+                "to": "dr2"
+              },
+              {
+                "from": "dr2",
+                "to": "h3"
+              },
+              {
+                "from": "h1",
+                "to": "vm1"
+              },
+              {
+                "from": "os",
+                "to": "vm1"
+              },
+              {
+                "from": "data",
+                "to": "vm1"
+              },
+              {
+                "from": "h2",
+                "to": "vm2"
+              },
+              {
+                "from": "os",
+                "to": "vm2"
+              },
+              {
+                "from": "os",
+                "to": "dr1"
+              },
+              {
+                "from": "data",
+                "to": "dr2"
+              }
+            ]
+          },
+          "same-site": {
+            "nodes": [
+              {
+                "id": "engine",
+                "kind": "engine",
+                "name": "engine",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "dc1",
+                "kind": "data_center",
+                "name": "Default",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "dc2",
+                "kind": "data_center",
+                "name": "Recovery",
+                "x": 190.0,
+                "y": 140.0
+              },
+              {
+                "id": "cl1",
+                "kind": "cluster",
+                "name": "cluster-a",
+                "x": 450.0,
+                "y": 60.0
+              },
+              {
+                "id": "cl2",
+                "kind": "cluster",
+                "name": "cluster-b",
+                "x": 450.0,
+                "y": 140.0
+              },
+              {
+                "id": "mgmt",
+                "kind": "network",
+                "name": "ovirtmgmt",
+                "x": 310.0,
+                "y": 60.0,
+                "params": {
+                  "required": true,
+                  "role": "management"
+                }
+              },
+              {
+                "id": "mgmt2",
+                "kind": "network",
+                "name": "ovirtmgmt-2",
+                "x": 310.0,
+                "y": 140.0,
+                "params": {
+                  "required": true,
+                  "role": "management"
+                }
+              },
+              {
+                "id": "h1",
+                "kind": "host",
+                "name": "host-1",
+                "x": 590.0,
+                "y": 60.0
+              },
+              {
+                "id": "h2",
+                "kind": "host",
+                "name": "host-2",
+                "x": 590.0,
+                "y": 140.0
+              },
+              {
+                "id": "h3",
+                "kind": "host",
+                "name": "host-3",
+                "x": 590.0,
+                "y": 220.0
+              },
+              {
+                "id": "nfs",
+                "kind": "storage_domain",
+                "name": "nfs-prod",
+                "x": 450.0,
+                "y": 380.0,
+                "params": {
+                  "type": "nfs"
+                }
+              },
+              {
+                "id": "copy",
+                "kind": "storage_domain",
+                "name": "nfs-copy",
+                "x": 450.0,
+                "y": 460.0,
+                "params": {
+                  "type": "nfs"
+                }
+              },
+              {
+                "id": "local",
+                "kind": "storage_domain",
+                "name": "nfs-local",
+                "x": 450.0,
+                "y": 540.0,
+                "params": {
+                  "type": "nfs"
+                }
+              },
+              {
+                "id": "vm1",
+                "kind": "vm",
+                "name": "web-1",
+                "x": 730.0,
+                "y": 60.0
+              },
+              {
+                "id": "vm2",
+                "kind": "vm",
+                "name": "db-1",
+                "x": 730.0,
+                "y": 140.0
+              }
+            ],
+            "edges": [
+              {
+                "from": "engine",
+                "to": "dc1"
+              },
+              {
+                "from": "engine",
+                "to": "dc2"
+              },
+              {
+                "from": "dc1",
+                "to": "cl1"
+              },
+              {
+                "from": "dc2",
+                "to": "cl2"
+              },
+              {
+                "from": "dc1",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "cl1"
+              },
+              {
+                "from": "engine",
+                "to": "mgmt"
+              },
+              {
+                "from": "dc2",
+                "to": "mgmt2"
+              },
+              {
+                "from": "mgmt2",
+                "to": "cl2"
+              },
+              {
+                "from": "engine",
+                "to": "mgmt2"
+              },
+              {
+                "from": "cl1",
+                "to": "h1"
+              },
+              {
+                "from": "mgmt",
+                "to": "h1"
+              },
+              {
+                "from": "cl1",
+                "to": "h2"
+              },
+              {
+                "from": "mgmt",
+                "to": "h2"
+              },
+              {
+                "from": "cl2",
+                "to": "h3"
+              },
+              {
+                "from": "mgmt2",
+                "to": "h3"
+              },
+              {
+                "from": "dc1",
+                "to": "nfs"
+              },
+              {
+                "from": "nfs",
+                "to": "h1"
+              },
+              {
+                "from": "nfs",
+                "to": "h2"
+              },
+              {
+                "from": "dc2",
+                "to": "local"
+              },
+              {
+                "from": "local",
+                "to": "h3"
+              },
+              {
+                "from": "nfs",
+                "to": "copy"
+              },
+              {
+                "from": "h1",
+                "to": "vm1"
+              },
+              {
+                "from": "nfs",
+                "to": "vm1"
+              },
+              {
+                "from": "h2",
+                "to": "vm2"
+              },
+              {
+                "from": "nfs",
+                "to": "vm2"
+              },
+              {
+                "from": "dc2",
+                "to": "copy"
+              },
+              {
+                "from": "copy",
+                "to": "h3"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

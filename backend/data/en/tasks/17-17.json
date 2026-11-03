@@ -9,6 +9,24 @@
    "hint": "Start with the cluster and a host. The vm-net network makes hosts without it NonOperational — assign it to their NICs. A domain takes three steps: create, attach, activate. For a host to go into maintenance, the virtual machine needs another host with its network."
   },
   {
+   "id": "virt-sim-ovirt-topo",
+   "title": "Board: assemble an oVirt environment",
+   "statement": "On the board you assemble an oVirt environment: add the engine, data centers, clusters, hosts, logical networks, storage domains and virtual machines, and connect them. The statuses follow from the links: a host without a required network is NonOperational, a host without a management network to the engine is NonResponsive, a data center without an active master domain is not Up. The “Message path” buttons show how an engine command travels over the networks and where it breaks. Assemble or repair the environment in five scenarios. The exercise is solved when the goals of all scenarios are met.",
+   "hint": "A link goes from the output of one object to the input of another: engine → data center → cluster → host. A network is defined in the data center, attached to the cluster and assigned to every host, and the engine needs a NIC in the management network. A storage domain is attached to the data center and then connected to every host. Click an object to see the reason for its status."
+  },
+  {
+   "id": "virt-sim-ovirt-clusters",
+   "title": "Board: clusters and placement",
+   "statement": "Build an oVirt environment on the board: clusters, hosts, networks and VMs. Five scenarios: place VMs on hosts so that each can be migrated; attach a network to all three clusters; move a host from one cluster to another; put a cluster that is outside any data center into one; move a cluster to another data center. The exercise is solved when every scenario is solved.",
+   "hint": "A cluster is the border of live migration, a data center is the border of networks and storage. Select an object to read the reason for its status."
+  },
+  {
+   "id": "virt-sim-ovirt-puzzles",
+   "title": "Board: hierarchy puzzles",
+   "statement": "Five puzzles on one board: an environment without an engine, a network in the wrong data center, a VM with a foreign disk, three data centers with a broken path from the engine, and an environment with three independent faults. Read the reasons of the statuses and follow the path of a command. The exercise is solved when every scenario is solved.",
+   "hint": "Go from the symptom to the cause: the status of an object, its reason, the link of the hierarchy that is missing."
+  },
+  {
    "id": "ov-vm-path",
    "title": "Where a machine runs",
    "statement": "The oVirt inventory is nested dictionaries: data center → cluster → host → list of virtual machine names, for example {\"dc1\": {\"cl1\": {\"h1\": [\"web\", \"db\"]}}}. Write a function vm_path(inventory, vm): return a string like \"dc1/cl1/h1\" for the host where the machine vm runs, or an empty string if there is no such machine.",
@@ -35,7 +53,7 @@
   {
    "id": "ov-host-states",
    "title": "Host states",
-   "statement": "A simplified model of a host's life. Transitions (state, event) → new state: (Maintenance, activate) → Up; (Up, maintenance) → PreparingForMaintenance; (PreparingForMaintenance, vms_migrated) → Maintenance; (Up, no_heartbeat) → NonResponsive; (NonResponsive, heartbeat) → Up; (NonResponsive, fenced) → Maintenance. Any event with no transition leaves the state unchanged. Write a function final_state(start, events): return the state after all the events in order.",
+   "statement": "A simplified model of a host's life. Transitions (state, event) → new state: (Maintenance, activate) → Up; (Up, maintenance) → PreparingForMaintenance; (PreparingForMaintenance, vms_migrated) → Maintenance; (Up, no_heartbeat) → NonResponsive; (NonResponsive, heartbeat) → Up; (NonResponsive, fenced) → Reboot; (Reboot, heartbeat) → Up. Any event with no transition leaves the state unchanged. Write a function final_state(start, events): return the state after all the events in order.",
    "hint": "Put the transitions into a dictionary keyed by a tuple and use table.get((state, event), state)."
   },
   {
@@ -53,7 +71,7 @@
   {
    "id": "ov-ha-score",
    "title": "Host score for the hosted engine",
-   "statement": "Hosted-engine services choose the host with the best score for the engine. A simplified model: the score starts at 3400; if the gateway is unreachable, subtract 1600; if there is no management network, subtract 1600; if free memory is below 4096 MB, subtract 400; if CPU load is above 80 percent, subtract 800. The score is never below zero. Write a function best_host(hosts): hosts is a dictionary name → dictionary with the fields gateway (bool), mgmt (bool), free_mb (a number), cpu (percent). Return the name of the host with the highest score; on a tie, the alphabetically smaller name. For an empty dictionary, return an empty string.",
+   "statement": "Hosted-engine services choose the host with the best score for the engine. A simplified model based on the hosted-engine agent's settings: the score starts at 3400; if the gateway is unreachable, subtract 1600; if there is no management network (the management bridge), subtract 600; if free memory is below 4096 MB (the threshold is a value of our model), subtract 400; the CPU penalty grows linearly: zero up to 40 percent load, 1000 from 90 percent, and (load − 40) * 20 in between. The score is never below zero. Write a function best_host(hosts): hosts is a dictionary name → dictionary with the fields gateway (bool), mgmt (bool), free_mb (a number), cpu (percent). Return the name of the host with the highest score; on a tie, the alphabetically smaller name. For an empty dictionary, return an empty string.",
    "hint": "Write a separate function score(h) and sort by (-score, name)."
   },
   {

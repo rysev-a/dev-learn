@@ -104,6 +104,4199 @@
           }
         ]
       }
+    },
+    {
+      "id": "virt-sim-ovirt-fencing",
+      "title": "Доска: отказы хостов и ограждение",
+      "statement": "Вы собираете окружение, в котором упавший хост можно оградить: нужен агент ограждения на хосте и другой хост в состоянии Up того же дата-центра в роли прокси. Пять сценариев: единственный хост, которого некому ограждать; управление питанием на каждом хосте; прокси, который сам неисправен; другой дата-центр, который не считается; хосты, забытые в режиме обслуживания. Упражнение решено, когда решены все сценарии.",
+      "hint": "Ограждение проходит путь: менеджер, прокси, агент, хост. Пройдите его и посмотрите, какой шаг не проходит: нет агента или нет хоста Up в том же дата-центре.",
+      "spec": {
+        "sim": "ovirt_topo",
+        "scenarios": [
+          {
+            "id": "lone-host",
+            "title": "Nobody can fence the only host",
+            "story": "The data center has one host and it has power management. When it hangs, the engine cannot switch it off: the command has to be sent by another host.",
+            "goal": "Every host can be fenced and the data center survives the loss of any single host",
+            "hint": "The fence command is run by a proxy: another Up host of the same data center. Follow the path of the fence and see which hop fails; then remember that a new host needs its own agent.",
+            "palette": [
+              "host",
+              "fence_agent"
+            ],
+            "max_nodes": 12,
+            "start": {
+              "nodes": [
+                {
+                  "id": "engine",
+                  "kind": "engine",
+                  "name": "engine",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "dc1",
+                  "kind": "data_center",
+                  "name": "Default",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "cl1",
+                  "kind": "cluster",
+                  "name": "cluster-a",
+                  "x": 450.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h1",
+                  "kind": "host",
+                  "name": "host-1",
+                  "x": 590.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "mgmt",
+                  "kind": "network",
+                  "name": "ovirtmgmt",
+                  "x": 310.0,
+                  "y": 60.0,
+                  "params": {
+                    "required": true,
+                    "role": "management"
+                  }
+                },
+                {
+                  "id": "nfs",
+                  "kind": "storage_domain",
+                  "name": "nfs-data",
+                  "x": 450.0,
+                  "y": 380.0
+                },
+                {
+                  "id": "fence-1",
+                  "kind": "fence_agent",
+                  "name": "fence-1",
+                  "x": 590.0,
+                  "y": 380.0
+                },
+                {
+                  "id": "vm1",
+                  "kind": "vm",
+                  "name": "web-1",
+                  "x": 730.0,
+                  "y": 60.0
+                }
+              ],
+              "edges": [
+                {
+                  "from": "engine",
+                  "to": "dc1"
+                },
+                {
+                  "from": "dc1",
+                  "to": "cl1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h1"
+                },
+                {
+                  "from": "dc1",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "cl1"
+                },
+                {
+                  "from": "engine",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h1"
+                },
+                {
+                  "from": "dc1",
+                  "to": "nfs"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h1"
+                },
+                {
+                  "from": "fence-1",
+                  "to": "h1"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm1"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "healthy"
+              },
+              {
+                "kind": "hosts_up",
+                "min": 2
+              },
+              {
+                "kind": "op_ok",
+                "op": "fence"
+              },
+              {
+                "kind": "survive_loss",
+                "node": "host"
+              }
+            ]
+          },
+          {
+            "id": "no-agents",
+            "title": "Power management on every host",
+            "story": "Only host-1 has power management. If host-2 or host-3 stops answering, the engine cannot switch it off, and its VM stays stuck.",
+            "goal": "Every host has a fence agent and can be fenced",
+            "hint": "Fencing needs two things: a fence agent on the host and another Up host as the proxy. Hosts and the proxy are fine here; select a host and check whether the fence path reaches its agent.",
+            "palette": [
+              "fence_agent"
+            ],
+            "max_nodes": 14,
+            "start": {
+              "nodes": [
+                {
+                  "id": "engine",
+                  "kind": "engine",
+                  "name": "engine",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "dc1",
+                  "kind": "data_center",
+                  "name": "Default",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "cl1",
+                  "kind": "cluster",
+                  "name": "cluster-a",
+                  "x": 450.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h1",
+                  "kind": "host",
+                  "name": "host-1",
+                  "x": 590.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h2",
+                  "kind": "host",
+                  "name": "host-2",
+                  "x": 590.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "mgmt",
+                  "kind": "network",
+                  "name": "ovirtmgmt",
+                  "x": 310.0,
+                  "y": 60.0,
+                  "params": {
+                    "required": true,
+                    "role": "management"
+                  }
+                },
+                {
+                  "id": "nfs",
+                  "kind": "storage_domain",
+                  "name": "nfs-data",
+                  "x": 450.0,
+                  "y": 380.0
+                },
+                {
+                  "id": "h3",
+                  "kind": "host",
+                  "name": "host-3",
+                  "x": 590.0,
+                  "y": 220.0
+                },
+                {
+                  "id": "vm1",
+                  "kind": "vm",
+                  "name": "web-1",
+                  "x": 730.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "vm2",
+                  "kind": "vm",
+                  "name": "db-1",
+                  "x": 730.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "vm3",
+                  "kind": "vm",
+                  "name": "cache-1",
+                  "x": 730.0,
+                  "y": 220.0
+                },
+                {
+                  "id": "fence-1",
+                  "kind": "fence_agent",
+                  "name": "fence-1",
+                  "x": 590.0,
+                  "y": 380.0
+                }
+              ],
+              "edges": [
+                {
+                  "from": "engine",
+                  "to": "dc1"
+                },
+                {
+                  "from": "dc1",
+                  "to": "cl1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "cl1"
+                },
+                {
+                  "from": "engine",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h1"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "nfs"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h2"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h3"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h3"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h3"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm1"
+                },
+                {
+                  "from": "h2",
+                  "to": "vm2"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm2"
+                },
+                {
+                  "from": "h3",
+                  "to": "vm3"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm3"
+                },
+                {
+                  "from": "fence-1",
+                  "to": "h1"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "healthy"
+              },
+              {
+                "kind": "op_ok",
+                "op": "fence"
+              },
+              {
+                "kind": "link",
+                "rel": "fence",
+                "min": 3
+              }
+            ]
+          },
+          {
+            "id": "dead-proxy",
+            "title": "The proxy must be Up",
+            "story": "Every host has power management, yet host-1 cannot be fenced. host-2 is NonOperational, host-3 is NonResponsive and web-2 on it is down.",
+            "goal": "All hosts are Up, both VMs run and every host can be fenced",
+            "hint": "The proxy has to be an Up host, so a host that is itself broken cannot help. Read the reason of each host: fix the one that the engine cannot reach first, then the next reason appears.",
+            "palette": [
+              "network"
+            ],
+            "max_nodes": 15,
+            "start": {
+              "nodes": [
+                {
+                  "id": "engine",
+                  "kind": "engine",
+                  "name": "engine",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "dc1",
+                  "kind": "data_center",
+                  "name": "Default",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "cl1",
+                  "kind": "cluster",
+                  "name": "cluster-a",
+                  "x": 450.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h1",
+                  "kind": "host",
+                  "name": "host-1",
+                  "x": 590.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h2",
+                  "kind": "host",
+                  "name": "host-2",
+                  "x": 590.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "h3",
+                  "kind": "host",
+                  "name": "host-3",
+                  "x": 590.0,
+                  "y": 220.0
+                },
+                {
+                  "id": "mgmt",
+                  "kind": "network",
+                  "name": "ovirtmgmt",
+                  "x": 310.0,
+                  "y": 60.0,
+                  "params": {
+                    "required": true,
+                    "role": "management"
+                  }
+                },
+                {
+                  "id": "vmnet",
+                  "kind": "network",
+                  "name": "vm-net",
+                  "x": 310.0,
+                  "y": 140.0,
+                  "params": {
+                    "required": true,
+                    "role": "vm"
+                  }
+                },
+                {
+                  "id": "nfs",
+                  "kind": "storage_domain",
+                  "name": "nfs-data",
+                  "x": 450.0,
+                  "y": 380.0
+                },
+                {
+                  "id": "vm1",
+                  "kind": "vm",
+                  "name": "web-1",
+                  "x": 730.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "vm2",
+                  "kind": "vm",
+                  "name": "web-2",
+                  "x": 730.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "fence-1",
+                  "kind": "fence_agent",
+                  "name": "fence-1",
+                  "x": 590.0,
+                  "y": 380.0
+                },
+                {
+                  "id": "fence-2",
+                  "kind": "fence_agent",
+                  "name": "fence-2",
+                  "x": 590.0,
+                  "y": 460.0
+                },
+                {
+                  "id": "fence-3",
+                  "kind": "fence_agent",
+                  "name": "fence-3",
+                  "x": 590.0,
+                  "y": 540.0
+                }
+              ],
+              "edges": [
+                {
+                  "from": "engine",
+                  "to": "dc1"
+                },
+                {
+                  "from": "dc1",
+                  "to": "cl1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h2"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h3"
+                },
+                {
+                  "from": "dc1",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "cl1"
+                },
+                {
+                  "from": "engine",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h1"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "vmnet"
+                },
+                {
+                  "from": "vmnet",
+                  "to": "cl1"
+                },
+                {
+                  "from": "vmnet",
+                  "to": "h1"
+                },
+                {
+                  "from": "dc1",
+                  "to": "nfs"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h2"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h3"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm1"
+                },
+                {
+                  "from": "vmnet",
+                  "to": "vm1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm1"
+                },
+                {
+                  "from": "h3",
+                  "to": "vm2"
+                },
+                {
+                  "from": "vmnet",
+                  "to": "vm2"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm2"
+                },
+                {
+                  "from": "fence-1",
+                  "to": "h1"
+                },
+                {
+                  "from": "fence-2",
+                  "to": "h2"
+                },
+                {
+                  "from": "fence-3",
+                  "to": "h3"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "healthy"
+              },
+              {
+                "kind": "hosts_up",
+                "min": 3
+              },
+              {
+                "kind": "vm_running",
+                "min": 2
+              },
+              {
+                "kind": "op_ok",
+                "op": "fence"
+              }
+            ]
+          },
+          {
+            "id": "other-site",
+            "title": "The proxy stays in the data center",
+            "story": "The engine manages three hosts with power management, and two of them are in Default. The only host of the Remote data center cannot be fenced all the same.",
+            "goal": "Every host can be fenced and both data centers are Up",
+            "hint": "A proxy is always a host of the same data center as the host being fenced. The hosts of another data center do not count, however many there are.",
+            "palette": [
+              "host",
+              "fence_agent"
+            ],
+            "max_nodes": 20,
+            "start": {
+              "nodes": [
+                {
+                  "id": "engine",
+                  "kind": "engine",
+                  "name": "engine",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "dc1",
+                  "kind": "data_center",
+                  "name": "Default",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "dc2",
+                  "kind": "data_center",
+                  "name": "Remote",
+                  "x": 190.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "cl1",
+                  "kind": "cluster",
+                  "name": "cluster-a",
+                  "x": 450.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "cl2",
+                  "kind": "cluster",
+                  "name": "cluster-b",
+                  "x": 450.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "h1",
+                  "kind": "host",
+                  "name": "host-1",
+                  "x": 590.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h2",
+                  "kind": "host",
+                  "name": "host-2",
+                  "x": 590.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "h3",
+                  "kind": "host",
+                  "name": "host-3",
+                  "x": 590.0,
+                  "y": 220.0
+                },
+                {
+                  "id": "mgmt",
+                  "kind": "network",
+                  "name": "ovirtmgmt",
+                  "x": 310.0,
+                  "y": 60.0,
+                  "params": {
+                    "required": true,
+                    "role": "management"
+                  }
+                },
+                {
+                  "id": "mgmt2",
+                  "kind": "network",
+                  "name": "ovirtmgmt-2",
+                  "x": 310.0,
+                  "y": 140.0,
+                  "params": {
+                    "required": true,
+                    "role": "management"
+                  }
+                },
+                {
+                  "id": "nfs",
+                  "kind": "storage_domain",
+                  "name": "nfs-data",
+                  "x": 450.0,
+                  "y": 380.0
+                },
+                {
+                  "id": "nfs2",
+                  "kind": "storage_domain",
+                  "name": "nfs-remote",
+                  "x": 450.0,
+                  "y": 460.0
+                },
+                {
+                  "id": "vm1",
+                  "kind": "vm",
+                  "name": "app-1",
+                  "x": 730.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "fence-1",
+                  "kind": "fence_agent",
+                  "name": "fence-1",
+                  "x": 590.0,
+                  "y": 380.0
+                },
+                {
+                  "id": "fence-2",
+                  "kind": "fence_agent",
+                  "name": "fence-2",
+                  "x": 590.0,
+                  "y": 460.0
+                },
+                {
+                  "id": "fence-3",
+                  "kind": "fence_agent",
+                  "name": "fence-3",
+                  "x": 590.0,
+                  "y": 540.0
+                }
+              ],
+              "edges": [
+                {
+                  "from": "engine",
+                  "to": "dc1"
+                },
+                {
+                  "from": "engine",
+                  "to": "dc2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "cl1"
+                },
+                {
+                  "from": "dc2",
+                  "to": "cl2"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h2"
+                },
+                {
+                  "from": "cl2",
+                  "to": "h3"
+                },
+                {
+                  "from": "dc1",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "cl1"
+                },
+                {
+                  "from": "engine",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h1"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc2",
+                  "to": "mgmt2"
+                },
+                {
+                  "from": "mgmt2",
+                  "to": "cl2"
+                },
+                {
+                  "from": "engine",
+                  "to": "mgmt2"
+                },
+                {
+                  "from": "mgmt2",
+                  "to": "h3"
+                },
+                {
+                  "from": "dc1",
+                  "to": "nfs"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc2",
+                  "to": "nfs2"
+                },
+                {
+                  "from": "nfs2",
+                  "to": "h3"
+                },
+                {
+                  "from": "h3",
+                  "to": "vm1"
+                },
+                {
+                  "from": "nfs2",
+                  "to": "vm1"
+                },
+                {
+                  "from": "fence-1",
+                  "to": "h1"
+                },
+                {
+                  "from": "fence-2",
+                  "to": "h2"
+                },
+                {
+                  "from": "fence-3",
+                  "to": "h3"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "healthy"
+              },
+              {
+                "kind": "dc_up",
+                "min": 2
+              },
+              {
+                "kind": "hosts_up",
+                "min": 4
+              },
+              {
+                "kind": "op_ok",
+                "op": "fence"
+              }
+            ]
+          },
+          {
+            "id": "left-in-maintenance",
+            "title": "The upgrade round that did not end",
+            "story": "After the upgrade round host-2 and host-3 are still in maintenance. The board looks healthy, because they run nothing, but host-1 cannot be fenced.",
+            "goal": "All three hosts are Up and every host can be fenced",
+            "hint": "A host in maintenance is not Up, so it cannot serve as a proxy. Select the hosts and look at their parameters.",
+            "palette": [
+              "host"
+            ],
+            "max_nodes": 14,
+            "start": {
+              "nodes": [
+                {
+                  "id": "engine",
+                  "kind": "engine",
+                  "name": "engine",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "dc1",
+                  "kind": "data_center",
+                  "name": "Default",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "cl1",
+                  "kind": "cluster",
+                  "name": "cluster-a",
+                  "x": 450.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h1",
+                  "kind": "host",
+                  "name": "host-1",
+                  "x": 590.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h2",
+                  "kind": "host",
+                  "name": "host-2",
+                  "x": 590.0,
+                  "y": 140.0,
+                  "params": {
+                    "maintenance": true
+                  }
+                },
+                {
+                  "id": "mgmt",
+                  "kind": "network",
+                  "name": "ovirtmgmt",
+                  "x": 310.0,
+                  "y": 60.0,
+                  "params": {
+                    "required": true,
+                    "role": "management"
+                  }
+                },
+                {
+                  "id": "nfs",
+                  "kind": "storage_domain",
+                  "name": "nfs-data",
+                  "x": 450.0,
+                  "y": 380.0
+                },
+                {
+                  "id": "h3",
+                  "kind": "host",
+                  "name": "host-3",
+                  "x": 590.0,
+                  "y": 220.0,
+                  "params": {
+                    "maintenance": true
+                  }
+                },
+                {
+                  "id": "vm1",
+                  "kind": "vm",
+                  "name": "web-1",
+                  "x": 730.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "vm2",
+                  "kind": "vm",
+                  "name": "db-1",
+                  "x": 730.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "fence-1",
+                  "kind": "fence_agent",
+                  "name": "fence-1",
+                  "x": 590.0,
+                  "y": 380.0
+                },
+                {
+                  "id": "fence-2",
+                  "kind": "fence_agent",
+                  "name": "fence-2",
+                  "x": 590.0,
+                  "y": 460.0
+                },
+                {
+                  "id": "fence-3",
+                  "kind": "fence_agent",
+                  "name": "fence-3",
+                  "x": 590.0,
+                  "y": 540.0
+                }
+              ],
+              "edges": [
+                {
+                  "from": "engine",
+                  "to": "dc1"
+                },
+                {
+                  "from": "dc1",
+                  "to": "cl1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "cl1"
+                },
+                {
+                  "from": "engine",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h1"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "nfs"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h2"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h3"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h3"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h3"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm1"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm2"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm2"
+                },
+                {
+                  "from": "fence-1",
+                  "to": "h1"
+                },
+                {
+                  "from": "fence-2",
+                  "to": "h2"
+                },
+                {
+                  "from": "fence-3",
+                  "to": "h3"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "healthy"
+              },
+              {
+                "kind": "hosts_up",
+                "min": 3
+              },
+              {
+                "kind": "op_ok",
+                "op": "fence"
+              }
+            ]
+          }
+        ],
+        "solution": {
+          "dead-proxy": {
+            "nodes": [
+              {
+                "id": "engine",
+                "kind": "engine",
+                "name": "engine",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "dc1",
+                "kind": "data_center",
+                "name": "Default",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "cl1",
+                "kind": "cluster",
+                "name": "cluster-a",
+                "x": 450.0,
+                "y": 60.0
+              },
+              {
+                "id": "h1",
+                "kind": "host",
+                "name": "host-1",
+                "x": 590.0,
+                "y": 60.0
+              },
+              {
+                "id": "h2",
+                "kind": "host",
+                "name": "host-2",
+                "x": 590.0,
+                "y": 140.0
+              },
+              {
+                "id": "h3",
+                "kind": "host",
+                "name": "host-3",
+                "x": 590.0,
+                "y": 220.0
+              },
+              {
+                "id": "mgmt",
+                "kind": "network",
+                "name": "ovirtmgmt",
+                "x": 310.0,
+                "y": 60.0,
+                "params": {
+                  "required": true,
+                  "role": "management"
+                }
+              },
+              {
+                "id": "vmnet",
+                "kind": "network",
+                "name": "vm-net",
+                "x": 310.0,
+                "y": 140.0,
+                "params": {
+                  "required": true,
+                  "role": "vm"
+                }
+              },
+              {
+                "id": "nfs",
+                "kind": "storage_domain",
+                "name": "nfs-data",
+                "x": 450.0,
+                "y": 380.0
+              },
+              {
+                "id": "vm1",
+                "kind": "vm",
+                "name": "web-1",
+                "x": 730.0,
+                "y": 60.0
+              },
+              {
+                "id": "vm2",
+                "kind": "vm",
+                "name": "web-2",
+                "x": 730.0,
+                "y": 140.0
+              },
+              {
+                "id": "fence-1",
+                "kind": "fence_agent",
+                "name": "fence-1",
+                "x": 590.0,
+                "y": 380.0
+              },
+              {
+                "id": "fence-2",
+                "kind": "fence_agent",
+                "name": "fence-2",
+                "x": 590.0,
+                "y": 460.0
+              },
+              {
+                "id": "fence-3",
+                "kind": "fence_agent",
+                "name": "fence-3",
+                "x": 590.0,
+                "y": 540.0
+              }
+            ],
+            "edges": [
+              {
+                "from": "engine",
+                "to": "dc1"
+              },
+              {
+                "from": "dc1",
+                "to": "cl1"
+              },
+              {
+                "from": "cl1",
+                "to": "h1"
+              },
+              {
+                "from": "cl1",
+                "to": "h2"
+              },
+              {
+                "from": "cl1",
+                "to": "h3"
+              },
+              {
+                "from": "dc1",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "cl1"
+              },
+              {
+                "from": "engine",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "h1"
+              },
+              {
+                "from": "mgmt",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "vmnet"
+              },
+              {
+                "from": "vmnet",
+                "to": "cl1"
+              },
+              {
+                "from": "vmnet",
+                "to": "h1"
+              },
+              {
+                "from": "dc1",
+                "to": "nfs"
+              },
+              {
+                "from": "nfs",
+                "to": "h1"
+              },
+              {
+                "from": "nfs",
+                "to": "h2"
+              },
+              {
+                "from": "nfs",
+                "to": "h3"
+              },
+              {
+                "from": "h1",
+                "to": "vm1"
+              },
+              {
+                "from": "vmnet",
+                "to": "vm1"
+              },
+              {
+                "from": "nfs",
+                "to": "vm1"
+              },
+              {
+                "from": "h3",
+                "to": "vm2"
+              },
+              {
+                "from": "vmnet",
+                "to": "vm2"
+              },
+              {
+                "from": "nfs",
+                "to": "vm2"
+              },
+              {
+                "from": "fence-1",
+                "to": "h1"
+              },
+              {
+                "from": "fence-2",
+                "to": "h2"
+              },
+              {
+                "from": "fence-3",
+                "to": "h3"
+              },
+              {
+                "from": "vmnet",
+                "to": "h2"
+              },
+              {
+                "from": "mgmt",
+                "to": "h3"
+              },
+              {
+                "from": "vmnet",
+                "to": "h3"
+              }
+            ]
+          },
+          "left-in-maintenance": {
+            "nodes": [
+              {
+                "id": "engine",
+                "kind": "engine",
+                "name": "engine",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "dc1",
+                "kind": "data_center",
+                "name": "Default",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "cl1",
+                "kind": "cluster",
+                "name": "cluster-a",
+                "x": 450.0,
+                "y": 60.0
+              },
+              {
+                "id": "h1",
+                "kind": "host",
+                "name": "host-1",
+                "x": 590.0,
+                "y": 60.0
+              },
+              {
+                "id": "h2",
+                "kind": "host",
+                "name": "host-2",
+                "x": 590.0,
+                "y": 140.0,
+                "params": {
+                  "maintenance": false
+                }
+              },
+              {
+                "id": "mgmt",
+                "kind": "network",
+                "name": "ovirtmgmt",
+                "x": 310.0,
+                "y": 60.0,
+                "params": {
+                  "required": true,
+                  "role": "management"
+                }
+              },
+              {
+                "id": "nfs",
+                "kind": "storage_domain",
+                "name": "nfs-data",
+                "x": 450.0,
+                "y": 380.0
+              },
+              {
+                "id": "h3",
+                "kind": "host",
+                "name": "host-3",
+                "x": 590.0,
+                "y": 220.0,
+                "params": {
+                  "maintenance": false
+                }
+              },
+              {
+                "id": "vm1",
+                "kind": "vm",
+                "name": "web-1",
+                "x": 730.0,
+                "y": 60.0
+              },
+              {
+                "id": "vm2",
+                "kind": "vm",
+                "name": "db-1",
+                "x": 730.0,
+                "y": 140.0
+              },
+              {
+                "id": "fence-1",
+                "kind": "fence_agent",
+                "name": "fence-1",
+                "x": 590.0,
+                "y": 380.0
+              },
+              {
+                "id": "fence-2",
+                "kind": "fence_agent",
+                "name": "fence-2",
+                "x": 590.0,
+                "y": 460.0
+              },
+              {
+                "id": "fence-3",
+                "kind": "fence_agent",
+                "name": "fence-3",
+                "x": 590.0,
+                "y": 540.0
+              }
+            ],
+            "edges": [
+              {
+                "from": "engine",
+                "to": "dc1"
+              },
+              {
+                "from": "dc1",
+                "to": "cl1"
+              },
+              {
+                "from": "cl1",
+                "to": "h1"
+              },
+              {
+                "from": "cl1",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "cl1"
+              },
+              {
+                "from": "engine",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "h1"
+              },
+              {
+                "from": "mgmt",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "nfs"
+              },
+              {
+                "from": "nfs",
+                "to": "h1"
+              },
+              {
+                "from": "nfs",
+                "to": "h2"
+              },
+              {
+                "from": "cl1",
+                "to": "h3"
+              },
+              {
+                "from": "mgmt",
+                "to": "h3"
+              },
+              {
+                "from": "nfs",
+                "to": "h3"
+              },
+              {
+                "from": "h1",
+                "to": "vm1"
+              },
+              {
+                "from": "nfs",
+                "to": "vm1"
+              },
+              {
+                "from": "h1",
+                "to": "vm2"
+              },
+              {
+                "from": "nfs",
+                "to": "vm2"
+              },
+              {
+                "from": "fence-1",
+                "to": "h1"
+              },
+              {
+                "from": "fence-2",
+                "to": "h2"
+              },
+              {
+                "from": "fence-3",
+                "to": "h3"
+              }
+            ]
+          },
+          "lone-host": {
+            "nodes": [
+              {
+                "id": "engine",
+                "kind": "engine",
+                "name": "engine",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "dc1",
+                "kind": "data_center",
+                "name": "Default",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "cl1",
+                "kind": "cluster",
+                "name": "cluster-a",
+                "x": 450.0,
+                "y": 60.0
+              },
+              {
+                "id": "h1",
+                "kind": "host",
+                "name": "host-1",
+                "x": 590.0,
+                "y": 60.0
+              },
+              {
+                "id": "mgmt",
+                "kind": "network",
+                "name": "ovirtmgmt",
+                "x": 310.0,
+                "y": 60.0,
+                "params": {
+                  "required": true,
+                  "role": "management"
+                }
+              },
+              {
+                "id": "nfs",
+                "kind": "storage_domain",
+                "name": "nfs-data",
+                "x": 450.0,
+                "y": 380.0
+              },
+              {
+                "id": "fence-1",
+                "kind": "fence_agent",
+                "name": "fence-1",
+                "x": 590.0,
+                "y": 380.0
+              },
+              {
+                "id": "vm1",
+                "kind": "vm",
+                "name": "web-1",
+                "x": 730.0,
+                "y": 60.0
+              },
+              {
+                "id": "h2",
+                "kind": "host",
+                "name": "host-2",
+                "x": 590.0,
+                "y": 140.0
+              },
+              {
+                "id": "fence-2",
+                "kind": "fence_agent",
+                "name": "fence-2",
+                "x": 590.0,
+                "y": 460.0
+              }
+            ],
+            "edges": [
+              {
+                "from": "engine",
+                "to": "dc1"
+              },
+              {
+                "from": "dc1",
+                "to": "cl1"
+              },
+              {
+                "from": "cl1",
+                "to": "h1"
+              },
+              {
+                "from": "dc1",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "cl1"
+              },
+              {
+                "from": "engine",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "h1"
+              },
+              {
+                "from": "dc1",
+                "to": "nfs"
+              },
+              {
+                "from": "nfs",
+                "to": "h1"
+              },
+              {
+                "from": "fence-1",
+                "to": "h1"
+              },
+              {
+                "from": "h1",
+                "to": "vm1"
+              },
+              {
+                "from": "nfs",
+                "to": "vm1"
+              },
+              {
+                "from": "cl1",
+                "to": "h2"
+              },
+              {
+                "from": "mgmt",
+                "to": "h2"
+              },
+              {
+                "from": "nfs",
+                "to": "h2"
+              },
+              {
+                "from": "fence-2",
+                "to": "h2"
+              }
+            ]
+          },
+          "no-agents": {
+            "nodes": [
+              {
+                "id": "engine",
+                "kind": "engine",
+                "name": "engine",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "dc1",
+                "kind": "data_center",
+                "name": "Default",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "cl1",
+                "kind": "cluster",
+                "name": "cluster-a",
+                "x": 450.0,
+                "y": 60.0
+              },
+              {
+                "id": "h1",
+                "kind": "host",
+                "name": "host-1",
+                "x": 590.0,
+                "y": 60.0
+              },
+              {
+                "id": "h2",
+                "kind": "host",
+                "name": "host-2",
+                "x": 590.0,
+                "y": 140.0
+              },
+              {
+                "id": "mgmt",
+                "kind": "network",
+                "name": "ovirtmgmt",
+                "x": 310.0,
+                "y": 60.0,
+                "params": {
+                  "required": true,
+                  "role": "management"
+                }
+              },
+              {
+                "id": "nfs",
+                "kind": "storage_domain",
+                "name": "nfs-data",
+                "x": 450.0,
+                "y": 380.0
+              },
+              {
+                "id": "h3",
+                "kind": "host",
+                "name": "host-3",
+                "x": 590.0,
+                "y": 220.0
+              },
+              {
+                "id": "vm1",
+                "kind": "vm",
+                "name": "web-1",
+                "x": 730.0,
+                "y": 60.0
+              },
+              {
+                "id": "vm2",
+                "kind": "vm",
+                "name": "db-1",
+                "x": 730.0,
+                "y": 140.0
+              },
+              {
+                "id": "vm3",
+                "kind": "vm",
+                "name": "cache-1",
+                "x": 730.0,
+                "y": 220.0
+              },
+              {
+                "id": "fence-1",
+                "kind": "fence_agent",
+                "name": "fence-1",
+                "x": 590.0,
+                "y": 380.0
+              },
+              {
+                "id": "fence-2",
+                "kind": "fence_agent",
+                "name": "fence-2",
+                "x": 590.0,
+                "y": 460.0
+              },
+              {
+                "id": "fence-3",
+                "kind": "fence_agent",
+                "name": "fence-3",
+                "x": 590.0,
+                "y": 540.0
+              }
+            ],
+            "edges": [
+              {
+                "from": "engine",
+                "to": "dc1"
+              },
+              {
+                "from": "dc1",
+                "to": "cl1"
+              },
+              {
+                "from": "cl1",
+                "to": "h1"
+              },
+              {
+                "from": "cl1",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "cl1"
+              },
+              {
+                "from": "engine",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "h1"
+              },
+              {
+                "from": "mgmt",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "nfs"
+              },
+              {
+                "from": "nfs",
+                "to": "h1"
+              },
+              {
+                "from": "nfs",
+                "to": "h2"
+              },
+              {
+                "from": "cl1",
+                "to": "h3"
+              },
+              {
+                "from": "mgmt",
+                "to": "h3"
+              },
+              {
+                "from": "nfs",
+                "to": "h3"
+              },
+              {
+                "from": "h1",
+                "to": "vm1"
+              },
+              {
+                "from": "nfs",
+                "to": "vm1"
+              },
+              {
+                "from": "h2",
+                "to": "vm2"
+              },
+              {
+                "from": "nfs",
+                "to": "vm2"
+              },
+              {
+                "from": "h3",
+                "to": "vm3"
+              },
+              {
+                "from": "nfs",
+                "to": "vm3"
+              },
+              {
+                "from": "fence-1",
+                "to": "h1"
+              },
+              {
+                "from": "fence-2",
+                "to": "h2"
+              },
+              {
+                "from": "fence-3",
+                "to": "h3"
+              }
+            ]
+          },
+          "other-site": {
+            "nodes": [
+              {
+                "id": "engine",
+                "kind": "engine",
+                "name": "engine",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "dc1",
+                "kind": "data_center",
+                "name": "Default",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "dc2",
+                "kind": "data_center",
+                "name": "Remote",
+                "x": 190.0,
+                "y": 140.0
+              },
+              {
+                "id": "cl1",
+                "kind": "cluster",
+                "name": "cluster-a",
+                "x": 450.0,
+                "y": 60.0
+              },
+              {
+                "id": "cl2",
+                "kind": "cluster",
+                "name": "cluster-b",
+                "x": 450.0,
+                "y": 140.0
+              },
+              {
+                "id": "h1",
+                "kind": "host",
+                "name": "host-1",
+                "x": 590.0,
+                "y": 60.0
+              },
+              {
+                "id": "h2",
+                "kind": "host",
+                "name": "host-2",
+                "x": 590.0,
+                "y": 140.0
+              },
+              {
+                "id": "h3",
+                "kind": "host",
+                "name": "host-3",
+                "x": 590.0,
+                "y": 220.0
+              },
+              {
+                "id": "mgmt",
+                "kind": "network",
+                "name": "ovirtmgmt",
+                "x": 310.0,
+                "y": 60.0,
+                "params": {
+                  "required": true,
+                  "role": "management"
+                }
+              },
+              {
+                "id": "mgmt2",
+                "kind": "network",
+                "name": "ovirtmgmt-2",
+                "x": 310.0,
+                "y": 140.0,
+                "params": {
+                  "required": true,
+                  "role": "management"
+                }
+              },
+              {
+                "id": "nfs",
+                "kind": "storage_domain",
+                "name": "nfs-data",
+                "x": 450.0,
+                "y": 380.0
+              },
+              {
+                "id": "nfs2",
+                "kind": "storage_domain",
+                "name": "nfs-remote",
+                "x": 450.0,
+                "y": 460.0
+              },
+              {
+                "id": "vm1",
+                "kind": "vm",
+                "name": "app-1",
+                "x": 730.0,
+                "y": 60.0
+              },
+              {
+                "id": "fence-1",
+                "kind": "fence_agent",
+                "name": "fence-1",
+                "x": 590.0,
+                "y": 380.0
+              },
+              {
+                "id": "fence-2",
+                "kind": "fence_agent",
+                "name": "fence-2",
+                "x": 590.0,
+                "y": 460.0
+              },
+              {
+                "id": "fence-3",
+                "kind": "fence_agent",
+                "name": "fence-3",
+                "x": 590.0,
+                "y": 540.0
+              },
+              {
+                "id": "h4",
+                "kind": "host",
+                "name": "host-4",
+                "x": 590.0,
+                "y": 300.0
+              },
+              {
+                "id": "fence-4",
+                "kind": "fence_agent",
+                "name": "fence-4",
+                "x": 590.0,
+                "y": 620.0
+              }
+            ],
+            "edges": [
+              {
+                "from": "engine",
+                "to": "dc1"
+              },
+              {
+                "from": "engine",
+                "to": "dc2"
+              },
+              {
+                "from": "dc1",
+                "to": "cl1"
+              },
+              {
+                "from": "dc2",
+                "to": "cl2"
+              },
+              {
+                "from": "cl1",
+                "to": "h1"
+              },
+              {
+                "from": "cl1",
+                "to": "h2"
+              },
+              {
+                "from": "cl2",
+                "to": "h3"
+              },
+              {
+                "from": "dc1",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "cl1"
+              },
+              {
+                "from": "engine",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "h1"
+              },
+              {
+                "from": "mgmt",
+                "to": "h2"
+              },
+              {
+                "from": "dc2",
+                "to": "mgmt2"
+              },
+              {
+                "from": "mgmt2",
+                "to": "cl2"
+              },
+              {
+                "from": "engine",
+                "to": "mgmt2"
+              },
+              {
+                "from": "mgmt2",
+                "to": "h3"
+              },
+              {
+                "from": "dc1",
+                "to": "nfs"
+              },
+              {
+                "from": "nfs",
+                "to": "h1"
+              },
+              {
+                "from": "nfs",
+                "to": "h2"
+              },
+              {
+                "from": "dc2",
+                "to": "nfs2"
+              },
+              {
+                "from": "nfs2",
+                "to": "h3"
+              },
+              {
+                "from": "h3",
+                "to": "vm1"
+              },
+              {
+                "from": "nfs2",
+                "to": "vm1"
+              },
+              {
+                "from": "fence-1",
+                "to": "h1"
+              },
+              {
+                "from": "fence-2",
+                "to": "h2"
+              },
+              {
+                "from": "fence-3",
+                "to": "h3"
+              },
+              {
+                "from": "cl2",
+                "to": "h4"
+              },
+              {
+                "from": "mgmt2",
+                "to": "h4"
+              },
+              {
+                "from": "nfs2",
+                "to": "h4"
+              },
+              {
+                "from": "fence-4",
+                "to": "h4"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "virt-sim-ovirt-ha",
+      "title": "Доска: высокодоступные машины",
+      "statement": "Вы настраиваете окружение так, чтобы высокодоступные машины возвращались после потери хоста: у хоста должен быть агент ограждения, а на хосте-цели в том же кластере должны быть сети, хранилище и память для машины. Пять сценариев: агент на каждом хосте с такой машиной; цель, на которой машина не запустится; память для нескольких перезапущенных машин; машины без отметки высокой доступности; запасной хост в другом кластере. Упражнение решено, когда решены все сценарии.",
+      "hint": "Мысленно потеряйте хост и пройдите по шагам: агент ограждения, прокси, затем первая подходящая цель в том же кластере. Цель должна быть в состоянии Up и вместить машину вместе с её сетями, дисками и памятью.",
+      "spec": {
+        "sim": "ovirt_topo",
+        "scenarios": [
+          {
+            "id": "agent-per-host",
+            "title": "HA without power management",
+            "story": "web-1 and db-1 are marked highly available and run on different hosts. Only host-1 has a fence agent, so if host-2 fails, db-1 will not be restarted.",
+            "goal": "Both HA VMs would restart after the loss of their host",
+            "hint": "The engine restarts an HA VM only after it knows its host is off, and that needs power management. Check every host that runs an HA VM; a host with no HA VM does not need an agent.",
+            "palette": [
+              "fence_agent"
+            ],
+            "max_nodes": 14,
+            "start": {
+              "nodes": [
+                {
+                  "id": "engine",
+                  "kind": "engine",
+                  "name": "engine",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "dc1",
+                  "kind": "data_center",
+                  "name": "Default",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "cl1",
+                  "kind": "cluster",
+                  "name": "cluster-a",
+                  "x": 450.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h1",
+                  "kind": "host",
+                  "name": "host-1",
+                  "x": 590.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h2",
+                  "kind": "host",
+                  "name": "host-2",
+                  "x": 590.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "mgmt",
+                  "kind": "network",
+                  "name": "ovirtmgmt",
+                  "x": 310.0,
+                  "y": 60.0,
+                  "params": {
+                    "required": true,
+                    "role": "management"
+                  }
+                },
+                {
+                  "id": "nfs",
+                  "kind": "storage_domain",
+                  "name": "nfs-data",
+                  "x": 450.0,
+                  "y": 380.0
+                },
+                {
+                  "id": "h3",
+                  "kind": "host",
+                  "name": "host-3",
+                  "x": 590.0,
+                  "y": 220.0
+                },
+                {
+                  "id": "vm1",
+                  "kind": "vm",
+                  "name": "web-1",
+                  "x": 730.0,
+                  "y": 60.0,
+                  "params": {
+                    "ha": true
+                  }
+                },
+                {
+                  "id": "vm2",
+                  "kind": "vm",
+                  "name": "db-1",
+                  "x": 730.0,
+                  "y": 140.0,
+                  "params": {
+                    "ha": true
+                  }
+                },
+                {
+                  "id": "vm3",
+                  "kind": "vm",
+                  "name": "batch-1",
+                  "x": 730.0,
+                  "y": 220.0
+                },
+                {
+                  "id": "fence-1",
+                  "kind": "fence_agent",
+                  "name": "fence-1",
+                  "x": 590.0,
+                  "y": 380.0
+                }
+              ],
+              "edges": [
+                {
+                  "from": "engine",
+                  "to": "dc1"
+                },
+                {
+                  "from": "dc1",
+                  "to": "cl1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "cl1"
+                },
+                {
+                  "from": "engine",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h1"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "nfs"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h2"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h3"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h3"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h3"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm1"
+                },
+                {
+                  "from": "h2",
+                  "to": "vm2"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm2"
+                },
+                {
+                  "from": "h3",
+                  "to": "vm3"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm3"
+                },
+                {
+                  "from": "fence-1",
+                  "to": "h1"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "healthy"
+              },
+              {
+                "kind": "ha_restart"
+              },
+              {
+                "kind": "link",
+                "rel": "fence",
+                "min": 2
+              }
+            ]
+          },
+          {
+            "id": "good-target",
+            "title": "A target that cannot run the VM",
+            "story": "web-1 is highly available and host-1 has power management. host-2 is NonOperational, and even when it comes Up, the VM could not start there.",
+            "goal": "Everything works and web-1 would restart on host-2 after the loss of host-1",
+            "hint": "A restart target has to be Up and has to offer everything the VM uses: its networks and its storage. Read the reason on host-2, then check the network of web-1 on it.",
+            "palette": [
+              "network"
+            ],
+            "max_nodes": 12,
+            "start": {
+              "nodes": [
+                {
+                  "id": "engine",
+                  "kind": "engine",
+                  "name": "engine",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "dc1",
+                  "kind": "data_center",
+                  "name": "Default",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "cl1",
+                  "kind": "cluster",
+                  "name": "cluster-a",
+                  "x": 450.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h1",
+                  "kind": "host",
+                  "name": "host-1",
+                  "x": 590.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h2",
+                  "kind": "host",
+                  "name": "host-2",
+                  "x": 590.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "mgmt",
+                  "kind": "network",
+                  "name": "ovirtmgmt",
+                  "x": 310.0,
+                  "y": 60.0,
+                  "params": {
+                    "required": true,
+                    "role": "management"
+                  }
+                },
+                {
+                  "id": "front",
+                  "kind": "network",
+                  "name": "front-net",
+                  "x": 310.0,
+                  "y": 140.0,
+                  "params": {
+                    "required": false,
+                    "role": "vm"
+                  }
+                },
+                {
+                  "id": "nfs",
+                  "kind": "storage_domain",
+                  "name": "nfs-data",
+                  "x": 450.0,
+                  "y": 380.0
+                },
+                {
+                  "id": "vm1",
+                  "kind": "vm",
+                  "name": "web-1",
+                  "x": 730.0,
+                  "y": 60.0,
+                  "params": {
+                    "ha": true
+                  }
+                },
+                {
+                  "id": "vm2",
+                  "kind": "vm",
+                  "name": "db-1",
+                  "x": 730.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "fence-1",
+                  "kind": "fence_agent",
+                  "name": "fence-1",
+                  "x": 590.0,
+                  "y": 380.0
+                }
+              ],
+              "edges": [
+                {
+                  "from": "engine",
+                  "to": "dc1"
+                },
+                {
+                  "from": "dc1",
+                  "to": "cl1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "cl1"
+                },
+                {
+                  "from": "engine",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h1"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "front"
+                },
+                {
+                  "from": "front",
+                  "to": "cl1"
+                },
+                {
+                  "from": "front",
+                  "to": "h1"
+                },
+                {
+                  "from": "dc1",
+                  "to": "nfs"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h1"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm1"
+                },
+                {
+                  "from": "front",
+                  "to": "vm1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm1"
+                },
+                {
+                  "from": "h2",
+                  "to": "vm2"
+                },
+                {
+                  "from": "fence-1",
+                  "to": "h1"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "healthy"
+              },
+              {
+                "kind": "ha_restart"
+              },
+              {
+                "kind": "link",
+                "rel": "assigned",
+                "min": 4
+              }
+            ]
+          },
+          {
+            "id": "memory-room",
+            "title": "Room for the restarted VMs",
+            "story": "host-1 runs web-1 and web-2, 16 GB each, both highly available. Everything is Up, but host-2 has 16 GB and a small VM of its own, so it cannot take them.",
+            "goal": "Both web VMs would restart after the loss of host-1 and everything keeps running",
+            "hint": "The restarted VMs share the memory of the target. Add up what is already on it and what comes; a host with more memory or another host will do.",
+            "palette": [
+              "host"
+            ],
+            "max_nodes": 14,
+            "start": {
+              "nodes": [
+                {
+                  "id": "engine",
+                  "kind": "engine",
+                  "name": "engine",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "dc1",
+                  "kind": "data_center",
+                  "name": "Default",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "cl1",
+                  "kind": "cluster",
+                  "name": "cluster-a",
+                  "x": 450.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h1",
+                  "kind": "host",
+                  "name": "host-1",
+                  "x": 590.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h2",
+                  "kind": "host",
+                  "name": "host-2",
+                  "x": 590.0,
+                  "y": 140.0,
+                  "params": {
+                    "mem": "16"
+                  }
+                },
+                {
+                  "id": "mgmt",
+                  "kind": "network",
+                  "name": "ovirtmgmt",
+                  "x": 310.0,
+                  "y": 60.0,
+                  "params": {
+                    "required": true,
+                    "role": "management"
+                  }
+                },
+                {
+                  "id": "nfs",
+                  "kind": "storage_domain",
+                  "name": "nfs-data",
+                  "x": 450.0,
+                  "y": 380.0
+                },
+                {
+                  "id": "vm1",
+                  "kind": "vm",
+                  "name": "web-1",
+                  "x": 730.0,
+                  "y": 60.0,
+                  "params": {
+                    "ha": true,
+                    "mem": "16"
+                  }
+                },
+                {
+                  "id": "vm2",
+                  "kind": "vm",
+                  "name": "web-2",
+                  "x": 730.0,
+                  "y": 140.0,
+                  "params": {
+                    "ha": true,
+                    "mem": "16"
+                  }
+                },
+                {
+                  "id": "vm3",
+                  "kind": "vm",
+                  "name": "batch-1",
+                  "x": 730.0,
+                  "y": 220.0
+                },
+                {
+                  "id": "fence-1",
+                  "kind": "fence_agent",
+                  "name": "fence-1",
+                  "x": 590.0,
+                  "y": 380.0
+                }
+              ],
+              "edges": [
+                {
+                  "from": "engine",
+                  "to": "dc1"
+                },
+                {
+                  "from": "dc1",
+                  "to": "cl1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "cl1"
+                },
+                {
+                  "from": "engine",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h1"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "nfs"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h2"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm1"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm2"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm2"
+                },
+                {
+                  "from": "h2",
+                  "to": "vm3"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm3"
+                },
+                {
+                  "from": "fence-1",
+                  "to": "h1"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "healthy"
+              },
+              {
+                "kind": "ha_restart"
+              }
+            ]
+          },
+          {
+            "id": "not-marked",
+            "title": "Only the marked VMs come back",
+            "story": "Three hosts have power management. When host-1 failed in a test, web-1 came back by itself, but web-2 did not. db-1 on host-2 would be left the same way.",
+            "goal": "web-2 and db-1 are highly available too, and all HA VMs would restart",
+            "hint": "A VM that is not marked highly available is only marked down when its host is fenced. Select the VM and look at its parameters.",
+            "palette": [
+              "host"
+            ],
+            "max_nodes": 16,
+            "start": {
+              "nodes": [
+                {
+                  "id": "engine",
+                  "kind": "engine",
+                  "name": "engine",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "dc1",
+                  "kind": "data_center",
+                  "name": "Default",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "cl1",
+                  "kind": "cluster",
+                  "name": "cluster-a",
+                  "x": 450.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h1",
+                  "kind": "host",
+                  "name": "host-1",
+                  "x": 590.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h2",
+                  "kind": "host",
+                  "name": "host-2",
+                  "x": 590.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "mgmt",
+                  "kind": "network",
+                  "name": "ovirtmgmt",
+                  "x": 310.0,
+                  "y": 60.0,
+                  "params": {
+                    "required": true,
+                    "role": "management"
+                  }
+                },
+                {
+                  "id": "nfs",
+                  "kind": "storage_domain",
+                  "name": "nfs-data",
+                  "x": 450.0,
+                  "y": 380.0
+                },
+                {
+                  "id": "h3",
+                  "kind": "host",
+                  "name": "host-3",
+                  "x": 590.0,
+                  "y": 220.0
+                },
+                {
+                  "id": "vm1",
+                  "kind": "vm",
+                  "name": "web-1",
+                  "x": 730.0,
+                  "y": 60.0,
+                  "params": {
+                    "ha": true
+                  }
+                },
+                {
+                  "id": "vm2",
+                  "kind": "vm",
+                  "name": "web-2",
+                  "x": 730.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "vm3",
+                  "kind": "vm",
+                  "name": "db-1",
+                  "x": 730.0,
+                  "y": 220.0
+                },
+                {
+                  "id": "vm4",
+                  "kind": "vm",
+                  "name": "batch-1",
+                  "x": 730.0,
+                  "y": 300.0
+                },
+                {
+                  "id": "fence-1",
+                  "kind": "fence_agent",
+                  "name": "fence-1",
+                  "x": 590.0,
+                  "y": 380.0
+                },
+                {
+                  "id": "fence-2",
+                  "kind": "fence_agent",
+                  "name": "fence-2",
+                  "x": 590.0,
+                  "y": 460.0
+                },
+                {
+                  "id": "fence-3",
+                  "kind": "fence_agent",
+                  "name": "fence-3",
+                  "x": 590.0,
+                  "y": 540.0
+                }
+              ],
+              "edges": [
+                {
+                  "from": "engine",
+                  "to": "dc1"
+                },
+                {
+                  "from": "dc1",
+                  "to": "cl1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "cl1"
+                },
+                {
+                  "from": "engine",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h1"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "nfs"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h2"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h3"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h3"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h3"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm1"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm2"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm2"
+                },
+                {
+                  "from": "h2",
+                  "to": "vm3"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm3"
+                },
+                {
+                  "from": "h3",
+                  "to": "vm4"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm4"
+                },
+                {
+                  "from": "fence-1",
+                  "to": "h1"
+                },
+                {
+                  "from": "fence-2",
+                  "to": "h2"
+                },
+                {
+                  "from": "fence-3",
+                  "to": "h3"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "healthy"
+              },
+              {
+                "kind": "ha_restart"
+              },
+              {
+                "kind": "param_of",
+                "id": "vm2",
+                "key": "ha",
+                "value": "true"
+              },
+              {
+                "kind": "param_of",
+                "id": "vm3",
+                "key": "ha",
+                "value": "true"
+              }
+            ]
+          },
+          {
+            "id": "cluster-border",
+            "title": "The spare host is in another cluster",
+            "story": "host-1 alone is in cluster-a, with two HA VMs. cluster-b has two hosts and room to spare, but the engine has nowhere to restart the VMs.",
+            "goal": "Both HA VMs would restart after the loss of host-1 and everything keeps running",
+            "hint": "An HA VM restarts only inside its own cluster. A host belongs to one cluster, so a host that is needed in cluster-a must first leave the other one.",
+            "palette": [
+              "host"
+            ],
+            "max_nodes": 14,
+            "start": {
+              "nodes": [
+                {
+                  "id": "engine",
+                  "kind": "engine",
+                  "name": "engine",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "dc1",
+                  "kind": "data_center",
+                  "name": "Default",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "cl1",
+                  "kind": "cluster",
+                  "name": "cluster-a",
+                  "x": 450.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "cl2",
+                  "kind": "cluster",
+                  "name": "cluster-b",
+                  "x": 450.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "h1",
+                  "kind": "host",
+                  "name": "host-1",
+                  "x": 590.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h2",
+                  "kind": "host",
+                  "name": "host-2",
+                  "x": 590.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "h3",
+                  "kind": "host",
+                  "name": "host-3",
+                  "x": 590.0,
+                  "y": 220.0
+                },
+                {
+                  "id": "mgmt",
+                  "kind": "network",
+                  "name": "ovirtmgmt",
+                  "x": 310.0,
+                  "y": 60.0,
+                  "params": {
+                    "required": true,
+                    "role": "management"
+                  }
+                },
+                {
+                  "id": "nfs",
+                  "kind": "storage_domain",
+                  "name": "nfs-data",
+                  "x": 450.0,
+                  "y": 380.0
+                },
+                {
+                  "id": "vm1",
+                  "kind": "vm",
+                  "name": "web-1",
+                  "x": 730.0,
+                  "y": 60.0,
+                  "params": {
+                    "ha": true,
+                    "mem": "8"
+                  }
+                },
+                {
+                  "id": "vm2",
+                  "kind": "vm",
+                  "name": "web-2",
+                  "x": 730.0,
+                  "y": 140.0,
+                  "params": {
+                    "ha": true,
+                    "mem": "8"
+                  }
+                },
+                {
+                  "id": "vm3",
+                  "kind": "vm",
+                  "name": "batch-1",
+                  "x": 730.0,
+                  "y": 220.0
+                },
+                {
+                  "id": "fence-1",
+                  "kind": "fence_agent",
+                  "name": "fence-1",
+                  "x": 590.0,
+                  "y": 380.0
+                }
+              ],
+              "edges": [
+                {
+                  "from": "engine",
+                  "to": "dc1"
+                },
+                {
+                  "from": "dc1",
+                  "to": "cl1"
+                },
+                {
+                  "from": "dc1",
+                  "to": "cl2"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h1"
+                },
+                {
+                  "from": "cl2",
+                  "to": "h2"
+                },
+                {
+                  "from": "cl2",
+                  "to": "h3"
+                },
+                {
+                  "from": "dc1",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "cl1"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "cl2"
+                },
+                {
+                  "from": "engine",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h1"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h2"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h3"
+                },
+                {
+                  "from": "dc1",
+                  "to": "nfs"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h2"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h3"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm1"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm2"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm2"
+                },
+                {
+                  "from": "h2",
+                  "to": "vm3"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm3"
+                },
+                {
+                  "from": "fence-1",
+                  "to": "h1"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "healthy"
+              },
+              {
+                "kind": "ha_restart"
+              },
+              {
+                "kind": "hosts_up",
+                "min": 3
+              }
+            ]
+          }
+        ],
+        "solution": {
+          "agent-per-host": {
+            "nodes": [
+              {
+                "id": "engine",
+                "kind": "engine",
+                "name": "engine",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "dc1",
+                "kind": "data_center",
+                "name": "Default",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "cl1",
+                "kind": "cluster",
+                "name": "cluster-a",
+                "x": 450.0,
+                "y": 60.0
+              },
+              {
+                "id": "h1",
+                "kind": "host",
+                "name": "host-1",
+                "x": 590.0,
+                "y": 60.0
+              },
+              {
+                "id": "h2",
+                "kind": "host",
+                "name": "host-2",
+                "x": 590.0,
+                "y": 140.0
+              },
+              {
+                "id": "mgmt",
+                "kind": "network",
+                "name": "ovirtmgmt",
+                "x": 310.0,
+                "y": 60.0,
+                "params": {
+                  "required": true,
+                  "role": "management"
+                }
+              },
+              {
+                "id": "nfs",
+                "kind": "storage_domain",
+                "name": "nfs-data",
+                "x": 450.0,
+                "y": 380.0
+              },
+              {
+                "id": "h3",
+                "kind": "host",
+                "name": "host-3",
+                "x": 590.0,
+                "y": 220.0
+              },
+              {
+                "id": "vm1",
+                "kind": "vm",
+                "name": "web-1",
+                "x": 730.0,
+                "y": 60.0,
+                "params": {
+                  "ha": true
+                }
+              },
+              {
+                "id": "vm2",
+                "kind": "vm",
+                "name": "db-1",
+                "x": 730.0,
+                "y": 140.0,
+                "params": {
+                  "ha": true
+                }
+              },
+              {
+                "id": "vm3",
+                "kind": "vm",
+                "name": "batch-1",
+                "x": 730.0,
+                "y": 220.0
+              },
+              {
+                "id": "fence-1",
+                "kind": "fence_agent",
+                "name": "fence-1",
+                "x": 590.0,
+                "y": 380.0
+              },
+              {
+                "id": "fence-2",
+                "kind": "fence_agent",
+                "name": "fence-2",
+                "x": 590.0,
+                "y": 460.0
+              }
+            ],
+            "edges": [
+              {
+                "from": "engine",
+                "to": "dc1"
+              },
+              {
+                "from": "dc1",
+                "to": "cl1"
+              },
+              {
+                "from": "cl1",
+                "to": "h1"
+              },
+              {
+                "from": "cl1",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "cl1"
+              },
+              {
+                "from": "engine",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "h1"
+              },
+              {
+                "from": "mgmt",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "nfs"
+              },
+              {
+                "from": "nfs",
+                "to": "h1"
+              },
+              {
+                "from": "nfs",
+                "to": "h2"
+              },
+              {
+                "from": "cl1",
+                "to": "h3"
+              },
+              {
+                "from": "mgmt",
+                "to": "h3"
+              },
+              {
+                "from": "nfs",
+                "to": "h3"
+              },
+              {
+                "from": "h1",
+                "to": "vm1"
+              },
+              {
+                "from": "nfs",
+                "to": "vm1"
+              },
+              {
+                "from": "h2",
+                "to": "vm2"
+              },
+              {
+                "from": "nfs",
+                "to": "vm2"
+              },
+              {
+                "from": "h3",
+                "to": "vm3"
+              },
+              {
+                "from": "nfs",
+                "to": "vm3"
+              },
+              {
+                "from": "fence-1",
+                "to": "h1"
+              },
+              {
+                "from": "fence-2",
+                "to": "h2"
+              }
+            ]
+          },
+          "cluster-border": {
+            "nodes": [
+              {
+                "id": "engine",
+                "kind": "engine",
+                "name": "engine",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "dc1",
+                "kind": "data_center",
+                "name": "Default",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "cl1",
+                "kind": "cluster",
+                "name": "cluster-a",
+                "x": 450.0,
+                "y": 60.0
+              },
+              {
+                "id": "cl2",
+                "kind": "cluster",
+                "name": "cluster-b",
+                "x": 450.0,
+                "y": 140.0
+              },
+              {
+                "id": "h1",
+                "kind": "host",
+                "name": "host-1",
+                "x": 590.0,
+                "y": 60.0
+              },
+              {
+                "id": "h2",
+                "kind": "host",
+                "name": "host-2",
+                "x": 590.0,
+                "y": 140.0
+              },
+              {
+                "id": "h3",
+                "kind": "host",
+                "name": "host-3",
+                "x": 590.0,
+                "y": 220.0
+              },
+              {
+                "id": "mgmt",
+                "kind": "network",
+                "name": "ovirtmgmt",
+                "x": 310.0,
+                "y": 60.0,
+                "params": {
+                  "required": true,
+                  "role": "management"
+                }
+              },
+              {
+                "id": "nfs",
+                "kind": "storage_domain",
+                "name": "nfs-data",
+                "x": 450.0,
+                "y": 380.0
+              },
+              {
+                "id": "vm1",
+                "kind": "vm",
+                "name": "web-1",
+                "x": 730.0,
+                "y": 60.0,
+                "params": {
+                  "ha": true,
+                  "mem": "8"
+                }
+              },
+              {
+                "id": "vm2",
+                "kind": "vm",
+                "name": "web-2",
+                "x": 730.0,
+                "y": 140.0,
+                "params": {
+                  "ha": true,
+                  "mem": "8"
+                }
+              },
+              {
+                "id": "vm3",
+                "kind": "vm",
+                "name": "batch-1",
+                "x": 730.0,
+                "y": 220.0
+              },
+              {
+                "id": "fence-1",
+                "kind": "fence_agent",
+                "name": "fence-1",
+                "x": 590.0,
+                "y": 380.0
+              }
+            ],
+            "edges": [
+              {
+                "from": "engine",
+                "to": "dc1"
+              },
+              {
+                "from": "dc1",
+                "to": "cl1"
+              },
+              {
+                "from": "dc1",
+                "to": "cl2"
+              },
+              {
+                "from": "cl1",
+                "to": "h1"
+              },
+              {
+                "from": "cl2",
+                "to": "h3"
+              },
+              {
+                "from": "dc1",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "cl1"
+              },
+              {
+                "from": "mgmt",
+                "to": "cl2"
+              },
+              {
+                "from": "engine",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "h1"
+              },
+              {
+                "from": "mgmt",
+                "to": "h2"
+              },
+              {
+                "from": "mgmt",
+                "to": "h3"
+              },
+              {
+                "from": "dc1",
+                "to": "nfs"
+              },
+              {
+                "from": "nfs",
+                "to": "h1"
+              },
+              {
+                "from": "nfs",
+                "to": "h2"
+              },
+              {
+                "from": "nfs",
+                "to": "h3"
+              },
+              {
+                "from": "h1",
+                "to": "vm1"
+              },
+              {
+                "from": "nfs",
+                "to": "vm1"
+              },
+              {
+                "from": "h1",
+                "to": "vm2"
+              },
+              {
+                "from": "nfs",
+                "to": "vm2"
+              },
+              {
+                "from": "h2",
+                "to": "vm3"
+              },
+              {
+                "from": "nfs",
+                "to": "vm3"
+              },
+              {
+                "from": "fence-1",
+                "to": "h1"
+              },
+              {
+                "from": "cl1",
+                "to": "h2"
+              }
+            ]
+          },
+          "good-target": {
+            "nodes": [
+              {
+                "id": "engine",
+                "kind": "engine",
+                "name": "engine",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "dc1",
+                "kind": "data_center",
+                "name": "Default",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "cl1",
+                "kind": "cluster",
+                "name": "cluster-a",
+                "x": 450.0,
+                "y": 60.0
+              },
+              {
+                "id": "h1",
+                "kind": "host",
+                "name": "host-1",
+                "x": 590.0,
+                "y": 60.0
+              },
+              {
+                "id": "h2",
+                "kind": "host",
+                "name": "host-2",
+                "x": 590.0,
+                "y": 140.0
+              },
+              {
+                "id": "mgmt",
+                "kind": "network",
+                "name": "ovirtmgmt",
+                "x": 310.0,
+                "y": 60.0,
+                "params": {
+                  "required": true,
+                  "role": "management"
+                }
+              },
+              {
+                "id": "front",
+                "kind": "network",
+                "name": "front-net",
+                "x": 310.0,
+                "y": 140.0,
+                "params": {
+                  "required": false,
+                  "role": "vm"
+                }
+              },
+              {
+                "id": "nfs",
+                "kind": "storage_domain",
+                "name": "nfs-data",
+                "x": 450.0,
+                "y": 380.0
+              },
+              {
+                "id": "vm1",
+                "kind": "vm",
+                "name": "web-1",
+                "x": 730.0,
+                "y": 60.0,
+                "params": {
+                  "ha": true
+                }
+              },
+              {
+                "id": "vm2",
+                "kind": "vm",
+                "name": "db-1",
+                "x": 730.0,
+                "y": 140.0
+              },
+              {
+                "id": "fence-1",
+                "kind": "fence_agent",
+                "name": "fence-1",
+                "x": 590.0,
+                "y": 380.0
+              }
+            ],
+            "edges": [
+              {
+                "from": "engine",
+                "to": "dc1"
+              },
+              {
+                "from": "dc1",
+                "to": "cl1"
+              },
+              {
+                "from": "cl1",
+                "to": "h1"
+              },
+              {
+                "from": "cl1",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "cl1"
+              },
+              {
+                "from": "engine",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "h1"
+              },
+              {
+                "from": "mgmt",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "front"
+              },
+              {
+                "from": "front",
+                "to": "cl1"
+              },
+              {
+                "from": "front",
+                "to": "h1"
+              },
+              {
+                "from": "dc1",
+                "to": "nfs"
+              },
+              {
+                "from": "nfs",
+                "to": "h1"
+              },
+              {
+                "from": "h1",
+                "to": "vm1"
+              },
+              {
+                "from": "front",
+                "to": "vm1"
+              },
+              {
+                "from": "nfs",
+                "to": "vm1"
+              },
+              {
+                "from": "h2",
+                "to": "vm2"
+              },
+              {
+                "from": "fence-1",
+                "to": "h1"
+              },
+              {
+                "from": "nfs",
+                "to": "h2"
+              },
+              {
+                "from": "front",
+                "to": "h2"
+              }
+            ]
+          },
+          "memory-room": {
+            "nodes": [
+              {
+                "id": "engine",
+                "kind": "engine",
+                "name": "engine",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "dc1",
+                "kind": "data_center",
+                "name": "Default",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "cl1",
+                "kind": "cluster",
+                "name": "cluster-a",
+                "x": 450.0,
+                "y": 60.0
+              },
+              {
+                "id": "h1",
+                "kind": "host",
+                "name": "host-1",
+                "x": 590.0,
+                "y": 60.0
+              },
+              {
+                "id": "h2",
+                "kind": "host",
+                "name": "host-2",
+                "x": 590.0,
+                "y": 140.0,
+                "params": {
+                  "mem": "64"
+                }
+              },
+              {
+                "id": "mgmt",
+                "kind": "network",
+                "name": "ovirtmgmt",
+                "x": 310.0,
+                "y": 60.0,
+                "params": {
+                  "required": true,
+                  "role": "management"
+                }
+              },
+              {
+                "id": "nfs",
+                "kind": "storage_domain",
+                "name": "nfs-data",
+                "x": 450.0,
+                "y": 380.0
+              },
+              {
+                "id": "vm1",
+                "kind": "vm",
+                "name": "web-1",
+                "x": 730.0,
+                "y": 60.0,
+                "params": {
+                  "ha": true,
+                  "mem": "16"
+                }
+              },
+              {
+                "id": "vm2",
+                "kind": "vm",
+                "name": "web-2",
+                "x": 730.0,
+                "y": 140.0,
+                "params": {
+                  "ha": true,
+                  "mem": "16"
+                }
+              },
+              {
+                "id": "vm3",
+                "kind": "vm",
+                "name": "batch-1",
+                "x": 730.0,
+                "y": 220.0
+              },
+              {
+                "id": "fence-1",
+                "kind": "fence_agent",
+                "name": "fence-1",
+                "x": 590.0,
+                "y": 380.0
+              }
+            ],
+            "edges": [
+              {
+                "from": "engine",
+                "to": "dc1"
+              },
+              {
+                "from": "dc1",
+                "to": "cl1"
+              },
+              {
+                "from": "cl1",
+                "to": "h1"
+              },
+              {
+                "from": "cl1",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "cl1"
+              },
+              {
+                "from": "engine",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "h1"
+              },
+              {
+                "from": "mgmt",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "nfs"
+              },
+              {
+                "from": "nfs",
+                "to": "h1"
+              },
+              {
+                "from": "nfs",
+                "to": "h2"
+              },
+              {
+                "from": "h1",
+                "to": "vm1"
+              },
+              {
+                "from": "nfs",
+                "to": "vm1"
+              },
+              {
+                "from": "h1",
+                "to": "vm2"
+              },
+              {
+                "from": "nfs",
+                "to": "vm2"
+              },
+              {
+                "from": "h2",
+                "to": "vm3"
+              },
+              {
+                "from": "nfs",
+                "to": "vm3"
+              },
+              {
+                "from": "fence-1",
+                "to": "h1"
+              }
+            ]
+          },
+          "not-marked": {
+            "nodes": [
+              {
+                "id": "engine",
+                "kind": "engine",
+                "name": "engine",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "dc1",
+                "kind": "data_center",
+                "name": "Default",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "cl1",
+                "kind": "cluster",
+                "name": "cluster-a",
+                "x": 450.0,
+                "y": 60.0
+              },
+              {
+                "id": "h1",
+                "kind": "host",
+                "name": "host-1",
+                "x": 590.0,
+                "y": 60.0
+              },
+              {
+                "id": "h2",
+                "kind": "host",
+                "name": "host-2",
+                "x": 590.0,
+                "y": 140.0
+              },
+              {
+                "id": "mgmt",
+                "kind": "network",
+                "name": "ovirtmgmt",
+                "x": 310.0,
+                "y": 60.0,
+                "params": {
+                  "required": true,
+                  "role": "management"
+                }
+              },
+              {
+                "id": "nfs",
+                "kind": "storage_domain",
+                "name": "nfs-data",
+                "x": 450.0,
+                "y": 380.0
+              },
+              {
+                "id": "h3",
+                "kind": "host",
+                "name": "host-3",
+                "x": 590.0,
+                "y": 220.0
+              },
+              {
+                "id": "vm1",
+                "kind": "vm",
+                "name": "web-1",
+                "x": 730.0,
+                "y": 60.0,
+                "params": {
+                  "ha": true
+                }
+              },
+              {
+                "id": "vm2",
+                "kind": "vm",
+                "name": "web-2",
+                "x": 730.0,
+                "y": 140.0,
+                "params": {
+                  "ha": true
+                }
+              },
+              {
+                "id": "vm3",
+                "kind": "vm",
+                "name": "db-1",
+                "x": 730.0,
+                "y": 220.0,
+                "params": {
+                  "ha": true
+                }
+              },
+              {
+                "id": "vm4",
+                "kind": "vm",
+                "name": "batch-1",
+                "x": 730.0,
+                "y": 300.0
+              },
+              {
+                "id": "fence-1",
+                "kind": "fence_agent",
+                "name": "fence-1",
+                "x": 590.0,
+                "y": 380.0
+              },
+              {
+                "id": "fence-2",
+                "kind": "fence_agent",
+                "name": "fence-2",
+                "x": 590.0,
+                "y": 460.0
+              },
+              {
+                "id": "fence-3",
+                "kind": "fence_agent",
+                "name": "fence-3",
+                "x": 590.0,
+                "y": 540.0
+              }
+            ],
+            "edges": [
+              {
+                "from": "engine",
+                "to": "dc1"
+              },
+              {
+                "from": "dc1",
+                "to": "cl1"
+              },
+              {
+                "from": "cl1",
+                "to": "h1"
+              },
+              {
+                "from": "cl1",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "cl1"
+              },
+              {
+                "from": "engine",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "h1"
+              },
+              {
+                "from": "mgmt",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "nfs"
+              },
+              {
+                "from": "nfs",
+                "to": "h1"
+              },
+              {
+                "from": "nfs",
+                "to": "h2"
+              },
+              {
+                "from": "cl1",
+                "to": "h3"
+              },
+              {
+                "from": "mgmt",
+                "to": "h3"
+              },
+              {
+                "from": "nfs",
+                "to": "h3"
+              },
+              {
+                "from": "h1",
+                "to": "vm1"
+              },
+              {
+                "from": "nfs",
+                "to": "vm1"
+              },
+              {
+                "from": "h1",
+                "to": "vm2"
+              },
+              {
+                "from": "nfs",
+                "to": "vm2"
+              },
+              {
+                "from": "h2",
+                "to": "vm3"
+              },
+              {
+                "from": "nfs",
+                "to": "vm3"
+              },
+              {
+                "from": "h3",
+                "to": "vm4"
+              },
+              {
+                "from": "nfs",
+                "to": "vm4"
+              },
+              {
+                "from": "fence-1",
+                "to": "h1"
+              },
+              {
+                "from": "fence-2",
+                "to": "h2"
+              },
+              {
+                "from": "fence-3",
+                "to": "h3"
+              }
+            ]
+          }
+        }
+      }
     }
   ]
 }

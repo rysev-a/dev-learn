@@ -6,7 +6,7 @@
     {
       "id": "virt-sim-ovirt-sched",
       "title": "Симулятор: планировщик oVirt",
-      "statement": "Планировщик выбирает хост для запуска виртуальной машины в два шага: фильтры отбрасывают неподходящие хосты, веса ранжируют оставшиеся. В четырёх сценариях подберите политику кластера: включите нужные фильтры (память, сеть, антиаффинность) и расставьте веса (равномерная нагрузка, свободная память, упаковка). Машины запускаются по одной, каждая занимает место на выбранном хосте. Упражнение решено, когда цели всех сценариев выполнены.",
+      "statement": "Планировщик выбирает хост для запуска виртуальной машины в два шага: фильтры отбрасывают неподходящие хосты, веса ранжируют оставшиеся. В четырёх сценариях подберите политику кластера: включите нужные фильтры (память, сеть, антиаффинность) и расставьте веса (равномерная нагрузка, свободная память, упаковка). Машины запускаются по одной, каждая занимает место на выбранном хосте. Упражнение решено, когда цели всех сценариев выполнены. Модель упрощена: три веса — это упрощённые аналоги весовых модулей oVirt (равномерное число машин на хосте, свободная память, упаковка машин вместо энергосбережения по загрузке), а ранги записаны в зеркальной форме: лучший хост получает ранг 0, побеждает наименьшая сумма «коэффициент × ранг» (в самом oVirt лучший хост получает наибольший ранг и побеждает наибольшая сумма).",
       "hint": "Фильтры — жёсткие условия, веса — предпочтения. Без весов побеждает первый по имени хост. Равномерность и упаковка — противоположные веса, их не включают вместе. Нарушенное ограничение, которое политика не проверяла, считается ошибкой размещения.",
       "spec": {
         "sim": "ovirt_sched",
@@ -297,6 +297,5976 @@
             }
           }
         ]
+      }
+    },
+    {
+      "id": "virt-sim-ovirt-affinity",
+      "title": "Доска: группы соответствия",
+      "statement": "Вы расставляете машины по правилам соседства: держите реплики порознь, а части одного целого вместе. Пять сценариев: две реплики на одном хосте под жёсткой отрицательной группой; положительная группа, распавшаяся по трём хостам; три реплики на двух хостах, когда нужен третий хост; мягкая группа, которая никогда не меняет статус и лишь создаёт иллюзию защиты; две жёстких группы, противоречащие друг другу. Упражнение решено, когда решены все сценарии.",
+      "hint": "Жёсткая группа работает как фильтр: машина, которая её нарушает, не запустится. Мягкая группа — только вес, статуса она не меняет, и нарушение видно лишь в параметрах группы и машин. Машина стоит на одном хосте: чтобы переставить её, удалите связь с прежним хостом и создайте новую.",
+      "spec": {
+        "sim": "ovirt_topo",
+        "scenarios": [
+          {
+            "id": "apart",
+            "title": "Two replicas on one host",
+            "story": "db-1 and db-2 are replicas and must never share a host, yet one of them is Down although both hosts are Up and have plenty of memory.",
+            "goal": "All three VMs are running and the replicas are still in their group",
+            "hint": "Open the Down VM and read why it does not run: a hard group is a filter, not a wish. A VM sits on one host, so to move it delete its link to the host and link it to another one.",
+            "palette": [
+              "affinity_group"
+            ],
+            "max_nodes": 12,
+            "start": {
+              "nodes": [
+                {
+                  "id": "engine",
+                  "kind": "engine",
+                  "name": "engine",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "dc1",
+                  "kind": "data_center",
+                  "name": "Default",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "cl1",
+                  "kind": "cluster",
+                  "name": "cluster-a",
+                  "x": 450.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h1",
+                  "kind": "host",
+                  "name": "host-1",
+                  "x": 590.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h2",
+                  "kind": "host",
+                  "name": "host-2",
+                  "x": 590.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "mgmt",
+                  "kind": "network",
+                  "name": "ovirtmgmt",
+                  "x": 310.0,
+                  "y": 60.0,
+                  "params": {
+                    "required": true,
+                    "role": "management"
+                  }
+                },
+                {
+                  "id": "nfs",
+                  "kind": "storage_domain",
+                  "name": "nfs-data",
+                  "x": 450.0,
+                  "y": 380.0
+                },
+                {
+                  "id": "vm1",
+                  "kind": "vm",
+                  "name": "db-1",
+                  "x": 730.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "vm2",
+                  "kind": "vm",
+                  "name": "db-2",
+                  "x": 730.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "vm3",
+                  "kind": "vm",
+                  "name": "web-1",
+                  "x": 730.0,
+                  "y": 220.0
+                },
+                {
+                  "id": "g1",
+                  "kind": "affinity_group",
+                  "name": "db-spread",
+                  "x": 730.0,
+                  "y": 380.0
+                }
+              ],
+              "edges": [
+                {
+                  "from": "engine",
+                  "to": "dc1"
+                },
+                {
+                  "from": "dc1",
+                  "to": "cl1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "cl1"
+                },
+                {
+                  "from": "engine",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h1"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "nfs"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h2"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm1"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm2"
+                },
+                {
+                  "from": "h2",
+                  "to": "vm3"
+                },
+                {
+                  "from": "g1",
+                  "to": "vm1"
+                },
+                {
+                  "from": "g1",
+                  "to": "vm2"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "healthy"
+              },
+              {
+                "kind": "vm_running",
+                "min": 3
+              },
+              {
+                "kind": "link",
+                "rel": "affine",
+                "min": 2
+              },
+              {
+                "kind": "has",
+                "node": "affinity_group",
+                "min": 1
+              }
+            ]
+          },
+          {
+            "id": "together",
+            "title": "A pod that fell apart",
+            "story": "app-1, cache-1 and log-1 are one unit and talk over the loopback of a single host. Two of them are Down on a healthy cluster.",
+            "goal": "The three VMs run together and all three hosts are Up",
+            "hint": "A positive hard group keeps its members on the host of the first member that is placed, and every other member elsewhere breaks it. Move the members that stand apart.",
+            "palette": [
+              "affinity_group"
+            ],
+            "max_nodes": 13,
+            "start": {
+              "nodes": [
+                {
+                  "id": "engine",
+                  "kind": "engine",
+                  "name": "engine",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "dc1",
+                  "kind": "data_center",
+                  "name": "Default",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "cl1",
+                  "kind": "cluster",
+                  "name": "cluster-a",
+                  "x": 450.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h1",
+                  "kind": "host",
+                  "name": "host-1",
+                  "x": 590.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h2",
+                  "kind": "host",
+                  "name": "host-2",
+                  "x": 590.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "mgmt",
+                  "kind": "network",
+                  "name": "ovirtmgmt",
+                  "x": 310.0,
+                  "y": 60.0,
+                  "params": {
+                    "required": true,
+                    "role": "management"
+                  }
+                },
+                {
+                  "id": "nfs",
+                  "kind": "storage_domain",
+                  "name": "nfs-data",
+                  "x": 450.0,
+                  "y": 380.0
+                },
+                {
+                  "id": "h3",
+                  "kind": "host",
+                  "name": "host-3",
+                  "x": 590.0,
+                  "y": 220.0
+                },
+                {
+                  "id": "vm1",
+                  "kind": "vm",
+                  "name": "app-1",
+                  "x": 730.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "vm2",
+                  "kind": "vm",
+                  "name": "cache-1",
+                  "x": 730.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "vm3",
+                  "kind": "vm",
+                  "name": "log-1",
+                  "x": 730.0,
+                  "y": 220.0
+                },
+                {
+                  "id": "g1",
+                  "kind": "affinity_group",
+                  "name": "pod",
+                  "x": 730.0,
+                  "y": 380.0,
+                  "params": {
+                    "polarity": "positive"
+                  }
+                }
+              ],
+              "edges": [
+                {
+                  "from": "engine",
+                  "to": "dc1"
+                },
+                {
+                  "from": "dc1",
+                  "to": "cl1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "cl1"
+                },
+                {
+                  "from": "engine",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h1"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "nfs"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h2"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h3"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h3"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h3"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm1"
+                },
+                {
+                  "from": "h2",
+                  "to": "vm2"
+                },
+                {
+                  "from": "h3",
+                  "to": "vm3"
+                },
+                {
+                  "from": "g1",
+                  "to": "vm1"
+                },
+                {
+                  "from": "g1",
+                  "to": "vm2"
+                },
+                {
+                  "from": "g1",
+                  "to": "vm3"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "healthy"
+              },
+              {
+                "kind": "vm_running",
+                "min": 3
+              },
+              {
+                "kind": "hosts_up",
+                "min": 3
+              },
+              {
+                "kind": "link",
+                "rel": "affine",
+                "min": 3
+              }
+            ]
+          },
+          {
+            "id": "third-host",
+            "title": "Three replicas, two hosts",
+            "story": "The three etcd members must each live on a host of their own, but the cluster has only two hosts, so one member is always Down.",
+            "goal": "All three members run, each on its own host, and every host is Up",
+            "hint": "No move helps while there are fewer hosts than members. A new host must be a member of the cluster and have everything the other hosts have: the management network, the VM network and the storage domain.",
+            "palette": [
+              "host"
+            ],
+            "max_nodes": 14,
+            "start": {
+              "nodes": [
+                {
+                  "id": "engine",
+                  "kind": "engine",
+                  "name": "engine",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "dc1",
+                  "kind": "data_center",
+                  "name": "Default",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "cl1",
+                  "kind": "cluster",
+                  "name": "cluster-a",
+                  "x": 450.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h1",
+                  "kind": "host",
+                  "name": "host-1",
+                  "x": 590.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h2",
+                  "kind": "host",
+                  "name": "host-2",
+                  "x": 590.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "mgmt",
+                  "kind": "network",
+                  "name": "ovirtmgmt",
+                  "x": 310.0,
+                  "y": 60.0,
+                  "params": {
+                    "required": true,
+                    "role": "management"
+                  }
+                },
+                {
+                  "id": "nfs",
+                  "kind": "storage_domain",
+                  "name": "nfs-data",
+                  "x": 450.0,
+                  "y": 380.0
+                },
+                {
+                  "id": "vmnet",
+                  "kind": "network",
+                  "name": "vm-net",
+                  "x": 310.0,
+                  "y": 140.0,
+                  "params": {
+                    "required": true,
+                    "role": "vm"
+                  }
+                },
+                {
+                  "id": "vm1",
+                  "kind": "vm",
+                  "name": "etcd-1",
+                  "x": 730.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "vm2",
+                  "kind": "vm",
+                  "name": "etcd-2",
+                  "x": 730.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "vm3",
+                  "kind": "vm",
+                  "name": "etcd-3",
+                  "x": 730.0,
+                  "y": 220.0
+                },
+                {
+                  "id": "g1",
+                  "kind": "affinity_group",
+                  "name": "quorum",
+                  "x": 730.0,
+                  "y": 380.0
+                }
+              ],
+              "edges": [
+                {
+                  "from": "engine",
+                  "to": "dc1"
+                },
+                {
+                  "from": "dc1",
+                  "to": "cl1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "cl1"
+                },
+                {
+                  "from": "engine",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h1"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "nfs"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "vmnet"
+                },
+                {
+                  "from": "vmnet",
+                  "to": "cl1"
+                },
+                {
+                  "from": "vmnet",
+                  "to": "h1"
+                },
+                {
+                  "from": "vmnet",
+                  "to": "h2"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm1"
+                },
+                {
+                  "from": "h2",
+                  "to": "vm2"
+                },
+                {
+                  "from": "h2",
+                  "to": "vm3"
+                },
+                {
+                  "from": "vmnet",
+                  "to": "vm1"
+                },
+                {
+                  "from": "vmnet",
+                  "to": "vm2"
+                },
+                {
+                  "from": "vmnet",
+                  "to": "vm3"
+                },
+                {
+                  "from": "g1",
+                  "to": "vm1"
+                },
+                {
+                  "from": "g1",
+                  "to": "vm2"
+                },
+                {
+                  "from": "g1",
+                  "to": "vm3"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "healthy"
+              },
+              {
+                "kind": "hosts_up",
+                "min": 3
+              },
+              {
+                "kind": "vm_running",
+                "min": 3
+              },
+              {
+                "kind": "link",
+                "rel": "affine",
+                "min": 3
+              }
+            ]
+          },
+          {
+            "id": "soft-rule",
+            "title": "The rule that never fires",
+            "story": "The database replicas db-1 and db-2 are in an anti-affinity group, and the board is all green, yet both of them sit on host-1. The team was told the group guarantees they never share a host.",
+            "goal": "The db-spread group is enforced and everything is running with the replicas on different hosts",
+            "hint": "Open the group and read its parameters: a soft group is only a preference and never changes a status. Once it is hard, the VM that breaks it goes Down until it is moved.",
+            "palette": [
+              "affinity_group"
+            ],
+            "max_nodes": 14,
+            "start": {
+              "nodes": [
+                {
+                  "id": "engine",
+                  "kind": "engine",
+                  "name": "engine",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "dc1",
+                  "kind": "data_center",
+                  "name": "Default",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "cl1",
+                  "kind": "cluster",
+                  "name": "cluster-a",
+                  "x": 450.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h1",
+                  "kind": "host",
+                  "name": "host-1",
+                  "x": 590.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h2",
+                  "kind": "host",
+                  "name": "host-2",
+                  "x": 590.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "mgmt",
+                  "kind": "network",
+                  "name": "ovirtmgmt",
+                  "x": 310.0,
+                  "y": 60.0,
+                  "params": {
+                    "required": true,
+                    "role": "management"
+                  }
+                },
+                {
+                  "id": "nfs",
+                  "kind": "storage_domain",
+                  "name": "nfs-data",
+                  "x": 450.0,
+                  "y": 380.0
+                },
+                {
+                  "id": "vm1",
+                  "kind": "vm",
+                  "name": "db-1",
+                  "x": 730.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "vm2",
+                  "kind": "vm",
+                  "name": "db-2",
+                  "x": 730.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "vm3",
+                  "kind": "vm",
+                  "name": "web-1",
+                  "x": 730.0,
+                  "y": 220.0
+                },
+                {
+                  "id": "vm4",
+                  "kind": "vm",
+                  "name": "cache-1",
+                  "x": 730.0,
+                  "y": 300.0
+                },
+                {
+                  "id": "g1",
+                  "kind": "affinity_group",
+                  "name": "db-spread",
+                  "x": 730.0,
+                  "y": 380.0,
+                  "params": {
+                    "hard": false
+                  }
+                },
+                {
+                  "id": "g2",
+                  "kind": "affinity_group",
+                  "name": "web-cache",
+                  "x": 730.0,
+                  "y": 460.0,
+                  "params": {
+                    "polarity": "positive"
+                  }
+                }
+              ],
+              "edges": [
+                {
+                  "from": "engine",
+                  "to": "dc1"
+                },
+                {
+                  "from": "dc1",
+                  "to": "cl1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "cl1"
+                },
+                {
+                  "from": "engine",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h1"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "nfs"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h2"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm1"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm2"
+                },
+                {
+                  "from": "h2",
+                  "to": "vm3"
+                },
+                {
+                  "from": "h2",
+                  "to": "vm4"
+                },
+                {
+                  "from": "g1",
+                  "to": "vm1"
+                },
+                {
+                  "from": "g1",
+                  "to": "vm2"
+                },
+                {
+                  "from": "g2",
+                  "to": "vm3"
+                },
+                {
+                  "from": "g2",
+                  "to": "vm4"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "healthy"
+              },
+              {
+                "kind": "vm_running",
+                "min": 4
+              },
+              {
+                "kind": "param_of",
+                "id": "g1",
+                "key": "hard",
+                "value": "true"
+              },
+              {
+                "kind": "param_of",
+                "id": "g2",
+                "key": "hard",
+                "value": "true"
+              },
+              {
+                "kind": "link",
+                "rel": "affine",
+                "min": 4
+              }
+            ]
+          },
+          {
+            "id": "conflict",
+            "title": "Together and apart",
+            "story": "app-1 and cache-1 are in two hard groups: near wants them on one host for latency, apart wants them on two hosts so that one host failure takes only one of them. cache-1 is Down, and moving it only swaps which group is broken.",
+            "goal": "Everything runs with app-1 and cache-1 on different hosts, the apart rule enforced and both groups still on the board",
+            "hint": "Two hard groups that contradict each other can never both hold. Decide which one is a requirement and which one is only a wish, and relax the wish.",
+            "palette": [
+              "affinity_group"
+            ],
+            "max_nodes": 12,
+            "start": {
+              "nodes": [
+                {
+                  "id": "engine",
+                  "kind": "engine",
+                  "name": "engine",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "dc1",
+                  "kind": "data_center",
+                  "name": "Default",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "cl1",
+                  "kind": "cluster",
+                  "name": "cluster-a",
+                  "x": 450.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h1",
+                  "kind": "host",
+                  "name": "host-1",
+                  "x": 590.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h2",
+                  "kind": "host",
+                  "name": "host-2",
+                  "x": 590.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "mgmt",
+                  "kind": "network",
+                  "name": "ovirtmgmt",
+                  "x": 310.0,
+                  "y": 60.0,
+                  "params": {
+                    "required": true,
+                    "role": "management"
+                  }
+                },
+                {
+                  "id": "nfs",
+                  "kind": "storage_domain",
+                  "name": "nfs-data",
+                  "x": 450.0,
+                  "y": 380.0
+                },
+                {
+                  "id": "vm1",
+                  "kind": "vm",
+                  "name": "app-1",
+                  "x": 730.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "vm2",
+                  "kind": "vm",
+                  "name": "cache-1",
+                  "x": 730.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "vm3",
+                  "kind": "vm",
+                  "name": "report-1",
+                  "x": 730.0,
+                  "y": 220.0
+                },
+                {
+                  "id": "g1",
+                  "kind": "affinity_group",
+                  "name": "near",
+                  "x": 730.0,
+                  "y": 380.0,
+                  "params": {
+                    "polarity": "positive"
+                  }
+                },
+                {
+                  "id": "g2",
+                  "kind": "affinity_group",
+                  "name": "apart",
+                  "x": 730.0,
+                  "y": 460.0
+                }
+              ],
+              "edges": [
+                {
+                  "from": "engine",
+                  "to": "dc1"
+                },
+                {
+                  "from": "dc1",
+                  "to": "cl1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "cl1"
+                },
+                {
+                  "from": "engine",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h1"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "nfs"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h2"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm1"
+                },
+                {
+                  "from": "h2",
+                  "to": "vm2"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm3"
+                },
+                {
+                  "from": "g1",
+                  "to": "vm1"
+                },
+                {
+                  "from": "g1",
+                  "to": "vm2"
+                },
+                {
+                  "from": "g2",
+                  "to": "vm1"
+                },
+                {
+                  "from": "g2",
+                  "to": "vm2"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "healthy"
+              },
+              {
+                "kind": "vm_running",
+                "min": 3
+              },
+              {
+                "kind": "param_of",
+                "id": "g1",
+                "key": "hard",
+                "value": "false"
+              },
+              {
+                "kind": "param_of",
+                "id": "g2",
+                "key": "hard",
+                "value": "true"
+              },
+              {
+                "kind": "link",
+                "rel": "affine",
+                "min": 4
+              }
+            ]
+          }
+        ],
+        "solution": {
+          "apart": {
+            "nodes": [
+              {
+                "id": "engine",
+                "kind": "engine",
+                "name": "engine",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "dc1",
+                "kind": "data_center",
+                "name": "Default",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "cl1",
+                "kind": "cluster",
+                "name": "cluster-a",
+                "x": 450.0,
+                "y": 60.0
+              },
+              {
+                "id": "h1",
+                "kind": "host",
+                "name": "host-1",
+                "x": 590.0,
+                "y": 60.0
+              },
+              {
+                "id": "h2",
+                "kind": "host",
+                "name": "host-2",
+                "x": 590.0,
+                "y": 140.0
+              },
+              {
+                "id": "mgmt",
+                "kind": "network",
+                "name": "ovirtmgmt",
+                "x": 310.0,
+                "y": 60.0,
+                "params": {
+                  "required": true,
+                  "role": "management"
+                }
+              },
+              {
+                "id": "nfs",
+                "kind": "storage_domain",
+                "name": "nfs-data",
+                "x": 450.0,
+                "y": 380.0
+              },
+              {
+                "id": "vm1",
+                "kind": "vm",
+                "name": "db-1",
+                "x": 730.0,
+                "y": 60.0
+              },
+              {
+                "id": "vm2",
+                "kind": "vm",
+                "name": "db-2",
+                "x": 730.0,
+                "y": 140.0
+              },
+              {
+                "id": "vm3",
+                "kind": "vm",
+                "name": "web-1",
+                "x": 730.0,
+                "y": 220.0
+              },
+              {
+                "id": "g1",
+                "kind": "affinity_group",
+                "name": "db-spread",
+                "x": 730.0,
+                "y": 380.0
+              }
+            ],
+            "edges": [
+              {
+                "from": "engine",
+                "to": "dc1"
+              },
+              {
+                "from": "dc1",
+                "to": "cl1"
+              },
+              {
+                "from": "cl1",
+                "to": "h1"
+              },
+              {
+                "from": "cl1",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "cl1"
+              },
+              {
+                "from": "engine",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "h1"
+              },
+              {
+                "from": "mgmt",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "nfs"
+              },
+              {
+                "from": "nfs",
+                "to": "h1"
+              },
+              {
+                "from": "nfs",
+                "to": "h2"
+              },
+              {
+                "from": "h1",
+                "to": "vm1"
+              },
+              {
+                "from": "h2",
+                "to": "vm3"
+              },
+              {
+                "from": "g1",
+                "to": "vm1"
+              },
+              {
+                "from": "g1",
+                "to": "vm2"
+              },
+              {
+                "from": "h2",
+                "to": "vm2"
+              }
+            ]
+          },
+          "conflict": {
+            "nodes": [
+              {
+                "id": "engine",
+                "kind": "engine",
+                "name": "engine",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "dc1",
+                "kind": "data_center",
+                "name": "Default",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "cl1",
+                "kind": "cluster",
+                "name": "cluster-a",
+                "x": 450.0,
+                "y": 60.0
+              },
+              {
+                "id": "h1",
+                "kind": "host",
+                "name": "host-1",
+                "x": 590.0,
+                "y": 60.0
+              },
+              {
+                "id": "h2",
+                "kind": "host",
+                "name": "host-2",
+                "x": 590.0,
+                "y": 140.0
+              },
+              {
+                "id": "mgmt",
+                "kind": "network",
+                "name": "ovirtmgmt",
+                "x": 310.0,
+                "y": 60.0,
+                "params": {
+                  "required": true,
+                  "role": "management"
+                }
+              },
+              {
+                "id": "nfs",
+                "kind": "storage_domain",
+                "name": "nfs-data",
+                "x": 450.0,
+                "y": 380.0
+              },
+              {
+                "id": "vm1",
+                "kind": "vm",
+                "name": "app-1",
+                "x": 730.0,
+                "y": 60.0
+              },
+              {
+                "id": "vm2",
+                "kind": "vm",
+                "name": "cache-1",
+                "x": 730.0,
+                "y": 140.0
+              },
+              {
+                "id": "vm3",
+                "kind": "vm",
+                "name": "report-1",
+                "x": 730.0,
+                "y": 220.0
+              },
+              {
+                "id": "g1",
+                "kind": "affinity_group",
+                "name": "near",
+                "x": 730.0,
+                "y": 380.0,
+                "params": {
+                  "hard": false,
+                  "polarity": "positive"
+                }
+              },
+              {
+                "id": "g2",
+                "kind": "affinity_group",
+                "name": "apart",
+                "x": 730.0,
+                "y": 460.0
+              }
+            ],
+            "edges": [
+              {
+                "from": "engine",
+                "to": "dc1"
+              },
+              {
+                "from": "dc1",
+                "to": "cl1"
+              },
+              {
+                "from": "cl1",
+                "to": "h1"
+              },
+              {
+                "from": "cl1",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "cl1"
+              },
+              {
+                "from": "engine",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "h1"
+              },
+              {
+                "from": "mgmt",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "nfs"
+              },
+              {
+                "from": "nfs",
+                "to": "h1"
+              },
+              {
+                "from": "nfs",
+                "to": "h2"
+              },
+              {
+                "from": "h1",
+                "to": "vm1"
+              },
+              {
+                "from": "h2",
+                "to": "vm2"
+              },
+              {
+                "from": "h1",
+                "to": "vm3"
+              },
+              {
+                "from": "g1",
+                "to": "vm1"
+              },
+              {
+                "from": "g1",
+                "to": "vm2"
+              },
+              {
+                "from": "g2",
+                "to": "vm1"
+              },
+              {
+                "from": "g2",
+                "to": "vm2"
+              }
+            ]
+          },
+          "soft-rule": {
+            "nodes": [
+              {
+                "id": "engine",
+                "kind": "engine",
+                "name": "engine",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "dc1",
+                "kind": "data_center",
+                "name": "Default",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "cl1",
+                "kind": "cluster",
+                "name": "cluster-a",
+                "x": 450.0,
+                "y": 60.0
+              },
+              {
+                "id": "h1",
+                "kind": "host",
+                "name": "host-1",
+                "x": 590.0,
+                "y": 60.0
+              },
+              {
+                "id": "h2",
+                "kind": "host",
+                "name": "host-2",
+                "x": 590.0,
+                "y": 140.0
+              },
+              {
+                "id": "mgmt",
+                "kind": "network",
+                "name": "ovirtmgmt",
+                "x": 310.0,
+                "y": 60.0,
+                "params": {
+                  "required": true,
+                  "role": "management"
+                }
+              },
+              {
+                "id": "nfs",
+                "kind": "storage_domain",
+                "name": "nfs-data",
+                "x": 450.0,
+                "y": 380.0
+              },
+              {
+                "id": "vm1",
+                "kind": "vm",
+                "name": "db-1",
+                "x": 730.0,
+                "y": 60.0
+              },
+              {
+                "id": "vm2",
+                "kind": "vm",
+                "name": "db-2",
+                "x": 730.0,
+                "y": 140.0
+              },
+              {
+                "id": "vm3",
+                "kind": "vm",
+                "name": "web-1",
+                "x": 730.0,
+                "y": 220.0
+              },
+              {
+                "id": "vm4",
+                "kind": "vm",
+                "name": "cache-1",
+                "x": 730.0,
+                "y": 300.0
+              },
+              {
+                "id": "g1",
+                "kind": "affinity_group",
+                "name": "db-spread",
+                "x": 730.0,
+                "y": 380.0,
+                "params": {
+                  "hard": true
+                }
+              },
+              {
+                "id": "g2",
+                "kind": "affinity_group",
+                "name": "web-cache",
+                "x": 730.0,
+                "y": 460.0,
+                "params": {
+                  "polarity": "positive"
+                }
+              }
+            ],
+            "edges": [
+              {
+                "from": "engine",
+                "to": "dc1"
+              },
+              {
+                "from": "dc1",
+                "to": "cl1"
+              },
+              {
+                "from": "cl1",
+                "to": "h1"
+              },
+              {
+                "from": "cl1",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "cl1"
+              },
+              {
+                "from": "engine",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "h1"
+              },
+              {
+                "from": "mgmt",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "nfs"
+              },
+              {
+                "from": "nfs",
+                "to": "h1"
+              },
+              {
+                "from": "nfs",
+                "to": "h2"
+              },
+              {
+                "from": "h1",
+                "to": "vm1"
+              },
+              {
+                "from": "h2",
+                "to": "vm3"
+              },
+              {
+                "from": "h2",
+                "to": "vm4"
+              },
+              {
+                "from": "g1",
+                "to": "vm1"
+              },
+              {
+                "from": "g1",
+                "to": "vm2"
+              },
+              {
+                "from": "g2",
+                "to": "vm3"
+              },
+              {
+                "from": "g2",
+                "to": "vm4"
+              },
+              {
+                "from": "h2",
+                "to": "vm2"
+              }
+            ]
+          },
+          "third-host": {
+            "nodes": [
+              {
+                "id": "engine",
+                "kind": "engine",
+                "name": "engine",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "dc1",
+                "kind": "data_center",
+                "name": "Default",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "cl1",
+                "kind": "cluster",
+                "name": "cluster-a",
+                "x": 450.0,
+                "y": 60.0
+              },
+              {
+                "id": "h1",
+                "kind": "host",
+                "name": "host-1",
+                "x": 590.0,
+                "y": 60.0
+              },
+              {
+                "id": "h2",
+                "kind": "host",
+                "name": "host-2",
+                "x": 590.0,
+                "y": 140.0
+              },
+              {
+                "id": "mgmt",
+                "kind": "network",
+                "name": "ovirtmgmt",
+                "x": 310.0,
+                "y": 60.0,
+                "params": {
+                  "required": true,
+                  "role": "management"
+                }
+              },
+              {
+                "id": "nfs",
+                "kind": "storage_domain",
+                "name": "nfs-data",
+                "x": 450.0,
+                "y": 380.0
+              },
+              {
+                "id": "vmnet",
+                "kind": "network",
+                "name": "vm-net",
+                "x": 310.0,
+                "y": 140.0,
+                "params": {
+                  "required": true,
+                  "role": "vm"
+                }
+              },
+              {
+                "id": "vm1",
+                "kind": "vm",
+                "name": "etcd-1",
+                "x": 730.0,
+                "y": 60.0
+              },
+              {
+                "id": "vm2",
+                "kind": "vm",
+                "name": "etcd-2",
+                "x": 730.0,
+                "y": 140.0
+              },
+              {
+                "id": "vm3",
+                "kind": "vm",
+                "name": "etcd-3",
+                "x": 730.0,
+                "y": 220.0
+              },
+              {
+                "id": "g1",
+                "kind": "affinity_group",
+                "name": "quorum",
+                "x": 730.0,
+                "y": 380.0
+              },
+              {
+                "id": "h3",
+                "kind": "host",
+                "name": "host-3",
+                "x": 590.0,
+                "y": 220.0
+              }
+            ],
+            "edges": [
+              {
+                "from": "engine",
+                "to": "dc1"
+              },
+              {
+                "from": "dc1",
+                "to": "cl1"
+              },
+              {
+                "from": "cl1",
+                "to": "h1"
+              },
+              {
+                "from": "cl1",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "cl1"
+              },
+              {
+                "from": "engine",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "h1"
+              },
+              {
+                "from": "mgmt",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "nfs"
+              },
+              {
+                "from": "nfs",
+                "to": "h1"
+              },
+              {
+                "from": "nfs",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "vmnet"
+              },
+              {
+                "from": "vmnet",
+                "to": "cl1"
+              },
+              {
+                "from": "vmnet",
+                "to": "h1"
+              },
+              {
+                "from": "vmnet",
+                "to": "h2"
+              },
+              {
+                "from": "h1",
+                "to": "vm1"
+              },
+              {
+                "from": "h2",
+                "to": "vm2"
+              },
+              {
+                "from": "vmnet",
+                "to": "vm1"
+              },
+              {
+                "from": "vmnet",
+                "to": "vm2"
+              },
+              {
+                "from": "vmnet",
+                "to": "vm3"
+              },
+              {
+                "from": "g1",
+                "to": "vm1"
+              },
+              {
+                "from": "g1",
+                "to": "vm2"
+              },
+              {
+                "from": "g1",
+                "to": "vm3"
+              },
+              {
+                "from": "cl1",
+                "to": "h3"
+              },
+              {
+                "from": "mgmt",
+                "to": "h3"
+              },
+              {
+                "from": "vmnet",
+                "to": "h3"
+              },
+              {
+                "from": "nfs",
+                "to": "h3"
+              },
+              {
+                "from": "h3",
+                "to": "vm3"
+              }
+            ]
+          },
+          "together": {
+            "nodes": [
+              {
+                "id": "engine",
+                "kind": "engine",
+                "name": "engine",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "dc1",
+                "kind": "data_center",
+                "name": "Default",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "cl1",
+                "kind": "cluster",
+                "name": "cluster-a",
+                "x": 450.0,
+                "y": 60.0
+              },
+              {
+                "id": "h1",
+                "kind": "host",
+                "name": "host-1",
+                "x": 590.0,
+                "y": 60.0
+              },
+              {
+                "id": "h2",
+                "kind": "host",
+                "name": "host-2",
+                "x": 590.0,
+                "y": 140.0
+              },
+              {
+                "id": "mgmt",
+                "kind": "network",
+                "name": "ovirtmgmt",
+                "x": 310.0,
+                "y": 60.0,
+                "params": {
+                  "required": true,
+                  "role": "management"
+                }
+              },
+              {
+                "id": "nfs",
+                "kind": "storage_domain",
+                "name": "nfs-data",
+                "x": 450.0,
+                "y": 380.0
+              },
+              {
+                "id": "h3",
+                "kind": "host",
+                "name": "host-3",
+                "x": 590.0,
+                "y": 220.0
+              },
+              {
+                "id": "vm1",
+                "kind": "vm",
+                "name": "app-1",
+                "x": 730.0,
+                "y": 60.0
+              },
+              {
+                "id": "vm2",
+                "kind": "vm",
+                "name": "cache-1",
+                "x": 730.0,
+                "y": 140.0
+              },
+              {
+                "id": "vm3",
+                "kind": "vm",
+                "name": "log-1",
+                "x": 730.0,
+                "y": 220.0
+              },
+              {
+                "id": "g1",
+                "kind": "affinity_group",
+                "name": "pod",
+                "x": 730.0,
+                "y": 380.0,
+                "params": {
+                  "polarity": "positive"
+                }
+              }
+            ],
+            "edges": [
+              {
+                "from": "engine",
+                "to": "dc1"
+              },
+              {
+                "from": "dc1",
+                "to": "cl1"
+              },
+              {
+                "from": "cl1",
+                "to": "h1"
+              },
+              {
+                "from": "cl1",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "cl1"
+              },
+              {
+                "from": "engine",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "h1"
+              },
+              {
+                "from": "mgmt",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "nfs"
+              },
+              {
+                "from": "nfs",
+                "to": "h1"
+              },
+              {
+                "from": "nfs",
+                "to": "h2"
+              },
+              {
+                "from": "cl1",
+                "to": "h3"
+              },
+              {
+                "from": "mgmt",
+                "to": "h3"
+              },
+              {
+                "from": "nfs",
+                "to": "h3"
+              },
+              {
+                "from": "h1",
+                "to": "vm1"
+              },
+              {
+                "from": "g1",
+                "to": "vm1"
+              },
+              {
+                "from": "g1",
+                "to": "vm2"
+              },
+              {
+                "from": "g1",
+                "to": "vm3"
+              },
+              {
+                "from": "h1",
+                "to": "vm2"
+              },
+              {
+                "from": "h1",
+                "to": "vm3"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "virt-sim-ovirt-capacity",
+      "title": "Доска: память и ёмкость",
+      "statement": "Вы считаете память так, как её считает планировщик: по обещанному, а не по занятому. Пять сценариев: хост, которому обещано больше памяти, чем у него есть, и все его машины Down; две HA-машины, которые при потере хоста делят остаток памяти; размещение новых машин там, где они помещаются; кластер, в котором память есть, но расставлена плохо; запас на потерю любого хоста (N+1). Упражнение решено, когда решены все сценарии.",
+      "hint": "Сложите память машин, размещённых на хосте: если сумма больше памяти хоста, не работает ни одна из них, хотя сам хост остаётся Up. Перезапускаемые HA-машины занимают место одна за другой. Чтобы переставить машину, удалите связь с прежним хостом и создайте новую.",
+      "spec": {
+        "sim": "ovirt_topo",
+        "scenarios": [
+          {
+            "id": "overloaded",
+            "title": "Promised more than it has",
+            "story": "host-1 is Up and nothing is wrong with its networks or storage, but erp, crm and mail on it are all Down, while web-1 on host-2 runs.",
+            "goal": "All four VMs are running and both hosts are Up",
+            "hint": "Add up the memory of the VMs placed on host-1 and compare it with the memory of the host: the scheduler counts what is promised, so the VMs run only if the sum fits. Either the host gets more memory or some VMs go elsewhere.",
+            "palette": [
+              "vm"
+            ],
+            "max_nodes": 12,
+            "start": {
+              "nodes": [
+                {
+                  "id": "engine",
+                  "kind": "engine",
+                  "name": "engine",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "dc1",
+                  "kind": "data_center",
+                  "name": "Default",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "cl1",
+                  "kind": "cluster",
+                  "name": "cluster-a",
+                  "x": 450.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h1",
+                  "kind": "host",
+                  "name": "host-1",
+                  "x": 590.0,
+                  "y": 60.0,
+                  "params": {
+                    "mem": "16"
+                  }
+                },
+                {
+                  "id": "h2",
+                  "kind": "host",
+                  "name": "host-2",
+                  "x": 590.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "mgmt",
+                  "kind": "network",
+                  "name": "ovirtmgmt",
+                  "x": 310.0,
+                  "y": 60.0,
+                  "params": {
+                    "required": true,
+                    "role": "management"
+                  }
+                },
+                {
+                  "id": "nfs",
+                  "kind": "storage_domain",
+                  "name": "nfs-data",
+                  "x": 450.0,
+                  "y": 380.0
+                },
+                {
+                  "id": "vm1",
+                  "kind": "vm",
+                  "name": "erp",
+                  "x": 730.0,
+                  "y": 60.0,
+                  "params": {
+                    "mem": "8"
+                  }
+                },
+                {
+                  "id": "vm2",
+                  "kind": "vm",
+                  "name": "crm",
+                  "x": 730.0,
+                  "y": 140.0,
+                  "params": {
+                    "mem": "8"
+                  }
+                },
+                {
+                  "id": "vm3",
+                  "kind": "vm",
+                  "name": "mail",
+                  "x": 730.0,
+                  "y": 220.0
+                },
+                {
+                  "id": "vm4",
+                  "kind": "vm",
+                  "name": "web-1",
+                  "x": 730.0,
+                  "y": 300.0
+                }
+              ],
+              "edges": [
+                {
+                  "from": "engine",
+                  "to": "dc1"
+                },
+                {
+                  "from": "dc1",
+                  "to": "cl1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "cl1"
+                },
+                {
+                  "from": "engine",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h1"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "nfs"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h2"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm1"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm2"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm3"
+                },
+                {
+                  "from": "h2",
+                  "to": "vm4"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "healthy"
+              },
+              {
+                "kind": "hosts_up",
+                "min": 2
+              },
+              {
+                "kind": "vm_running",
+                "min": 4
+              }
+            ]
+          },
+          {
+            "id": "ha-share",
+            "title": "Two HA VMs, one survivor",
+            "story": "Both HA VMs run and host-1 has a fence agent, yet the portal cannot promise that they restart if host-1 is lost: host-2 is smaller and already runs batch.",
+            "goal": "If host-1 fails, both HA VMs restart on host-2, and everything keeps running and stays HA",
+            "hint": "Restarted VMs are placed one after the other, so each takes memory the next one needs. Count what is free on host-2 and make the two VMs fit together.",
+            "palette": [
+              "vm"
+            ],
+            "max_nodes": 12,
+            "start": {
+              "nodes": [
+                {
+                  "id": "engine",
+                  "kind": "engine",
+                  "name": "engine",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "dc1",
+                  "kind": "data_center",
+                  "name": "Default",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "cl1",
+                  "kind": "cluster",
+                  "name": "cluster-a",
+                  "x": 450.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h1",
+                  "kind": "host",
+                  "name": "host-1",
+                  "x": 590.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h2",
+                  "kind": "host",
+                  "name": "host-2",
+                  "x": 590.0,
+                  "y": 140.0,
+                  "params": {
+                    "mem": "16"
+                  }
+                },
+                {
+                  "id": "mgmt",
+                  "kind": "network",
+                  "name": "ovirtmgmt",
+                  "x": 310.0,
+                  "y": 60.0,
+                  "params": {
+                    "required": true,
+                    "role": "management"
+                  }
+                },
+                {
+                  "id": "nfs",
+                  "kind": "storage_domain",
+                  "name": "nfs-data",
+                  "x": 450.0,
+                  "y": 380.0
+                },
+                {
+                  "id": "vm1",
+                  "kind": "vm",
+                  "name": "ha-1",
+                  "x": 730.0,
+                  "y": 60.0,
+                  "params": {
+                    "ha": true,
+                    "mem": "8"
+                  }
+                },
+                {
+                  "id": "vm2",
+                  "kind": "vm",
+                  "name": "ha-2",
+                  "x": 730.0,
+                  "y": 140.0,
+                  "params": {
+                    "ha": true,
+                    "mem": "8"
+                  }
+                },
+                {
+                  "id": "vm3",
+                  "kind": "vm",
+                  "name": "batch",
+                  "x": 730.0,
+                  "y": 220.0
+                },
+                {
+                  "id": "fence-1",
+                  "kind": "fence_agent",
+                  "name": "fence-1",
+                  "x": 590.0,
+                  "y": 380.0
+                }
+              ],
+              "edges": [
+                {
+                  "from": "engine",
+                  "to": "dc1"
+                },
+                {
+                  "from": "dc1",
+                  "to": "cl1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "cl1"
+                },
+                {
+                  "from": "engine",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h1"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "nfs"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h2"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm1"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm2"
+                },
+                {
+                  "from": "h2",
+                  "to": "vm3"
+                },
+                {
+                  "from": "fence-1",
+                  "to": "h1"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "ha_restart"
+              },
+              {
+                "kind": "healthy"
+              },
+              {
+                "kind": "vm_running",
+                "min": 3
+              },
+              {
+                "kind": "param_of",
+                "id": "vm1",
+                "key": "ha",
+                "value": "true"
+              },
+              {
+                "kind": "param_of",
+                "id": "vm2",
+                "key": "ha",
+                "value": "true"
+              }
+            ]
+          },
+          {
+            "id": "place-new",
+            "title": "Where does it fit",
+            "story": "report-1 and batch-1 were just created and have no host. The hosts are different: host-1 has 16 GB, host-2 has 32 GB and host-3 has 64 GB, and each already runs VMs.",
+            "goal": "All seven VMs are running, the new ones included, and every host is Up",
+            "hint": "Free memory of a host is its memory minus the memory of the VMs placed on it. A VM that does not fit does not just stay down: it makes every VM on that host Down.",
+            "palette": [
+              "vm"
+            ],
+            "max_nodes": 16,
+            "start": {
+              "nodes": [
+                {
+                  "id": "engine",
+                  "kind": "engine",
+                  "name": "engine",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "dc1",
+                  "kind": "data_center",
+                  "name": "Default",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "cl1",
+                  "kind": "cluster",
+                  "name": "cluster-a",
+                  "x": 450.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h1",
+                  "kind": "host",
+                  "name": "host-1",
+                  "x": 590.0,
+                  "y": 60.0,
+                  "params": {
+                    "mem": "16"
+                  }
+                },
+                {
+                  "id": "h2",
+                  "kind": "host",
+                  "name": "host-2",
+                  "x": 590.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "mgmt",
+                  "kind": "network",
+                  "name": "ovirtmgmt",
+                  "x": 310.0,
+                  "y": 60.0,
+                  "params": {
+                    "required": true,
+                    "role": "management"
+                  }
+                },
+                {
+                  "id": "nfs",
+                  "kind": "storage_domain",
+                  "name": "nfs-data",
+                  "x": 450.0,
+                  "y": 380.0
+                },
+                {
+                  "id": "h3",
+                  "kind": "host",
+                  "name": "host-3",
+                  "x": 590.0,
+                  "y": 220.0,
+                  "params": {
+                    "mem": "64"
+                  }
+                },
+                {
+                  "id": "vm1",
+                  "kind": "vm",
+                  "name": "crm",
+                  "x": 730.0,
+                  "y": 60.0,
+                  "params": {
+                    "mem": "8"
+                  }
+                },
+                {
+                  "id": "vm2",
+                  "kind": "vm",
+                  "name": "mail",
+                  "x": 730.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "vm3",
+                  "kind": "vm",
+                  "name": "erp",
+                  "x": 730.0,
+                  "y": 220.0,
+                  "params": {
+                    "mem": "16"
+                  }
+                },
+                {
+                  "id": "vm4",
+                  "kind": "vm",
+                  "name": "db-1",
+                  "x": 730.0,
+                  "y": 300.0,
+                  "params": {
+                    "mem": "8"
+                  }
+                },
+                {
+                  "id": "vm5",
+                  "kind": "vm",
+                  "name": "bi",
+                  "x": 730.0,
+                  "y": 380.0,
+                  "params": {
+                    "mem": "16"
+                  }
+                },
+                {
+                  "id": "vm6",
+                  "kind": "vm",
+                  "name": "report-1",
+                  "x": 730.0,
+                  "y": 460.0,
+                  "params": {
+                    "mem": "16"
+                  }
+                },
+                {
+                  "id": "vm7",
+                  "kind": "vm",
+                  "name": "batch-1",
+                  "x": 730.0,
+                  "y": 540.0,
+                  "params": {
+                    "mem": "8"
+                  }
+                }
+              ],
+              "edges": [
+                {
+                  "from": "engine",
+                  "to": "dc1"
+                },
+                {
+                  "from": "dc1",
+                  "to": "cl1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "cl1"
+                },
+                {
+                  "from": "engine",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h1"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "nfs"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h2"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h3"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h3"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h3"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm1"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm2"
+                },
+                {
+                  "from": "h2",
+                  "to": "vm3"
+                },
+                {
+                  "from": "h2",
+                  "to": "vm4"
+                },
+                {
+                  "from": "h3",
+                  "to": "vm5"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "healthy"
+              },
+              {
+                "kind": "hosts_up",
+                "min": 3
+              },
+              {
+                "kind": "vm_running",
+                "min": 7
+              }
+            ]
+          },
+          {
+            "id": "rebalance",
+            "title": "Room in the wrong place",
+            "story": "The cluster has memory to spare, but the VMs were placed badly: host-1 and host-2 are both promised more than they have, so six VMs are Down, while host-3 is almost empty.",
+            "goal": "All seven VMs are running and all three hosts are Up",
+            "hint": "Several VMs have to leave their hosts, so find the smallest set that brings each host under its memory. A VM sits on one host: delete the link to the old host, then link it to the new one.",
+            "palette": [
+              "host"
+            ],
+            "max_nodes": 16,
+            "start": {
+              "nodes": [
+                {
+                  "id": "engine",
+                  "kind": "engine",
+                  "name": "engine",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "dc1",
+                  "kind": "data_center",
+                  "name": "Default",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "cl1",
+                  "kind": "cluster",
+                  "name": "cluster-a",
+                  "x": 450.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h1",
+                  "kind": "host",
+                  "name": "host-1",
+                  "x": 590.0,
+                  "y": 60.0,
+                  "params": {
+                    "mem": "16"
+                  }
+                },
+                {
+                  "id": "h2",
+                  "kind": "host",
+                  "name": "host-2",
+                  "x": 590.0,
+                  "y": 140.0,
+                  "params": {
+                    "mem": "16"
+                  }
+                },
+                {
+                  "id": "mgmt",
+                  "kind": "network",
+                  "name": "ovirtmgmt",
+                  "x": 310.0,
+                  "y": 60.0,
+                  "params": {
+                    "required": true,
+                    "role": "management"
+                  }
+                },
+                {
+                  "id": "nfs",
+                  "kind": "storage_domain",
+                  "name": "nfs-data",
+                  "x": 450.0,
+                  "y": 380.0
+                },
+                {
+                  "id": "h3",
+                  "kind": "host",
+                  "name": "host-3",
+                  "x": 590.0,
+                  "y": 220.0
+                },
+                {
+                  "id": "vm1",
+                  "kind": "vm",
+                  "name": "erp",
+                  "x": 730.0,
+                  "y": 60.0,
+                  "params": {
+                    "mem": "8"
+                  }
+                },
+                {
+                  "id": "vm2",
+                  "kind": "vm",
+                  "name": "crm",
+                  "x": 730.0,
+                  "y": 140.0,
+                  "params": {
+                    "mem": "8"
+                  }
+                },
+                {
+                  "id": "vm3",
+                  "kind": "vm",
+                  "name": "mail",
+                  "x": 730.0,
+                  "y": 220.0
+                },
+                {
+                  "id": "vm4",
+                  "kind": "vm",
+                  "name": "db-1",
+                  "x": 730.0,
+                  "y": 300.0,
+                  "params": {
+                    "mem": "8"
+                  }
+                },
+                {
+                  "id": "vm5",
+                  "kind": "vm",
+                  "name": "db-2",
+                  "x": 730.0,
+                  "y": 380.0,
+                  "params": {
+                    "mem": "8"
+                  }
+                },
+                {
+                  "id": "vm6",
+                  "kind": "vm",
+                  "name": "bi",
+                  "x": 730.0,
+                  "y": 460.0,
+                  "params": {
+                    "mem": "8"
+                  }
+                },
+                {
+                  "id": "vm7",
+                  "kind": "vm",
+                  "name": "log-1",
+                  "x": 730.0,
+                  "y": 540.0
+                }
+              ],
+              "edges": [
+                {
+                  "from": "engine",
+                  "to": "dc1"
+                },
+                {
+                  "from": "dc1",
+                  "to": "cl1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "cl1"
+                },
+                {
+                  "from": "engine",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h1"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "nfs"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h2"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h3"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h3"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h3"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm1"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm2"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm3"
+                },
+                {
+                  "from": "h2",
+                  "to": "vm4"
+                },
+                {
+                  "from": "h2",
+                  "to": "vm5"
+                },
+                {
+                  "from": "h2",
+                  "to": "vm6"
+                },
+                {
+                  "from": "h3",
+                  "to": "vm7"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "healthy"
+              },
+              {
+                "kind": "hosts_up",
+                "min": 3
+              },
+              {
+                "kind": "vm_running",
+                "min": 7
+              }
+            ]
+          },
+          {
+            "id": "n-plus-one",
+            "title": "Survive the loss of any host",
+            "story": "db-1, db-2, web-1 and web-2 are HA, and a fence agent serves every host. cache-1 is critical too but is not HA, and the three hosts are full enough that nobody is sure what happens to a 16 GB VM when a host dies.",
+            "goal": "cache-1 is HA, and after the loss of any single host every HA VM restarts on the others",
+            "hint": "Make cache-1 HA first, then lose each host in your head: the VMs of the lost host must find room, one after the other, on the hosts that remain. Look for the host whose failure leaves no 16 GB gap.",
+            "palette": [
+              "host"
+            ],
+            "max_nodes": 16,
+            "start": {
+              "nodes": [
+                {
+                  "id": "engine",
+                  "kind": "engine",
+                  "name": "engine",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "dc1",
+                  "kind": "data_center",
+                  "name": "Default",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "cl1",
+                  "kind": "cluster",
+                  "name": "cluster-a",
+                  "x": 450.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h1",
+                  "kind": "host",
+                  "name": "host-1",
+                  "x": 590.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h2",
+                  "kind": "host",
+                  "name": "host-2",
+                  "x": 590.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "mgmt",
+                  "kind": "network",
+                  "name": "ovirtmgmt",
+                  "x": 310.0,
+                  "y": 60.0,
+                  "params": {
+                    "required": true,
+                    "role": "management"
+                  }
+                },
+                {
+                  "id": "nfs",
+                  "kind": "storage_domain",
+                  "name": "nfs-data",
+                  "x": 450.0,
+                  "y": 380.0
+                },
+                {
+                  "id": "h3",
+                  "kind": "host",
+                  "name": "host-3",
+                  "x": 590.0,
+                  "y": 220.0
+                },
+                {
+                  "id": "vm1",
+                  "kind": "vm",
+                  "name": "db-1",
+                  "x": 730.0,
+                  "y": 60.0,
+                  "params": {
+                    "ha": true,
+                    "mem": "16"
+                  }
+                },
+                {
+                  "id": "vm2",
+                  "kind": "vm",
+                  "name": "web-1",
+                  "x": 730.0,
+                  "y": 140.0,
+                  "params": {
+                    "ha": true,
+                    "mem": "8"
+                  }
+                },
+                {
+                  "id": "vm3",
+                  "kind": "vm",
+                  "name": "db-2",
+                  "x": 730.0,
+                  "y": 220.0,
+                  "params": {
+                    "ha": true,
+                    "mem": "16"
+                  }
+                },
+                {
+                  "id": "vm4",
+                  "kind": "vm",
+                  "name": "web-2",
+                  "x": 730.0,
+                  "y": 300.0,
+                  "params": {
+                    "ha": true,
+                    "mem": "8"
+                  }
+                },
+                {
+                  "id": "vm5",
+                  "kind": "vm",
+                  "name": "cache-1",
+                  "x": 730.0,
+                  "y": 380.0,
+                  "params": {
+                    "mem": "16"
+                  }
+                },
+                {
+                  "id": "fence-1",
+                  "kind": "fence_agent",
+                  "name": "fence-1",
+                  "x": 590.0,
+                  "y": 380.0
+                }
+              ],
+              "edges": [
+                {
+                  "from": "engine",
+                  "to": "dc1"
+                },
+                {
+                  "from": "dc1",
+                  "to": "cl1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "cl1"
+                },
+                {
+                  "from": "engine",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h1"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "nfs"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h2"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h3"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h3"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h3"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm1"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm2"
+                },
+                {
+                  "from": "h2",
+                  "to": "vm3"
+                },
+                {
+                  "from": "h2",
+                  "to": "vm4"
+                },
+                {
+                  "from": "h3",
+                  "to": "vm5"
+                },
+                {
+                  "from": "fence-1",
+                  "to": "h1"
+                },
+                {
+                  "from": "fence-1",
+                  "to": "h2"
+                },
+                {
+                  "from": "fence-1",
+                  "to": "h3"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "ha_restart"
+              },
+              {
+                "kind": "param_of",
+                "id": "vm5",
+                "key": "ha",
+                "value": "true"
+              },
+              {
+                "kind": "healthy"
+              },
+              {
+                "kind": "hosts_up",
+                "min": 3
+              },
+              {
+                "kind": "vm_running",
+                "min": 5
+              }
+            ]
+          }
+        ],
+        "solution": {
+          "ha-share": {
+            "nodes": [
+              {
+                "id": "engine",
+                "kind": "engine",
+                "name": "engine",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "dc1",
+                "kind": "data_center",
+                "name": "Default",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "cl1",
+                "kind": "cluster",
+                "name": "cluster-a",
+                "x": 450.0,
+                "y": 60.0
+              },
+              {
+                "id": "h1",
+                "kind": "host",
+                "name": "host-1",
+                "x": 590.0,
+                "y": 60.0
+              },
+              {
+                "id": "h2",
+                "kind": "host",
+                "name": "host-2",
+                "x": 590.0,
+                "y": 140.0,
+                "params": {
+                  "mem": "16"
+                }
+              },
+              {
+                "id": "mgmt",
+                "kind": "network",
+                "name": "ovirtmgmt",
+                "x": 310.0,
+                "y": 60.0,
+                "params": {
+                  "required": true,
+                  "role": "management"
+                }
+              },
+              {
+                "id": "nfs",
+                "kind": "storage_domain",
+                "name": "nfs-data",
+                "x": 450.0,
+                "y": 380.0
+              },
+              {
+                "id": "vm1",
+                "kind": "vm",
+                "name": "ha-1",
+                "x": 730.0,
+                "y": 60.0,
+                "params": {
+                  "ha": true,
+                  "mem": "8"
+                }
+              },
+              {
+                "id": "vm2",
+                "kind": "vm",
+                "name": "ha-2",
+                "x": 730.0,
+                "y": 140.0,
+                "params": {
+                  "ha": true,
+                  "mem": "4"
+                }
+              },
+              {
+                "id": "vm3",
+                "kind": "vm",
+                "name": "batch",
+                "x": 730.0,
+                "y": 220.0
+              },
+              {
+                "id": "fence-1",
+                "kind": "fence_agent",
+                "name": "fence-1",
+                "x": 590.0,
+                "y": 380.0
+              }
+            ],
+            "edges": [
+              {
+                "from": "engine",
+                "to": "dc1"
+              },
+              {
+                "from": "dc1",
+                "to": "cl1"
+              },
+              {
+                "from": "cl1",
+                "to": "h1"
+              },
+              {
+                "from": "cl1",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "cl1"
+              },
+              {
+                "from": "engine",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "h1"
+              },
+              {
+                "from": "mgmt",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "nfs"
+              },
+              {
+                "from": "nfs",
+                "to": "h1"
+              },
+              {
+                "from": "nfs",
+                "to": "h2"
+              },
+              {
+                "from": "h1",
+                "to": "vm1"
+              },
+              {
+                "from": "h1",
+                "to": "vm2"
+              },
+              {
+                "from": "h2",
+                "to": "vm3"
+              },
+              {
+                "from": "fence-1",
+                "to": "h1"
+              }
+            ]
+          },
+          "n-plus-one": {
+            "nodes": [
+              {
+                "id": "engine",
+                "kind": "engine",
+                "name": "engine",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "dc1",
+                "kind": "data_center",
+                "name": "Default",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "cl1",
+                "kind": "cluster",
+                "name": "cluster-a",
+                "x": 450.0,
+                "y": 60.0
+              },
+              {
+                "id": "h1",
+                "kind": "host",
+                "name": "host-1",
+                "x": 590.0,
+                "y": 60.0,
+                "params": {
+                  "mem": "64"
+                }
+              },
+              {
+                "id": "h2",
+                "kind": "host",
+                "name": "host-2",
+                "x": 590.0,
+                "y": 140.0
+              },
+              {
+                "id": "mgmt",
+                "kind": "network",
+                "name": "ovirtmgmt",
+                "x": 310.0,
+                "y": 60.0,
+                "params": {
+                  "required": true,
+                  "role": "management"
+                }
+              },
+              {
+                "id": "nfs",
+                "kind": "storage_domain",
+                "name": "nfs-data",
+                "x": 450.0,
+                "y": 380.0
+              },
+              {
+                "id": "h3",
+                "kind": "host",
+                "name": "host-3",
+                "x": 590.0,
+                "y": 220.0
+              },
+              {
+                "id": "vm1",
+                "kind": "vm",
+                "name": "db-1",
+                "x": 730.0,
+                "y": 60.0,
+                "params": {
+                  "ha": true,
+                  "mem": "16"
+                }
+              },
+              {
+                "id": "vm2",
+                "kind": "vm",
+                "name": "web-1",
+                "x": 730.0,
+                "y": 140.0,
+                "params": {
+                  "ha": true,
+                  "mem": "8"
+                }
+              },
+              {
+                "id": "vm3",
+                "kind": "vm",
+                "name": "db-2",
+                "x": 730.0,
+                "y": 220.0,
+                "params": {
+                  "ha": true,
+                  "mem": "16"
+                }
+              },
+              {
+                "id": "vm4",
+                "kind": "vm",
+                "name": "web-2",
+                "x": 730.0,
+                "y": 300.0,
+                "params": {
+                  "ha": true,
+                  "mem": "8"
+                }
+              },
+              {
+                "id": "vm5",
+                "kind": "vm",
+                "name": "cache-1",
+                "x": 730.0,
+                "y": 380.0,
+                "params": {
+                  "ha": true,
+                  "mem": "16"
+                }
+              },
+              {
+                "id": "fence-1",
+                "kind": "fence_agent",
+                "name": "fence-1",
+                "x": 590.0,
+                "y": 380.0
+              }
+            ],
+            "edges": [
+              {
+                "from": "engine",
+                "to": "dc1"
+              },
+              {
+                "from": "dc1",
+                "to": "cl1"
+              },
+              {
+                "from": "cl1",
+                "to": "h1"
+              },
+              {
+                "from": "cl1",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "cl1"
+              },
+              {
+                "from": "engine",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "h1"
+              },
+              {
+                "from": "mgmt",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "nfs"
+              },
+              {
+                "from": "nfs",
+                "to": "h1"
+              },
+              {
+                "from": "nfs",
+                "to": "h2"
+              },
+              {
+                "from": "cl1",
+                "to": "h3"
+              },
+              {
+                "from": "mgmt",
+                "to": "h3"
+              },
+              {
+                "from": "nfs",
+                "to": "h3"
+              },
+              {
+                "from": "h1",
+                "to": "vm1"
+              },
+              {
+                "from": "h1",
+                "to": "vm2"
+              },
+              {
+                "from": "h2",
+                "to": "vm3"
+              },
+              {
+                "from": "h2",
+                "to": "vm4"
+              },
+              {
+                "from": "h3",
+                "to": "vm5"
+              },
+              {
+                "from": "fence-1",
+                "to": "h1"
+              },
+              {
+                "from": "fence-1",
+                "to": "h2"
+              },
+              {
+                "from": "fence-1",
+                "to": "h3"
+              }
+            ]
+          },
+          "overloaded": {
+            "nodes": [
+              {
+                "id": "engine",
+                "kind": "engine",
+                "name": "engine",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "dc1",
+                "kind": "data_center",
+                "name": "Default",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "cl1",
+                "kind": "cluster",
+                "name": "cluster-a",
+                "x": 450.0,
+                "y": 60.0
+              },
+              {
+                "id": "h1",
+                "kind": "host",
+                "name": "host-1",
+                "x": 590.0,
+                "y": 60.0,
+                "params": {
+                  "mem": "32"
+                }
+              },
+              {
+                "id": "h2",
+                "kind": "host",
+                "name": "host-2",
+                "x": 590.0,
+                "y": 140.0
+              },
+              {
+                "id": "mgmt",
+                "kind": "network",
+                "name": "ovirtmgmt",
+                "x": 310.0,
+                "y": 60.0,
+                "params": {
+                  "required": true,
+                  "role": "management"
+                }
+              },
+              {
+                "id": "nfs",
+                "kind": "storage_domain",
+                "name": "nfs-data",
+                "x": 450.0,
+                "y": 380.0
+              },
+              {
+                "id": "vm1",
+                "kind": "vm",
+                "name": "erp",
+                "x": 730.0,
+                "y": 60.0,
+                "params": {
+                  "mem": "8"
+                }
+              },
+              {
+                "id": "vm2",
+                "kind": "vm",
+                "name": "crm",
+                "x": 730.0,
+                "y": 140.0,
+                "params": {
+                  "mem": "8"
+                }
+              },
+              {
+                "id": "vm3",
+                "kind": "vm",
+                "name": "mail",
+                "x": 730.0,
+                "y": 220.0
+              },
+              {
+                "id": "vm4",
+                "kind": "vm",
+                "name": "web-1",
+                "x": 730.0,
+                "y": 300.0
+              }
+            ],
+            "edges": [
+              {
+                "from": "engine",
+                "to": "dc1"
+              },
+              {
+                "from": "dc1",
+                "to": "cl1"
+              },
+              {
+                "from": "cl1",
+                "to": "h1"
+              },
+              {
+                "from": "cl1",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "cl1"
+              },
+              {
+                "from": "engine",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "h1"
+              },
+              {
+                "from": "mgmt",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "nfs"
+              },
+              {
+                "from": "nfs",
+                "to": "h1"
+              },
+              {
+                "from": "nfs",
+                "to": "h2"
+              },
+              {
+                "from": "h1",
+                "to": "vm1"
+              },
+              {
+                "from": "h1",
+                "to": "vm2"
+              },
+              {
+                "from": "h1",
+                "to": "vm3"
+              },
+              {
+                "from": "h2",
+                "to": "vm4"
+              }
+            ]
+          },
+          "place-new": {
+            "nodes": [
+              {
+                "id": "engine",
+                "kind": "engine",
+                "name": "engine",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "dc1",
+                "kind": "data_center",
+                "name": "Default",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "cl1",
+                "kind": "cluster",
+                "name": "cluster-a",
+                "x": 450.0,
+                "y": 60.0
+              },
+              {
+                "id": "h1",
+                "kind": "host",
+                "name": "host-1",
+                "x": 590.0,
+                "y": 60.0,
+                "params": {
+                  "mem": "16"
+                }
+              },
+              {
+                "id": "h2",
+                "kind": "host",
+                "name": "host-2",
+                "x": 590.0,
+                "y": 140.0
+              },
+              {
+                "id": "mgmt",
+                "kind": "network",
+                "name": "ovirtmgmt",
+                "x": 310.0,
+                "y": 60.0,
+                "params": {
+                  "required": true,
+                  "role": "management"
+                }
+              },
+              {
+                "id": "nfs",
+                "kind": "storage_domain",
+                "name": "nfs-data",
+                "x": 450.0,
+                "y": 380.0
+              },
+              {
+                "id": "h3",
+                "kind": "host",
+                "name": "host-3",
+                "x": 590.0,
+                "y": 220.0,
+                "params": {
+                  "mem": "64"
+                }
+              },
+              {
+                "id": "vm1",
+                "kind": "vm",
+                "name": "crm",
+                "x": 730.0,
+                "y": 60.0,
+                "params": {
+                  "mem": "8"
+                }
+              },
+              {
+                "id": "vm2",
+                "kind": "vm",
+                "name": "mail",
+                "x": 730.0,
+                "y": 140.0
+              },
+              {
+                "id": "vm3",
+                "kind": "vm",
+                "name": "erp",
+                "x": 730.0,
+                "y": 220.0,
+                "params": {
+                  "mem": "16"
+                }
+              },
+              {
+                "id": "vm4",
+                "kind": "vm",
+                "name": "db-1",
+                "x": 730.0,
+                "y": 300.0,
+                "params": {
+                  "mem": "8"
+                }
+              },
+              {
+                "id": "vm5",
+                "kind": "vm",
+                "name": "bi",
+                "x": 730.0,
+                "y": 380.0,
+                "params": {
+                  "mem": "16"
+                }
+              },
+              {
+                "id": "vm6",
+                "kind": "vm",
+                "name": "report-1",
+                "x": 730.0,
+                "y": 460.0,
+                "params": {
+                  "mem": "16"
+                }
+              },
+              {
+                "id": "vm7",
+                "kind": "vm",
+                "name": "batch-1",
+                "x": 730.0,
+                "y": 540.0,
+                "params": {
+                  "mem": "8"
+                }
+              }
+            ],
+            "edges": [
+              {
+                "from": "engine",
+                "to": "dc1"
+              },
+              {
+                "from": "dc1",
+                "to": "cl1"
+              },
+              {
+                "from": "cl1",
+                "to": "h1"
+              },
+              {
+                "from": "cl1",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "cl1"
+              },
+              {
+                "from": "engine",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "h1"
+              },
+              {
+                "from": "mgmt",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "nfs"
+              },
+              {
+                "from": "nfs",
+                "to": "h1"
+              },
+              {
+                "from": "nfs",
+                "to": "h2"
+              },
+              {
+                "from": "cl1",
+                "to": "h3"
+              },
+              {
+                "from": "mgmt",
+                "to": "h3"
+              },
+              {
+                "from": "nfs",
+                "to": "h3"
+              },
+              {
+                "from": "h1",
+                "to": "vm1"
+              },
+              {
+                "from": "h1",
+                "to": "vm2"
+              },
+              {
+                "from": "h2",
+                "to": "vm3"
+              },
+              {
+                "from": "h2",
+                "to": "vm4"
+              },
+              {
+                "from": "h3",
+                "to": "vm5"
+              },
+              {
+                "from": "h3",
+                "to": "vm6"
+              },
+              {
+                "from": "h3",
+                "to": "vm7"
+              }
+            ]
+          },
+          "rebalance": {
+            "nodes": [
+              {
+                "id": "engine",
+                "kind": "engine",
+                "name": "engine",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "dc1",
+                "kind": "data_center",
+                "name": "Default",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "cl1",
+                "kind": "cluster",
+                "name": "cluster-a",
+                "x": 450.0,
+                "y": 60.0
+              },
+              {
+                "id": "h1",
+                "kind": "host",
+                "name": "host-1",
+                "x": 590.0,
+                "y": 60.0,
+                "params": {
+                  "mem": "16"
+                }
+              },
+              {
+                "id": "h2",
+                "kind": "host",
+                "name": "host-2",
+                "x": 590.0,
+                "y": 140.0,
+                "params": {
+                  "mem": "16"
+                }
+              },
+              {
+                "id": "mgmt",
+                "kind": "network",
+                "name": "ovirtmgmt",
+                "x": 310.0,
+                "y": 60.0,
+                "params": {
+                  "required": true,
+                  "role": "management"
+                }
+              },
+              {
+                "id": "nfs",
+                "kind": "storage_domain",
+                "name": "nfs-data",
+                "x": 450.0,
+                "y": 380.0
+              },
+              {
+                "id": "h3",
+                "kind": "host",
+                "name": "host-3",
+                "x": 590.0,
+                "y": 220.0
+              },
+              {
+                "id": "vm1",
+                "kind": "vm",
+                "name": "erp",
+                "x": 730.0,
+                "y": 60.0,
+                "params": {
+                  "mem": "8"
+                }
+              },
+              {
+                "id": "vm2",
+                "kind": "vm",
+                "name": "crm",
+                "x": 730.0,
+                "y": 140.0,
+                "params": {
+                  "mem": "8"
+                }
+              },
+              {
+                "id": "vm3",
+                "kind": "vm",
+                "name": "mail",
+                "x": 730.0,
+                "y": 220.0
+              },
+              {
+                "id": "vm4",
+                "kind": "vm",
+                "name": "db-1",
+                "x": 730.0,
+                "y": 300.0,
+                "params": {
+                  "mem": "8"
+                }
+              },
+              {
+                "id": "vm5",
+                "kind": "vm",
+                "name": "db-2",
+                "x": 730.0,
+                "y": 380.0,
+                "params": {
+                  "mem": "8"
+                }
+              },
+              {
+                "id": "vm6",
+                "kind": "vm",
+                "name": "bi",
+                "x": 730.0,
+                "y": 460.0,
+                "params": {
+                  "mem": "8"
+                }
+              },
+              {
+                "id": "vm7",
+                "kind": "vm",
+                "name": "log-1",
+                "x": 730.0,
+                "y": 540.0
+              }
+            ],
+            "edges": [
+              {
+                "from": "engine",
+                "to": "dc1"
+              },
+              {
+                "from": "dc1",
+                "to": "cl1"
+              },
+              {
+                "from": "cl1",
+                "to": "h1"
+              },
+              {
+                "from": "cl1",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "cl1"
+              },
+              {
+                "from": "engine",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "h1"
+              },
+              {
+                "from": "mgmt",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "nfs"
+              },
+              {
+                "from": "nfs",
+                "to": "h1"
+              },
+              {
+                "from": "nfs",
+                "to": "h2"
+              },
+              {
+                "from": "cl1",
+                "to": "h3"
+              },
+              {
+                "from": "mgmt",
+                "to": "h3"
+              },
+              {
+                "from": "nfs",
+                "to": "h3"
+              },
+              {
+                "from": "h1",
+                "to": "vm1"
+              },
+              {
+                "from": "h1",
+                "to": "vm2"
+              },
+              {
+                "from": "h2",
+                "to": "vm4"
+              },
+              {
+                "from": "h2",
+                "to": "vm5"
+              },
+              {
+                "from": "h3",
+                "to": "vm7"
+              },
+              {
+                "from": "h3",
+                "to": "vm3"
+              },
+              {
+                "from": "h3",
+                "to": "vm6"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "virt-sim-ovirt-evacuate",
+      "title": "Доска: обслуживание и эвакуация",
+      "statement": "Вы готовите хосты к обслуживанию: чтобы перевести хост в maintenance, его машины должны переехать на другие хосты кластера. Пять сценариев: единственный хост кластера и запасной хост в чужом кластере; хост в обслуживании, на котором осталась машина; эвакуация, которую блокирует отсутствующая на целевом хосте сеть; эвакуация, которую блокирует память целевого хоста; кластер из трёх хостов, где обновление идёт по одному. Упражнение решено, когда решены все сценарии.",
+      "hint": "Машина переезжает в пределах своего кластера на хост в состоянии Up, где есть её сети и хватает памяти. Хост в обслуживании не принимает машины и сам не должен держать их. Проверяйте каждый хост по очереди, а не только тот, который собираетесь обслуживать.",
+      "spec": {
+        "sim": "ovirt_topo",
+        "scenarios": [
+          {
+            "id": "lone-host",
+            "title": "A spare host in the wrong cluster",
+            "story": "Billing-1 runs on host-1, the only host of cluster-a. Host-2 is Up and idle, but it sits in cluster-b, and the patch window for host-1 is tonight.",
+            "goal": "Everything works and billing-1 has another Up host in its own cluster to move to",
+            "hint": "A VM never leaves its cluster, so a host in another cluster is no help. A host belongs to one cluster, and a host that joins a cluster needs the networks and storage of that cluster.",
+            "palette": [
+              "host"
+            ],
+            "max_nodes": 13,
+            "start": {
+              "nodes": [
+                {
+                  "id": "engine",
+                  "kind": "engine",
+                  "name": "engine",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "dc1",
+                  "kind": "data_center",
+                  "name": "Default",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "cl1",
+                  "kind": "cluster",
+                  "name": "cluster-a",
+                  "x": 450.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h1",
+                  "kind": "host",
+                  "name": "host-1",
+                  "x": 590.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h2",
+                  "kind": "host",
+                  "name": "host-2",
+                  "x": 590.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "mgmt",
+                  "kind": "network",
+                  "name": "ovirtmgmt",
+                  "x": 310.0,
+                  "y": 60.0,
+                  "params": {
+                    "required": true,
+                    "role": "management"
+                  }
+                },
+                {
+                  "id": "nfs",
+                  "kind": "storage_domain",
+                  "name": "nfs-data",
+                  "x": 450.0,
+                  "y": 380.0
+                },
+                {
+                  "id": "cl2",
+                  "kind": "cluster",
+                  "name": "cluster-b",
+                  "x": 450.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "vm1",
+                  "kind": "vm",
+                  "name": "billing-1",
+                  "x": 730.0,
+                  "y": 60.0
+                }
+              ],
+              "edges": [
+                {
+                  "from": "engine",
+                  "to": "dc1"
+                },
+                {
+                  "from": "dc1",
+                  "to": "cl1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h1"
+                },
+                {
+                  "from": "dc1",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "cl1"
+                },
+                {
+                  "from": "engine",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h1"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "nfs"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "cl2"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "cl2"
+                },
+                {
+                  "from": "cl2",
+                  "to": "h2"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm1"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "healthy"
+              },
+              {
+                "kind": "evacuation_possible"
+              },
+              {
+                "kind": "op_ok",
+                "op": "migrate"
+              }
+            ]
+          },
+          {
+            "id": "forgot-to-move",
+            "title": "Maintenance with a VM left behind",
+            "story": "Host-2 was switched to maintenance for a memory upgrade, but db-1 is still placed on it. The portal shows db-1 as down and the environment is not healthy.",
+            "goal": "Host-2 stays in maintenance and all three VMs run on other hosts",
+            "hint": "A host in maintenance runs nothing, and switching the flag does not move the VMs by itself on this board. Place the VM on another host of the cluster.",
+            "palette": [
+              "host"
+            ],
+            "max_nodes": 14,
+            "start": {
+              "nodes": [
+                {
+                  "id": "engine",
+                  "kind": "engine",
+                  "name": "engine",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "dc1",
+                  "kind": "data_center",
+                  "name": "Default",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "cl1",
+                  "kind": "cluster",
+                  "name": "cluster-a",
+                  "x": 450.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h1",
+                  "kind": "host",
+                  "name": "host-1",
+                  "x": 590.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h2",
+                  "kind": "host",
+                  "name": "host-2",
+                  "x": 590.0,
+                  "y": 140.0,
+                  "params": {
+                    "maintenance": true
+                  }
+                },
+                {
+                  "id": "mgmt",
+                  "kind": "network",
+                  "name": "ovirtmgmt",
+                  "x": 310.0,
+                  "y": 60.0,
+                  "params": {
+                    "required": true,
+                    "role": "management"
+                  }
+                },
+                {
+                  "id": "nfs",
+                  "kind": "storage_domain",
+                  "name": "nfs-data",
+                  "x": 450.0,
+                  "y": 380.0
+                },
+                {
+                  "id": "h3",
+                  "kind": "host",
+                  "name": "host-3",
+                  "x": 590.0,
+                  "y": 220.0
+                },
+                {
+                  "id": "vm1",
+                  "kind": "vm",
+                  "name": "web-1",
+                  "x": 730.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "vm2",
+                  "kind": "vm",
+                  "name": "db-1",
+                  "x": 730.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "vm3",
+                  "kind": "vm",
+                  "name": "cache-1",
+                  "x": 730.0,
+                  "y": 220.0
+                }
+              ],
+              "edges": [
+                {
+                  "from": "engine",
+                  "to": "dc1"
+                },
+                {
+                  "from": "dc1",
+                  "to": "cl1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "cl1"
+                },
+                {
+                  "from": "engine",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h1"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "nfs"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h2"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h3"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h3"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h3"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm1"
+                },
+                {
+                  "from": "h2",
+                  "to": "vm2"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm2"
+                },
+                {
+                  "from": "h3",
+                  "to": "vm3"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm3"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "healthy"
+              },
+              {
+                "kind": "vm_running",
+                "min": 3
+              },
+              {
+                "kind": "param_of",
+                "id": "h2",
+                "key": "maintenance",
+                "value": "true"
+              }
+            ]
+          },
+          {
+            "id": "missing-network",
+            "title": "Green board, blocked evacuation",
+            "story": "Both hosts are Up and both VMs run, yet neither host can be put into maintenance: the portal says there is nowhere to move the VMs. Web-1 uses front-net and db-1 uses db-net, and each of those networks is optional.",
+            "goal": "Everything works and each host can be evacuated to the other one",
+            "hint": "A VM moves only to a host that has the network of its NIC, and an optional network may be missing without any warning. Check which hosts have which network.",
+            "palette": [
+              "network"
+            ],
+            "max_nodes": 14,
+            "start": {
+              "nodes": [
+                {
+                  "id": "engine",
+                  "kind": "engine",
+                  "name": "engine",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "dc1",
+                  "kind": "data_center",
+                  "name": "Default",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "cl1",
+                  "kind": "cluster",
+                  "name": "cluster-a",
+                  "x": 450.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h1",
+                  "kind": "host",
+                  "name": "host-1",
+                  "x": 590.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h2",
+                  "kind": "host",
+                  "name": "host-2",
+                  "x": 590.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "mgmt",
+                  "kind": "network",
+                  "name": "ovirtmgmt",
+                  "x": 310.0,
+                  "y": 60.0,
+                  "params": {
+                    "required": true,
+                    "role": "management"
+                  }
+                },
+                {
+                  "id": "nfs",
+                  "kind": "storage_domain",
+                  "name": "nfs-data",
+                  "x": 450.0,
+                  "y": 380.0
+                },
+                {
+                  "id": "front",
+                  "kind": "network",
+                  "name": "front-net",
+                  "x": 310.0,
+                  "y": 140.0,
+                  "params": {
+                    "required": false,
+                    "role": "vm"
+                  }
+                },
+                {
+                  "id": "db",
+                  "kind": "network",
+                  "name": "db-net",
+                  "x": 310.0,
+                  "y": 220.0,
+                  "params": {
+                    "required": false,
+                    "role": "vm"
+                  }
+                },
+                {
+                  "id": "vm1",
+                  "kind": "vm",
+                  "name": "web-1",
+                  "x": 730.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "vm2",
+                  "kind": "vm",
+                  "name": "db-1",
+                  "x": 730.0,
+                  "y": 140.0
+                }
+              ],
+              "edges": [
+                {
+                  "from": "engine",
+                  "to": "dc1"
+                },
+                {
+                  "from": "dc1",
+                  "to": "cl1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "cl1"
+                },
+                {
+                  "from": "engine",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h1"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "nfs"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "front"
+                },
+                {
+                  "from": "front",
+                  "to": "cl1"
+                },
+                {
+                  "from": "front",
+                  "to": "h1"
+                },
+                {
+                  "from": "dc1",
+                  "to": "db"
+                },
+                {
+                  "from": "db",
+                  "to": "cl1"
+                },
+                {
+                  "from": "db",
+                  "to": "h2"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm1"
+                },
+                {
+                  "from": "h2",
+                  "to": "vm2"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm2"
+                },
+                {
+                  "from": "front",
+                  "to": "vm1"
+                },
+                {
+                  "from": "db",
+                  "to": "vm2"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "healthy"
+              },
+              {
+                "kind": "evacuation_possible"
+              },
+              {
+                "kind": "link",
+                "rel": "vnic",
+                "min": 2
+              }
+            ]
+          },
+          {
+            "id": "not-enough-memory",
+            "title": "Room on the target host",
+            "story": "Host-1 runs analytics-1 and web-1, host-2 runs web-2. Everything is Up, but host-1 cannot be put into maintenance: host-2 is an old machine with 16 GB.",
+            "goal": "Everything works, every host can be evacuated and the VMs keep their size",
+            "hint": "A VM moves to a host only if the memory of all VMs already there plus its own fits into the memory of that host. A host that is exactly full is still fine.",
+            "palette": [
+              "host"
+            ],
+            "max_nodes": 14,
+            "start": {
+              "nodes": [
+                {
+                  "id": "engine",
+                  "kind": "engine",
+                  "name": "engine",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "dc1",
+                  "kind": "data_center",
+                  "name": "Default",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "cl1",
+                  "kind": "cluster",
+                  "name": "cluster-a",
+                  "x": 450.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h1",
+                  "kind": "host",
+                  "name": "host-1",
+                  "x": 590.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h2",
+                  "kind": "host",
+                  "name": "host-2",
+                  "x": 590.0,
+                  "y": 140.0,
+                  "params": {
+                    "mem": "16"
+                  }
+                },
+                {
+                  "id": "mgmt",
+                  "kind": "network",
+                  "name": "ovirtmgmt",
+                  "x": 310.0,
+                  "y": 60.0,
+                  "params": {
+                    "required": true,
+                    "role": "management"
+                  }
+                },
+                {
+                  "id": "nfs",
+                  "kind": "storage_domain",
+                  "name": "nfs-data",
+                  "x": 450.0,
+                  "y": 380.0
+                },
+                {
+                  "id": "vm1",
+                  "kind": "vm",
+                  "name": "analytics-1",
+                  "x": 730.0,
+                  "y": 60.0,
+                  "params": {
+                    "mem": "16"
+                  }
+                },
+                {
+                  "id": "vm2",
+                  "kind": "vm",
+                  "name": "web-1",
+                  "x": 730.0,
+                  "y": 140.0,
+                  "params": {
+                    "mem": "8"
+                  }
+                },
+                {
+                  "id": "vm3",
+                  "kind": "vm",
+                  "name": "web-2",
+                  "x": 730.0,
+                  "y": 220.0,
+                  "params": {
+                    "mem": "8"
+                  }
+                }
+              ],
+              "edges": [
+                {
+                  "from": "engine",
+                  "to": "dc1"
+                },
+                {
+                  "from": "dc1",
+                  "to": "cl1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "cl1"
+                },
+                {
+                  "from": "engine",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h1"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "nfs"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h2"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm1"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm2"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm2"
+                },
+                {
+                  "from": "h2",
+                  "to": "vm3"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm3"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "healthy"
+              },
+              {
+                "kind": "evacuation_possible"
+              },
+              {
+                "kind": "has",
+                "node": "vm",
+                "min": 3
+              },
+              {
+                "kind": "param_of",
+                "id": "vm1",
+                "key": "mem",
+                "value": "16"
+              }
+            ]
+          },
+          {
+            "id": "patch-rotation",
+            "title": "Patching one host at a time",
+            "story": "The cluster is patched host by host. Host-2 is finished and empty, but nobody took it out of maintenance, so now host-1 and host-3 have nowhere to go.",
+            "goal": "All three hosts are Up and every host that runs VMs can be evacuated",
+            "hint": "A host in maintenance is not a target for evacuation. Finish the previous step before you start the next one.",
+            "palette": [
+              "host"
+            ],
+            "max_nodes": 14,
+            "start": {
+              "nodes": [
+                {
+                  "id": "engine",
+                  "kind": "engine",
+                  "name": "engine",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "dc1",
+                  "kind": "data_center",
+                  "name": "Default",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "cl1",
+                  "kind": "cluster",
+                  "name": "cluster-a",
+                  "x": 450.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h1",
+                  "kind": "host",
+                  "name": "host-1",
+                  "x": 590.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "h2",
+                  "kind": "host",
+                  "name": "host-2",
+                  "x": 590.0,
+                  "y": 140.0,
+                  "params": {
+                    "maintenance": true
+                  }
+                },
+                {
+                  "id": "mgmt",
+                  "kind": "network",
+                  "name": "ovirtmgmt",
+                  "x": 310.0,
+                  "y": 60.0,
+                  "params": {
+                    "required": true,
+                    "role": "management"
+                  }
+                },
+                {
+                  "id": "nfs",
+                  "kind": "storage_domain",
+                  "name": "nfs-data",
+                  "x": 450.0,
+                  "y": 380.0
+                },
+                {
+                  "id": "h3",
+                  "kind": "host",
+                  "name": "host-3",
+                  "x": 590.0,
+                  "y": 220.0
+                },
+                {
+                  "id": "vm1",
+                  "kind": "vm",
+                  "name": "web-1",
+                  "x": 730.0,
+                  "y": 60.0,
+                  "params": {
+                    "mem": "8"
+                  }
+                },
+                {
+                  "id": "vm2",
+                  "kind": "vm",
+                  "name": "db-1",
+                  "x": 730.0,
+                  "y": 140.0,
+                  "params": {
+                    "mem": "16"
+                  }
+                },
+                {
+                  "id": "vm3",
+                  "kind": "vm",
+                  "name": "db-2",
+                  "x": 730.0,
+                  "y": 220.0,
+                  "params": {
+                    "mem": "16"
+                  }
+                }
+              ],
+              "edges": [
+                {
+                  "from": "engine",
+                  "to": "dc1"
+                },
+                {
+                  "from": "dc1",
+                  "to": "cl1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h1"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "cl1"
+                },
+                {
+                  "from": "engine",
+                  "to": "mgmt"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h1"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h2"
+                },
+                {
+                  "from": "dc1",
+                  "to": "nfs"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h2"
+                },
+                {
+                  "from": "cl1",
+                  "to": "h3"
+                },
+                {
+                  "from": "mgmt",
+                  "to": "h3"
+                },
+                {
+                  "from": "nfs",
+                  "to": "h3"
+                },
+                {
+                  "from": "h1",
+                  "to": "vm1"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm1"
+                },
+                {
+                  "from": "h3",
+                  "to": "vm2"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm2"
+                },
+                {
+                  "from": "h3",
+                  "to": "vm3"
+                },
+                {
+                  "from": "nfs",
+                  "to": "vm3"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "healthy"
+              },
+              {
+                "kind": "hosts_up",
+                "min": 3
+              },
+              {
+                "kind": "evacuation_possible"
+              },
+              {
+                "kind": "has",
+                "node": "vm",
+                "min": 3
+              }
+            ]
+          }
+        ],
+        "solution": {
+          "forgot-to-move": {
+            "nodes": [
+              {
+                "id": "engine",
+                "kind": "engine",
+                "name": "engine",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "dc1",
+                "kind": "data_center",
+                "name": "Default",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "cl1",
+                "kind": "cluster",
+                "name": "cluster-a",
+                "x": 450.0,
+                "y": 60.0
+              },
+              {
+                "id": "h1",
+                "kind": "host",
+                "name": "host-1",
+                "x": 590.0,
+                "y": 60.0
+              },
+              {
+                "id": "h2",
+                "kind": "host",
+                "name": "host-2",
+                "x": 590.0,
+                "y": 140.0,
+                "params": {
+                  "maintenance": true
+                }
+              },
+              {
+                "id": "mgmt",
+                "kind": "network",
+                "name": "ovirtmgmt",
+                "x": 310.0,
+                "y": 60.0,
+                "params": {
+                  "required": true,
+                  "role": "management"
+                }
+              },
+              {
+                "id": "nfs",
+                "kind": "storage_domain",
+                "name": "nfs-data",
+                "x": 450.0,
+                "y": 380.0
+              },
+              {
+                "id": "h3",
+                "kind": "host",
+                "name": "host-3",
+                "x": 590.0,
+                "y": 220.0
+              },
+              {
+                "id": "vm1",
+                "kind": "vm",
+                "name": "web-1",
+                "x": 730.0,
+                "y": 60.0
+              },
+              {
+                "id": "vm2",
+                "kind": "vm",
+                "name": "db-1",
+                "x": 730.0,
+                "y": 140.0
+              },
+              {
+                "id": "vm3",
+                "kind": "vm",
+                "name": "cache-1",
+                "x": 730.0,
+                "y": 220.0
+              }
+            ],
+            "edges": [
+              {
+                "from": "engine",
+                "to": "dc1"
+              },
+              {
+                "from": "dc1",
+                "to": "cl1"
+              },
+              {
+                "from": "cl1",
+                "to": "h1"
+              },
+              {
+                "from": "cl1",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "cl1"
+              },
+              {
+                "from": "engine",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "h1"
+              },
+              {
+                "from": "mgmt",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "nfs"
+              },
+              {
+                "from": "nfs",
+                "to": "h1"
+              },
+              {
+                "from": "nfs",
+                "to": "h2"
+              },
+              {
+                "from": "cl1",
+                "to": "h3"
+              },
+              {
+                "from": "mgmt",
+                "to": "h3"
+              },
+              {
+                "from": "nfs",
+                "to": "h3"
+              },
+              {
+                "from": "h1",
+                "to": "vm1"
+              },
+              {
+                "from": "nfs",
+                "to": "vm1"
+              },
+              {
+                "from": "nfs",
+                "to": "vm2"
+              },
+              {
+                "from": "h3",
+                "to": "vm3"
+              },
+              {
+                "from": "nfs",
+                "to": "vm3"
+              },
+              {
+                "from": "h3",
+                "to": "vm2"
+              }
+            ]
+          },
+          "lone-host": {
+            "nodes": [
+              {
+                "id": "engine",
+                "kind": "engine",
+                "name": "engine",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "dc1",
+                "kind": "data_center",
+                "name": "Default",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "cl1",
+                "kind": "cluster",
+                "name": "cluster-a",
+                "x": 450.0,
+                "y": 60.0
+              },
+              {
+                "id": "h1",
+                "kind": "host",
+                "name": "host-1",
+                "x": 590.0,
+                "y": 60.0
+              },
+              {
+                "id": "h2",
+                "kind": "host",
+                "name": "host-2",
+                "x": 590.0,
+                "y": 140.0
+              },
+              {
+                "id": "mgmt",
+                "kind": "network",
+                "name": "ovirtmgmt",
+                "x": 310.0,
+                "y": 60.0,
+                "params": {
+                  "required": true,
+                  "role": "management"
+                }
+              },
+              {
+                "id": "nfs",
+                "kind": "storage_domain",
+                "name": "nfs-data",
+                "x": 450.0,
+                "y": 380.0
+              },
+              {
+                "id": "cl2",
+                "kind": "cluster",
+                "name": "cluster-b",
+                "x": 450.0,
+                "y": 140.0
+              },
+              {
+                "id": "vm1",
+                "kind": "vm",
+                "name": "billing-1",
+                "x": 730.0,
+                "y": 60.0
+              }
+            ],
+            "edges": [
+              {
+                "from": "engine",
+                "to": "dc1"
+              },
+              {
+                "from": "dc1",
+                "to": "cl1"
+              },
+              {
+                "from": "cl1",
+                "to": "h1"
+              },
+              {
+                "from": "dc1",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "cl1"
+              },
+              {
+                "from": "engine",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "h1"
+              },
+              {
+                "from": "mgmt",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "nfs"
+              },
+              {
+                "from": "nfs",
+                "to": "h1"
+              },
+              {
+                "from": "nfs",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "cl2"
+              },
+              {
+                "from": "mgmt",
+                "to": "cl2"
+              },
+              {
+                "from": "h1",
+                "to": "vm1"
+              },
+              {
+                "from": "nfs",
+                "to": "vm1"
+              },
+              {
+                "from": "cl1",
+                "to": "h2"
+              }
+            ]
+          },
+          "missing-network": {
+            "nodes": [
+              {
+                "id": "engine",
+                "kind": "engine",
+                "name": "engine",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "dc1",
+                "kind": "data_center",
+                "name": "Default",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "cl1",
+                "kind": "cluster",
+                "name": "cluster-a",
+                "x": 450.0,
+                "y": 60.0
+              },
+              {
+                "id": "h1",
+                "kind": "host",
+                "name": "host-1",
+                "x": 590.0,
+                "y": 60.0
+              },
+              {
+                "id": "h2",
+                "kind": "host",
+                "name": "host-2",
+                "x": 590.0,
+                "y": 140.0
+              },
+              {
+                "id": "mgmt",
+                "kind": "network",
+                "name": "ovirtmgmt",
+                "x": 310.0,
+                "y": 60.0,
+                "params": {
+                  "required": true,
+                  "role": "management"
+                }
+              },
+              {
+                "id": "nfs",
+                "kind": "storage_domain",
+                "name": "nfs-data",
+                "x": 450.0,
+                "y": 380.0
+              },
+              {
+                "id": "front",
+                "kind": "network",
+                "name": "front-net",
+                "x": 310.0,
+                "y": 140.0,
+                "params": {
+                  "required": false,
+                  "role": "vm"
+                }
+              },
+              {
+                "id": "db",
+                "kind": "network",
+                "name": "db-net",
+                "x": 310.0,
+                "y": 220.0,
+                "params": {
+                  "required": false,
+                  "role": "vm"
+                }
+              },
+              {
+                "id": "vm1",
+                "kind": "vm",
+                "name": "web-1",
+                "x": 730.0,
+                "y": 60.0
+              },
+              {
+                "id": "vm2",
+                "kind": "vm",
+                "name": "db-1",
+                "x": 730.0,
+                "y": 140.0
+              }
+            ],
+            "edges": [
+              {
+                "from": "engine",
+                "to": "dc1"
+              },
+              {
+                "from": "dc1",
+                "to": "cl1"
+              },
+              {
+                "from": "cl1",
+                "to": "h1"
+              },
+              {
+                "from": "cl1",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "cl1"
+              },
+              {
+                "from": "engine",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "h1"
+              },
+              {
+                "from": "mgmt",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "nfs"
+              },
+              {
+                "from": "nfs",
+                "to": "h1"
+              },
+              {
+                "from": "nfs",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "front"
+              },
+              {
+                "from": "front",
+                "to": "cl1"
+              },
+              {
+                "from": "front",
+                "to": "h1"
+              },
+              {
+                "from": "dc1",
+                "to": "db"
+              },
+              {
+                "from": "db",
+                "to": "cl1"
+              },
+              {
+                "from": "db",
+                "to": "h2"
+              },
+              {
+                "from": "h1",
+                "to": "vm1"
+              },
+              {
+                "from": "nfs",
+                "to": "vm1"
+              },
+              {
+                "from": "h2",
+                "to": "vm2"
+              },
+              {
+                "from": "nfs",
+                "to": "vm2"
+              },
+              {
+                "from": "front",
+                "to": "vm1"
+              },
+              {
+                "from": "db",
+                "to": "vm2"
+              },
+              {
+                "from": "front",
+                "to": "h2"
+              },
+              {
+                "from": "db",
+                "to": "h1"
+              }
+            ]
+          },
+          "not-enough-memory": {
+            "nodes": [
+              {
+                "id": "engine",
+                "kind": "engine",
+                "name": "engine",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "dc1",
+                "kind": "data_center",
+                "name": "Default",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "cl1",
+                "kind": "cluster",
+                "name": "cluster-a",
+                "x": 450.0,
+                "y": 60.0
+              },
+              {
+                "id": "h1",
+                "kind": "host",
+                "name": "host-1",
+                "x": 590.0,
+                "y": 60.0
+              },
+              {
+                "id": "h2",
+                "kind": "host",
+                "name": "host-2",
+                "x": 590.0,
+                "y": 140.0,
+                "params": {
+                  "mem": "32"
+                }
+              },
+              {
+                "id": "mgmt",
+                "kind": "network",
+                "name": "ovirtmgmt",
+                "x": 310.0,
+                "y": 60.0,
+                "params": {
+                  "required": true,
+                  "role": "management"
+                }
+              },
+              {
+                "id": "nfs",
+                "kind": "storage_domain",
+                "name": "nfs-data",
+                "x": 450.0,
+                "y": 380.0
+              },
+              {
+                "id": "vm1",
+                "kind": "vm",
+                "name": "analytics-1",
+                "x": 730.0,
+                "y": 60.0,
+                "params": {
+                  "mem": "16"
+                }
+              },
+              {
+                "id": "vm2",
+                "kind": "vm",
+                "name": "web-1",
+                "x": 730.0,
+                "y": 140.0,
+                "params": {
+                  "mem": "8"
+                }
+              },
+              {
+                "id": "vm3",
+                "kind": "vm",
+                "name": "web-2",
+                "x": 730.0,
+                "y": 220.0,
+                "params": {
+                  "mem": "8"
+                }
+              }
+            ],
+            "edges": [
+              {
+                "from": "engine",
+                "to": "dc1"
+              },
+              {
+                "from": "dc1",
+                "to": "cl1"
+              },
+              {
+                "from": "cl1",
+                "to": "h1"
+              },
+              {
+                "from": "cl1",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "cl1"
+              },
+              {
+                "from": "engine",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "h1"
+              },
+              {
+                "from": "mgmt",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "nfs"
+              },
+              {
+                "from": "nfs",
+                "to": "h1"
+              },
+              {
+                "from": "nfs",
+                "to": "h2"
+              },
+              {
+                "from": "h1",
+                "to": "vm1"
+              },
+              {
+                "from": "nfs",
+                "to": "vm1"
+              },
+              {
+                "from": "h1",
+                "to": "vm2"
+              },
+              {
+                "from": "nfs",
+                "to": "vm2"
+              },
+              {
+                "from": "h2",
+                "to": "vm3"
+              },
+              {
+                "from": "nfs",
+                "to": "vm3"
+              }
+            ]
+          },
+          "patch-rotation": {
+            "nodes": [
+              {
+                "id": "engine",
+                "kind": "engine",
+                "name": "engine",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "dc1",
+                "kind": "data_center",
+                "name": "Default",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "cl1",
+                "kind": "cluster",
+                "name": "cluster-a",
+                "x": 450.0,
+                "y": 60.0
+              },
+              {
+                "id": "h1",
+                "kind": "host",
+                "name": "host-1",
+                "x": 590.0,
+                "y": 60.0
+              },
+              {
+                "id": "h2",
+                "kind": "host",
+                "name": "host-2",
+                "x": 590.0,
+                "y": 140.0,
+                "params": {
+                  "maintenance": false
+                }
+              },
+              {
+                "id": "mgmt",
+                "kind": "network",
+                "name": "ovirtmgmt",
+                "x": 310.0,
+                "y": 60.0,
+                "params": {
+                  "required": true,
+                  "role": "management"
+                }
+              },
+              {
+                "id": "nfs",
+                "kind": "storage_domain",
+                "name": "nfs-data",
+                "x": 450.0,
+                "y": 380.0
+              },
+              {
+                "id": "h3",
+                "kind": "host",
+                "name": "host-3",
+                "x": 590.0,
+                "y": 220.0
+              },
+              {
+                "id": "vm1",
+                "kind": "vm",
+                "name": "web-1",
+                "x": 730.0,
+                "y": 60.0,
+                "params": {
+                  "mem": "8"
+                }
+              },
+              {
+                "id": "vm2",
+                "kind": "vm",
+                "name": "db-1",
+                "x": 730.0,
+                "y": 140.0,
+                "params": {
+                  "mem": "16"
+                }
+              },
+              {
+                "id": "vm3",
+                "kind": "vm",
+                "name": "db-2",
+                "x": 730.0,
+                "y": 220.0,
+                "params": {
+                  "mem": "16"
+                }
+              }
+            ],
+            "edges": [
+              {
+                "from": "engine",
+                "to": "dc1"
+              },
+              {
+                "from": "dc1",
+                "to": "cl1"
+              },
+              {
+                "from": "cl1",
+                "to": "h1"
+              },
+              {
+                "from": "cl1",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "cl1"
+              },
+              {
+                "from": "engine",
+                "to": "mgmt"
+              },
+              {
+                "from": "mgmt",
+                "to": "h1"
+              },
+              {
+                "from": "mgmt",
+                "to": "h2"
+              },
+              {
+                "from": "dc1",
+                "to": "nfs"
+              },
+              {
+                "from": "nfs",
+                "to": "h1"
+              },
+              {
+                "from": "nfs",
+                "to": "h2"
+              },
+              {
+                "from": "cl1",
+                "to": "h3"
+              },
+              {
+                "from": "mgmt",
+                "to": "h3"
+              },
+              {
+                "from": "nfs",
+                "to": "h3"
+              },
+              {
+                "from": "h1",
+                "to": "vm1"
+              },
+              {
+                "from": "nfs",
+                "to": "vm1"
+              },
+              {
+                "from": "h3",
+                "to": "vm2"
+              },
+              {
+                "from": "nfs",
+                "to": "vm2"
+              },
+              {
+                "from": "h3",
+                "to": "vm3"
+              },
+              {
+                "from": "nfs",
+                "to": "vm3"
+              }
+            ]
+          }
+        }
       }
     }
   ]

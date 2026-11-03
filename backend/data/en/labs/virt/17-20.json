@@ -1,0 +1,25 @@
+{
+  "book": 17,
+  "chapter": 20,
+  "lab": "virt",
+  "tasks": [
+    {
+      "id": "virt-sim-ovirt-storage",
+      "title": "Board: storage and the SPM",
+      "statement": "On the board you build an oVirt environment around its storage. Four scenarios: survive the loss of the master domain, prepare a successor for the SPM, repair a VM whose host does not see its disk, and attach an iSCSI domain that needs a storage network of its own. The statuses follow from the links, and the “Message path” buttons show the path of a command. The exercise is solved when the goals of all scenarios are met.",
+      "hint": "A host has to see every domain attached to its data center. The master domain is the first attached one; when it is lost the next one takes over. The SPM is one of the Up hosts, so fault tolerance needs at least two. An iSCSI domain needs a network with the storage role on every host."
+    },
+    {
+      "id": "virt-sim-ovirt-storage-2",
+      "title": "Board: storage, level 2",
+      "statement": "Assemble environments where storage works for real: five scenarios. A domain is attached to the data center but no host sees it. A domain with a VM disk is not attached at all. A second data center cannot use another one's domain. A domain is Inactive although the hosts see it, because the hosts are not Up for other reasons. A data center with a spare of both hosts and domains. The exercise is solved when all scenarios are solved.",
+      "hint": "A domain is Active only while an Up host sees it, and a host is Up only if it sees every domain of its data center and has all the networks it needs. Read the reason in the host status, and remember that a domain belongs to one data center."
+    },
+    {
+      "id": "virt-sim-ovirt-storage-3",
+      "title": "Board: storage, level 3",
+      "statement": "Bring block storage over iSCSI to a working state: five scenarios. One storage network serves several iSCSI domains. A network has the wrong role. A new host must get everything the others have. A VM with a disk on a LUN starts only when the whole chain works on its host. Changing a domain to iSCSI breaks a host that never worked with it. The exercise is solved when all scenarios are solved.",
+      "hint": "As soon as a data center has an iSCSI domain, every host of it needs a network with the storage role, attached to the cluster and assigned to the host. Read the reasons in the host status and follow the start of a VM hop by hop."
+    }
+  ]
+}

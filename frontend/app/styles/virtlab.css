@@ -549,3 +549,517 @@
   flex: none;
   width: 64px;
 }
+
+/* oVirt topology board */
+.vl-topo-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+@container (min-width: 900px) {
+  .vl-topo-main {
+    grid-template-columns: minmax(0, 1.7fr) minmax(280px, 1fr);
+  }
+}
+.vl-topo-work,
+.vl-topo-side {
+  min-width: 0;
+}
+.vl-topo-side {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.vl-topo-boardwrap {
+  min-width: 0;
+}
+.vl-topo-toolbar {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.vl-topo-spacer {
+  flex: 1;
+}
+.vl-topo-add {
+  font: inherit;
+  font-size: 12px;
+  padding: 4px 9px;
+  border-radius: 8px;
+  border: 1px dashed var(--s-border);
+  background: var(--s-bg);
+  color: var(--s-text);
+  cursor: pointer;
+}
+.vl-topo-addico {
+  width: 14px;
+  height: 14px;
+  margin-right: 4px;
+  vertical-align: -2px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.vl-topo-add:hover {
+  border-color: var(--s-accent);
+  color: var(--s-accent);
+}
+.vl-topo-viewport {
+  position: relative;
+  height: clamp(340px, 62vh, 620px);
+}
+.vl-topo-board {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: var(--s-bg);
+  border-radius: 8px;
+  border: 1px solid var(--s-border);
+  user-select: none;
+  touch-action: none;
+}
+.vl-topo-board.panning,
+.vl-topo-board.panning .vl-topo-bg {
+  cursor: grabbing;
+}
+.vl-topo-board.placing {
+  cursor: copy;
+}
+.vl-topo-bg {
+  cursor: grab;
+}
+.vl-topo-dot {
+  fill: var(--s-border);
+}
+.vl-topo-tip {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--s-muted);
+}
+.vl-topo-notice {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--s-red);
+}
+
+/* links */
+.vl-topo-edge .line {
+  fill: none;
+  stroke: var(--s-muted);
+  stroke-width: 2;
+  pointer-events: none;
+}
+.vl-topo-edge .hit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 14;
+  cursor: pointer;
+}
+.vl-topo-edge:hover .line {
+  stroke: var(--s-accent);
+}
+.vl-topo-edge.on .line {
+  stroke: var(--s-amber);
+  stroke-width: 3;
+}
+.vl-topo-edge .lbl {
+  font-size: 9px;
+  fill: var(--s-text);
+  stroke: var(--s-bg);
+  stroke-width: 3px;
+  paint-order: stroke;
+  opacity: 0;
+  pointer-events: none;
+}
+.vl-topo-edge:hover .lbl,
+.vl-topo-edge.on .lbl,
+.vl-topo-edge.path .lbl,
+.vl-topo-edge.bad .lbl {
+  opacity: 1;
+}
+.vl-topo-edge.path .line {
+  stroke: var(--s-accent);
+  stroke-width: 3.5;
+  stroke-dasharray: 9 6;
+  animation: vl-topo-flow 0.9s linear infinite;
+}
+.vl-topo-edge.bad .line {
+  stroke: var(--s-red);
+  stroke-width: 3.5;
+}
+@keyframes vl-topo-flow {
+  to {
+    stroke-dashoffset: -15;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vl-topo-edge.path .line {
+    animation: none;
+  }
+}
+.vl-topo-missing {
+  stroke: var(--s-red);
+  stroke-width: 2.5;
+  stroke-dasharray: 5 5;
+  pointer-events: none;
+}
+.vl-topo-pending {
+  fill: none;
+  stroke: var(--s-accent);
+  stroke-width: 2;
+  stroke-dasharray: 6 5;
+  pointer-events: none;
+}
+.vl-topo-pending.ok {
+  stroke-dasharray: none;
+}
+.vl-topo-pending.bad {
+  stroke: var(--s-red);
+}
+
+/* pins */
+.vl-topo-pin {
+  stroke: var(--s-muted);
+  stroke-width: 2;
+  cursor: crosshair;
+  transition: r 0.1s;
+}
+.vl-topo-pin.in {
+  fill: var(--s-bg);
+}
+.vl-topo-pin.out {
+  fill: var(--s-accent);
+  stroke: var(--s-accent);
+}
+.vl-topo-pin:hover {
+  r: 7.5;
+  stroke: var(--s-accent);
+}
+.vl-topo-pin.ok {
+  fill: var(--s-accent);
+  stroke: var(--s-accent);
+  r: 7;
+}
+.vl-topo-pin.bad {
+  opacity: 0.25;
+}
+@media (prefers-reduced-motion: reduce) {
+  .vl-topo-pin {
+    transition: none;
+  }
+}
+
+/* objects */
+.vl-topo-node {
+  cursor: grab;
+}
+.vl-topo-node.moving {
+  cursor: grabbing;
+}
+.vl-topo-node.ghost {
+  opacity: 0.6;
+  pointer-events: none;
+}
+.vl-topo-node.ghost rect:first-of-type {
+  stroke-dasharray: 5 4;
+}
+.vl-topo-node rect:first-of-type {
+  fill: var(--s-panel);
+  stroke: var(--s-border);
+  stroke-width: 1.5;
+}
+.vl-topo-node.engine rect:first-of-type,
+.vl-topo-node.data_center rect:first-of-type {
+  stroke: var(--s-blue);
+}
+.vl-topo-node.cluster rect:first-of-type {
+  stroke: var(--s-violet);
+}
+.vl-topo-node.host rect:first-of-type {
+  stroke: var(--s-accent);
+}
+.vl-topo-node.vm rect:first-of-type {
+  stroke: var(--s-amber);
+}
+.vl-topo-node.network rect:first-of-type,
+.vl-topo-node.storage_domain rect:first-of-type,
+.vl-topo-node.permission rect:first-of-type {
+  stroke: var(--s-muted);
+}
+.vl-topo-node.fence_agent rect:first-of-type {
+  stroke: var(--s-red);
+}
+.vl-topo-node.affinity_group rect:first-of-type {
+  stroke: var(--s-green);
+}
+.vl-topo-node.backup rect:first-of-type {
+  stroke: var(--s-blue);
+}
+.vl-topo-node.user rect:first-of-type {
+  stroke: var(--s-violet);
+}
+.vl-topo-node.warn rect:first-of-type {
+  stroke: var(--s-amber);
+  stroke-width: 2.5;
+}
+.vl-topo-node.bad rect:first-of-type {
+  stroke: var(--s-red);
+  stroke-width: 2.5;
+}
+.vl-topo-node.on rect:first-of-type {
+  stroke: var(--s-text);
+  stroke-width: 3;
+}
+.vl-topo-node.path rect:first-of-type {
+  stroke: var(--s-accent);
+  stroke-width: 3;
+}
+.vl-topo-node.path-bad rect:first-of-type {
+  stroke: var(--s-red);
+  stroke-width: 3;
+}
+.vl-topo-node.hover-ok rect:first-of-type {
+  stroke: var(--s-accent);
+  stroke-width: 3;
+}
+.vl-topo-node.hover-bad rect:first-of-type {
+  stroke: var(--s-red);
+  stroke-width: 3;
+}
+.vl-topo-ico {
+  fill: none;
+  stroke: var(--s-muted);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.vl-topo-node.engine .vl-topo-ico,
+.vl-topo-node.data_center .vl-topo-ico {
+  stroke: var(--s-blue);
+}
+.vl-topo-node.cluster .vl-topo-ico {
+  stroke: var(--s-violet);
+}
+.vl-topo-node.host .vl-topo-ico {
+  stroke: var(--s-accent);
+}
+.vl-topo-node.vm .vl-topo-ico {
+  stroke: var(--s-amber);
+}
+.vl-topo-node.fence_agent .vl-topo-ico {
+  stroke: var(--s-red);
+}
+.vl-topo-node.affinity_group .vl-topo-ico {
+  stroke: var(--s-green);
+}
+.vl-topo-node.backup .vl-topo-ico {
+  stroke: var(--s-blue);
+}
+.vl-topo-node.user .vl-topo-ico {
+  stroke: var(--s-violet);
+}
+.vl-topo-name {
+  font-size: 10.5px;
+  font-weight: 600;
+  fill: var(--s-text);
+}
+.vl-topo-badge {
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  fill: var(--s-accent);
+}
+.vl-topo-badge.over {
+  fill: var(--s-red);
+}
+.vl-topo-chipbox {
+  overflow: visible;
+}
+.vl-topo-status {
+  display: flex;
+  justify-content: center;
+}
+.vl-topo-status .vl-chip {
+  font-size: 9.5px;
+  line-height: 16px;
+  padding: 0 5px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: var(--s-panel);
+  color: var(--s-muted);
+  border-color: var(--s-border);
+}
+.vl-topo-status .vl-chip.ok {
+  color: var(--s-accent);
+  border-color: var(--s-accent);
+}
+.vl-topo-status .vl-chip.warn {
+  color: var(--s-amber);
+  border-color: var(--s-amber);
+}
+.vl-topo-status .vl-chip.bad {
+  color: var(--s-red);
+  border-color: var(--s-red);
+}
+
+/* panels */
+.vl-topo-kind {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+.vl-topo-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+}
+.vl-topo-field.row {
+  flex-direction: row;
+  align-items: center;
+}
+.vl-topo-field input[type="text"],
+.vl-topo-field select {
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font: inherit;
+}
+.vl-topo-field input[type="checkbox"] {
+  accent-color: var(--accent);
+}
+.vl-topo-state {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.vl-topo-why,
+.vl-topo-hops,
+.vl-topo-tree {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+}
+.vl-topo-why li {
+  color: var(--muted);
+}
+.vl-topo-ops {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.vl-topo-op.on {
+  border-color: var(--accent);
+}
+.vl-topo-hophead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.vl-topo-hophead p {
+  margin: 0;
+  font-size: 13px;
+}
+.vl-topo-hops li {
+  display: flex;
+  gap: 8px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.vl-topo-hops li:hover,
+.vl-topo-hops li.cur {
+  background: var(--panel-2);
+}
+.vl-topo-hops li.ok .vl-gm {
+  color: var(--s-accent);
+}
+.vl-topo-hops li.bad,
+.vl-topo-hops li.bad .vl-gm {
+  color: var(--s-red);
+}
+.vl-topo-hops li.later {
+  opacity: 0.45;
+}
+.vl-topo-tree-head {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.vl-topo-tree-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  padding-right: 6px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.vl-topo-tree-row:hover,
+.vl-topo-tree-row.on {
+  background: var(--panel-2);
+}
+.vl-topo-dotk {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--s-muted);
+  flex: none;
+}
+.vl-topo-tree-row.engine .vl-topo-dotk,
+.vl-topo-tree-row.data_center .vl-topo-dotk {
+  background: var(--s-blue);
+}
+.vl-topo-tree-row.cluster .vl-topo-dotk {
+  background: var(--s-violet);
+}
+.vl-topo-tree-row.host .vl-topo-dotk {
+  background: var(--s-accent);
+}
+.vl-topo-tree-row.vm .vl-topo-dotk {
+  background: var(--s-amber);
+}
+.vl-topo-tree-row.fence_agent .vl-topo-dotk {
+  background: var(--s-red);
+}
+.vl-topo-tree-row.affinity_group .vl-topo-dotk {
+  background: var(--s-green);
+}
+.vl-topo-tree-row.backup .vl-topo-dotk {
+  background: var(--s-blue);
+}
+.vl-topo-tree-row.user .vl-topo-dotk {
+  background: var(--s-violet);
+}
+.vl-topo-nm {
+  font-weight: 600;
+}
+.vl-topo-kd {
+  color: var(--muted);
+  font-size: 12px;
+}
+.vl-topo-invalid {
+  color: var(--s-red);
+}
+.vl-topo-hophead p.vl-no {
+  color: var(--s-red);
+}

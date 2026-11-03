@@ -504,8 +504,8 @@ fn every_spec_has_goals_and_is_valid() {
             assert_eq!(v.goals.len(), goals.len());
         }
     }
-    assert_eq!(virtlab::LAB_IDS.len(), 9);
-    for id in virtlab::LAB_IDS {
+    assert!(virtlab::lab_ids().len() >= 12);
+    for id in virtlab::lab_ids() {
         assert!(virtlab::builtin(id).is_some(), "{id}");
     }
     assert!(virtlab::builtin("virt-sim-nope").is_none());

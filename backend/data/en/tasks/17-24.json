@@ -3,6 +3,18 @@
  "chapter": 24,
  "tasks": [
   {
+   "id": "virt-sim-ovirt-backup",
+   "title": "Board: backups",
+   "statement": "Build the protection of the virtual machines on the board: every VM needs a copy that survives the loss of the domain holding its disk. Five scenarios: snapshots that are not backups, the backup type per kind of disk, the VMs of a second domain, a forgotten VM and a new VM with neither a disk nor a backup. The exercise is solved when all scenarios are solved.",
+   "hint": "A snapshot lives on the same domain as the disk and is lost with it. Only an incremental or a full backup survives. Incremental needs a qcow2 disk with change tracking; a raw disk is copied whole."
+  },
+  {
+   "id": "virt-sim-ovirt-dr",
+   "title": "Board: disaster recovery",
+   "statement": "Build disaster recovery between data centers on the board: the replica of a storage domain must live in another data center and be Active. Five scenarios: the first replica, a replica in a data center without hosts, two sites replicating into each other, a VM with disks on two domains and a copy that sits next to the original. The exercise is solved when all scenarios are solved.",
+   "hint": "Only a replica in another data center survives the loss of a site, and only an Active one: a domain is Active when an Up host of its own data center sees it. Every domain that holds a VM disk needs a replica, and a replica has one primary."
+  },
+  {
    "id": "ov24-backup-scope",
    "title": "What the backups cover",
    "statement": "The engine-backup utility makes a backup by scope. Rules of the model: scope 'all' covers the resources 'engine_db', 'engine_files' and 'dwh_db'; scope 'files' covers only 'engine_files'; scope 'db' only 'engine_db'; scope 'dwhdb' only 'dwh_db'. Unknown scopes cover nothing. Write a function uncovered(required, scopes): required is a list of resources that must be protected (it may include ones that no scope covers, for example 'vm_disks'), scopes is the list of scopes the backups were taken with. Return a sorted list of the required resources not covered by any backup, without duplicates.",

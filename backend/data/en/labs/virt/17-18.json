@@ -1,0 +1,13 @@
+{
+  "book": 17,
+  "chapter": 18,
+  "lab": "virt",
+  "tasks": [
+    {
+      "id": "virt-sim-ovirt-perms",
+      "title": "Board: users and permissions",
+      "statement": "You grant permissions in oVirt: a user, a role and the object the role is set on; it applies to that object and everything under it. Five scenarios: an operator who only runs one VM; the administrator of one cluster who has no access to the next one; two users with different needs and the weakest roles for them; a permission set on the wrong object; the networks and storage of one data center with a second data center next to it. The exercise is solved when all scenarios are solved.",
+      "hint": "A permission applies to its object and everything under it: the data center, then its clusters, networks and domains, then hosts, then the VMs on them. It never goes up or sideways. Use the weakest role that does the job, on the smallest object that covers it."
+    }
+  ]
+}

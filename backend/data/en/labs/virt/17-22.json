@@ -6,8 +6,26 @@
     {
       "id": "virt-sim-ovirt-sched",
       "title": "Simulator: the oVirt scheduler",
-      "statement": "The scheduler picks a host for a virtual machine in two steps: filters throw out unsuitable hosts, weights rank the rest. In four scenarios choose the cluster policy: turn on the filters you need (memory, network, anti-affinity) and set the weights (even load, free memory, packing). Machines start one by one, and each one takes room on the chosen host. The exercise is solved when the goals of all scenarios are met.",
+      "statement": "The scheduler picks a host for a virtual machine in two steps: filters throw out unsuitable hosts, weights rank the rest. In four scenarios choose the cluster policy: turn on the filters you need (memory, network, anti-affinity) and set the weights (even load, free memory, packing). Machines start one by one, and each one takes room on the chosen host. The exercise is solved when the goals of all scenarios are met. The model is simplified: the three weights are simplified stand-ins for oVirt weight modules (an even number of machines per host, free memory, packing machines instead of power saving by load), and the ranks are written in mirrored form: the best host gets rank 0 and the lowest sum of factor × rank wins (in oVirt itself the best host gets the highest rank and the highest sum wins).",
       "hint": "Filters are hard conditions, weights are preferences. Without weights the first host by name wins. An even load and packing are opposite weights, do not turn them on together. A broken constraint that the policy did not check counts as a placement mistake."
+    },
+    {
+      "id": "virt-sim-ovirt-affinity",
+      "title": "Board: affinity groups",
+      "statement": "You place VMs by neighbour rules: replicas are kept apart, the parts of one unit together. Five scenarios: two replicas on one host under a hard negative group; a positive group that fell apart over three hosts; three replicas on two hosts, which need a third host; a soft group that never changes a status and only gives an illusion of protection; two hard groups that contradict each other. The exercise is solved when all scenarios are solved.",
+      "hint": "A hard group works as a filter: a VM that breaks it does not run. A soft group is only a weight and never changes a status; the violation shows only in the parameters of the group and the VMs. A VM sits on one host: to move it, delete its link to the old host and create a new one."
+    },
+    {
+      "id": "virt-sim-ovirt-capacity",
+      "title": "Board: memory and capacity",
+      "statement": "You count memory the way the scheduler does: by what is promised, not by what is used. Five scenarios: a host that is promised more memory than it has, so all its VMs are Down; two HA VMs that share the remaining memory when a host is lost; placing new VMs where they fit; a cluster that has the memory but spread badly; room for the loss of any host (N+1). The exercise is solved when all scenarios are solved.",
+      "hint": "Add up the memory of the VMs placed on a host: if the sum is more than the memory of the host, none of them runs, although the host itself stays Up. Restarted HA VMs take room one after the other. To move a VM, delete its link to the old host and create a new one."
+    },
+    {
+      "id": "virt-sim-ovirt-evacuate",
+      "title": "Board: maintenance and evacuation",
+      "statement": "You prepare hosts for maintenance: to put a host into maintenance, its VMs must move to other hosts of the cluster. Five scenarios: the only host of a cluster with a spare host in another cluster; a host in maintenance that still holds a VM; an evacuation blocked by a network missing on the target; an evacuation blocked by the memory of the target; a three-host cluster patched one host at a time. The exercise is solved when all scenarios are solved.",
+      "hint": "A VM moves within its cluster to an Up host that has its networks and enough memory. A host in maintenance accepts no VMs and must not hold any. Check every host in turn, not only the one you are about to patch."
     }
   ]
 }

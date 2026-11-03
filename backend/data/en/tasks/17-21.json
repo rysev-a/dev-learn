@@ -3,6 +3,24 @@
  "chapter": 21,
  "tasks": [
   {
+   "id": "virt-sim-ovirt-net",
+   "title": "Board: networks",
+   "statement": "On the board you build the network side of an oVirt environment. Four scenarios: an optional network that some hosts do not have, a dedicated migration network, a management network for every data center, and a VM with an optional network. A network is defined in the data center, attached to the cluster and assigned to hosts; it has a role, and a required network has to be on every host of the cluster. The exercise is solved when the goals of all scenarios are met.",
+   "hint": "A required network is needed on every host of the cluster, an optional one is not, but a VM with a NIC in such a network starts only where it is assigned. Select a network to change its role and “required” in the inspector. Migration goes over a network with the migration role if both hosts have it, otherwise over the management network."
+  },
+  {
+   "id": "virt-sim-ovirt-net-2",
+   "title": "Board: networks, level 2",
+   "statement": "You assemble and repair the networks of an oVirt environment on the board: you define networks, attach them to clusters and assign them to hosts. Five scenarios: a network that is defined but not attached, so a VM will not start; a console network that an old host cannot take; a second cluster that needs each network of the data center attached separately; a host without a management network that the “optional” flag does not rescue; adding a new host with all the networks and the storage. The exercise is solved when all scenarios are solved.",
+   "hint": "The chain is always the same: define the network in the data center, attach it to the cluster, assign it to the NIC of the host. Select a host or a VM and read what it is missing."
+  },
+  {
+   "id": "virt-sim-ovirt-net-3",
+   "title": "Board: networks, level 3",
+   "statement": "You follow live migration and growth over the networks of an oVirt environment: which network carries the memory of a VM and which hosts need which network. Five scenarios: a VM with two NICs and its migration; a migration network that is missing on some hosts, so the memory goes over the management network; a network with the VM role instead of the migration role; a required network added to a running cluster; one network for each role. The exercise is solved when all scenarios are solved.",
+   "hint": "A migration picks its network by role, and only if the network is assigned to both the source and the target; every NIC of the VM must find its network on the target host. Follow the path of a migration to see which network it takes."
+  },
+  {
    "id": "ov21-vlan-device",
    "title": "VLAN device name",
    "statement": "On a host a network with a VLAN tag gets a sub-interface \"nic.number\". Write a function vlan_device(nic, vlan): if vlan is None, return nic unchanged; if vlan is an integer from 1 to 4094 inclusive, return a string like \"eth0.100\"; otherwise return an empty string. A Linux interface name is at most 15 characters: if the resulting name (including the untagged one) is longer, also return an empty string.",
@@ -10,9 +28,9 @@
   },
   {
    "id": "ov21-network-name",
-   "title": "A valid network name",
-   "statement": "A network name becomes the bridge name on the host, so it is restricted. In our model a name is valid when all conditions hold: the length is from 1 to 15 characters; only ASCII letters, digits, underscore and hyphen; the name does not start with a hyphen. Write a function is_valid_network_name(name): return True or False.",
-   "hint": "Check the length, the first character and every character separately; c.isascii() helps with ASCII."
+   "title": "A host network device name",
+   "statement": "The devices a host builds for a network (a bridge, a VLAN sub-interface) are named by Linux rules, so a device name is restricted. The name of the logical network itself in oVirt can be longer than 15 characters or contain non-Latin letters: then VDSM invents a short device name (vdsm_name). In our model a device name is valid when all conditions hold: the length is from 1 to 15 characters; only ASCII letters, digits, underscore and hyphen; the name does not start with a hyphen. Write a function is_valid_network_name(name): return True or False.",
+   "hint": "Check the length, the first character and every character separately; c.isascii() helps with ASCII. Here the name is a host device name, not a logical network name."
   },
   {
    "id": "ov21-required-missing",
@@ -53,7 +71,7 @@
   {
    "id": "ov21-host-plan",
    "title": "Validating a host network plan",
-   "statement": "A host plan is a list of tuples (network, nic, vlan, is_vm): vlan is None (an untagged network) or a number. Write a function validate_plan(attachments) that returns a sorted list of unique error strings: \"name-too-long:<network>\" when is_vm is true and the network name is longer than 15 characters (the bridge name); \"network-on-multiple-nics:<network>\" when one network is bound to different NICs; \"bad-vlan:<network>\" when vlan is not None and not an integer 1..4094; \"multiple-untagged:<nic>\" when a NIC has two or more different untagged networks; \"vlan-clash:<nic>.<vlan>\" when a NIC has two or more different networks with the same valid vlan. Invalid vlans do not take part in the vlan-clash check. A correct plan gives an empty list.",
+   "statement": "A host plan is a list of tuples (network, nic, vlan, is_vm): vlan is None (an untagged network) or a number. Write a function validate_plan(attachments) that returns a sorted list of unique error strings: \"name-too-long:<network>\" when is_vm is true and the network value is longer than 15 characters (in the model it is the bridge name on the host; in oVirt itself, for a long network name VDSM invents a short device name); \"network-on-multiple-nics:<network>\" when one network is bound to different NICs; \"bad-vlan:<network>\" when vlan is not None and not an integer 1..4094; \"multiple-untagged:<nic>\" when a NIC has two or more different untagged networks; \"vlan-clash:<nic>.<vlan>\" when a NIC has two or more different networks with the same valid vlan. Invalid vlans do not take part in the vlan-clash check. A correct plan gives an empty list.",
    "hint": "Keep three dictionaries: NICs per network, untagged networks per NIC, networks per pair (NIC, vlan); finally collect a set of errors."
   },
   {
@@ -85,6 +103,42 @@
    "title": "setupNetworks with rollback",
    "statement": "Model the atomic setupNetworks operation. The host configuration current is a dictionary \"network → (nic, vlan)\", where vlan is None or a number. ops is a list of edit tuples: (\"add\", network, nic, vlan), (\"remove\", network), (\"move\", network, nic, vlan). The edits are applied in order to a copy of the configuration. An edit is rejected if: add for an existing network; remove or move for a missing one; an unknown kind of edit; vlan is not None and not an integer 1..4094; after the edit some NIC has two or more untagged networks. On the first rejected edit with index i return (\"rejected:i\", current), leaving the configuration unchanged. If all edits are accepted and check=True, connectivity is verified: the network \"ovirtmgmt\" must exist and its NIC must be in the list up_nics; otherwise return (\"reverted\", current). Else return (\"applied\", the new configuration). Signature: apply_setup_networks(current, ops, up_nics, check).",
    "hint": "Copy current into a new dictionary, apply edits in an enumerate loop and check the invariants after each; a rollback just returns the original current."
+  },
+  {
+   "id": "ovb21-relation",
+   "title": "Which relation is this",
+   "statement": "The kinds of the nodes give a link its meaning. Write relation(board, a, b): return the name of the link from node a to node b — manages (engine → data_center), contains (data_center → cluster), member (cluster → host), runs (host → vm), defined (data_center → network), attached (network → cluster), assigned (network → host), engine_nic (engine → network), domain (data_center → storage_domain), sees (storage_domain → host), vnic (network → vm), disk (storage_domain → vm) — or None if oVirt has no such link between these kinds. The direction matters: for the reverse pair of kinds the answer is None. The board is a dictionary {\"nodes\": [...], \"edges\": [...]}. A node is {\"id\": ..., \"kind\": ..., \"name\": ...}; a network may also have \"params\": {\"role\": ..., \"required\": ...}. kind is one of engine, data_center, cluster, host, network, storage_domain, vm. A link {\"from\": id, \"to\": id} always goes in the direction of oVirt: engine → data_center → cluster → host → vm; data_center → network → cluster, host, vm; engine → network; data_center → storage_domain → host, vm. The order of the nodes and edges lists matters where the text says \"first\".",
+   "hint": "A table of pairs of kinds → name: a dictionary with tuple keys (kind_a, kind_b)."
+  },
+  {
+   "id": "ovb21-required-missing",
+   "title": "Required networks missing on a host",
+   "statement": "A network attached to a cluster (network → cluster) is required if its params have no required key or required is not False. A host must have all the required networks of its cluster: the link network → host. Write required_missing(board): for every host that is in a cluster, return the sorted list of ids of the required networks of its cluster that are not assigned to the host. The dictionary must hold all such hosts, also those with an empty list. The board is a dictionary {\"nodes\": [...], \"edges\": [...]}. A node is {\"id\": ..., \"kind\": ..., \"name\": ...}; a network may also have \"params\": {\"role\": ..., \"required\": ...}. kind is one of engine, data_center, cluster, host, network, storage_domain, vm. A link {\"from\": id, \"to\": id} always goes in the direction of oVirt: engine → data_center → cluster → host → vm; data_center → network → cluster, host, vm; engine → network; data_center → storage_domain → host, vm. The order of the nodes and edges lists matters where the text says \"first\".",
+   "hint": "A node may have no params key at all: use node.get('params', {})."
+  },
+  {
+   "id": "ovb21-mgmt-path",
+   "title": "The path of the engine to a host",
+   "statement": "The engine reaches a host over the management network. Write management_path(board, host): find the engine that manages the data center of the host (engine → data_center; the data center of a host is the one of its cluster) and a network whose params.role is \"management\" with links engine → network and network → host. Return [engine id, network id] or None if there is no path. If there are several paths, take the first engine and the first network in the order of the links in edges. The board is a dictionary {\"nodes\": [...], \"edges\": [...]}. A node is {\"id\": ..., \"kind\": ..., \"name\": ...}; a network may also have \"params\": {\"role\": ..., \"required\": ...}. kind is one of engine, data_center, cluster, host, network, storage_domain, vm. A link {\"from\": id, \"to\": id} always goes in the direction of oVirt: engine → data_center → cluster → host → vm; data_center → network → cluster, host, vm; engine → network; data_center → storage_domain → host, vm. The order of the nodes and edges lists matters where the text says \"first\".",
+   "hint": "The role of a network is in params.role; a network without params counts as \"vm\"."
+  },
+  {
+   "id": "ovb21-host-status",
+   "title": "Host status from the board",
+   "statement": "Put it all together. Write host_statuses(board): for every host return its status — \"No cluster\" if the host is not in a cluster or the cluster is not in a data center; otherwise \"NonResponsive\" if the engine has no path to the host (the engine path task); otherwise \"NonOperational\" if a required network of its cluster is not assigned to the host or it does not see a domain attached to its data center; otherwise \"Up\". Return a dictionary host id → status for all hosts. The board is a dictionary {\"nodes\": [...], \"edges\": [...]}. A node is {\"id\": ..., \"kind\": ..., \"name\": ...}; a network may also have \"params\": {\"role\": ..., \"required\": ...}. kind is one of engine, data_center, cluster, host, network, storage_domain, vm. A link {\"from\": id, \"to\": id} always goes in the direction of oVirt: engine → data_center → cluster → host → vm; data_center → network → cluster, host, vm; engine → network; data_center → storage_domain → host, vm. The order of the nodes and edges lists matters where the text says \"first\".",
+   "hint": "The checks go in order; each one is a task you have solved already."
+  },
+  {
+   "id": "ovb21-migration-network",
+   "title": "Which network carries the memory of a migration",
+   "statement": "During a migration the memory of the VM goes between two hosts over a common network. Write migration_network(board, a, b): return the id of a network whose params.role is \"migration\" and which is assigned to both hosts (network → host); if there is none, the id of a network with role \"management\" assigned to both hosts; otherwise None. If several fit, take the first one in the order of nodes. The board is a dictionary {\"nodes\": [...], \"edges\": [...]}. A node is {\"id\": ..., \"kind\": ..., \"name\": ...}; a network may also have \"params\": {\"role\": ..., \"required\": ...}. kind is one of engine, data_center, cluster, host, network, storage_domain, vm. A link {\"from\": id, \"to\": id} always goes in the direction of oVirt: engine → data_center → cluster → host → vm; data_center → network → cluster, host, vm; engine → network; data_center → storage_domain → host, vm. The order of the nodes and edges lists matters where the text says \"first\".",
+   "hint": "Write a function \"the first network of role X on both hosts\" and call it with \"migration\", then with \"management\"."
+  },
+  {
+   "id": "ovb21-unplugged",
+   "title": "Where the NIC of a VM cannot be plugged",
+   "statement": "The virtual NIC of a VM is plugged into a network by a link network → vm. It works only if that network is assigned to the host the VM runs on (host → vm and network → host). Write unplugged(board, vm): return None if the VM is not on any host; otherwise the sorted list of ids of the networks of its NICs that are not assigned to the host of the VM. The board is a dictionary {\"nodes\": [...], \"edges\": [...]}. A node is {\"id\": ..., \"kind\": ..., \"name\": ...}; a network may also have \"params\": {\"role\": ..., \"required\": ...}. kind is one of engine, data_center, cluster, host, network, storage_domain, vm. A link {\"from\": id, \"to\": id} always goes in the direction of oVirt: engine → data_center → cluster → host → vm; data_center → network → cluster, host, vm; engine → network; data_center → storage_domain → host, vm. The order of the nodes and edges lists matters where the text says \"first\".",
+   "hint": "First the host of the VM (the source of the link host → vm), then the networks of the NICs."
   }
  ]
 }

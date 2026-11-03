@@ -1,8 +1,8 @@
 import type { Locator, Page } from "@playwright/test";
 import { expect, loginFresh, test } from "../../support/fixtures";
-import { labTask, listItem, openTask, progressLabel, putSolved, statusOf, expectStatusOk } from "../../support/labs";
+import { labTask, listItem, openTask, progressLabel, putDraft, putSolved, statusOf, expectStatusOk } from "../../support/labs";
 
-/* Virtualization lab (book 17): six simulators (the three oVirt ones are not covered yet). A solution is JSON `{goal id: data}` built by the interface itself;
+/* Virtualization lab (book 17): nine simulators (six on the general theme, three on oVirt). A solution is JSON `{goal id: data}` built by the interface itself;
    these exercises have no reference in the data, so they are solved by actions in the interface, and the submitted solution is then
    replayed by another student through the API (server-side re-check by the model). */
 
@@ -16,6 +16,12 @@ const SIM = {
   qcow2: [9, "virt-sim-qcow2"],
   migration: [10, "virt-sim-migration"],
   numa: [11, "virt-sim-numa"],
+  ovirtDc: [17, "virt-sim-ovirt-dc"],
+  ovirtFence: [19, "virt-sim-ovirt-fence"],
+  ovirtSched: [22, "virt-sim-ovirt-sched"],
+  ovirtTopo: [17, "virt-sim-ovirt-topo"],
+  ovirtStorage: [20, "virt-sim-ovirt-storage"],
+  ovirtNet: [21, "virt-sim-ovirt-net"],
 } as const;
 type Sim = keyof typeof SIM;
 
@@ -43,7 +49,8 @@ async function expectSolved(page: Page, request: Parameters<typeof openTask>[1],
   const [chapter, id] = SIM[sim];
   const task = labTask("virt", chapter, id);
   await expect(badge(page)).toHaveText("выполнено");
-  await expect(listItem(page, task.title).locator(".pr-mark")).toHaveText("✓");
+  // a title may be the start of the title of a neighbouring exercise ("Доска: сети" / "Доска: сети, уровень 2"): the exercise itself comes first
+  await expect(listItem(page, task.title).first().locator(".pr-mark")).toHaveText("✓");
   await expect(progressLabel(page)).toHaveText(/^Решено 1 из \d+$/);
   await expectStatusOk(request, token, "virt", chapter, id);
 }
@@ -82,9 +89,15 @@ test.describe("the initial state is not accepted", () => {
       const { token } = await loginFresh(page, request, `virt-${sim}`);
       await open(page, request, sim);
       await expect(badge(page)).toHaveText("не решено");
-      await expect(page.locator(".vl-tab.ok, .vl-goals li.ok")).toHaveCount(0);
+      // a board scenario may start with some of its goals already met: only a solved scenario counts
+      const boards = sim === "ovirtStorage" || sim === "ovirtNet";
+      await expect(page.locator(boards ? ".vl-tab.ok" : ".vl-tab.ok, .vl-goals li.ok")).toHaveCount(0);
       if (sim === "hv" || sim === "migration") await expect(tabs(page)).toHaveCount(3);
       else if (sim === "numa") await expect(tabs(page)).toHaveCount(2);
+      else if (sim === "ovirtFence") await expect(tabs(page)).toHaveCount(5);
+      else if (sim === "ovirtSched") await expect(tabs(page)).toHaveCount(4);
+      else if (sim === "ovirtTopo") await expect(tabs(page)).toHaveCount(5);
+      else if (sim === "ovirtStorage" || sim === "ovirtNet") await expect(tabs(page)).toHaveCount(4);
       else await expect(goalItems(page)).toHaveCount(sim === "ept" ? 4 : 3);
       await expect(page.locator(".pr-list .pr-item.ok")).toHaveCount(0);
       await page.waitForLoadState("networkidle");
@@ -496,6 +509,453 @@ test.describe("numa: machine placement", () => {
     await page.getByRole("button", { name: "Принять размещение" }).click();
     await expect(page.locator(".vl-no")).toContainText("не помещается");
     await expect(page.locator(".vl-vms")).toBeVisible();
+    guard.assertClean();
+  });
+});
+
+// --- 7. oVirt data center (chapter 17) ----------------------------------------------------------------------------------------------------
+
+test.describe("ovirtDc: data center", () => {
+  test("operations in the Administration Portal; the server replays the action log", async ({ page, request, guard }) => {
+    const { token } = await loginFresh(page, request, "virt-ovirt-dc");
+    await open(page, request, "ovirtDc");
+    const sent = solutionRequest(page, "ovirtDc");
+    const press = (name: string) => page.getByRole("button", { name, exact: true }).click();
+    const note = page.locator(".vl-final");
+    const hostChips = (cls: string) => page.locator(`.vl-env-host .vl-chip.${cls}`);
+
+    // an action that does not fit the state is refused with an explanation and changes nothing
+    await expect(note).toContainText("Пустое окружение");
+    await press("Добавить хост 1");
+    await expect(note).toHaveClass(/\bvl-no\b/);
+    await expect(note).toContainText("Кластера ещё нет.");
+
+    await press("Создать кластер");
+    await expect(note).not.toHaveClass(/\bvl-no\b/);
+    await press("Добавить хост 1");
+    await press("Добавить хост 2");
+    await expect(hostChips("ok")).toHaveCount(2);
+
+    // the required network breaks hosts that do not have it yet
+    await press("Создать сеть vm-net (обязательную)");
+    await expect(hostChips("bad")).toHaveCount(2);
+    await expect(hostChips("bad").first()).toHaveText("NonOperational");
+    await press("Назначить vm-net на хост 1");
+    await press("Назначить vm-net на хост 2");
+    await expect(hostChips("ok")).toHaveCount(2);
+
+    // the data center becomes Up only with the master storage domain active: create -> attach -> activate
+    const dc = page.locator(".vl-env > li").first().locator(".vl-chip");
+    await expect(dc).not.toHaveText("Up");
+    await press("Активировать домен");
+    await expect(note).toHaveClass(/\bvl-no\b/);
+    await press("Создать домен NFS");
+    await press("Подключить к дата-центру");
+    await press("Активировать домен");
+    await expect(dc).toHaveText("Up");
+    await expect(goalItems(page).nth(0)).toHaveClass(/\bok\b/);
+    await expect(goalItems(page).nth(1)).not.toHaveClass(/\bok\b/);
+
+    // a VM on vm-net
+    await press("Создать машину");
+    await press("Запустить машину");
+    await expect(page.locator(".vl-vm")).toHaveCount(1);
+    await expect(goalItems(page).nth(1)).toHaveClass(/\bok\b/);
+
+    // maintenance of the host with the VM: the VM migrates to the other host
+    await expect(page.locator(".vl-env-host").nth(0).locator(".vl-vm")).toHaveCount(1);
+    await press("Обслуживание, хост 1");
+    await expect(page.locator(".vl-env-host").nth(1).locator(".vl-vm")).toHaveCount(1);
+    await expect(page.locator(".vl-goals li.ok")).toHaveCount(3);
+
+    const solution = solutionOf(await sent);
+    await expectSolved(page, request, token, "ovirtDc");
+    const parsed = JSON.parse(solution) as Record<string, { trace: unknown[] }>;
+    expect(Object.keys(parsed).sort()).toEqual(["dc_up", "migrate", "vm_net"]);
+    // refused actions are not recorded: 12 accepted operations
+    expect(parsed.migrate!.trace.length).toBe(12);
+    guard.assertClean();
+
+    // the replay of a shortened record does not reach the goal
+    await replayForAnotherUser(page, request, "ovirtDc", solution, (s) => {
+      (s.dc_up as { trace: unknown[] }).trace = [{ op: "add_cluster" }];
+    }, /dc_up/);
+  });
+
+  test("Start over clears the environment", async ({ page, request, guard }) => {
+    await loginFresh(page, request, "virt-ovirt-dc");
+    await open(page, request, "ovirtDc");
+    await page.getByRole("button", { name: "Создать кластер" }).click();
+    await expect(page.locator(".vl-env > li", { hasText: "кластер" }).locator(".vl-muted")).toHaveText("создан");
+    await page.locator(".pr-res-head .quiz-btn").click();
+    await expect(page.locator(".vl-env > li", { hasText: "кластер" }).locator(".vl-muted")).toHaveText("ещё нет");
+    await expect(page.locator(".vl-final")).toContainText("Пустое окружение");
+    guard.assertClean();
+  });
+});
+
+// --- 8. oVirt host fencing (chapter 19) -----------------------------------------------------------------------------------------------------
+
+test.describe("ovirtFence: host fencing", () => {
+  const verdict = (page: Page) => page.locator(".vl-final .vl-yes, .vl-final .vl-no");
+  const run = (page: Page) => page.getByRole("button", { name: "Запустить сценарий" }).click();
+  const box = (page: Page, label: RegExp) => page.getByLabel(label);
+  const SOFT = /мягкое ограждение/;
+  const POWER = /управление питанием/;
+  const LEASES = /^у высокодоступной машины/;
+  const SKIP_LEASE = /живая аренда/;
+  const SKIP_NET = /проблемах со связью/;
+
+  test("each situation needs its own settings; the server simulates the settings again", async ({ page, request, guard }) => {
+    const { token } = await loginFresh(page, request, "virt-ovirt-fence");
+    await open(page, request, "ovirtFence");
+    const sent = solutionRequest(page, "ovirtFence");
+
+    // the starting settings do nothing for a hung VDSM; soft fencing restarts it
+    await run(page);
+    await expect(verdict(page)).toContainText("не достигнута");
+    await expect(page.locator(".vl-steps li").first()).toBeVisible();
+    await box(page, SOFT).check();
+    await run(page);
+    await expect(verdict(page)).toContainText("достигнута");
+    await expect(verdict(page)).not.toContainText("не достигнута");
+    await expect(page.locator(".vl-final b").first()).toContainText("хост снова Up, ничего не перезагружалось");
+    await expect(tabs(page).nth(0)).toHaveClass(/\bok\b/);
+
+    // the rest: every setting is turned on and the threshold is inside the allowed window
+    for (const label of [POWER, LEASES, SKIP_LEASE, SKIP_NET]) await box(page, label).check();
+    await page.locator("input[type=range]").fill("50");
+    await expect(page.locator(".vl-field b")).toHaveText("50%");
+    for (const i of [1, 2, 3, 4]) {
+      await tabs(page).nth(i).click();
+      await expect(page.locator(".pr-empty")).toBeVisible();
+      await run(page);
+      await expect(verdict(page)).toContainText("достигнута");
+      await expect(verdict(page)).not.toContainText("не достигнута");
+      await expect(tabs(page).nth(i)).toHaveClass(/\bok\b/);
+    }
+    await expect(page.locator(".vl-tab.ok")).toHaveCount(5);
+
+    const solution = solutionOf(await sent);
+    await expectSolved(page, request, token, "ovirtFence");
+    const parsed = JSON.parse(solution) as Record<string, { threshold: number; soft: boolean }>;
+    expect(Object.keys(parsed).sort()).toEqual(["bmc", "dead", "hung", "mgmt", "switch"]);
+    expect(parsed.switch!.threshold).toBe(50);
+    guard.assertClean();
+
+    // forged settings: without skipping on connectivity the switch failure fences healthy hosts; the server notices
+    await replayForAnotherUser(page, request, "ovirtFence", solution, (s) => {
+      (s.switch as { skip_connectivity: boolean }).skip_connectivity = false;
+    }, /switch/);
+  });
+
+  test("the threshold slider is available only with the connectivity check", async ({ page, request, guard }) => {
+    await loginFresh(page, request, "virt-ovirt-fence");
+    await open(page, request, "ovirtFence");
+    const slider = page.locator("input[type=range]");
+    await expect(slider).toBeDisabled();
+    await box(page, SKIP_NET).check();
+    await expect(slider).toBeEnabled();
+    // a wrong threshold does not help in the switch situation
+    await tabs(page).nth(3).click();
+    await box(page, SOFT).check();
+    await box(page, POWER).check();
+    await box(page, SKIP_LEASE).check();
+    await slider.fill("100");
+    await run(page);
+    await expect(verdict(page)).toContainText("не достигнута");
+    await slider.fill("50");
+    await run(page);
+    await expect(verdict(page)).not.toContainText("не достигнута");
+    guard.assertClean();
+  });
+});
+
+// --- 9. oVirt scheduler (chapter 22) ---------------------------------------------------------------------------------------------------------
+
+test.describe("ovirtSched: scheduler", () => {
+  const verdict = (page: Page) => page.locator(".vl-final .vl-yes, .vl-final .vl-no").first();
+  const start = (page: Page) => page.getByRole("button", { name: "Запустить машины" }).click();
+  const filter = (page: Page, label: RegExp) => page.getByLabel(label);
+  const MEMORY = /^Память: на хосте/;
+  const NETWORK = /^Сеть: на хосте/;
+  const AFFINITY = /^Антиаффинность/;
+  const weight = (page: Page, index: number) => page.locator(".vl-weight select").nth(index);
+  const EVEN = 0;
+
+  test("filters and weights per scenario; the server places the VMs again", async ({ page, request, guard }) => {
+    const { token } = await loginFresh(page, request, "virt-ovirt-sched");
+    await open(page, request, "ovirtSched");
+    const sent = solutionRequest(page, "ovirtSched");
+
+    // without a policy everything lands on the first host
+    await start(page);
+    await expect(verdict(page)).toContainText("не достигнута");
+    await expect(page.locator(".vl-rounds li").first()).toBeVisible();
+    await weight(page, EVEN).selectOption("1");
+    await start(page);
+    await expect(verdict(page)).toHaveText("✓ Цель сценария достигнута");
+    await expect(tabs(page).nth(0)).toHaveClass(/\bok\b/);
+
+    // networks: the VM may not go where its network is missing
+    await tabs(page).nth(1).click();
+    await expect(page.locator(".pr-empty")).toBeVisible();
+    await start(page);
+    await expect(page.locator(".vl-final")).toContainText("нарушенным ограничением");
+    await filter(page, NETWORK).check();
+    await start(page);
+    await expect(verdict(page)).toHaveText("✓ Цель сценария достигнута");
+
+    // anti-affinity: members of a group go to different hosts
+    await tabs(page).nth(2).click();
+    await filter(page, NETWORK).uncheck();
+    await filter(page, AFFINITY).check();
+    await start(page);
+    await expect(verdict(page)).toHaveText("✓ Цель сценария достигнута");
+
+    // power saving: a filter by memory and no even spreading (it would use three hosts)
+    await tabs(page).nth(3).click();
+    await filter(page, AFFINITY).uncheck();
+    await filter(page, MEMORY).check();
+    await start(page);
+    await expect(page.locator(".vl-final")).toContainText("Используется хостов: 3");
+    await weight(page, EVEN).selectOption("0");
+    await start(page);
+    await expect(verdict(page)).toHaveText("✓ Цель сценария достигнута");
+    await expect(page.locator(".vl-tab.ok")).toHaveCount(4);
+
+    const solution = solutionOf(await sent);
+    await expectSolved(page, request, token, "ovirtSched");
+    const parsed = JSON.parse(solution) as Record<string, { affinity: boolean; memory: boolean; even: number }>;
+    expect(Object.keys(parsed).sort()).toEqual(["anti", "even", "nets", "pack"]);
+    expect(parsed.anti!.affinity).toBe(true);
+    expect(parsed.pack!.even).toBe(0);
+    guard.assertClean();
+
+    // a policy without the anti-affinity filter does not pass the check on the server
+    await replayForAnotherUser(page, request, "ovirtSched", solution, (s) => {
+      (s.anti as { affinity: boolean }).affinity = false;
+    }, /anti/);
+  });
+});
+
+// --- 10. oVirt topology board (chapter 17) -----------------------------------------------------------------------------------------------
+
+test.describe("ovirtTopo: topology board", () => {
+  const board = (id: string) => `.vl-topo-node[data-id="${id}"]`;
+  const add = (page: Page, kind: string) => page.locator(`.vl-topo-add[data-kind="${kind}"]`).click();
+  /** A link by two clicks: the output pin of the source, then the input pin of the target (the direction is fixed by oVirt, so the order of kinds may be either). */
+  async function link(page: Page, from: string, to: string) {
+    await page.locator(`.vl-topo-pin.out[data-node="${from}"]`).click({ force: true });
+    await page.locator(`.vl-topo-pin.in[data-node="${to}"]`).click({ force: true });
+  }
+  const edges = (page: Page) => page.locator(".vl-topo-edge");
+  const chip = (page: Page, id: string) => page.locator(`${board(id)} .vl-chip`);
+  const reference = () => labTask("virt", 17, "virt-sim-ovirt-topo").spec.solution as Record<string, unknown>;
+
+  test("a board is assembled by hand: statuses follow the links and refusals are explained", async ({ page, request, guard }) => {
+    await loginFresh(page, request, "virt-ovirt-topo");
+    await open(page, request, "ovirtTopo");
+    await expect(page.locator(".vl-topo-node")).toHaveCount(0);
+    for (const kind of ["engine", "data_center", "cluster", "host", "host", "network"]) await add(page, kind);
+    await expect(page.locator(".vl-topo-node")).toHaveCount(6);
+    // a host that is in no cluster has no status yet
+    await expect(chip(page, "h1")).toHaveClass(/\bwarn\b/);
+
+    // a link that oVirt does not have is refused with the reason, nothing is added
+    await link(page, "engine", "cl1");
+    await expect(page.locator(".vl-topo-notice")).toContainText("напрямую не связаны");
+    await expect(edges(page)).toHaveCount(0);
+    // the network cannot be attached before it is defined in a data center
+    await link(page, "engine", "dc1");
+    await link(page, "dc1", "cl1");
+    await link(page, "net1", "cl1");
+    await expect(page.locator(".vl-topo-notice")).toContainText("сначала определите сеть в дата-центре");
+    await expect(edges(page)).toHaveCount(2);
+
+    const pairs: [string, string][] = [["cl1", "h1"], ["cl1", "h2"], ["dc1", "net1"], ["net1", "cl1"], ["net1", "h1"], ["net1", "h2"], ["engine", "net1"]];
+    for (const [a, b] of pairs) await link(page, a, b);
+    await expect(edges(page)).toHaveCount(9);
+    // the network is a VM network by default: the engine has no management path, the hosts are NonResponsive
+    await expect(chip(page, "h1")).toHaveText("NonResponsive");
+    await expect(page.locator(".vl-goals li.ok")).toHaveCount(0);
+
+    // the role of the network makes the path
+    await page.locator(board("net1")).locator(".vl-topo-name").click();
+    await expect(page.locator(".vl-topo-inspector")).toBeVisible();
+    await page.locator(".vl-topo-inspector select").selectOption({ label: "управление" });
+    await expect(chip(page, "h1")).toHaveText("Up");
+    await expect(chip(page, "h2")).toHaveText("Up");
+    await expect(page.locator(".vl-goals li.ok")).toHaveCount(2);
+    await expect(tabs(page).nth(0)).toHaveClass(/\bok\b/);
+    // the tree shows the hierarchy derived from the links
+    await expect(page.locator(".vl-topo-tree")).toContainText("host-1");
+
+    // deleting the cluster drops everything that depends on it
+    await page.locator(board("cl1")).locator(".vl-topo-name").click();
+    await page.locator(".vl-topo-delete").click();
+    await expect(page.locator(board("cl1"))).toHaveCount(0);
+    await expect(chip(page, "h1")).toHaveClass(/\bwarn\b/);
+    await expect(page.locator(".vl-topo-notice")).not.toHaveText("");
+    guard.assertClean();
+  });
+
+  test("the reference boards stored as a draft solve the exercise; the server replays them", async ({ page, request, guard }) => {
+    const [chapter, id] = SIM.ovirtTopo;
+    const { token } = await loginFresh(page, request, "virt-ovirt-topo");
+    await putDraft(request, token, "virt", chapter, id, JSON.stringify(reference()));
+    const sent = solutionRequest(page, "ovirtTopo");
+    await open(page, request, "ovirtTopo");
+    await expect(page.locator(".vl-tab.ok")).toHaveCount(5);
+    const solution = solutionOf(await sent);
+    await expectSolved(page, request, token, "ovirtTopo");
+    const parsed = JSON.parse(solution) as Record<string, { nodes: unknown[]; edges: unknown[] }>;
+    expect(Object.keys(parsed).sort()).toEqual(["build", "migrate", "repair", "storage", "two"]);
+    guard.assertClean();
+
+    // the server checks the boards again: a board without a link the goals need is refused
+    await replayForAnotherUser(page, request, "ovirtTopo", solution, (s) => {
+      const storage = s.storage as { edges: { from: string; to: string }[] };
+      storage.edges = storage.edges.filter((e) => !(e.from === "nfs" && e.to === "h1"));
+    }, /storage/);
+    await replayForAnotherUser(page, request, "ovirtTopo", solution, (s) => {
+      const two = s.two as { edges: unknown[] };
+      two.edges.push({ from: "dc1", to: "cl1" });
+    }, /two/);
+  });
+
+  test("the path of a message: where a command stops and how it goes when the board is repaired", async ({ page, request, guard }) => {
+    const [chapter, id] = SIM.ovirtTopo;
+    const { token } = await loginFresh(page, request, "virt-ovirt-topo");
+    const file = labTask("virt", 17, id).spec as { scenarios: { id: string; start: unknown }[]; solution: Record<string, unknown> };
+    const start = file.scenarios.find((s) => s.id === "repair")!.start;
+    await putDraft(request, token, "virt", chapter, id, JSON.stringify({ repair: start }));
+    await open(page, request, "ovirtTopo");
+    await tabs(page).nth(3).click();
+    // host-3 has no management network: the engine cannot reach it, the first hop is red
+    await expect(chip(page, "h3")).toHaveText("NonResponsive");
+    await page.locator(board("h3")).locator(".vl-topo-name").click();
+    await page.locator('.vl-topo-op[data-op="engine_to_host"]').click();
+    await expect(page.locator(".vl-topo-hops li").first()).toHaveClass(/\bbad\b/);
+    await expect(page.locator(".vl-topo-hops li").first()).toContainText("нет сети управления");
+    // the VM sits on a NonOperational host: starting it fails at the host
+    await page.locator(board("vm1")).locator(".vl-topo-name").click();
+    await page.locator('.vl-topo-op[data-op="start_vm"]').click();
+    await expect(page.locator(".vl-topo-hops li.bad")).not.toHaveCount(0);
+    // repair by links: the VM network and the management network are assigned to the hosts
+    const fixes: [string, string][] = [["vmnet", "h2"], ["vmnet", "h3"], ["mgmt", "h3"]];
+    for (const [a, b] of fixes) await link(page, a, b);
+    await expect(page.locator(".vl-goals li.ok")).toHaveCount(2);
+    await expect(tabs(page).nth(3)).toHaveClass(/\bok\b/);
+    // the path now goes engine → host over the management network and highlights the links it uses
+    await page.locator(board("vm1")).locator(".vl-topo-name").click();
+    await page.locator('.vl-topo-op[data-op="migrate"]').click();
+    await expect(page.locator(".vl-topo-hops li.ok")).not.toHaveCount(0);
+    await expect(page.locator(".vl-topo-hops li.bad")).toHaveCount(0);
+    await expect(page.locator(".vl-topo-edge.path")).not.toHaveCount(0);
+    guard.assertClean();
+  });
+
+  test("Start over restores the starting board and the draft survives a reload", async ({ page, request, guard }) => {
+    await loginFresh(page, request, "virt-ovirt-topo");
+    await open(page, request, "ovirtTopo");
+    const saved = page.waitForResponse((r) => r.url().endsWith("/draft") && r.request().method() === "PUT");
+    await add(page, "engine");
+    await expect(page.locator(".vl-topo-node")).toHaveCount(1);
+    await saved;
+    await page.reload();
+    await expect(page.locator(".vl-topo")).toBeVisible();
+    await expect(page.locator(".vl-topo-node")).toHaveCount(1);
+    await page.locator(".vl-topo-reset").click();
+    await expect(page.locator(".vl-topo-node")).toHaveCount(0);
+    guard.assertClean();
+  });
+});
+
+// --- 11. more boards: storage (chapter 20) and networks (chapter 21) -----------------------------------------------------------------------
+
+test.describe("ovirt boards of chapters 20 and 21", () => {
+  const board = (id: string) => `.vl-topo-node[data-id="${id}"]`;
+  const chip = (page: Page, id: string) => page.locator(`${board(id)} .vl-chip`);
+  const select = (page: Page, id: string) => page.locator(board(id)).locator(".vl-topo-name").click();
+  async function link(page: Page, from: string, to: string) {
+    await page.locator(`.vl-topo-pin.out[data-node="${from}"]`).click({ force: true });
+    await page.locator(`.vl-topo-pin.in[data-node="${to}"]`).click({ force: true });
+  }
+  const reference = (sim: "ovirtStorage" | "ovirtNet") => labTask("virt", SIM[sim][0], SIM[sim][1]).spec.solution as Record<string, unknown>;
+
+  for (const [sim, ids] of [
+    ["ovirtStorage", ["iscsi", "master", "spm", "vm-disk"]],
+    ["ovirtNet", ["migration-net", "mgmt-dc", "optional", "vm-optional"]],
+  ] as const) {
+    test(`${sim}: the reference boards stored as a draft solve the exercise; the server replays them`, async ({ page, request, guard }) => {
+      const [chapter, id] = SIM[sim];
+      const { token } = await loginFresh(page, request, `virt-${sim}`);
+      await putDraft(request, token, "virt", chapter, id, JSON.stringify(reference(sim)));
+      const sent = solutionRequest(page, sim);
+      await open(page, request, sim);
+      await expect(page.locator(".vl-tab.ok")).toHaveCount(4);
+      const solution = solutionOf(await sent);
+      await expectSolved(page, request, token, sim);
+      expect(Object.keys(JSON.parse(solution) as object).sort()).toEqual([...ids].sort());
+      guard.assertClean();
+
+      // the server evaluates the boards again: undo the key step of one scenario
+      await replayForAnotherUser(page, request, sim, solution, (s) => {
+        if (sim === "ovirtStorage") {
+          const nodes = (s.iscsi as { nodes: { id: string; params?: Record<string, unknown> }[] }).nodes;
+          nodes.find((n) => n.id === "iscsi")!.params = { type: "nfs" };
+        } else {
+          const nodes = (s.optional as { nodes: { id: string; params?: Record<string, unknown> }[] }).nodes;
+          nodes.find((n) => n.id === "backup")!.params = { role: "vm", required: true };
+        }
+      }, sim === "ovirtStorage" ? /iscsi/ : /optional/);
+    });
+  }
+
+  test("an iSCSI domain: the type and the storage network decide whether the hosts stay Up", async ({ page, request, guard }) => {
+    await loginFresh(page, request, "virt-ovirt-storage");
+    await open(page, request, "ovirtStorage");
+    await tabs(page).nth(3).click();
+    await expect(chip(page, "h1")).toHaveText("Up");
+    await page.locator('.vl-topo-add[data-kind="storage_domain"]').click();
+    for (const [a, b] of [["dc1", "dom1"], ["dom1", "h1"], ["dom1", "h2"]] as [string, string][]) await link(page, a, b);
+    // an NFS domain is seen by the hosts: nothing breaks
+    await expect(chip(page, "h2")).toHaveText("Up");
+    await expect(page.locator(`${board("dom1")} .vl-topo-badge`)).toContainText("NFS");
+    // an iSCSI domain needs a network with the storage role on every host
+    await select(page, "dom1");
+    await page.locator(".vl-topo-inspector select").selectOption("iscsi");
+    await expect(page.locator(`${board("dom1")} .vl-topo-badge`)).toContainText("iSCSI");
+    await expect(chip(page, "h1")).toHaveText("NonOperational");
+    await expect(page.locator(".vl-topo-tree")).toContainText("host-1");
+    await select(page, "h1");
+    await expect(page.locator(".vl-topo-inspector")).toContainText("iSCSI");
+    await page.locator('.vl-topo-add[data-kind="network"]').click();
+    await select(page, "net1");
+    await page.locator(".vl-topo-inspector select").selectOption("storage");
+    const links: [string, string][] = [["dc1", "net1"], ["net1", "cl1"], ["net1", "h1"], ["net1", "h2"]];
+    for (const [a, b] of links) await link(page, a, b);
+    await expect(chip(page, "h1")).toHaveText("Up");
+    await expect(chip(page, "h2")).toHaveText("Up");
+    await expect(page.locator(".vl-goals li.ok")).toHaveCount(4);
+    await expect(tabs(page).nth(3)).toHaveClass(/\bok\b/);
+    guard.assertClean();
+  });
+
+  test("an optional network: the hosts that do not have it stay Up", async ({ page, request, guard }) => {
+    await loginFresh(page, request, "virt-ovirt-net");
+    await open(page, request, "ovirtNet");
+    await expect(chip(page, "h2")).toHaveText("NonOperational");
+    await expect(page.locator(".vl-goals li.ok")).toHaveCount(0);
+    await select(page, "backup");
+    const required = page.locator(".vl-topo-inspector input[type=checkbox]");
+    await expect(required).toBeChecked();
+    await required.uncheck();
+    await expect(chip(page, "h2")).toHaveText("Up");
+    await expect(chip(page, "h3")).toHaveText("Up");
+    await expect(page.locator(".vl-goals li.ok")).toHaveCount(2);
+    await expect(tabs(page).nth(0)).toHaveClass(/\bok\b/);
     guard.assertClean();
   });
 });

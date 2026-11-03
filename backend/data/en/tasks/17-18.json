@@ -3,9 +3,15 @@
  "chapter": 18,
  "tasks": [
   {
+   "id": "virt-sim-ovirt-perms",
+   "title": "Board: users and permissions",
+   "statement": "You grant permissions in oVirt: a user, a role and the object the role is set on; it applies to that object and everything under it. Five scenarios: an operator who only runs one VM; the administrator of one cluster who has no access to the next one; two users with different needs and the weakest roles for them; a permission set on the wrong object; the networks and storage of one data center with a second data center next to it. The exercise is solved when all scenarios are solved.",
+   "hint": "A permission applies to its object and everything under it: the data center, then its clusters, networks and domains, then hosts, then the VMs on them. It never goes up or sideways. Use the weakest role that does the job, on the smallest object that covers it."
+  },
+  {
    "id": "ov18-parse-answers",
    "title": "Parsing an answer file",
-   "statement": "An engine-setup answer file is text made of lines like KEY=type:value. Write a function parse_answers(text) that returns a dictionary key → value. The key is the text before the first \"=\". The type is the text between that \"=\" and the next \":\", and the value is everything after that \":\" (it may itself contain \":\" and \"=\"). Types: str is the string as is; int is an integer; bool is True if the value equals \"True\" and False otherwise; none ignores the value and gives None. Empty lines, lines starting with \"#\" or \"[\", lines without \"=\" or without \":\" after it, and lines with an unknown type are skipped. Whitespace at the ends of a line is stripped. If a key appears again, the last line wins.",
+   "statement": "An engine-setup answer file is text made of lines like KEY=type:value. Write a function parse_answers(text) that returns a dictionary key → value. The key is the text before the first \"=\". The type is the text between that \"=\" and the next \":\", and the value is everything after that \":\" (it may itself contain \":\" and \"=\"). Types: str is the string as is; int is an integer; bool is True if the value equals \"True\" and False otherwise; none ignores the value and gives None. Empty lines, lines starting with \"#\" or \"[\", lines without \"=\" or without \":\" after it, and lines with an unknown type are skipped. Whitespace at the ends of a line is stripped. If a key appears again, the last line wins. The keys in the examples are illustrative.",
    "hint": "Use text.splitlines(), strip(), then split('=', 1) and split(':', 1); choose the type with if/elif."
   },
   {
@@ -29,7 +35,7 @@
   {
    "id": "ov18-job-status",
    "title": "Job status from its steps",
-   "statement": "A job's status is built from its steps' statuses, and a step may have substeps. A step is a tuple (status, substeps), substeps being a list of the same steps. Statuses are ordered from best to worst: FINISHED < STARTED < ABORTED < FAILED. A step's status is the worst among its own status and the statuses of all its substeps (at any depth). Write a function job_status(steps): return the worst status among all top-level steps of the job; for a job with no steps return \"STARTED\".",
+   "statement": "A job's status is built from its steps' statuses, and a step may have substeps. A step is a tuple (status, substeps), substeps being a list of the same steps. Statuses are ordered from best to worst: FINISHED < STARTED < ABORTED < FAILED. A step's status is the worst among its own status and the statuses of all its substeps (at any depth). Write a function job_status(steps): return the worst status among all top-level steps of the job; for a job with no steps return \"STARTED\". Real oVirt has one more status, UNKNOWN; our model does not.",
    "hint": "Give the statuses numbers and write a recursive function worst(step) using max."
   },
   {

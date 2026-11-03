@@ -1,0 +1,19 @@
+{
+  "book": 17,
+  "chapter": 25,
+  "lab": "virt",
+  "tasks": [
+    {
+      "id": "virt-sim-ovirt-triage",
+      "title": "Board: finding the fault",
+      "statement": "A board with an environment that is already built but broken. The story names symptoms only: select the objects, read the reasons in the inspector and the message path, find the layer and repair the board. Five scenarios: a silent host and a VM without a network, a data center without a master domain, hosts after an iSCSI domain was added, a cluster outside the data center, and a board that is red because of the engine. The exercise is solved when all scenarios are solved.",
+      "hint": "Go from the symptom to the layer: NonResponsive points at the management network, NonOperational at the networks or storage of the host, Uninitialized at the master domain, No cluster at membership. Run the operations and read the message path."
+    },
+    {
+      "id": "virt-sim-ovirt-triage-2",
+      "title": "Board: finding the fault, harder",
+      "statement": "The same skills on bigger boards: two clusters or two data centers and several VMs. Five scenarios: a new host that reveals one layer at a time, a VM that the story blames on its disk, a green board where migration fails, a VM and a host of a remote data center, and a domain declared with the wrong type. The exercise is solved when all scenarios are solved.",
+      "hint": "Trust the statuses and the message path, not the story. Read the statuses again after every fix: one fault can hide another, and green statuses do not guarantee that an operation succeeds."
+    }
+  ]
+}

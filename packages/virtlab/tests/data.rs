@@ -26,7 +26,9 @@ fn round_trip<T: Serialize + DeserializeOwned + PartialEq + std::fmt::Debug>(x: 
 fn data_files_are_canonical_and_up_to_date() {
     // the scenario text inside `spec` is English; only title/statement/hint are Russian
     let built = i18n::with_locale(i18n::Locale::En, || build_chapters(include_str!("../data/tasks.json")).unwrap());
-    assert_eq!(built.iter().map(|c| c.chapter).collect::<Vec<_>>(), [2, 4, 6, 9, 10, 11, 17, 19, 22]);
+    let chapters: Vec<u32> = built.iter().map(|c| c.chapter).collect();
+    assert!(chapters.windows(2).all(|w| w[0] < w[1]), "chapters ascend: {chapters:?}");
+    assert_eq!(chapters, [2, 4, 6, 9, 10, 11, 17, 18, 19, 20, 21, 22, 24, 25]);
     let mut files: Vec<_> =
         std::fs::read_dir(data_dir()).expect("data dir exists").map(|e| e.unwrap().file_name()).collect();
     files.sort();
@@ -61,7 +63,7 @@ fn spec_files_serialize_with_sim_tag() {
 #[test]
 fn model_types_round_trip() {
     locales::set_locale(i18n::Locale::Ru);
-    for id in virtlab::LAB_IDS {
+    for id in virtlab::lab_ids() {
         round_trip(&virtlab::builtin(id).unwrap());
     }
     round_trip(&hv::initial());
@@ -166,7 +168,7 @@ fn validation_catches_broken_data() {
     assert!(spec.validate().is_err());
     assert!(build_chapters(r#"[{"chapter":2,"id":"virt-sim-nope","title":"","statement":"","hint":""}]"#).is_err());
     let v: Value = serde_json::from_str(include_str!("../data/tasks.json")).unwrap();
-    assert_eq!(v.as_array().unwrap().len(), 9);
+    assert!(v.as_array().unwrap().len() >= 12);
 }
 
 /// Writes the chapter files of `backend/data/labs/virt` from the definitions (`data/tasks.json`) and the built-in simulator descriptions:

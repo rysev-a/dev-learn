@@ -6,6 +6,13 @@
 //! by its key (the best gets rank 0); the host with the lowest sum of `factor × rank` wins, ties go to the lowest host name.
 //! A module with factor 0 is off. The VMs are placed one by one in the given order, each placement changes the host.
 //!
+//! Differences from real oVirt (this is a teaching model): the engine's rank selector also ranks hosts per weight module (a lower raw weight is
+//! better), but it inverts the rank so that the best host gets the **highest** rank, multiplies it by the policy factor and the **highest**
+//! sum wins; the model uses the mirrored form (best = rank 0, lowest sum wins), which picks the same host. The three weights are simplified
+//! stand-ins for oVirt weight modules: `even` (fewer VMs, like `OptimalForEvenGuestDistribution`), `free_mem` (like
+//! `OptimalForMemoryEvenDistribution`) and `pack` (more VMs, a simplification of `OptimalForCpuPowerSaving`/`OptimalForMemoryPowerSaving`,
+//! which in oVirt work by CPU/memory load, not by VM count).
+//!
 //! A scenario ([`Scenario`]) gives hosts and VMs; the student chooses the cluster policy ([`Policy`]). A placement that breaks a
 //! constraint the policy did not check (no memory, a missing network, a second VM of a group on one host) is counted as a mistake: such a VM
 //! would not start or would break the group's rule.
