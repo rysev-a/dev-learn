@@ -94,7 +94,14 @@ pub fn router(state: AppState, auth: Auth, tasks: Tasks) -> Router {
         .route("/api/{*rest}", any(api_not_found));
     if let Some(dir) = &state.cfg.static_dir {
         // built frontend: files as is, other paths - index.html (client-side routing)
-        app = app.fallback_service(ServeDir::new(dir).fallback(ServeFile::new(dir.join("index.html"))));
+        // `no-cache`: the browser asks again whether the page changed (an old `index.html` would load an old build of the app)
+        let files = Router::new()
+            .fallback_service(ServeDir::new(dir).fallback(ServeFile::new(dir.join("index.html"))))
+            .layer(axum::middleware::map_response(|mut res: axum::response::Response| async move {
+                res.headers_mut().insert(axum::http::header::CACHE_CONTROL, axum::http::HeaderValue::from_static("no-cache"));
+                res
+            }));
+        app = app.fallback_service(files);
     }
     app
 }

@@ -109,6 +109,7 @@ fn Slides(book: i64, chapter: Chapter, deck: Deck) -> impl IntoView {
     let num = chapter.num;
     // how long every slide is shown without sound: the reading time of its text (14 characters per second); a recording takes exactly this long
     let reading: Vec<f64> = chapter.lessons.iter().map(|l| estimate_seconds(&l.text)).collect();
+    let reading_time = StoredValue::new(reading.clone());
     on_cleanup(move || player.stop());
 
     // the slide follows the paragraph being read, otherwise manual choice (it lives in the address: reload returns to the same slide)
@@ -181,7 +182,8 @@ fn Slides(book: i64, chapter: Chapter, deck: Deck) -> impl IntoView {
     let set_sound = move |i: usize, takes: &Takes| {
         let entry = match (&takes.audio, takes.dur > 0.0) {
             (Some(url), true) => (takes.dur, Some(url.clone())),
-            _ => (0.0, None),
+            // no sound: the slide is shown for its reading time, not for zero seconds (it would be skipped at once)
+            _ => (reading_time.with_value(|r| r.get(i).copied()).unwrap_or(3.0), None),
         };
         let _ = parts.try_update(|p| {
             if let Some(x) = p.get_mut(i) {
