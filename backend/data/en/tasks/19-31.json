@@ -1,0 +1,66 @@
+{
+ "book": 19,
+ "chapter": 31,
+ "tasks": [
+  {
+   "id": "la31-load-verdict",
+   "title": "Load against the core count",
+   "statement": "The file /proc/loadavg looks like this: \"0.61 0.61 0.55 3/828 22084\". The first three numbers are the load average for 1, 5, and 15 minutes, the fourth is running tasks / all tasks, the fifth is the last pid. Write a function load_verdict(loadavg, ncpu): ncpu is the core count (nproc prints it). The level comes from the 5-minute load divided by ncpu: below 0.7 is \"ok\", from 0.7 inclusive to 1.0 is \"busy\", 1.0 and above is \"overloaded\". The trend: if the 1-minute load is greater than the 15-minute load times 1.25, it is \"rising\"; if it is less than the 15-minute load times 0.75, it is \"falling\"; otherwise \"steady\". Return a tuple (level, trend).",
+   "hint": "Split the line with split() and convert the first three fields to float."
+  },
+  {
+   "id": "la31-vmstat-verdict",
+   "title": "A vmstat verdict",
+   "statement": "You get the text of \"vmstat 1 N\" output: two header lines (the first starts with the word procs, the second with the column names r b swpd free ...; find the columns by that line, because the set may differ, for example there can be a gu column) and lines of plain numbers. The first line of numbers is the average since boot, drop it. Write a function vmstat_verdict(text, ncpu): from the averages of the remaining lines return the first matching verdict in this order: \"memory\" if the mean of si+so is at least 100; \"io\" if the mean of wa is at least 20 and the mean of b is at least 1; \"steal\" if the mean of st is at least 10 (if there is no st column count it as 0); \"cpu\" if the mean of r is strictly greater than ncpu; otherwise \"ok\". If no line remains after dropping the first, return \"nodata\".",
+   "hint": "The header is the line whose first token is r; data lines are those where all tokens are numbers. Take each column's index from the header."
+  },
+  {
+   "id": "la31-iostat-saturation",
+   "title": "Disk saturation from iostat -x",
+   "statement": "You get the output of \"iostat -x 1 N\": several reports, an avg-cpu block before each device table, and a table starts with a line whose first word is Device. The set and order of columns depend on the sysstat version, so find the columns by name in the header: %util, r_await, w_await. The first report is computed from boot, but only the last report matters. Write a function iostat_status(text): return a dictionary device → status for the devices of the last report. Let wait be the larger of r_await and w_await (in milliseconds). If %util is at least 90: \"saturated\" when wait is at least 20, otherwise \"busy\" (busy but answering fast, as parallel devices do). If %util is below 90: \"slow\" when wait is at least 20, otherwise \"ok\".",
+   "hint": "Each time you meet a Device line, remember the new header and reset the collected device rows."
+  },
+  {
+   "id": "la31-top-header",
+   "title": "The top header",
+   "statement": "You get the header of \"top -b -n1\" output (procps-ng): the line \"%Cpu(s): 3.1 us, 1.0 sy, 0.0 ni, 95.0 id, 0.5 wa, 0.0 hi, 0.2 si, 0.2 st\", the lines \"MiB Mem : ... total, ... free, ... used, ... buff/cache\" and \"MiB Swap: ... total, ... free, ... used. ... avail Mem\" (older versions use KiB, and some locales use a decimal comma; a number may be glued to the previous comma: \"ni,100.0 id\"). Write a function top_summary(text) that returns a dictionary: \"busy\" is 100 minus id, rounded to tenths; \"top_state\" is the state among us, sy, ni, wa, hi, si, st with the largest value (on a tie, the earlier in that list; \"none\" if all are zero); \"mem_avail_pct\" is avail Mem as a percent of the Mem line's total, to tenths; \"swap_used_pct\" is used as a percent of the Swap line's total, to tenths, 0.0 if there is no swap.",
+   "hint": "A regular expression \"number, spaces, name\" finds all the pairs; replace a decimal comma with a dot. Recognize the Swap line before the Mem line: \"avail Mem\" sits on it."
+  },
+  {
+   "id": "la31-meminfo",
+   "title": "Memory from /proc/meminfo",
+   "statement": "You get the text of /proc/meminfo (lines \"Key:   number kB\"). Write a function meminfo_report(text) that returns a dictionary: \"used_kb\" is MemTotal minus available memory; \"naive_used_kb\" is the \"naive\" usage MemTotal − MemFree − Buffers − Cached (not below 0); \"avail_pct\" is available memory as a percent of MemTotal, to tenths; \"swap_used_pct\" is used swap as a percent of SwapTotal, to tenths (0.0 if there is no swap); \"verdict\". Available memory is MemAvailable; if the line is missing (kernels older than 3.14), estimate it as MemFree + Buffers + Cached + SReclaimable. The verdict in order: \"critical\" if avail_pct is below 5; \"low\" if below 15; \"swap-heavy\" if swap_used_pct is at least 50; otherwise \"ok\".",
+   "hint": "Split lines at the first colon and take the first word after it as the number."
+  },
+  {
+   "id": "la31-psi-levels",
+   "title": "PSI pressure",
+   "statement": "The files /proc/pressure/cpu, memory and io contain lines like \"some avg10=12.40 avg60=8.10 avg300=3.00 total=482011\" and, except for the CPU on older kernels, a \"full ...\" line with the same fields. Write a function psi_levels(files): files is a dictionary \"resource → file text\". For each resource take avg10 of the some and full lines (a missing line counts as 0; for the cpu resource always ignore the full line: it is undefined system-wide). A resource is \"critical\" if full is at least 10 or some is at least 40; \"warn\" if some is at least 10; otherwise leave it out. Return a list of tuples (resource, level): critical first, then warn, inside a level by descending some, on a tie by resource name.",
+   "hint": "Split each line into tokens; the fields after the first word are key=value pairs, so dict() them."
+  },
+  {
+   "id": "la31-proc-stat-fields",
+   "title": "Fields of /proc/PID/stat",
+   "statement": "A /proc/PID/stat line is \"pid (comm) state ppid pgrp ...\": 52 space-separated fields, with comm in parentheses, and it may contain spaces and parentheses itself, such as \"(Web Content)\" or \"(a) b (c)\". Write a function proc_stat_fields(line, clk_tck, page_size): clk_tck is ticks per second, page_size is the page size in bytes (on arm64 it can be 16384 or 65536). Return a dictionary: \"comm\" is the name without the outer parentheses; \"state\" is the state letter (field 3); \"ppid\" is field 4 (a number); \"cpu_seconds\" is (utime + stime) / clk_tck, fields 14 and 15, rounded to hundredths; \"threads\" is num_threads, field 20 (a number); \"rss_kb\" is rss (field 24, in pages) in kilobytes, an integer.",
+   "hint": "The name lies between the first \"(\" and the last \")\" of the line: line.index and line.rindex. The other fields are rest = line[end+1:].split(), and field 3 is rest[0]."
+  },
+  {
+   "id": "la31-cpu-delta",
+   "title": "CPU between two /proc/stat snapshots",
+   "statement": "The \"cpu\" line in /proc/stat holds cumulative ticks: user nice system idle iowait irq softirq steal guest guest_nice (older kernels have fewer fields: count the missing ones as zeros). Write a function cpu_delta(before, after): before and after are /proc/stat texts at two moments; you need only the summary line \"cpu \" (not cpu0, cpu1). Take only the first eight counters (guest and guest_nice are already included in user and nice, do not add them), compute the differences and total, their sum. Return a dictionary whose values are percents of total, rounded to tenths: \"us\" is user + nice, \"sy\" is system, \"id\" is idle, \"wa\" is iowait, \"irq\" is irq + softirq, \"st\" is steal, \"busy\" is everything except idle and iowait. If total is zero, all values are 0.0.",
+   "hint": "Find the line whose first word is exactly cpu; take t[1:9] and pad with zeros up to eight."
+  },
+  {
+   "id": "la31-ss-retrans",
+   "title": "Retransmits from ss -ti",
+   "statement": "The output of \"ss -ti\" consists of a header line (starting with State) and two-line records: a socket line \"ESTAB 0 0 local:port remote:port\" and the info line after it, which starts with a space or tab and holds key:value pairs, for example \"segs_out:200 ... retrans:2/30 ...\". The field retrans:X/Y is printed only when nonzero: X is segments retransmitted and not yet acknowledged, Y is the total retransmits in the life of the connection. Write a function ss_retrans(text, min_ratio): for each connection that has both retrans and segs_out, compute the share Y / segs_out. Return a list of tuples (remote address:port, share rounded to thousandths) for connections with a share of at least min_ratio, by descending share, on a tie by address. The remote address is the fifth word of the socket line (an IPv6 address like [2001:db8::7]:51000 is one word).",
+   "hint": "The socket line is the one that does not start with a space or tab. Parse the info tokens with startswith('retrans:') and split('/')."
+  },
+  {
+   "id": "la31-bpftrace-hist",
+   "title": "A percentile from a bpftrace histogram",
+   "statement": "bpftrace prints a hist() histogram like this: a line \"@name:\" (or \"@name[key]:\"), then buckets \"[2K, 4K)         40 |@@@@@@@@  |\": the bounds, the event count, a bar; other lines and other maps may come before the histogram. Bounds are written as a number with an optional suffix K, M or G (powers of 1024); the closing bracket may be ) or ]; in some versions the first buckets are printed as \"[0]\" and \"[1]\", a single value, in which case the lower and upper bounds are equal. Write a function hist_bucket(text, name, pct): name is the exact map name with its key, for example \"@lat[sda]\" or \"@\"; pct is an integer percent. Return a tuple (lower, upper) of the bucket bounds as numbers for the bucket where the percentile falls: the needed event count is ceil(total * pct / 100), take the first bucket where the running sum reaches it. If the map is missing or has no events, return None.",
+   "hint": "Find the line equal to name + ':' and read the buckets with a regular expression until a blank line or the next map. ceil without math: (total * pct + 99) // 100."
+  }
+ ]
+}
