@@ -277,7 +277,9 @@ fn Slides(book: i64, chapter: Chapter, deck: Deck) -> impl IntoView {
     let popup = move || {
         let i = idx.get();
         let lesson = lessons.iter().find(|l| l.ord == i)?;
-        let (text, d) = (lesson.text.clone(), durs.with(|d| d.get(i).copied()).unwrap_or(3.0));
+        // the words go at the reading speed (14 characters per second), not at the speed of the recording: a recorded paragraph is
+        // shorter or longer than the estimate, but the highlight runs the same way with and without sound
+        let (text, d) = (lesson.text.clone(), estimate_seconds(&lesson.text));
         Some(view! { <VoicePopup text=text t=Signal::derive(move || player.audio_time(i)) d=d /> })
     };
     view! {
