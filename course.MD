@@ -20,9 +20,17 @@ Topics (order of the books in the left menu):
 06. Diving into Unix
     - exercises in C
 07. Computer Networks
-08. Virtualization
-09. Databases
-10. Learning Rust
+08. Linux Administration
+    - A headless server: SSH, packages, systemd, logs
+    - Processes and resources, cgroups, namespaces, Docker through an administrator's eyes
+    - The Linux network: iproute2, bridges, bonds, netns, nftables
+    - Storage: LVM, RAID, multipath, iSCSI, NFS, backups
+    - Python as the control layer: subprocess, libvirt
+    - C and the kernel: system calls, ioctl, /dev/kvm; reading the QEMU source
+    - Diagnostics and security
+09. Virtualization
+10. Databases
+11. Learning Rust
     - Basics
     - Core of the language
     - Data and abstractions
@@ -32,7 +40,7 @@ Topics (order of the books in the left menu):
     - Operating systems
     - A hand-written web server
     - A chat based on Axum, Sqlx, Tokio
-11. Modern Frontend
+12. Modern Frontend
     - History: the birth of JavaScript, Node.js and io.js, ES5 -> ES6, Babel, bundlers and preprocessors
     - Introduction to the JavaScript language (without a browser)
     - JavaScript in the browser: the engine and the event loop, DOM, CSS, events, network, Service Worker

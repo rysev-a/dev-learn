@@ -55,7 +55,7 @@ async fn course_content_is_seeded() {
     let (st, books) = call(&app, Method::GET, "/api/books", None, None).await;
     assert_eq!(st, StatusCode::OK);
     let books = books.as_array().unwrap();
-    assert_eq!(books.len(), 12);
+    assert_eq!(books.len(), 13);
     assert_eq!(books[0]["slug"], "dm");
     assert!(books.iter().all(|b| b["parts_count"].as_i64().unwrap() > 0));
 

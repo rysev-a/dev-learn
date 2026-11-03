@@ -628,7 +628,7 @@ chapter is a separate `textbook/15-networks/networks-NN.md` with its own `#SECTI
 
 ## Book 17 "Virtualization": fully written (25 chapters: 1–16 virtualization, 17–25 oVirt)
 
-It comes right after "Computer Networks" (field `ord` = 7, `audio_prefix` = `virt-ch`, the icon is in
+It comes after "Linux Administration" (field `ord` = 8, `audio_prefix` = `virt-ch`, the icon is in
 `BookIcon.tsx`): it needs both Linux (KVM, cgroups, namespaces) and networks (virtio-net, bridges, veth).
 16 chapters in five sections: "Virtualization basics" (1 why, and the Popek–Goldberg conditions, 2 trap-and-emulate,
 the x86 problem, binary translation, paravirtualization, 3 VT-x/AMD-V, VM exit, ARM EL2, RISC-V H), "Memory and
@@ -702,9 +702,18 @@ extras" (15 nested virtualization, 16 practice with QEMU/KVM and observability).
 - Chapter numbers are part of the slide, quiz, task keys and audio ids (`virt-ch<N>-l<i>`): **do not insert a chapter in the middle**.
 - No voice-over (see the mandatory rule at the beginning of the file): `cues` are computed by character share.
 
+## Book 19 "Linux Administration" (ru «Администрирование Linux»): written in sections
+
+It sits between "Computer Networks" and "Virtualization" (id 19, slug `ladm`, field `ord` = 7, `audio_prefix` = `ladm-ch`, icon `server`, slides directory `linux-admin`). The plan of the whole book (32 chapters in sections A–H, the practice kinds, the order of work) is `docs/linux-admin-plan.md`; **the plan was approved on 3.11.2026**.
+The book is about administering a server by hand without a screen, not about how the system is built (that is "Diving into Unix") and not about protocols (that is "Computer Networks"): where a topic is already there, a chapter links to it in one sentence. The facts of every chapter are checked against primary documentation (man pages, freedesktop.org, kernel.org, libvirt.org, qemu.org), as was done for oVirt.
+
+- Format as in the other animated books: 10 paragraphs = 10 slides = 10 scenes of 4 frames, 5 quiz questions, 8–10 tasks; Russian text is conversational with Latin names spelled out ("эс-эс-эйч", "систем-ди"), the English text is written anew. The files: `textbook/19-linux-admin/linux-admin-NN.md`, `slides/19-NN.json`, `sql/quizzes/19-ladm-NN.sql`, `sql/tasks/19-ladm-NN.sql`, and their English counterparts in `en/…` (`en/tasks/19-NN.json`).
+  They were produced by an authoring kit that is **not in the repository** (spec per chapter → ru and en textbook, slides, quiz, tasks; every task reference is executed, the reference passes and the starter does not); the data files are canonical now. Do not insert a chapter in the middle (the number is part of the slide, quiz and task keys).
+- Tasks are mode `func` with English-only data: small algorithms over real command output and configuration text (ids `la<N>-…`). The practice planned later: boards for LVM and for Linux networks (the engine of the oVirt board), and C tasks where `/dev/kvm` is replaced by a model through `-Wl,--wrap` (the sandbox has no `/dev/kvm`).
+
 ## Book 18 "System Design": fully written (24 chapters, 149 interactive exercises)
 
-It comes after "Modern Frontend" (field `ord` = 11, `audio_prefix` = `sd-ch`, icon `layers`, slides directory
+It comes after "Modern Frontend" (field `ord` = 12, `audio_prefix` = `sd-ch`, icon `layers`, slides directory
 `system-design`). A classic course: from requirements and estimates to the final exam. Five sections: "Load basics"
 (1 requirements, load and estimates; 2 scaling and balancing; 3 caching and CDN), "Data" (4 replication;
 5 sharding; 6 consistency, CAP, idempotency; 7 search and file storage), "Asynchrony and resilience"

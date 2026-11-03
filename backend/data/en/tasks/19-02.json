@@ -1,0 +1,66 @@
+{
+ "book": 19,
+ "chapter": 2,
+ "tasks": [
+  {
+   "id": "la2-deb-vercmp",
+   "title": "Debian version comparison",
+   "statement": "A Debian version is written as [epoch:]upstream[-revision]. The epoch (an integer, 0 by default) is separated by the first colon; the revision is everything after the LAST hyphen (with no hyphen the revision is empty and equals zero). Write a function deb_vercmp(a, b): return -1, 0 or 1 if a is respectively less than, equal to or greater than b. Compare in turn the epochs (as numbers), the upstream versions, the revisions; upstream and revision use one algorithm: go left to right, at each step take the leading NON-digit part of each string (it may be empty) and compare it character by character, then the leading digit part (empty counts as zero) and compare it as numbers. The order of characters in a non-digit part: the tilde ~ is less than everything (even the end of the part), then the end of the part, then letters (alphabetical, uppercase before lowercase as in ASCII), then all other characters (by ASCII code). The first difference found decides.",
+   "hint": "Give each character a key: tilde -1, end of part 0, a letter its code, other characters code+256; compare the parts pairwise, padding the shorter with zeros."
+  },
+  {
+   "id": "la2-rpm-evrcmp",
+   "title": "RPM EVR comparison",
+   "statement": "An RPM version is written as [epoch:]version[-release]: the epoch (0 by default) is an integer before the first colon, the release is everything after the last hyphen (with no hyphen the release is an empty string). Write a function rpm_evrcmp(a, b): return -1, 0 or 1. First compare epochs as numbers, then versions, then releases with the rpmvercmp algorithm. Its rules for two strings (if they are equal the answer is 0). Go left to right. First skip, on both sides, characters that are not ASCII letters, not digits, not ~ and not ^. If one string has ~ here: the string with the tilde is less; if both do, skip one character each and continue. If one has ^: if one string has ended it is the lesser; otherwise the string without a caret is greater; if both have one, skip it and continue. If either string has ended, stop the loop. Otherwise the first string decides the segment type: digits (take the maximal digit run on both sides) or letters (the maximal letter run on both sides). If the second string's segment is empty, the first string's numeric segment counts as greater and an alphabetic one as lesser. Numeric segments compare as numbers (without leading zeros: by length first, then character by character), alphabetic ones character by character in ASCII; a difference decides, otherwise continue. After the loop: both ended means 0; otherwise the one with characters left is greater.",
+   "hint": "Write rpmvercmp(x, y) as a separate function with two indexes; take the release with rpartition('-')."
+  },
+  {
+   "id": "la2-dpkg-list",
+   "title": "Problem packages in dpkg -l",
+   "statement": "You get the output of dpkg -l as is, with its header. Header lines start with Desired=, with the | character or with +++; empty lines are skipped; all other lines are packages. The first three characters of a line are flags: the desired action (u, i, h, r, p), the status (n, c, H, U, F, W, t, i) and the error flag (a space or R). The second word of the line is the package name (it may contain an architecture, such as libc6:amd64). Write a function dpkg_problems(text): return a dictionary with three keys whose values are alphabetically sorted lists of names: \"held\" for desired action h; \"config_only\" for status c (removed, configuration left); \"broken\" for status H, U or F, or the error flag R. One package may appear in several lists.",
+   "hint": "Drop the header by prefixes and take the flags with the slice line[:3]; the name is line.split()[1]."
+  },
+  {
+   "id": "la2-apt-upgradable",
+   "title": "Security updates from apt list",
+   "statement": "You get the output of apt list --upgradable. A package line has the form \"name/suite1,suite2 new_version architecture [upgradable from: old_version]\". The other lines (Listing..., WARNING:..., empty ones) are not packages and must be skipped. Write a function security_updates(text): return a list of tuples (name, old_version, new_version) in the order of the input lines, only for the packages that have at least one suite in the comma-separated list ending with -security (for example jammy-security or bookworm-security).",
+   "hint": "A package line has a \"/\" in the first word and \"[upgradable from: \"; suites are the part of the first word after the \"/\", split by commas."
+  },
+  {
+   "id": "la2-rpm-nevra",
+   "title": "Splitting a NEVRA",
+   "statement": "An RPM package name is written as name-version-release.architecture, sometimes with an epoch before the version (name-epoch:version-release.architecture) and with the .rpm suffix for a file. Write a function split_nevra(s): return a tuple (name, epoch, version, release, arch) where the epoch is an integer (0 if not given). Rules: drop the .rpm suffix if present; the architecture is everything after the last dot; the release is everything after the last hyphen of the remainder; the version is everything after the previous hyphen (with the epoch before the colon cut off); the name is the rest (it may contain hyphens, digits and + signs).",
+   "hint": "Use rpartition three times: on \".\", on \"-\" (release), on \"-\" (version); split the epoch from the version on \":\"."
+  },
+  {
+   "id": "la2-sources-parse",
+   "title": "Parsing .sources (deb822)",
+   "statement": "You get the text of a /etc/apt/sources.list.d/*.sources file. Sources are paragraphs separated by empty lines (a line of only spaces is empty too). A line starting with # is a comment and is ignored. A field is written as \"Name: value\"; the name is case-insensitive. Lines starting with a space or a tab continue the value of the previous field. The values of Types, URIs, Suites and Components are lists of words separated by whitespace. Write a function expand_sources(text): for each paragraph that has Types, URIs and Suites and has no Enabled field with the value no (in any case), list the sources with nested loops over Types, then URIs, then Suites, and return a list of tuples (type, uri, suite, components, signed_by). components is a tuple of the words of the Components field, but an empty tuple if the suite ends with /. signed_by: if the value of the Signed-By field contains BEGIN PGP PUBLIC KEY BLOCK, the string \"inline\"; if the field exists, its value with the words joined by one space; otherwise an empty string. Paragraphs go in file order.",
+   "hint": "First split into paragraphs and build a dictionary {lowercase name: value with continuations}, then expand."
+  },
+  {
+   "id": "la2-kernel-cleanup",
+   "title": "Which kernels to remove",
+   "statement": "A kernel cleanup policy: the running kernel is always kept, and besides it the keep newest installed ones are kept. Kernel versions are strings of numbers separated by dots and hyphens (for example \"6.1.0-18\") and must be compared element by element as numbers, so \"6.1.0-9\" is older than \"6.1.0-18\". The installed list may have duplicates. Write a function kernels_to_remove(installed, running, keep): return the list of versions to remove, without duplicates, from the oldest to the newest. The running kernel running may be absent from installed, then it protects nothing. If keep is 0, only the running kernel remains.",
+   "hint": "Remove duplicates, sort by a key of numbers (re.split on [.-]), keep the last keep, add running."
+  },
+  {
+   "id": "la2-install-plan",
+   "title": "Install plan with dependencies",
+   "statement": "You have a package index index: a dictionary name → list of dependencies; a dependency is a string \"a\" or with alternatives \"a | b | c\" (no versions). installed is the list of already installed packages, request is the list of requested names. Write a function install_plan(index, installed, request): return a dictionary {\"install\": list, \"unmet\": string}. Requested packages are processed in order. Processing a package p: if it is installed or already in the plan, nothing; if it is not in index, an error \"unable to locate p\"; otherwise p is marked in progress and its dependencies are walked in order: a dependency is satisfied if any of its alternatives is installed, already in the plan or in progress (this guards against cycles); otherwise take the first alternative that exists in index and process it recursively; if there is none, the error \"p depends on <the dependency as written, trimmed of outer spaces>\". After its dependencies p is appended to the end of the plan (so dependencies come before dependents). On the first error return {\"install\": [], \"unmet\": the error text}; on success {\"install\": the plan, \"unmet\": \"\"}.",
+   "hint": "A recursive depth-first walk with three sets: installed, in the plan, in progress; raising an exception is a handy way to pass the error."
+  },
+  {
+   "id": "la2-hold-plan",
+   "title": "Upgrade plan with holds",
+   "statement": "Versions are dot-separated numbers compared element by element as numbers (\"1.10\" is newer than \"1.9\"). installed is a dictionary name → installed version; available is a dictionary name → {\"version\": the candidate version, \"depends\": a list of strings like \"name\" or \"name (>= version)\"}; holds is a list of frozen packages. A package has a candidate if it is in both installed and available and the candidate version is strictly greater than the installed one. Write a function upgrade_plan(installed, available, holds): at first the plan has all candidates except frozen ones. Then repeat while anything changes: remove a package from the plan if its candidate has a dependency \"d (>= v)\" where d is installed and the final version of d (the candidate version if d is in the plan, otherwise the installed one) is less than v. Dependencies without a condition and dependencies on packages that are not installed are ignored. Return a dictionary {\"upgrade\": the plan packages, \"held\": frozen packages that have a candidate, \"kept_back\": non-frozen candidates removed from the plan}; all lists are sorted alphabetically.",
+   "hint": "Turn a version into a tuple of ints; parse a dependency with the regular expression r'^(\\S+)\\s*\\(>=\\s*(\\S+)\\)$'; loop while changed."
+  },
+  {
+   "id": "la2-history-rollback",
+   "title": "Rollback from transaction history",
+   "statement": "A dnf transaction history is a list of [id, changes] in ascending id order; a change is [name, was, became] where \"\" means \"not installed\". The state \"after transaction target\" is to be restored by undoing all transactions with an id greater than target (like dnf history rollback). Write a function rollback_plan(history, target): for each package touched by the transactions after target, take its version before the first such transaction (the \"was\" field in it) and its final version after the last one (the \"became\" field). If they are the same the package is skipped. Otherwise the action is: \"remove name\" if the wanted state is \"not installed\"; \"install name version\" if the package is not installed now; \"downgrade name version\" if the wanted version is less than the current one (versions are dot-separated numbers compared element by element as numbers); otherwise \"upgrade name version\". Return the list of action strings sorted by package name. A package occurs at most once in one transaction.",
+   "hint": "Walk through the transactions after target and remember, per name, the first \"was\" and the last \"became\"."
+  }
+ ]
+}

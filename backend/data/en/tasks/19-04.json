@@ -1,0 +1,66 @@
+{
+ "book": 19,
+ "chapter": 4,
+ "tasks": [
+  {
+   "id": "la4-pri-decode",
+   "title": "The PRI number",
+   "statement": "A syslog message starts with the PRI number in angle brackets, for example <165>. PRI = facility × 8 + severity. Facility names by number 0-23: kern, user, mail, daemon, auth, syslog, lpr, news, uucp, cron, authpriv, ftp, ntp, audit, alert, clock, local0, local1, local2, local3, local4, local5, local6, local7. Severity names 0-7: emerg, alert, crit, err, warning, notice, info, debug. Write a function decode_pri(line): return a tuple (facility, severity) from the start of the line. A valid PRI is one to three digits between < and > at the very beginning of the line, without leading zeros (except a lone <0>), with a value of at most 191. In every other case return None.",
+   "hint": "Match ^<(\\d{1,3})> with a regular expression, check leading zeros and the limit, then use divmod(value, 8)."
+  },
+  {
+   "id": "la4-syslog-parse",
+   "title": "A syslog line",
+   "statement": "Files such as /var/log/syslog store lines in the form 'Mmm dd hh:mm:ss host tag[pid]: text'. Write a function parse_syslog(line): return a dictionary with the keys month (a number 1-12), day (a number), time (the string hh:mm:ss), host, tag, pid (a number or None) and msg. Rules: the month is a three-letter English name with a capital letter (Jan ... Dec); the day takes exactly two characters, a space or a digit followed by a digit (Nov  3 and Nov 13), with a value of 1-31; then one space, a time of digits hh:mm:ss, one space, a host without spaces, one space. The tag is one or more characters other than spaces, [, ] and :; it may be followed by [pid] made of digits only, and then a colon is required. The message is everything after the colon with one leading space removed, if there is one (the message may be empty). If the line does not fit this format, return None.",
+   "hint": "One regular expression with groups does almost everything; remember to check the day is 1-31 and to return pid as an int."
+  },
+  {
+   "id": "la4-rsyslog-route",
+   "title": "Where a message goes",
+   "statement": "Traditional rsyslog rules: a line 'selectors action'. Selectors contain no spaces and are separated by semicolons; each selector is 'facilities.priority', with facilities separated by commas or *. The priority is a name from emerg, alert, crit, err, warning, notice, info, debug (from the most serious), * (any), none (no priority), or a name with prefixes: '=name' means exactly that level, '!name' excludes that level and all more serious ones, '!=name' excludes exactly that level. A plain name means that level and every more serious one. The selectors of a line apply left to right: at first the message is 'not selected'; a selector that matches the message's facility and priority selects it if it is a plain one, and deselects it if its priority is none or starts with !. A line with a file action (the action starts with / or -/; the path ends at the first semicolon if a template follows it) sends the message to that file if it is selected; the dash before the path is not part of the path. Ignore all other lines (empty ones, # comments, directives such as $FileOwner or module(...), actions like :omusrmsg:*, and so on). Write a function route_rsyslog(config, facility, severity): return the sorted list of unique file paths the message ends up in.",
+   "hint": "Split the line at the first whitespace; keep a selected flag and update it for each selector left to right. Compare priorities by their index in the list."
+  },
+  {
+   "id": "la4-journal-filter",
+   "title": "A journalctl -o json filter",
+   "statement": "The journalctl -o json command prints one JSON object per line; the values of almost all fields are strings: PRIORITY (\"0\"-\"7\"), __REALTIME_TIMESTAMP (microseconds since the epoch), _BOOT_ID, _SYSTEMD_UNIT, UNIT, MESSAGE. The MESSAGE field may be an array of byte numbers (non-printable data: decode it as UTF-8, replacing errors) or null (treat it as an empty string); _SYSTEMD_UNIT and UNIT may be absent. Write a function journal_filter(lines, unit, prio, boot, since, until): lines is a list of JSON strings. An entry passes if all the given conditions hold: unit is an empty string (any) or equals _SYSTEMD_UNIT or UNIT (this is how -u also finds the manager's messages about the unit); prio is an empty string, or a single level (a name from emerg, alert, crit, err, warning, notice, info, debug, or a digit), in which case entries of that level and more serious ones pass (PRIORITY not greater), or a range 'from..to' (names or digits, the more serious first), both ends inclusive; boot is an empty string or a _BOOT_ID value; since and until are microseconds or None: entries with since <= time < until pass. Return the list of MESSAGE texts of the passing entries, ordered by time (as in the input when times are equal).",
+   "hint": "Parse each line with json.loads; convert levels to numbers through a dictionary of names; sort the pairs (time, line number)."
+  },
+  {
+   "id": "la4-first-failure",
+   "title": "The first error and its neighbors",
+   "statement": "The output of journalctl -o short-iso consists of lines '2024-03-05T10:15:01+0000 host tag[pid]: text' (the pid is optional, as in syslog); service lines such as '-- Boot ... --' appear between boots. Skip lines of any other shape. Write a function first_failure(lines, keywords, window): a line counts as an error if its text contains any of the words in keywords (case-insensitive search, the words are given in lower case). Find the first error line (lines come in chronological order) and return the tuple (the time of the first error as written in the line, its tag, a list of the tags of other units). The list consists of distinct tags, different from the tag of the first error, of error lines whose time (taking the time zone offset into account) is not earlier than the time of the first error and not later than window seconds after it, inclusive; the tags come in the order of first appearance. If there are no errors, return None.",
+   "hint": "Convert times with datetime.strptime(..., '%Y-%m-%dT%H:%M:%S%z') and compare the difference in seconds."
+  },
+  {
+   "id": "la4-boot-resolve",
+   "title": "A boot by offset or time",
+   "statement": "The output of journalctl --list-boots is a table: a header line ('IDX BOOT ID FIRST ENTRY LAST ENTRY') and one line per boot, from the oldest to the newest. A boot line starts with an integer (the IDX column; ignore its value: the position decides), then a 32-character hexadecimal boot id, then two moments in the form YYYY-MM-DD hh:mm:ss (the first and the last entries; ignore the weekday, the time zone and the separator between the moments). Skip all other lines. Write a function resolve_boot(text, spec): if spec is an integer, follow the rule of the -b option: 0 is the last boot, -1 the one before it, and so on; a positive number counts from the start (1 is the very first); if spec is a string 'YYYY-MM-DD hh:mm:ss', return the boot whose first entry <= spec <= last entry. Return the boot id, or an empty string if there is no such boot.",
+   "hint": "A boot line: the first word is an integer, the second is 32 hex characters; find the moments with re.findall. Time strings of this shape compare as plain strings."
+  },
+  {
+   "id": "la4-logrotate-files",
+   "title": "Which files remain after rotations",
+   "statement": "A logrotate stanza is given: the first line 'path {', then directives one per line (ignore empty lines and lines with #), and a last line '}'. Take these directives into account: rotate N (how many rotated copies to keep; the last one given wins; 0 if absent), compress and nocompress (the last wins; a compressed file gets the suffix .gz), delaycompress (only has an effect together with compress: the newest rotated copy stays uncompressed), dateext and nodateext (the last wins). Ignore all other directives. At the start only the log itself exists. Each rotation renames the current file to a copy and creates a new empty current file. Without dateext the copies are numbered: the newest gets number 1 (path.1), at every rotation the numbers shift by one, and copies numbered above N are deleted. With dateext a copy is named path-DATE (the date comes from the list dates, one per rotation, strings YYYYMMDD, ascending and distinct); the N copies with the latest dates are kept and the rest are deleted. Compressed copies get the suffix .gz after the number or date. Write a function files_after(config, dates): the number of rotations is len(dates); return the sorted list of the paths of all existing files (including the current log).",
+   "hint": "Keep the copies in a list from newest to oldest, each with a key (number or date); after each rotation trim the list to N and decide which copies are compressed."
+  },
+  {
+   "id": "la4-logrotate-should",
+   "title": "Is it time to rotate",
+   "statement": "Decide what logrotate will do with one log. You get a stanza config (directives one per line, ignore empty lines and #), the file size size in bytes (None means the file does not exist), the date of the last rotation last and today's date today as 'YYYY-MM-DD'. Write a function rotation_decision(config, size, last, today): return \"error\" if the file does not exist and there is no missingok; \"skip\" if the file does not exist but missingok is set, or the file is empty (size 0) and notifempty is set; otherwise \"rotate\" or \"skip\" by the criterion. Criteria: among the directives daily, weekly, monthly and size N the last one wins (they are mutually exclusive). daily rotates if today is a different day than last; weekly rotates if at least 7 days have passed or a Sunday was crossed since last (today's weekday number, counting Sunday as zero, is smaller than that of last); monthly rotates if the month or year differs from last. size N rotates if the size is strictly greater than N, regardless of the dates; N is a number of bytes with an optional suffix k, M or G (1024, 1024², 1024³). Additions to daily, weekly and monthly: maxsize N rotates if the size is greater than N even when the period has not come; minsize N rotates only if the period has come and the size is strictly greater than N. If there is no criterion at all, rotate.",
+   "hint": "Parse the directives into a dictionary first, then check the file, then the criterion. A weekday number with Sunday = 0 is (date.weekday() + 1) % 7."
+  },
+  {
+   "id": "la4-journal-vacuum",
+   "title": "What journald will vacuum",
+   "statement": "A simple model of journal cleanup. You get a list of files from oldest to newest: tuples (name, size in bytes, active). The active file is the one being written now; the others are archived. The settings are SystemMaxUse (max_use), SystemKeepFree (keep_free), the current free space of the file system fs_free, and SystemMaxFiles (max_files), all in bytes or counts. The journal may take at most allowed = min(max_use, total + fs_free - keep_free), where total is the sum of the sizes of all files; if the number is negative, take allowed to be 0. The cleanup deletes only archived files, the oldest first, until both conditions hold at once: the sum of the sizes of the remaining files is at most allowed, and there are at most max_files files. If the archived files run out, the cleanup stops (the active file is never deleted). Write a function vacuum_plan(files, max_use, keep_free, fs_free, max_files): return the list of the names of the deleted files in the order of deletion.",
+   "hint": "Compute allowed once from the initial sum, then loop over the archived files and delete while a condition is violated."
+  },
+  {
+   "id": "la4-rate-limit",
+   "title": "Message rate limiting",
+   "statement": "A model of journald's RateLimitIntervalSec and RateLimitBurst: the limit applies to each service separately. A limit window starts with the first accepted message of the service; within a window the first burst messages are accepted and the rest are dropped. If a message arrives later than interval seconds after the start of the window (strictly more), it opens a new window and is accepted as the first message in it. If interval or burst is 0, the limit is off and every message is accepted. Write a function rate_limit(events, interval, burst): events is a list of tuples (service, time in seconds) ordered by time. Return a dictionary service -> tuple (accepted, dropped) for each service that appears in the input.",
+   "hint": "For each service keep the start of the window and the count of messages in it."
+  }
+ ]
+}

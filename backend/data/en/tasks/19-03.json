@@ -1,0 +1,66 @@
+{
+ "book": 19,
+ "chapter": 3,
+ "tasks": [
+  {
+   "id": "la3-merge-dropins",
+   "title": "Merging a unit file and drop-ins",
+   "statement": "Write a function merge_dropins(main, dropins): main is the text of the main unit file, dropins is a list of [file_name, text] pairs (in arbitrary order). First main is applied, then the drop-ins in alphabetical order of file names (plain string comparison); a later file wins. Parsing: blank lines and lines starting with # or ; are skipped; a line [Name] opens a section; every other line Key=Value is split at the first =, spaces around the key and the value are stripped; lines outside any section and lines without = are ignored. List keys: ExecStart, ExecStartPre, ExecStartPost, ExecStop, Environment, After, Before, Wants, Requires - each assignment appends the value (as a string, as written) to the end of the list, and an assignment with an empty value clears the whole list. All other keys are scalar: the last non-empty value wins, an empty assignment deletes the key. Return a dictionary {section: {key: value or list}}; empty lists, deleted keys and sections without keys are not included.",
+   "hint": "One function apply(text), called for main and then for sorted(dropins). For list keys an empty value means sec[key] = []."
+  },
+  {
+   "id": "la3-start-order",
+   "title": "Start order of a target",
+   "statement": "Write a function start_order(units, start): units is a dictionary name -> dictionary with optional keys \"Requires\", \"Wants\", \"After\", \"Before\", whose values are lists of unit names. First find the set of units in the transaction: start and everything reachable from it through Requires and Wants (recursively). A name that is not in units is a unit with no dependencies. Then order the set: if A lists B in After or B lists A in Before, B starts before A; After/Before references to units outside the set are ignored and add nothing to the set. Return the list of names in start order; among the units that are ready to start always take the one with the smallest name (plain string comparison). The input has no cycles.",
+   "hint": "A depth-first walk for the set, then Kahn's algorithm: count predecessors and take the minimum of the ready ones (heapq or min)."
+  },
+  {
+   "id": "la3-start-result",
+   "title": "Whose start fails",
+   "statement": "A start model with failures. units, start and the rules for the set and the order are as in the start-order task: the set is start plus everything reachable through Requires and Wants, the order comes from After and Before (if A lists B in After or B lists A in Before, B goes before A), the smallest name is taken among the ready ones. Write a function start_result(units, start, failing): failing is a list of names of units that fail by themselves when started. Units are processed in start order. A unit from failing gets the status \"failed\". Otherwise, if one of its Requires dependencies r did not get the status \"started\" and is ordered before it (through After or Before), it gets the status \"skipped\" and is not started. In all other cases the status is \"started\": a failure of a unit it only Wants changes nothing, and a failure of a Requires dependency with no order set does not matter either. Return a dictionary name -> status for all units in the set. There are no cycles.",
+   "hint": "Build the order as in the previous task, then walk it and keep a dictionary of statuses. For the order check you need both directions: r in After[u] or u in Before[r]."
+  },
+  {
+   "id": "la3-failed-units",
+   "title": "list-units summary",
+   "statement": "Write a function failed_units(text): text is the output of systemctl list-units --all (including the header, the LOAD/ACTIVE/SUB legend and the summary line). A table row is a line that, after an optional mark at the start (the character ● or *) and spaces, has fields separated by spaces: the unit name, LOAD, ACTIVE, SUB and then the description (the description may be missing). A line counts as a table row only if LOAD is one of loaded, not-found, masked, error, bad-setting, stub, merged and ACTIVE is one of active, inactive, failed, activating, deactivating, reloading, maintenance, refreshing. Skip all other lines (the header, the legend, blank and summary lines). Return a dictionary with two keys: \"failed\" - the sorted list of names of units with ACTIVE=failed, and \"counts\" - a dictionary with the number of table rows for each ACTIVE value that occurs.",
+   "hint": "Drop the mark: line.lstrip(' ●*'), then split(). Check the length and the allowed values of the second and third field."
+  },
+  {
+   "id": "la3-parse-status",
+   "title": "Parsing systemctl status",
+   "statement": "Write a function parse_status(text): text is the output of systemctl status for one unit. Consider only the lines before the first blank line (journal lines follow it). The first line: an optional state mark (one of the characters ● ○ × *), the unit name, and possibly \" - \" with a description. Compare the other lines after stripping leading spaces. A line \"Loaded: STATE (...)\": the first word after the colon is the state; inside the parentheses the fields are separated by \"; \", enabled is the second field if there is one, otherwise an empty string (for not-found and masked the parentheses hold \"Reason: ...\" with no \";\"). A line \"Active: STATE ...\": the first word is the state, detail is the text of the first round parentheses after it (or an empty string if there are none). \"Main PID: N ...\" - the integer N (None if the line is missing). \"Memory: X\" - the first word after the colon: a number immediately followed by one letter B, K, M, G or T (powers of 1024; the factor for B is 1); return the integer number of bytes, rounding the product (floor(x + 0.5)); None if the line is missing. Ignore the other lines (Drop-In, Process, CGroup, ...). Return a dictionary with the keys unit, loaded, enabled, active, detail, pid, memory.",
+   "hint": "For each line: s = line.strip(); if s.startswith('Active:') ... Use find('(') and find(')') for parentheses. For Loaded: split the content of the parentheses by ';'."
+  },
+  {
+   "id": "la3-next-elapse",
+   "title": "Next OnCalendar elapse",
+   "statement": "Write a function next_elapse(spec, now): spec is an OnCalendar expression, now is a moment \"YYYY-MM-DD HH:MM:SS\" (all in UTC, no time changes). Return the nearest moment strictly after now at which the expression fires, in the same format, or an empty string if there is none within the next 9 years. Shortcuts (case-insensitive): minutely = *-*-* *:*:00, hourly = *-*-* *:00:00, daily = *-*-* 00:00:00, weekly = Mon *-*-* 00:00:00, monthly = *-*-01 00:00:00, yearly = *-01-01 00:00:00. Otherwise the expression consists of up to three words in any order: a weekday (only letters, dots and commas), a date (contains -) and a time (contains :). No date: *-*-*; no time: 00:00:00; in a time without seconds the seconds are 00; in a date with two parts the year is *. The fields year, month, day, hour, minute, second: * - any value; a comma-separated list; a value a; a range a..b; a step /n: a/n means a, a+n, ... up to the maximum of the field, a..b/n - from a to b with step n, */n - from the minimum of the field with step n. Minimums and maximums: month 1-12, day 1-31, hour 0-23, minute and second 0-59. Weekday: names Mon..Sun (case-insensitive, the first three letters are enough), a comma-separated list and a range Mon..Fri; if given, the day must match. Days that do not exist in the month never match (November 31, February 29 of a non-leap year).",
+   "hint": "Expand each field into a set of numbers; then walk the days from today (up to 9*366) and for the first day look for the first time strictly after now, for later days take the earliest."
+  },
+  {
+   "id": "la3-restart-sim",
+   "title": "Restart= and StartLimit simulation",
+   "statement": "Write a function restart_sim(policy, restart_sec, burst, interval, runs): a model of a service with a restart policy. The first start happens at moment 0 (whole seconds). runs[i] is a pair [duration, outcome] of the i-th run, the outcome is \"clean\" (exit with code 0), \"failure\" (nonzero code), \"signal\" (unclean signal), \"timeout\", \"watchdog\". When a run ends (start moment + duration) the policy decides whether to restart: no - never; always - always; on-success - only after clean; on-failure - after failure, signal, timeout, watchdog; on-abnormal - after signal, timeout, watchdog; on-abort - only after signal; on-watchdog - only after watchdog. If a restart is decided, the new start happens restart_sec seconds after the end. Rate limiting: the window begins at the first start and moves as follows: before every start at moment t, if there is no window yet or t - window_begin > interval, a new window begins with begin t and counter 1; otherwise the counter grows by 1 and, if it exceeds burst, the start is refused. If interval is 0 there is no limit. Return a tuple (the list of moments of all starts that happened, the outcome): \"stopped\" - the policy did not ask for a restart after the last run that took place; \"start-limit-hit\" - the next start is refused; \"running\" - the runs data is exhausted (there is no information on how the last start ended). That is, after the start with index i, when i >= len(runs), return \"running\".",
+   "hint": "A loop: check the window, record the start moment, if there is no data left exit with running, otherwise decide by the policy and move t by duration + restart_sec."
+  },
+  {
+   "id": "la3-blame-top",
+   "title": "Slowest units from blame",
+   "statement": "Write a function blame_top(text, n): text is the output of systemd-analyze blame: each line starts with the start time made of one or more words of the form number+unit (h, min, s, ms, us; the number may be fractional, e.g. \"1min 3.254s\", \"843ms\", \"1h 2min 3.5s\"), and the last word is the unit name. Convert the time to whole milliseconds (the sum of the parts; each part is number * factor, where h = 3600000, min = 60000, s = 1000, ms = 1, us = 0.001; round the total as floor(x + 0.5)). Skip blank lines and lines in which no time word is found. Return a list of the n slowest units as tuples (name, milliseconds), in descending time order, and by name ascending on a tie. If there are fewer than n units, return all of them.",
+   "hint": "A regex r'^(\\d+(?:\\.\\d+)?)(h|min|s|ms|us)$' for each word except the last; sort key (-ms, name)."
+  },
+  {
+   "id": "la3-chain-report",
+   "title": "Reading critical-chain",
+   "statement": "Write a function chain_report(text): text is the output of systemd-analyze critical-chain for a target. A chain line looks like \"[tree characters]NAME @TIME\" or \"[tree characters]NAME @TIME +DURATION\", where tree characters are any of space, │, ├, └, ─; NAME is a word without spaces; TIME and DURATION are times made of words of the form number+unit (h, min, s, ms, us, the number may be fractional, the parts are separated by a space, e.g. \"1min 2.000s\"). Skip the other lines (the explanation, blank lines): the chain consists only of lines where after the name and a space comes @ followed by a digit. Each next chain line is a dependency of the previous one. Convert times to whole milliseconds as floor(sum + 0.5) (h = 3600000, min = 60000, s = 1000, ms = 1, us = 0.001). For a line without + the duration is 0. @ is the moment the unit started; the unit on the next line (the dependency) finished its start at @ + the duration of that next line. The idle time of line i is max(0, @(i) - (@(i+1) + dur(i+1))), that is how long the unit waited after its dependency finished; the last line has no idle time. Return a tuple (the name of the unit with the longest duration (on a tie, the one higher in the list), the sum of idle times in milliseconds). For an empty chain return (\"\", 0).",
+   "hint": "Strip the tree characters with lstrip(' │├└─'), then find ' @' and the optional ' +'. Parse times with the same number+unit words as in blame."
+  },
+  {
+   "id": "la3-exec-line",
+   "title": "ExecStart prefixes",
+   "statement": "Write a function exec_line(line): line is the value of ExecStart=. It may start with any number of prefix characters: @ (the word after the path is argv[0]), - (the command's failure is ignored), : (environment variable substitution is disabled), + (full privileges), ! (only User=, Group= and SupplementaryGroups= are elevated); combine them in any order with no spaces, + and ! never occur together. Everything after the prefixes is split by spaces (there are no quotes): the first word is the path of the program, the rest are the words of the command. Return a dictionary: path - the path; argv - the list of process arguments: without @ it is [path] + the other words, with @ it is the other words as they are (the first of them is argv[0]), and if there are no words after the path - [path]; ignore_failure - True if the prefix - was present; no_expand - True if the prefix : was present; privilege - \"full\" for +, \"user\" for !, otherwise \"normal\".",
+   "hint": "Strip characters from the set '@-:+!' off the start of the string in a loop and keep flags; then line.split()."
+  }
+ ]
+}

@@ -1,7 +1,7 @@
 -- Метаданные книг: порядок в меню, короткое имя, каталог слайдов во фронтенде, иконка и префикс id аудио.
 -- Источник правды — этот файл: бэкенд применяет его при запуске. Новая книга = строка здесь (+ учебник, слайды, квизы, задачи).
 -- Порядок книг (ord) — по плану курса: дискретная математика, Python, алгоритмы, архитектура компьютера,
--- C, операционные системы, сети, виртуализация, базы данных, Rust, JavaScript.
+-- C, операционные системы, сети, Linux-администрирование, виртуализация, базы данных, Rust, JavaScript.
 -- icon и slides_dir — наследие прежнего React-фронтенда, Leptos-фронтом не используются;
 -- audio_prefix — префикс для uuid5 id частей урока (меняя его, вы пересоздаёте всё аудио книги).
 CREATE TABLE IF NOT EXISTS books (
@@ -21,11 +21,12 @@ INSERT INTO books (id, slug, title, ord, slides_dir, icon, audio_prefix) VALUES
     (16, 'c',     'От assembler к языку C',       4, 'learn-c',        'brackets', 'c-ch'),
     (8,  'linux', 'Погружаемся в Unix',           5, 'linux',          'terminal', 'lin-ch'),
     (15, 'net',   'Компьютерные сети',            6, 'networks',       'network',  'net-ch'),
-    (17, 'virt',  'Виртуализация',                7, 'virtualization', 'nested',   'virt-ch'),
-    (9,  'db',    'Базы данных',                  8, 'db',             'database', 'dbx-ch'),
-    (10, 'rust',  'Изучаем Rust',                 9, 'learn-rust',     'rust',     'rust-ch'),
-    (11, 'js',    'Современный Frontend',        10, 'js',             'js',       'js-ch'),
-    (18, 'sd',    'Системный дизайн',            11, 'system-design',  'layers',   'sd-ch')
+    (19, 'ladm', 'Администрирование Linux',   7, 'linux-admin',    'server',   'ladm-ch'),
+    (17, 'virt',  'Виртуализация',                8, 'virtualization', 'nested',   'virt-ch'),
+    (9,  'db',    'Базы данных',                  9, 'db',             'database', 'dbx-ch'),
+    (10, 'rust',  'Изучаем Rust',                 10, 'learn-rust',     'rust',     'rust-ch'),
+    (11, 'js',    'Современный Frontend',        11, 'js',             'js',       'js-ch'),
+    (18, 'sd',    'Системный дизайн',            12, 'system-design',  'layers',   'sd-ch')
 ON CONFLICT (id) DO UPDATE SET
     title = excluded.title, ord = excluded.ord, slug = excluded.slug,
     slides_dir = excluded.slides_dir, icon = excluded.icon, audio_prefix = excluded.audio_prefix;
