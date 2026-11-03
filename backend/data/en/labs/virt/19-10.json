@@ -1,0 +1,13 @@
+{
+ "book": 19,
+ "chapter": 10,
+ "lab": "virt",
+ "tasks": [
+  {
+   "id": "virt-sim-net-bridge",
+   "title": "Network board: bridge, veth, VLAN",
+   "statement": "Build the network of a Linux host the way an administrator does: namespaces, veth pairs, bridges, virtual machine ports and VLAN tags. The board works out which interfaces have a link, which segment each address is in and whether a ping gets through. Five scenarios: put a bridge between two containers, separate two groups of machines with VLANs on one bridge, find a port with a foreign tag, find a virtual machine on the wrong bridge and bring up a veth end that is down. The exercise is solved when all scenarios are solved.",
+   "hint": "Select an interface and read its state and the reason on the right. A veth end is alive only while its peer end is alive. Bridge ports with different VLAN tags are different segments; the tag is set in the parameters of the port, and the address belongs to the bridge or the machine itself, not to the port."
+  }
+ ]
+}

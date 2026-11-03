@@ -1,0 +1,13 @@
+{
+ "book": 19,
+ "chapter": 12,
+ "lab": "virt",
+ "tasks": [
+  {
+   "id": "virt-sim-net-nat",
+   "title": "Network board: a container network by hand, NAT",
+   "statement": "Repeat what Docker does for a container: a namespace, a veth pair, a bridge with the gateway address, a default route in the container, packet forwarding in the host and a masquerade rule. The board traces a ping step by step and shows where it breaks. Five scenarios: build the network from scratch, find the missing masquerade rule, find forwarding that is switched off (ip_forward), find the missing default route and publish a container port with a DNAT rule. The exercise is solved when all scenarios are solved.",
+   "hint": "A packet for another network goes to the gateway; the gateway has to forward packets and have a leg in the destination network. The outside network does not know private addresses: without masquerade the reply does not come back. A port can be published only with a DNAT rule that points at a host inside."
+  }
+ ]
+}

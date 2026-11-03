@@ -1,0 +1,1163 @@
+{
+  "book": 19,
+  "chapter": 12,
+  "lab": "virt",
+  "tasks": [
+    {
+      "id": "virt-sim-net-nat",
+      "title": "Доска сети: сеть контейнера своими руками, NAT",
+      "statement": "Повторите то, что делает Docker для контейнера: пространство имён, пара veth, мост с адресом шлюза, маршрут по умолчанию в контейнере, пересылка пакетов в хосте и правило masquerade. Доска трассирует пинг шаг за шагом и показывает, где он обрывается. Пять сценариев: собрать сеть с нуля, найти недостающее правило masquerade, найти выключенную пересылку (ip_forward), найти отсутствующий маршрут по умолчанию и опубликовать порт контейнера правилом DNAT. Упражнение решено, когда решены все сценарии.",
+      "hint": "Пакет для другой сети уходит на шлюз; шлюз должен пересылать пакеты и иметь ногу в сети назначения. Внешняя сеть не знает частных адресов: без masquerade ответ не вернётся. Опубликовать порт можно только правилом DNAT, которое указывает на хост внутри.",
+      "spec": {
+        "sim": "net_board",
+        "scenarios": [
+          {
+            "id": "build",
+            "title": "A container network from nothing",
+            "story": "The host has an uplink eth0 to the internet. The namespace ns1 is empty. Build what Docker builds for a container: a veth pair, a bridge with the address 10.0.2.x of the container network, the address and the default route in the container, forwarding in the host and a masquerade rule.",
+            "goal": "ns1 pings the host and the internet, and every interface has a link",
+            "hint": "Work from the container outwards: the container end gets an address of the container network and the default route, the host end becomes a port of the bridge, the bridge holds the gateway address. Then the host must forward packets and replace the source address.",
+            "palette": [
+              "veth",
+              "bridge",
+              "nat"
+            ],
+            "max_nodes": 14,
+            "start": {
+              "nodes": [
+                {
+                  "id": "host",
+                  "kind": "netns",
+                  "name": "host",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "ns1",
+                  "kind": "netns",
+                  "name": "ns1",
+                  "x": 70.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "net",
+                  "kind": "external",
+                  "name": "internet",
+                  "x": 670.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "eth0",
+                  "kind": "eth",
+                  "name": "eth0",
+                  "x": 190.0,
+                  "y": 60.0,
+                  "params": {
+                    "net": "a"
+                  }
+                }
+              ],
+              "edges": [
+                {
+                  "from": "host",
+                  "to": "eth0"
+                },
+                {
+                  "from": "eth0",
+                  "to": "net"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "ping",
+                "from": "ns1",
+                "to": "host"
+              },
+              {
+                "kind": "ping",
+                "from": "ns1",
+                "to": "net"
+              },
+              {
+                "kind": "healthy"
+              }
+            ]
+          },
+          {
+            "id": "no-masquerade",
+            "title": "The packets leave but nothing comes back",
+            "story": "The container reaches the host, forwarding is on, the default route is there, but the ping to the internet gets no answer. The outside network knows nothing about the private network 10.0.2.0/24 and cannot send the reply back.",
+            "goal": "ns1 pings the internet",
+            "hint": "The router must replace the private source address with its own. That is a rule of the host.",
+            "palette": [
+              "nat"
+            ],
+            "max_nodes": 14,
+            "start": {
+              "nodes": [
+                {
+                  "id": "host",
+                  "kind": "netns",
+                  "name": "host",
+                  "x": 70.0,
+                  "y": 60.0,
+                  "params": {
+                    "forward": true
+                  }
+                },
+                {
+                  "id": "ns1",
+                  "kind": "netns",
+                  "name": "ns1",
+                  "x": 70.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "net",
+                  "kind": "external",
+                  "name": "internet",
+                  "x": 670.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "eth0",
+                  "kind": "eth",
+                  "name": "eth0",
+                  "x": 190.0,
+                  "y": 60.0,
+                  "params": {
+                    "net": "a"
+                  }
+                },
+                {
+                  "id": "br0",
+                  "kind": "bridge",
+                  "name": "br0",
+                  "x": 430.0,
+                  "y": 60.0,
+                  "params": {
+                    "net": "b"
+                  }
+                },
+                {
+                  "id": "v1h",
+                  "kind": "veth",
+                  "name": "veth1-host",
+                  "x": 550.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "v1c",
+                  "kind": "veth",
+                  "name": "veth1-ns1",
+                  "x": 550.0,
+                  "y": 140.0,
+                  "params": {
+                    "default_route": true,
+                    "net": "b"
+                  }
+                }
+              ],
+              "edges": [
+                {
+                  "from": "host",
+                  "to": "eth0"
+                },
+                {
+                  "from": "eth0",
+                  "to": "net"
+                },
+                {
+                  "from": "host",
+                  "to": "br0"
+                },
+                {
+                  "from": "host",
+                  "to": "v1h"
+                },
+                {
+                  "from": "ns1",
+                  "to": "v1c"
+                },
+                {
+                  "from": "v1h",
+                  "to": "v1c"
+                },
+                {
+                  "from": "v1h",
+                  "to": "br0"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "ping",
+                "from": "ns1",
+                "to": "host"
+              },
+              {
+                "kind": "ping",
+                "from": "ns1",
+                "to": "net"
+              },
+              {
+                "kind": "healthy"
+              }
+            ]
+          },
+          {
+            "id": "forward-off",
+            "title": "The host does not forward",
+            "story": "The container reaches the host and the rule of masquerade is in place, but nothing goes further. The host answers its own packets and drops the packets that are not for it: forwarding between its interfaces is off.",
+            "goal": "ns1 pings the internet",
+            "hint": "The setting is a parameter of the namespace of the host (net.ipv4.ip_forward).",
+            "palette": [
+              "nat"
+            ],
+            "max_nodes": 14,
+            "start": {
+              "nodes": [
+                {
+                  "id": "host",
+                  "kind": "netns",
+                  "name": "host",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "ns1",
+                  "kind": "netns",
+                  "name": "ns1",
+                  "x": 70.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "net",
+                  "kind": "external",
+                  "name": "internet",
+                  "x": 670.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "eth0",
+                  "kind": "eth",
+                  "name": "eth0",
+                  "x": 190.0,
+                  "y": 60.0,
+                  "params": {
+                    "net": "a"
+                  }
+                },
+                {
+                  "id": "br0",
+                  "kind": "bridge",
+                  "name": "br0",
+                  "x": 430.0,
+                  "y": 60.0,
+                  "params": {
+                    "net": "b"
+                  }
+                },
+                {
+                  "id": "v1h",
+                  "kind": "veth",
+                  "name": "veth1-host",
+                  "x": 550.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "v1c",
+                  "kind": "veth",
+                  "name": "veth1-ns1",
+                  "x": 550.0,
+                  "y": 140.0,
+                  "params": {
+                    "default_route": true,
+                    "net": "b"
+                  }
+                },
+                {
+                  "id": "masq",
+                  "kind": "nat",
+                  "name": "masquerade",
+                  "x": 70.0,
+                  "y": 380.0
+                }
+              ],
+              "edges": [
+                {
+                  "from": "host",
+                  "to": "eth0"
+                },
+                {
+                  "from": "eth0",
+                  "to": "net"
+                },
+                {
+                  "from": "host",
+                  "to": "br0"
+                },
+                {
+                  "from": "host",
+                  "to": "v1h"
+                },
+                {
+                  "from": "ns1",
+                  "to": "v1c"
+                },
+                {
+                  "from": "v1h",
+                  "to": "v1c"
+                },
+                {
+                  "from": "v1h",
+                  "to": "br0"
+                },
+                {
+                  "from": "masq",
+                  "to": "host"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "ping",
+                "from": "ns1",
+                "to": "host"
+              },
+              {
+                "kind": "ping",
+                "from": "ns1",
+                "to": "net"
+              },
+              {
+                "kind": "healthy"
+              }
+            ]
+          },
+          {
+            "id": "no-default-route",
+            "title": "The container does not know the way out",
+            "story": "The container reaches the host by its address in the container network, but a ping to the internet fails at once: the container has no default route, so it does not know where to send packets for other networks.",
+            "goal": "ns1 pings the internet",
+            "hint": "The default route of the container goes out of its only interface.",
+            "palette": [
+              "nat"
+            ],
+            "max_nodes": 14,
+            "start": {
+              "nodes": [
+                {
+                  "id": "host",
+                  "kind": "netns",
+                  "name": "host",
+                  "x": 70.0,
+                  "y": 60.0,
+                  "params": {
+                    "forward": true
+                  }
+                },
+                {
+                  "id": "ns1",
+                  "kind": "netns",
+                  "name": "ns1",
+                  "x": 70.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "net",
+                  "kind": "external",
+                  "name": "internet",
+                  "x": 670.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "eth0",
+                  "kind": "eth",
+                  "name": "eth0",
+                  "x": 190.0,
+                  "y": 60.0,
+                  "params": {
+                    "net": "a"
+                  }
+                },
+                {
+                  "id": "br0",
+                  "kind": "bridge",
+                  "name": "br0",
+                  "x": 430.0,
+                  "y": 60.0,
+                  "params": {
+                    "net": "b"
+                  }
+                },
+                {
+                  "id": "v1h",
+                  "kind": "veth",
+                  "name": "veth1-host",
+                  "x": 550.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "v1c",
+                  "kind": "veth",
+                  "name": "veth1-ns1",
+                  "x": 550.0,
+                  "y": 140.0,
+                  "params": {
+                    "net": "b"
+                  }
+                },
+                {
+                  "id": "masq",
+                  "kind": "nat",
+                  "name": "masquerade",
+                  "x": 70.0,
+                  "y": 380.0
+                }
+              ],
+              "edges": [
+                {
+                  "from": "host",
+                  "to": "eth0"
+                },
+                {
+                  "from": "eth0",
+                  "to": "net"
+                },
+                {
+                  "from": "host",
+                  "to": "br0"
+                },
+                {
+                  "from": "host",
+                  "to": "v1h"
+                },
+                {
+                  "from": "ns1",
+                  "to": "v1c"
+                },
+                {
+                  "from": "v1h",
+                  "to": "v1c"
+                },
+                {
+                  "from": "v1h",
+                  "to": "br0"
+                },
+                {
+                  "from": "masq",
+                  "to": "host"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "ping",
+                "from": "ns1",
+                "to": "host"
+              },
+              {
+                "kind": "ping",
+                "from": "ns1",
+                "to": "net"
+              },
+              {
+                "kind": "healthy"
+              }
+            ]
+          },
+          {
+            "id": "publish",
+            "title": "Publish a port",
+            "story": "The container reaches the internet, but a web server in the container must be reachable from the internet through the address of the host (what docker run -p does). Add a DNAT rule to the host that forwards the connection to the container.",
+            "goal": "The internet reaches the published port of the container, and the container still reaches the internet",
+            "hint": "A DNAT rule belongs to the namespace of the host and forwards to the container end of the veth pair. Choose the kind of the rule: the masquerade rule that is already there does not publish anything.",
+            "palette": [
+              "nat"
+            ],
+            "max_nodes": 14,
+            "start": {
+              "nodes": [
+                {
+                  "id": "host",
+                  "kind": "netns",
+                  "name": "host",
+                  "x": 70.0,
+                  "y": 60.0,
+                  "params": {
+                    "forward": true
+                  }
+                },
+                {
+                  "id": "ns1",
+                  "kind": "netns",
+                  "name": "ns1",
+                  "x": 70.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "net",
+                  "kind": "external",
+                  "name": "internet",
+                  "x": 670.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "eth0",
+                  "kind": "eth",
+                  "name": "eth0",
+                  "x": 190.0,
+                  "y": 60.0,
+                  "params": {
+                    "net": "a"
+                  }
+                },
+                {
+                  "id": "br0",
+                  "kind": "bridge",
+                  "name": "br0",
+                  "x": 430.0,
+                  "y": 60.0,
+                  "params": {
+                    "net": "b"
+                  }
+                },
+                {
+                  "id": "v1h",
+                  "kind": "veth",
+                  "name": "veth1-host",
+                  "x": 550.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "v1c",
+                  "kind": "veth",
+                  "name": "veth1-ns1",
+                  "x": 550.0,
+                  "y": 140.0,
+                  "params": {
+                    "default_route": true,
+                    "net": "b"
+                  }
+                },
+                {
+                  "id": "masq",
+                  "kind": "nat",
+                  "name": "masquerade",
+                  "x": 70.0,
+                  "y": 380.0
+                }
+              ],
+              "edges": [
+                {
+                  "from": "host",
+                  "to": "eth0"
+                },
+                {
+                  "from": "eth0",
+                  "to": "net"
+                },
+                {
+                  "from": "host",
+                  "to": "br0"
+                },
+                {
+                  "from": "host",
+                  "to": "v1h"
+                },
+                {
+                  "from": "ns1",
+                  "to": "v1c"
+                },
+                {
+                  "from": "v1h",
+                  "to": "v1c"
+                },
+                {
+                  "from": "v1h",
+                  "to": "br0"
+                },
+                {
+                  "from": "masq",
+                  "to": "host"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "ping",
+                "from": "ns1",
+                "to": "net"
+              },
+              {
+                "kind": "published",
+                "external": "net",
+                "target": "v1c"
+              },
+              {
+                "kind": "healthy"
+              }
+            ]
+          }
+        ],
+        "solution": {
+          "build": {
+            "nodes": [
+              {
+                "id": "host",
+                "kind": "netns",
+                "name": "host",
+                "x": 70.0,
+                "y": 60.0,
+                "params": {
+                  "forward": true
+                }
+              },
+              {
+                "id": "ns1",
+                "kind": "netns",
+                "name": "ns1",
+                "x": 70.0,
+                "y": 140.0
+              },
+              {
+                "id": "net",
+                "kind": "external",
+                "name": "internet",
+                "x": 670.0,
+                "y": 60.0
+              },
+              {
+                "id": "eth0",
+                "kind": "eth",
+                "name": "eth0",
+                "x": 190.0,
+                "y": 60.0,
+                "params": {
+                  "net": "a"
+                }
+              },
+              {
+                "id": "br0",
+                "kind": "bridge",
+                "name": "br0",
+                "x": 430.0,
+                "y": 60.0,
+                "params": {
+                  "net": "b"
+                }
+              },
+              {
+                "id": "v1h",
+                "kind": "veth",
+                "name": "veth1-host",
+                "x": 550.0,
+                "y": 60.0
+              },
+              {
+                "id": "v1c",
+                "kind": "veth",
+                "name": "veth1-ns1",
+                "x": 550.0,
+                "y": 140.0,
+                "params": {
+                  "default_route": true,
+                  "net": "b"
+                }
+              },
+              {
+                "id": "masq",
+                "kind": "nat",
+                "name": "masquerade",
+                "x": 70.0,
+                "y": 380.0
+              }
+            ],
+            "edges": [
+              {
+                "from": "host",
+                "to": "eth0"
+              },
+              {
+                "from": "eth0",
+                "to": "net"
+              },
+              {
+                "from": "host",
+                "to": "br0"
+              },
+              {
+                "from": "host",
+                "to": "v1h"
+              },
+              {
+                "from": "ns1",
+                "to": "v1c"
+              },
+              {
+                "from": "v1h",
+                "to": "v1c"
+              },
+              {
+                "from": "v1h",
+                "to": "br0"
+              },
+              {
+                "from": "masq",
+                "to": "host"
+              }
+            ]
+          },
+          "forward-off": {
+            "nodes": [
+              {
+                "id": "host",
+                "kind": "netns",
+                "name": "host",
+                "x": 70.0,
+                "y": 60.0,
+                "params": {
+                  "forward": true
+                }
+              },
+              {
+                "id": "ns1",
+                "kind": "netns",
+                "name": "ns1",
+                "x": 70.0,
+                "y": 140.0
+              },
+              {
+                "id": "net",
+                "kind": "external",
+                "name": "internet",
+                "x": 670.0,
+                "y": 60.0
+              },
+              {
+                "id": "eth0",
+                "kind": "eth",
+                "name": "eth0",
+                "x": 190.0,
+                "y": 60.0,
+                "params": {
+                  "net": "a"
+                }
+              },
+              {
+                "id": "br0",
+                "kind": "bridge",
+                "name": "br0",
+                "x": 430.0,
+                "y": 60.0,
+                "params": {
+                  "net": "b"
+                }
+              },
+              {
+                "id": "v1h",
+                "kind": "veth",
+                "name": "veth1-host",
+                "x": 550.0,
+                "y": 60.0
+              },
+              {
+                "id": "v1c",
+                "kind": "veth",
+                "name": "veth1-ns1",
+                "x": 550.0,
+                "y": 140.0,
+                "params": {
+                  "default_route": true,
+                  "net": "b"
+                }
+              },
+              {
+                "id": "masq",
+                "kind": "nat",
+                "name": "masquerade",
+                "x": 70.0,
+                "y": 380.0
+              }
+            ],
+            "edges": [
+              {
+                "from": "host",
+                "to": "eth0"
+              },
+              {
+                "from": "eth0",
+                "to": "net"
+              },
+              {
+                "from": "host",
+                "to": "br0"
+              },
+              {
+                "from": "host",
+                "to": "v1h"
+              },
+              {
+                "from": "ns1",
+                "to": "v1c"
+              },
+              {
+                "from": "v1h",
+                "to": "v1c"
+              },
+              {
+                "from": "v1h",
+                "to": "br0"
+              },
+              {
+                "from": "masq",
+                "to": "host"
+              }
+            ]
+          },
+          "no-default-route": {
+            "nodes": [
+              {
+                "id": "host",
+                "kind": "netns",
+                "name": "host",
+                "x": 70.0,
+                "y": 60.0,
+                "params": {
+                  "forward": true
+                }
+              },
+              {
+                "id": "ns1",
+                "kind": "netns",
+                "name": "ns1",
+                "x": 70.0,
+                "y": 140.0
+              },
+              {
+                "id": "net",
+                "kind": "external",
+                "name": "internet",
+                "x": 670.0,
+                "y": 60.0
+              },
+              {
+                "id": "eth0",
+                "kind": "eth",
+                "name": "eth0",
+                "x": 190.0,
+                "y": 60.0,
+                "params": {
+                  "net": "a"
+                }
+              },
+              {
+                "id": "br0",
+                "kind": "bridge",
+                "name": "br0",
+                "x": 430.0,
+                "y": 60.0,
+                "params": {
+                  "net": "b"
+                }
+              },
+              {
+                "id": "v1h",
+                "kind": "veth",
+                "name": "veth1-host",
+                "x": 550.0,
+                "y": 60.0
+              },
+              {
+                "id": "v1c",
+                "kind": "veth",
+                "name": "veth1-ns1",
+                "x": 550.0,
+                "y": 140.0,
+                "params": {
+                  "default_route": true,
+                  "net": "b"
+                }
+              },
+              {
+                "id": "masq",
+                "kind": "nat",
+                "name": "masquerade",
+                "x": 70.0,
+                "y": 380.0
+              }
+            ],
+            "edges": [
+              {
+                "from": "host",
+                "to": "eth0"
+              },
+              {
+                "from": "eth0",
+                "to": "net"
+              },
+              {
+                "from": "host",
+                "to": "br0"
+              },
+              {
+                "from": "host",
+                "to": "v1h"
+              },
+              {
+                "from": "ns1",
+                "to": "v1c"
+              },
+              {
+                "from": "v1h",
+                "to": "v1c"
+              },
+              {
+                "from": "v1h",
+                "to": "br0"
+              },
+              {
+                "from": "masq",
+                "to": "host"
+              }
+            ]
+          },
+          "no-masquerade": {
+            "nodes": [
+              {
+                "id": "host",
+                "kind": "netns",
+                "name": "host",
+                "x": 70.0,
+                "y": 60.0,
+                "params": {
+                  "forward": true
+                }
+              },
+              {
+                "id": "ns1",
+                "kind": "netns",
+                "name": "ns1",
+                "x": 70.0,
+                "y": 140.0
+              },
+              {
+                "id": "net",
+                "kind": "external",
+                "name": "internet",
+                "x": 670.0,
+                "y": 60.0
+              },
+              {
+                "id": "eth0",
+                "kind": "eth",
+                "name": "eth0",
+                "x": 190.0,
+                "y": 60.0,
+                "params": {
+                  "net": "a"
+                }
+              },
+              {
+                "id": "br0",
+                "kind": "bridge",
+                "name": "br0",
+                "x": 430.0,
+                "y": 60.0,
+                "params": {
+                  "net": "b"
+                }
+              },
+              {
+                "id": "v1h",
+                "kind": "veth",
+                "name": "veth1-host",
+                "x": 550.0,
+                "y": 60.0
+              },
+              {
+                "id": "v1c",
+                "kind": "veth",
+                "name": "veth1-ns1",
+                "x": 550.0,
+                "y": 140.0,
+                "params": {
+                  "default_route": true,
+                  "net": "b"
+                }
+              },
+              {
+                "id": "masq",
+                "kind": "nat",
+                "name": "masquerade",
+                "x": 70.0,
+                "y": 380.0
+              }
+            ],
+            "edges": [
+              {
+                "from": "host",
+                "to": "eth0"
+              },
+              {
+                "from": "eth0",
+                "to": "net"
+              },
+              {
+                "from": "host",
+                "to": "br0"
+              },
+              {
+                "from": "host",
+                "to": "v1h"
+              },
+              {
+                "from": "ns1",
+                "to": "v1c"
+              },
+              {
+                "from": "v1h",
+                "to": "v1c"
+              },
+              {
+                "from": "v1h",
+                "to": "br0"
+              },
+              {
+                "from": "masq",
+                "to": "host"
+              }
+            ]
+          },
+          "publish": {
+            "nodes": [
+              {
+                "id": "host",
+                "kind": "netns",
+                "name": "host",
+                "x": 70.0,
+                "y": 60.0,
+                "params": {
+                  "forward": true
+                }
+              },
+              {
+                "id": "ns1",
+                "kind": "netns",
+                "name": "ns1",
+                "x": 70.0,
+                "y": 140.0
+              },
+              {
+                "id": "net",
+                "kind": "external",
+                "name": "internet",
+                "x": 670.0,
+                "y": 60.0
+              },
+              {
+                "id": "eth0",
+                "kind": "eth",
+                "name": "eth0",
+                "x": 190.0,
+                "y": 60.0,
+                "params": {
+                  "net": "a"
+                }
+              },
+              {
+                "id": "br0",
+                "kind": "bridge",
+                "name": "br0",
+                "x": 430.0,
+                "y": 60.0,
+                "params": {
+                  "net": "b"
+                }
+              },
+              {
+                "id": "v1h",
+                "kind": "veth",
+                "name": "veth1-host",
+                "x": 550.0,
+                "y": 60.0
+              },
+              {
+                "id": "v1c",
+                "kind": "veth",
+                "name": "veth1-ns1",
+                "x": 550.0,
+                "y": 140.0,
+                "params": {
+                  "default_route": true,
+                  "net": "b"
+                }
+              },
+              {
+                "id": "masq",
+                "kind": "nat",
+                "name": "masquerade",
+                "x": 70.0,
+                "y": 380.0
+              },
+              {
+                "id": "dnat",
+                "kind": "nat",
+                "name": "DNAT port 80",
+                "x": 70.0,
+                "y": 460.0,
+                "params": {
+                  "kind": "dnat"
+                }
+              }
+            ],
+            "edges": [
+              {
+                "from": "host",
+                "to": "eth0"
+              },
+              {
+                "from": "eth0",
+                "to": "net"
+              },
+              {
+                "from": "host",
+                "to": "br0"
+              },
+              {
+                "from": "host",
+                "to": "v1h"
+              },
+              {
+                "from": "ns1",
+                "to": "v1c"
+              },
+              {
+                "from": "v1h",
+                "to": "v1c"
+              },
+              {
+                "from": "v1h",
+                "to": "br0"
+              },
+              {
+                "from": "masq",
+                "to": "host"
+              },
+              {
+                "from": "dnat",
+                "to": "host"
+              },
+              {
+                "from": "dnat",
+                "to": "v1c"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

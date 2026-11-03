@@ -29,7 +29,7 @@ fn data_files_are_canonical_and_up_to_date() {
     let chapters: Vec<(u32, u32)> = built.iter().map(|c| (c.book, c.chapter)).collect();
     assert!(chapters.windows(2).all(|w| w[0] < w[1]), "chapters ascend: {chapters:?}");
     let book17 = [2, 4, 6, 9, 10, 11, 17, 18, 19, 20, 21, 22, 24, 25].map(|c| (17, c));
-    assert_eq!(chapters, [&book17[..], &[(19, 16), (19, 20)]].concat());
+    assert_eq!(chapters, [&book17[..], &[(19, 10), (19, 11), (19, 12), (19, 16), (19, 20)]].concat());
     let mut files: Vec<_> =
         std::fs::read_dir(data_dir()).expect("data dir exists").map(|e| e.unwrap().file_name()).collect();
     files.sort();

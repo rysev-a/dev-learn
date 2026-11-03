@@ -3,6 +3,12 @@
  "chapter": 11,
  "tasks": [
   {
+   "id": "virt-sim-net-bond",
+   "title": "Network board: bond, losing a NIC, VLAN on a bond",
+   "statement": "Server network cards, cables to a switch, a bond over them and a VLAN on top. The board shows which interfaces have a link and checks that the server stays reachable after losing any one card. Six scenarios: build a bond of two cards, add a second card to a bond with one member, put a VLAN interface on a bond for a trunk port, find the card that is switched off, rewire the cables for LACP to one switch and put a bond under a bridge for virtual machines. The exercise is solved when all scenarios are solved.",
+   "hint": "The address belongs to the bond, not to its members. A bond member without a link does not protect against losing its neighbour. Mode 802.3ad needs all members connected to one switch; mode active-backup does not."
+  },
+  {
    "id": "la11-bond-status",
    "title": "Diagnosing a bond from /proc",
    "statement": "Write a function bond_status(text): text is the content of /proc/net/bonding/bondN. Return a dictionary with the keys: mode, the short mode name from the Bonding Mode line (load balancing (round-robin) → balance-rr; fault-tolerance (active-backup) → active-backup, a suffix (fail_over_mac ...) may follow the name and must be dropped; load balancing (xor) → balance-xor; fault-tolerance (broadcast) → broadcast; IEEE 802.3ad Dynamic link aggregation → 802.3ad; transmit load balancing → balance-tlb; adaptive load balancing → balance-alb; otherwise an empty string); active, the name from the Currently Active Slave line, or an empty string if the line is missing or says None; down, the list of slaves whose MII Status line inside their block (a block starts with a Slave Interface line) is not up, so down, going down and going back all count as unhealthy, in file order; flapping, the list of slaves with a Link Failure Count above zero, in file order. MII Status lines before the first slave block belong to the bond itself and are ignored. Empty text gives empty strings for mode and active and empty lists.",

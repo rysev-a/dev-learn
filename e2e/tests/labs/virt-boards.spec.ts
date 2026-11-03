@@ -4,7 +4,7 @@ import { clone, expectStatusOk, labBooks, labChapters, labFile, openTask, putDra
 
 /* Every board exercise of the virtualization labs (all packs found in `backend/data/labs/virt`: the oVirt topology boards of the book 17 and the LVM boards of the book 19):
    the reference boards stored as a draft solve it and the server replays them, a spoiled board is refused, and the reference of the first and the last scenario is
-   rebuilt in the interface with clicks. The two boards share the model of the data (`{nodes, edges}`) and the DOM contract, under the prefixes `vl-topo` and `vl-lvm`. */
+   rebuilt in the interface with clicks. The two boards share the model of the data (`{nodes, edges}`) and the DOM contract, under the prefixes `vl-topo`, `vl-lvm` and `vl-net`. */
 
 test.use({ viewport: { width: 1400, height: 1500 } });
 
@@ -24,7 +24,7 @@ interface Scenario {
   goals: unknown[];
 }
 /** The simulators that are boards and the prefix of the CSS classes of each. */
-const BOARDS: Record<string, string> = { ovirt_topo: "vl-topo", lvm_board: "vl-lvm" };
+const BOARDS: Record<string, string> = { ovirt_topo: "vl-topo", lvm_board: "vl-lvm", net_board: "vl-net" };
 
 interface Pack {
   book: number;
@@ -58,6 +58,7 @@ const edgeKey = (e: { from: string; to: string }) => `${e.from}>${e.to}`;
 test("the board exercises are all found", () => {
   expect(PACKS.filter((p) => p.prefix === "vl-topo").length).toBeGreaterThanOrEqual(11);
   expect(PACKS.filter((p) => p.prefix === "vl-lvm").length).toBeGreaterThanOrEqual(3);
+  expect(PACKS.filter((p) => p.prefix === "vl-net").length).toBeGreaterThanOrEqual(3);
   for (const p of PACKS) expect(p.scenarios.length, p.id).toBeGreaterThanOrEqual(4);
 });
 

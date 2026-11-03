@@ -16,6 +16,7 @@ mod ept;
 mod hv;
 mod lvm_board;
 mod migration;
+mod net_board;
 mod numa;
 mod ovirt_dc;
 mod ovirt_fence;
@@ -71,6 +72,9 @@ pub fn VirtLab(props: LabProps) -> impl IntoView {
         }
         Spec::LvmBoard { scenarios, .. } => {
             view! { <lvm_board::LvmBoardLab scenarios=scenarios goals=goals draft=props.draft on_draft=props.on_draft /> }.into_any()
+        }
+        Spec::NetBoard { scenarios, .. } => {
+            view! { <net_board::NetBoardLab scenarios=scenarios goals=goals draft=props.draft on_draft=props.on_draft /> }.into_any()
         }
     }
 }

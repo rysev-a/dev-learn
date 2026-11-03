@@ -1,0 +1,1139 @@
+{
+  "book": 19,
+  "chapter": 11,
+  "lab": "virt",
+  "tasks": [
+    {
+      "id": "virt-sim-net-bond",
+      "title": "Доска сети: bond, потеря сетевой карты, VLAN на bond",
+      "statement": "Серверные сетевые карты, кабели в коммутатор, bond над ними и VLAN поверх. Доска показывает, у каких интерфейсов есть связь, и проверяет, что сервер остаётся на связи после потери любой карты. Шесть сценариев: собрать bond из двух карт, добавить вторую карту в bond с одним участником, поставить VLAN-интерфейс на bond для транкового порта, найти карту, которая выключена, переключить кабели при LACP на один коммутатор и поставить bond под мост для виртуальных машин. Упражнение решено, когда решены все сценарии.",
+      "hint": "Адрес принадлежит bond, а не его участникам. Участник bond, у которого нет связи, не защищает от потери соседа. Режим 802.3ad требует, чтобы все участники были подключены к одному коммутатору; режим active-backup этого не требует.",
+      "spec": {
+        "sim": "net_board",
+        "scenarios": [
+          {
+            "id": "build-bond",
+            "title": "A bond of two NICs",
+            "story": "The server has two NICs, both cabled to the same switch, but each is a single point of failure. Make a bond of them, give the address to the bond, and the server must keep talking to the switch when either NIC is lost.",
+            "goal": "The host pings the switch, and survives the loss of either NIC",
+            "hint": "A bond is an object of the host. The NICs become its slaves and give up their own addresses: the address belongs to the bond.",
+            "palette": [
+              "bond"
+            ],
+            "max_nodes": 8,
+            "start": {
+              "nodes": [
+                {
+                  "id": "host",
+                  "kind": "netns",
+                  "name": "host",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "sw",
+                  "kind": "external",
+                  "name": "switch",
+                  "x": 670.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "eth1",
+                  "kind": "eth",
+                  "name": "eth1",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "eth2",
+                  "kind": "eth",
+                  "name": "eth2",
+                  "x": 190.0,
+                  "y": 140.0
+                }
+              ],
+              "edges": [
+                {
+                  "from": "host",
+                  "to": "eth1"
+                },
+                {
+                  "from": "eth1",
+                  "to": "sw"
+                },
+                {
+                  "from": "host",
+                  "to": "eth2"
+                },
+                {
+                  "from": "eth2",
+                  "to": "sw"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "ping",
+                "from": "host",
+                "to": "sw"
+              },
+              {
+                "kind": "survive_loss",
+                "node": "eth1",
+                "from": "host",
+                "to": "sw"
+              },
+              {
+                "kind": "survive_loss",
+                "node": "eth2",
+                "from": "host",
+                "to": "sw"
+              },
+              {
+                "kind": "has",
+                "node": "bond",
+                "min": 1
+              }
+            ]
+          },
+          {
+            "id": "one-slave",
+            "title": "A bond that survives nothing",
+            "story": "The bond works, but only eth1 is its slave: eth2 is cabled and idle. When eth1 dies, the server is cut off. A bond is a protection only with at least two slaves.",
+            "goal": "The host survives the loss of eth1 and the loss of eth2",
+            "hint": "Make eth2 a slave of the bond as well.",
+            "palette": [
+              "eth"
+            ],
+            "max_nodes": 8,
+            "start": {
+              "nodes": [
+                {
+                  "id": "host",
+                  "kind": "netns",
+                  "name": "host",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "sw",
+                  "kind": "external",
+                  "name": "switch",
+                  "x": 670.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "eth1",
+                  "kind": "eth",
+                  "name": "eth1",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "eth2",
+                  "kind": "eth",
+                  "name": "eth2",
+                  "x": 190.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "bond0",
+                  "kind": "bond",
+                  "name": "bond0",
+                  "x": 310.0,
+                  "y": 60.0,
+                  "params": {
+                    "net": "a"
+                  }
+                }
+              ],
+              "edges": [
+                {
+                  "from": "host",
+                  "to": "eth1"
+                },
+                {
+                  "from": "eth1",
+                  "to": "sw"
+                },
+                {
+                  "from": "host",
+                  "to": "eth2"
+                },
+                {
+                  "from": "eth2",
+                  "to": "sw"
+                },
+                {
+                  "from": "host",
+                  "to": "bond0"
+                },
+                {
+                  "from": "eth1",
+                  "to": "bond0"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "ping",
+                "from": "host",
+                "to": "sw"
+              },
+              {
+                "kind": "survive_loss",
+                "node": "eth1",
+                "from": "host",
+                "to": "sw"
+              },
+              {
+                "kind": "survive_loss",
+                "node": "eth2",
+                "from": "host",
+                "to": "sw"
+              }
+            ]
+          },
+          {
+            "id": "vlan-on-bond",
+            "title": "A VLAN on top of the bond",
+            "story": "The switch ports are trunk ports: the management network 10.0.2.0/24 travels tagged with VLAN 20, nothing travels untagged. The bond is up, but the host has no address in the management network. Add a VLAN interface on the bond.",
+            "goal": "The host pings the switch through a VLAN interface of VLAN 20 on the bond",
+            "hint": "A VLAN interface is an object of the host with the bond as its parent. Choose the VLAN id of the switch, and give the interface the address.",
+            "palette": [
+              "vlan"
+            ],
+            "max_nodes": 8,
+            "start": {
+              "nodes": [
+                {
+                  "id": "host",
+                  "kind": "netns",
+                  "name": "host",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "sw",
+                  "kind": "external",
+                  "name": "switch VLAN 20",
+                  "x": 670.0,
+                  "y": 60.0,
+                  "params": {
+                    "net": "b",
+                    "tagged": "20"
+                  }
+                },
+                {
+                  "id": "eth1",
+                  "kind": "eth",
+                  "name": "eth1",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "eth2",
+                  "kind": "eth",
+                  "name": "eth2",
+                  "x": 190.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "bond0",
+                  "kind": "bond",
+                  "name": "bond0",
+                  "x": 310.0,
+                  "y": 60.0
+                }
+              ],
+              "edges": [
+                {
+                  "from": "host",
+                  "to": "eth1"
+                },
+                {
+                  "from": "eth1",
+                  "to": "sw"
+                },
+                {
+                  "from": "host",
+                  "to": "eth2"
+                },
+                {
+                  "from": "eth2",
+                  "to": "sw"
+                },
+                {
+                  "from": "host",
+                  "to": "bond0"
+                },
+                {
+                  "from": "eth1",
+                  "to": "bond0"
+                },
+                {
+                  "from": "eth2",
+                  "to": "bond0"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "ping",
+                "from": "host",
+                "to": "sw"
+              },
+              {
+                "kind": "has",
+                "node": "vlan",
+                "min": 1
+              },
+              {
+                "kind": "healthy"
+              }
+            ]
+          },
+          {
+            "id": "down-slave",
+            "title": "A slave that nobody noticed",
+            "story": "The server talks to the switch, so nobody looked at the bond. But eth1 is down since the last maintenance, and the bond runs on eth2 alone: the loss of eth2 would cut the server off.",
+            "goal": "Both slaves are up, and the host survives the loss of either NIC",
+            "hint": "Check the state of every interface, not only of the bond.",
+            "palette": [
+              "eth"
+            ],
+            "max_nodes": 8,
+            "start": {
+              "nodes": [
+                {
+                  "id": "host",
+                  "kind": "netns",
+                  "name": "host",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "sw",
+                  "kind": "external",
+                  "name": "switch",
+                  "x": 670.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "eth1",
+                  "kind": "eth",
+                  "name": "eth1",
+                  "x": 190.0,
+                  "y": 60.0,
+                  "params": {
+                    "up": false
+                  }
+                },
+                {
+                  "id": "eth2",
+                  "kind": "eth",
+                  "name": "eth2",
+                  "x": 190.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "bond0",
+                  "kind": "bond",
+                  "name": "bond0",
+                  "x": 310.0,
+                  "y": 60.0,
+                  "params": {
+                    "net": "a"
+                  }
+                }
+              ],
+              "edges": [
+                {
+                  "from": "host",
+                  "to": "eth1"
+                },
+                {
+                  "from": "eth1",
+                  "to": "sw"
+                },
+                {
+                  "from": "host",
+                  "to": "eth2"
+                },
+                {
+                  "from": "eth2",
+                  "to": "sw"
+                },
+                {
+                  "from": "host",
+                  "to": "bond0"
+                },
+                {
+                  "from": "eth1",
+                  "to": "bond0"
+                },
+                {
+                  "from": "eth2",
+                  "to": "bond0"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "ping",
+                "from": "host",
+                "to": "sw"
+              },
+              {
+                "kind": "survive_loss",
+                "node": "eth1",
+                "from": "host",
+                "to": "sw"
+              },
+              {
+                "kind": "survive_loss",
+                "node": "eth2",
+                "from": "host",
+                "to": "sw"
+              },
+              {
+                "kind": "healthy"
+              }
+            ]
+          },
+          {
+            "id": "lacp-switch",
+            "title": "LACP and two switches",
+            "story": "The bond works in the 802.3ad mode, but the two NICs were cabled to two different switches, and the partner of an LACP aggregate is a single device. The bond has no link at all. Move one cable (or choose a mode that does not need one switch).",
+            "goal": "The host pings switch 1 and survives the loss of either NIC",
+            "hint": "Both slaves of an 802.3ad bond must be cabled to the same switch. One NIC has one cable: remove the old one before you add the new one.",
+            "palette": [
+              "external"
+            ],
+            "max_nodes": 8,
+            "start": {
+              "nodes": [
+                {
+                  "id": "host",
+                  "kind": "netns",
+                  "name": "host",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "sw1",
+                  "kind": "external",
+                  "name": "switch 1",
+                  "x": 670.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "sw2",
+                  "kind": "external",
+                  "name": "switch 2",
+                  "x": 670.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "eth1",
+                  "kind": "eth",
+                  "name": "eth1",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "eth2",
+                  "kind": "eth",
+                  "name": "eth2",
+                  "x": 190.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "bond0",
+                  "kind": "bond",
+                  "name": "bond0",
+                  "x": 310.0,
+                  "y": 60.0,
+                  "params": {
+                    "mode": "802.3ad",
+                    "net": "a"
+                  }
+                }
+              ],
+              "edges": [
+                {
+                  "from": "host",
+                  "to": "eth1"
+                },
+                {
+                  "from": "eth1",
+                  "to": "sw1"
+                },
+                {
+                  "from": "host",
+                  "to": "eth2"
+                },
+                {
+                  "from": "eth2",
+                  "to": "sw2"
+                },
+                {
+                  "from": "host",
+                  "to": "bond0"
+                },
+                {
+                  "from": "eth1",
+                  "to": "bond0"
+                },
+                {
+                  "from": "eth2",
+                  "to": "bond0"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "ping",
+                "from": "host",
+                "to": "sw1"
+              },
+              {
+                "kind": "survive_loss",
+                "node": "eth1",
+                "from": "host",
+                "to": "sw1"
+              },
+              {
+                "kind": "survive_loss",
+                "node": "eth2",
+                "from": "host",
+                "to": "sw1"
+              },
+              {
+                "kind": "healthy"
+              }
+            ]
+          },
+          {
+            "id": "bond-bridge",
+            "title": "A bridge on a bond for the VMs",
+            "story": "The VMs get their network from the bridge br0, and the bridge should reach the switch through the bond: this is how a hypervisor host usually does it. Today vm1 is cut off: the bridge is down and the bond is not one of its ports.",
+            "goal": "vm1 pings the switch through br0 and the bond, and survives the loss of either NIC",
+            "hint": "The bond is a port of the bridge. Bring the bridge up too: a VM whose bridge is down has no link.",
+            "palette": [
+              "vm"
+            ],
+            "max_nodes": 10,
+            "start": {
+              "nodes": [
+                {
+                  "id": "host",
+                  "kind": "netns",
+                  "name": "host",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "sw",
+                  "kind": "external",
+                  "name": "switch",
+                  "x": 670.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "eth1",
+                  "kind": "eth",
+                  "name": "eth1",
+                  "x": 190.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "eth2",
+                  "kind": "eth",
+                  "name": "eth2",
+                  "x": 190.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "bond0",
+                  "kind": "bond",
+                  "name": "bond0",
+                  "x": 310.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "br0",
+                  "kind": "bridge",
+                  "name": "br0",
+                  "x": 430.0,
+                  "y": 60.0,
+                  "params": {
+                    "up": false
+                  }
+                },
+                {
+                  "id": "vm1",
+                  "kind": "vm",
+                  "name": "vm1",
+                  "x": 550.0,
+                  "y": 380.0,
+                  "params": {
+                    "net": "a"
+                  }
+                }
+              ],
+              "edges": [
+                {
+                  "from": "host",
+                  "to": "eth1"
+                },
+                {
+                  "from": "eth1",
+                  "to": "sw"
+                },
+                {
+                  "from": "host",
+                  "to": "eth2"
+                },
+                {
+                  "from": "eth2",
+                  "to": "sw"
+                },
+                {
+                  "from": "host",
+                  "to": "bond0"
+                },
+                {
+                  "from": "eth1",
+                  "to": "bond0"
+                },
+                {
+                  "from": "eth2",
+                  "to": "bond0"
+                },
+                {
+                  "from": "host",
+                  "to": "br0"
+                },
+                {
+                  "from": "vm1",
+                  "to": "br0"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "ping",
+                "from": "vm1",
+                "to": "sw"
+              },
+              {
+                "kind": "survive_loss",
+                "node": "eth1",
+                "from": "vm1",
+                "to": "sw"
+              },
+              {
+                "kind": "survive_loss",
+                "node": "eth2",
+                "from": "vm1",
+                "to": "sw"
+              },
+              {
+                "kind": "healthy"
+              }
+            ]
+          }
+        ],
+        "solution": {
+          "bond-bridge": {
+            "nodes": [
+              {
+                "id": "host",
+                "kind": "netns",
+                "name": "host",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "sw",
+                "kind": "external",
+                "name": "switch",
+                "x": 670.0,
+                "y": 60.0
+              },
+              {
+                "id": "eth1",
+                "kind": "eth",
+                "name": "eth1",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "eth2",
+                "kind": "eth",
+                "name": "eth2",
+                "x": 190.0,
+                "y": 140.0
+              },
+              {
+                "id": "bond0",
+                "kind": "bond",
+                "name": "bond0",
+                "x": 310.0,
+                "y": 60.0
+              },
+              {
+                "id": "br0",
+                "kind": "bridge",
+                "name": "br0",
+                "x": 430.0,
+                "y": 60.0
+              },
+              {
+                "id": "vm1",
+                "kind": "vm",
+                "name": "vm1",
+                "x": 550.0,
+                "y": 380.0,
+                "params": {
+                  "net": "a"
+                }
+              }
+            ],
+            "edges": [
+              {
+                "from": "host",
+                "to": "eth1"
+              },
+              {
+                "from": "eth1",
+                "to": "sw"
+              },
+              {
+                "from": "host",
+                "to": "eth2"
+              },
+              {
+                "from": "eth2",
+                "to": "sw"
+              },
+              {
+                "from": "host",
+                "to": "bond0"
+              },
+              {
+                "from": "eth1",
+                "to": "bond0"
+              },
+              {
+                "from": "eth2",
+                "to": "bond0"
+              },
+              {
+                "from": "host",
+                "to": "br0"
+              },
+              {
+                "from": "vm1",
+                "to": "br0"
+              },
+              {
+                "from": "bond0",
+                "to": "br0"
+              }
+            ]
+          },
+          "build-bond": {
+            "nodes": [
+              {
+                "id": "host",
+                "kind": "netns",
+                "name": "host",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "sw",
+                "kind": "external",
+                "name": "switch",
+                "x": 670.0,
+                "y": 60.0
+              },
+              {
+                "id": "eth1",
+                "kind": "eth",
+                "name": "eth1",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "eth2",
+                "kind": "eth",
+                "name": "eth2",
+                "x": 190.0,
+                "y": 140.0
+              },
+              {
+                "id": "bond0",
+                "kind": "bond",
+                "name": "bond0",
+                "x": 310.0,
+                "y": 60.0,
+                "params": {
+                  "net": "a"
+                }
+              }
+            ],
+            "edges": [
+              {
+                "from": "host",
+                "to": "eth1"
+              },
+              {
+                "from": "eth1",
+                "to": "sw"
+              },
+              {
+                "from": "host",
+                "to": "eth2"
+              },
+              {
+                "from": "eth2",
+                "to": "sw"
+              },
+              {
+                "from": "host",
+                "to": "bond0"
+              },
+              {
+                "from": "eth1",
+                "to": "bond0"
+              },
+              {
+                "from": "eth2",
+                "to": "bond0"
+              }
+            ]
+          },
+          "down-slave": {
+            "nodes": [
+              {
+                "id": "host",
+                "kind": "netns",
+                "name": "host",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "sw",
+                "kind": "external",
+                "name": "switch",
+                "x": 670.0,
+                "y": 60.0
+              },
+              {
+                "id": "eth1",
+                "kind": "eth",
+                "name": "eth1",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "eth2",
+                "kind": "eth",
+                "name": "eth2",
+                "x": 190.0,
+                "y": 140.0
+              },
+              {
+                "id": "bond0",
+                "kind": "bond",
+                "name": "bond0",
+                "x": 310.0,
+                "y": 60.0,
+                "params": {
+                  "net": "a"
+                }
+              }
+            ],
+            "edges": [
+              {
+                "from": "host",
+                "to": "eth1"
+              },
+              {
+                "from": "eth1",
+                "to": "sw"
+              },
+              {
+                "from": "host",
+                "to": "eth2"
+              },
+              {
+                "from": "eth2",
+                "to": "sw"
+              },
+              {
+                "from": "host",
+                "to": "bond0"
+              },
+              {
+                "from": "eth1",
+                "to": "bond0"
+              },
+              {
+                "from": "eth2",
+                "to": "bond0"
+              }
+            ]
+          },
+          "lacp-switch": {
+            "nodes": [
+              {
+                "id": "host",
+                "kind": "netns",
+                "name": "host",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "sw1",
+                "kind": "external",
+                "name": "switch 1",
+                "x": 670.0,
+                "y": 60.0
+              },
+              {
+                "id": "sw2",
+                "kind": "external",
+                "name": "switch 2",
+                "x": 670.0,
+                "y": 140.0
+              },
+              {
+                "id": "eth1",
+                "kind": "eth",
+                "name": "eth1",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "eth2",
+                "kind": "eth",
+                "name": "eth2",
+                "x": 190.0,
+                "y": 140.0
+              },
+              {
+                "id": "bond0",
+                "kind": "bond",
+                "name": "bond0",
+                "x": 310.0,
+                "y": 60.0,
+                "params": {
+                  "mode": "802.3ad",
+                  "net": "a"
+                }
+              }
+            ],
+            "edges": [
+              {
+                "from": "host",
+                "to": "eth1"
+              },
+              {
+                "from": "eth1",
+                "to": "sw1"
+              },
+              {
+                "from": "host",
+                "to": "eth2"
+              },
+              {
+                "from": "host",
+                "to": "bond0"
+              },
+              {
+                "from": "eth1",
+                "to": "bond0"
+              },
+              {
+                "from": "eth2",
+                "to": "bond0"
+              },
+              {
+                "from": "eth2",
+                "to": "sw1"
+              }
+            ]
+          },
+          "one-slave": {
+            "nodes": [
+              {
+                "id": "host",
+                "kind": "netns",
+                "name": "host",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "sw",
+                "kind": "external",
+                "name": "switch",
+                "x": 670.0,
+                "y": 60.0
+              },
+              {
+                "id": "eth1",
+                "kind": "eth",
+                "name": "eth1",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "eth2",
+                "kind": "eth",
+                "name": "eth2",
+                "x": 190.0,
+                "y": 140.0
+              },
+              {
+                "id": "bond0",
+                "kind": "bond",
+                "name": "bond0",
+                "x": 310.0,
+                "y": 60.0,
+                "params": {
+                  "net": "a"
+                }
+              }
+            ],
+            "edges": [
+              {
+                "from": "host",
+                "to": "eth1"
+              },
+              {
+                "from": "eth1",
+                "to": "sw"
+              },
+              {
+                "from": "host",
+                "to": "eth2"
+              },
+              {
+                "from": "eth2",
+                "to": "sw"
+              },
+              {
+                "from": "host",
+                "to": "bond0"
+              },
+              {
+                "from": "eth1",
+                "to": "bond0"
+              },
+              {
+                "from": "eth2",
+                "to": "bond0"
+              }
+            ]
+          },
+          "vlan-on-bond": {
+            "nodes": [
+              {
+                "id": "host",
+                "kind": "netns",
+                "name": "host",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "sw",
+                "kind": "external",
+                "name": "switch VLAN 20",
+                "x": 670.0,
+                "y": 60.0,
+                "params": {
+                  "net": "b",
+                  "tagged": "20"
+                }
+              },
+              {
+                "id": "eth1",
+                "kind": "eth",
+                "name": "eth1",
+                "x": 190.0,
+                "y": 60.0
+              },
+              {
+                "id": "eth2",
+                "kind": "eth",
+                "name": "eth2",
+                "x": 190.0,
+                "y": 140.0
+              },
+              {
+                "id": "bond0",
+                "kind": "bond",
+                "name": "bond0",
+                "x": 310.0,
+                "y": 60.0
+              },
+              {
+                "id": "bond0-20",
+                "kind": "vlan",
+                "name": "bond0.20",
+                "x": 310.0,
+                "y": 380.0,
+                "params": {
+                  "id": "20",
+                  "net": "b"
+                }
+              }
+            ],
+            "edges": [
+              {
+                "from": "host",
+                "to": "eth1"
+              },
+              {
+                "from": "eth1",
+                "to": "sw"
+              },
+              {
+                "from": "host",
+                "to": "eth2"
+              },
+              {
+                "from": "eth2",
+                "to": "sw"
+              },
+              {
+                "from": "host",
+                "to": "bond0"
+              },
+              {
+                "from": "eth1",
+                "to": "bond0"
+              },
+              {
+                "from": "eth2",
+                "to": "bond0"
+              },
+              {
+                "from": "host",
+                "to": "bond0-20"
+              },
+              {
+                "from": "bond0",
+                "to": "bond0-20"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

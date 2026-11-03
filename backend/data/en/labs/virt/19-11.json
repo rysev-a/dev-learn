@@ -1,0 +1,13 @@
+{
+ "book": 19,
+ "chapter": 11,
+ "lab": "virt",
+ "tasks": [
+  {
+   "id": "virt-sim-net-bond",
+   "title": "Network board: bond, losing a NIC, VLAN on a bond",
+   "statement": "Server network cards, cables to a switch, a bond over them and a VLAN on top. The board shows which interfaces have a link and checks that the server stays reachable after losing any one card. Six scenarios: build a bond of two cards, add a second card to a bond with one member, put a VLAN interface on a bond for a trunk port, find the card that is switched off, rewire the cables for LACP to one switch and put a bond under a bridge for virtual machines. The exercise is solved when all scenarios are solved.",
+   "hint": "The address belongs to the bond, not to its members. A bond member without a link does not protect against losing its neighbour. Mode 802.3ad needs all members connected to one switch; mode active-backup does not."
+  }
+ ]
+}

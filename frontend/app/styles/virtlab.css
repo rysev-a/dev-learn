@@ -1573,6 +1573,665 @@
   margin: 0;
 }
 
+/* Linux network board */
+.vl-net-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+@container (min-width: 900px) {
+  .vl-net-main {
+    grid-template-columns: minmax(0, 1.7fr) minmax(280px, 1fr);
+  }
+}
+.vl-net-work,
+.vl-net-side {
+  min-width: 0;
+}
+.vl-net-side {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.vl-net-boardwrap {
+  min-width: 0;
+}
+.vl-net-toolbar {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.vl-net-spacer {
+  flex: 1;
+}
+.vl-net-add {
+  font: inherit;
+  font-size: 12px;
+  padding: 4px 9px;
+  border-radius: 8px;
+  border: 1px dashed var(--s-border);
+  background: var(--s-bg);
+  color: var(--s-text);
+  cursor: pointer;
+}
+.vl-net-addico {
+  width: 14px;
+  height: 14px;
+  margin-right: 4px;
+  vertical-align: -2px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.vl-net-add:hover {
+  border-color: var(--s-accent);
+  color: var(--s-accent);
+}
+.vl-net-viewport {
+  position: relative;
+  height: clamp(340px, 62vh, 620px);
+}
+.vl-net-board {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: var(--s-bg);
+  border-radius: 8px;
+  border: 1px solid var(--s-border);
+  user-select: none;
+  touch-action: none;
+}
+.vl-net-board.panning,
+.vl-net-board.panning .vl-net-bg {
+  cursor: grabbing;
+}
+.vl-net-board.placing {
+  cursor: copy;
+}
+.vl-net-bg {
+  cursor: grab;
+}
+.vl-net-dot {
+  fill: var(--s-border);
+}
+.vl-net-tip {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--s-muted);
+}
+.vl-net-notice {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--s-red);
+}
+
+/* links */
+.vl-net-edge .line {
+  fill: none;
+  stroke: var(--s-muted);
+  stroke-width: 2;
+  pointer-events: none;
+}
+.vl-net-edge .hit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 14;
+  cursor: pointer;
+}
+.vl-net-edge:hover .line {
+  stroke: var(--s-accent);
+}
+.vl-net-edge.on .line {
+  stroke: var(--s-amber);
+  stroke-width: 3;
+}
+.vl-net-edge .lbl {
+  font-size: 9px;
+  fill: var(--s-text);
+  stroke: var(--s-bg);
+  stroke-width: 3px;
+  paint-order: stroke;
+  opacity: 0;
+  pointer-events: none;
+}
+.vl-net-edge:hover .lbl,
+.vl-net-edge.on .lbl,
+.vl-net-edge.path .lbl,
+.vl-net-edge.bad .lbl {
+  opacity: 1;
+}
+.vl-net-edge.path .line {
+  stroke: var(--s-accent);
+  stroke-width: 3.5;
+  stroke-dasharray: 9 6;
+  animation: vl-net-flow 0.9s linear infinite;
+}
+.vl-net-edge.bad .line {
+  stroke: var(--s-red);
+  stroke-width: 3.5;
+}
+@keyframes vl-net-flow {
+  to {
+    stroke-dashoffset: -15;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vl-net-edge.path .line {
+    animation: none;
+  }
+}
+.vl-net-missing {
+  stroke: var(--s-red);
+  stroke-width: 2.5;
+  stroke-dasharray: 5 5;
+  pointer-events: none;
+}
+.vl-net-pending {
+  fill: none;
+  stroke: var(--s-accent);
+  stroke-width: 2;
+  stroke-dasharray: 6 5;
+  pointer-events: none;
+}
+.vl-net-pending.ok {
+  stroke-dasharray: none;
+}
+.vl-net-pending.bad {
+  stroke: var(--s-red);
+}
+
+/* pins */
+.vl-net-pin {
+  stroke: var(--s-muted);
+  stroke-width: 2;
+  cursor: crosshair;
+  transition: r 0.1s;
+}
+.vl-net-pin.in {
+  fill: var(--s-bg);
+}
+.vl-net-pin.out {
+  fill: var(--s-accent);
+  stroke: var(--s-accent);
+}
+.vl-net-pin:hover {
+  r: 7.5;
+  stroke: var(--s-accent);
+}
+.vl-net-pin.ok {
+  fill: var(--s-accent);
+  stroke: var(--s-accent);
+  r: 7;
+}
+.vl-net-pin.bad {
+  opacity: 0.25;
+}
+@media (prefers-reduced-motion: reduce) {
+  .vl-net-pin {
+    transition: none;
+  }
+}
+
+/* objects */
+.vl-net-node {
+  cursor: grab;
+}
+.vl-net-node.moving {
+  cursor: grabbing;
+}
+.vl-net-node.ghost {
+  opacity: 0.6;
+  pointer-events: none;
+}
+.vl-net-node.ghost rect:first-of-type {
+  stroke-dasharray: 5 4;
+}
+.vl-net-node rect:first-of-type {
+  fill: var(--s-panel);
+  stroke: var(--s-border);
+  stroke-width: 1.5;
+}
+.vl-net-node.warn rect:first-of-type {
+  stroke: var(--s-amber);
+  stroke-width: 2.5;
+}
+.vl-net-node.bad rect:first-of-type {
+  stroke: var(--s-red);
+  stroke-width: 2.5;
+}
+.vl-net-node.on rect:first-of-type {
+  stroke: var(--s-text);
+  stroke-width: 3;
+}
+.vl-net-node.path rect:first-of-type {
+  stroke: var(--s-accent);
+  stroke-width: 3;
+}
+.vl-net-node.path-bad rect:first-of-type {
+  stroke: var(--s-red);
+  stroke-width: 3;
+}
+.vl-net-node.hover-ok rect:first-of-type {
+  stroke: var(--s-accent);
+  stroke-width: 3;
+}
+.vl-net-node.hover-bad rect:first-of-type {
+  stroke: var(--s-red);
+  stroke-width: 3;
+}
+.vl-net-ico {
+  fill: none;
+  stroke: var(--s-muted);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.vl-net-name {
+  font-size: 10.5px;
+  font-weight: 600;
+  fill: var(--s-text);
+}
+.vl-net-badge {
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  fill: var(--s-accent);
+}
+.vl-net-badge.over {
+  fill: var(--s-red);
+}
+.vl-net-chipbox {
+  overflow: visible;
+}
+.vl-net-status {
+  display: flex;
+  justify-content: center;
+}
+.vl-net-status .vl-chip {
+  font-size: 9.5px;
+  line-height: 16px;
+  padding: 0 5px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: var(--s-panel);
+  color: var(--s-muted);
+  border-color: var(--s-border);
+}
+.vl-net-status .vl-chip.ok {
+  color: var(--s-accent);
+  border-color: var(--s-accent);
+}
+.vl-net-status .vl-chip.warn {
+  color: var(--s-amber);
+  border-color: var(--s-amber);
+}
+.vl-net-status .vl-chip.bad {
+  color: var(--s-red);
+  border-color: var(--s-red);
+}
+
+/* panels */
+.vl-net-kind {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+.vl-net-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+}
+.vl-net-field.row {
+  flex-direction: row;
+  align-items: center;
+}
+.vl-net-field input[type="text"],
+.vl-net-field select {
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font: inherit;
+}
+.vl-net-field input[type="checkbox"] {
+  accent-color: var(--accent);
+}
+.vl-net-state {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.vl-net-why,
+.vl-net-hops,
+.vl-net-tree {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+}
+.vl-net-why li {
+  color: var(--muted);
+}
+.vl-net-ops {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.vl-net-op.on {
+  border-color: var(--accent);
+}
+.vl-net-hophead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.vl-net-hophead p {
+  margin: 0;
+  font-size: 13px;
+}
+.vl-net-hops li {
+  display: flex;
+  gap: 8px;
+  padding: 4px 6px;
+  border-radius: 6px;
+}
+.vl-net-hops li.ok .vl-gm {
+  color: var(--s-accent);
+}
+.vl-net-hops li.bad,
+.vl-net-hops li.bad .vl-gm {
+  color: var(--s-red);
+}
+.vl-net-tree-head {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.vl-net-tree-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  padding-right: 6px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.vl-net-tree-row:hover,
+.vl-net-tree-row.on {
+  background: var(--panel-2);
+}
+.vl-net-dotk {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--s-muted);
+  flex: none;
+}
+.vl-net-nm {
+  font-weight: 600;
+}
+.vl-net-kd {
+  color: var(--muted);
+  font-size: 12px;
+}
+.vl-net-invalid {
+  color: var(--s-red);
+}
+.vl-net-hophead p.vl-no {
+  color: var(--s-red);
+}
+
+/* kinds of the network board */
+.vl-net-node.netns rect:first-of-type {
+  stroke: var(--s-violet);
+}
+.vl-net-node.eth rect:first-of-type {
+  stroke: var(--s-blue);
+}
+.vl-net-node.veth rect:first-of-type {
+  stroke: var(--s-blue);
+}
+.vl-net-node.bridge rect:first-of-type {
+  stroke: var(--s-accent);
+}
+.vl-net-node.bond rect:first-of-type {
+  stroke: var(--s-accent);
+}
+.vl-net-node.vlan rect:first-of-type {
+  stroke: var(--s-amber);
+}
+.vl-net-node.vm rect:first-of-type {
+  stroke: var(--s-amber);
+}
+.vl-net-node.external rect:first-of-type {
+  stroke: var(--s-muted);
+}
+.vl-net-node.nat rect:first-of-type {
+  stroke: var(--s-red);
+}
+.vl-net-node.netns .vl-net-ico {
+  stroke: var(--s-violet);
+}
+.vl-net-node.eth .vl-net-ico {
+  stroke: var(--s-blue);
+}
+.vl-net-node.veth .vl-net-ico {
+  stroke: var(--s-blue);
+}
+.vl-net-node.bridge .vl-net-ico {
+  stroke: var(--s-accent);
+}
+.vl-net-node.bond .vl-net-ico {
+  stroke: var(--s-accent);
+}
+.vl-net-node.vlan .vl-net-ico {
+  stroke: var(--s-amber);
+}
+.vl-net-node.vm .vl-net-ico {
+  stroke: var(--s-amber);
+}
+.vl-net-node.external .vl-net-ico {
+  stroke: var(--s-muted);
+}
+.vl-net-node.nat .vl-net-ico {
+  stroke: var(--s-red);
+}
+.vl-net-tree-row.netns .vl-net-dotk {
+  background: var(--s-violet);
+}
+.vl-net-tree-row.eth .vl-net-dotk {
+  background: var(--s-blue);
+}
+.vl-net-tree-row.veth .vl-net-dotk {
+  background: var(--s-blue);
+}
+.vl-net-tree-row.bridge .vl-net-dotk {
+  background: var(--s-accent);
+}
+.vl-net-tree-row.bond .vl-net-dotk {
+  background: var(--s-accent);
+}
+.vl-net-tree-row.vlan .vl-net-dotk {
+  background: var(--s-amber);
+}
+.vl-net-tree-row.vm .vl-net-dotk {
+  background: var(--s-amber);
+}
+.vl-net-tree-row.external .vl-net-dotk {
+  background: var(--s-muted);
+}
+.vl-net-tree-row.nat .vl-net-dotk {
+  background: var(--s-red);
+}
+.vl-net-ops {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.vl-net-op.on {
+  border-color: var(--accent);
+}
+.vl-net-hophead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.vl-net-hophead p {
+  margin: 0;
+  font-size: 13px;
+}
+.vl-net-hops li {
+  display: flex;
+  gap: 8px;
+  padding: 4px 6px;
+  border-radius: 6px;
+}
+.vl-net-hops li.ok .vl-gm {
+  color: var(--s-accent);
+}
+.vl-net-hops li.bad,
+.vl-net-hops li.bad .vl-gm {
+  color: var(--s-red);
+}
+.vl-net-tree-head {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.vl-net-tree-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  padding-right: 6px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.vl-net-tree-row:hover,
+.vl-net-tree-row.on {
+  background: var(--panel-2);
+}
+.vl-net-dotk {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--s-muted);
+  flex: none;
+}
+.vl-net-nm {
+  font-weight: 600;
+}
+.vl-net-kd {
+  color: var(--muted);
+  font-size: 12px;
+}
+.vl-net-invalid {
+  color: var(--s-red);
+}
+.vl-net-hophead p.vl-no {
+  color: var(--s-red);
+}
+
+/* kinds of the LVM board */
+.vl-net-node.disk rect:first-of-type {
+  stroke: var(--s-muted);
+}
+.vl-net-node.pv rect:first-of-type,
+.vl-net-node.fs rect:first-of-type {
+  stroke: var(--s-blue);
+}
+.vl-net-node.vg rect:first-of-type {
+  stroke: var(--s-violet);
+}
+.vl-net-node.lv rect:first-of-type {
+  stroke: var(--s-green);
+}
+.vl-net-node.thin_pool rect:first-of-type,
+.vl-net-node.thin_lv rect:first-of-type {
+  stroke: var(--s-accent);
+}
+.vl-net-node.snapshot rect:first-of-type,
+.vl-net-node.vm rect:first-of-type {
+  stroke: var(--s-amber);
+}
+.vl-net-node.disk .vl-net-ico {
+  stroke: var(--s-muted);
+}
+.vl-net-node.pv .vl-net-ico,
+.vl-net-node.fs .vl-net-ico {
+  stroke: var(--s-blue);
+}
+.vl-net-node.vg .vl-net-ico {
+  stroke: var(--s-violet);
+}
+.vl-net-node.lv .vl-net-ico {
+  stroke: var(--s-green);
+}
+.vl-net-node.thin_pool .vl-net-ico,
+.vl-net-node.thin_lv .vl-net-ico {
+  stroke: var(--s-accent);
+}
+.vl-net-node.snapshot .vl-net-ico,
+.vl-net-node.vm .vl-net-ico {
+  stroke: var(--s-amber);
+}
+.vl-net-tree-row.disk .vl-net-dotk {
+  background: var(--s-muted);
+}
+.vl-net-tree-row.pv .vl-net-dotk,
+.vl-net-tree-row.fs .vl-net-dotk {
+  background: var(--s-blue);
+}
+.vl-net-tree-row.vg .vl-net-dotk {
+  background: var(--s-violet);
+}
+.vl-net-tree-row.lv .vl-net-dotk {
+  background: var(--s-green);
+}
+.vl-net-tree-row.thin_pool .vl-net-dotk,
+.vl-net-tree-row.thin_lv .vl-net-dotk {
+  background: var(--s-accent);
+}
+.vl-net-tree-row.snapshot .vl-net-dotk,
+.vl-net-tree-row.vm .vl-net-dotk {
+  background: var(--s-amber);
+}
+.vl-net-ops {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+.vl-net-ops select {
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font: inherit;
+}
+
 /* boards beside the results of the Python tasks of the oVirt book (read-only pictures) */
 .vl-pic {
   margin-top: 14px;

@@ -10,7 +10,8 @@
 //! * [`ovirt_fence`] — fencing a non-responsive oVirt host: soft fencing, cluster policy, power management (chapter 19);
 //! * [`ovirt_sched`] — the oVirt scheduler: filters, weights and anti-affinity (chapter 22);
 //! * [`ovirt_topo`] — the oVirt topology board (chapters 17–25);
-//! * [`lvm_board`] — the LVM board of the book "Linux Administration" (book 19, chapters 16 and 20): disks, groups, volumes, snapshots, thin pools.
+//! * [`lvm_board`] — the LVM board of the book "Linux Administration" (book 19, chapters 16 and 20): disks, groups, volumes, snapshots, thin pools;
+//! * [`net_board`] — the Linux network board of the same book (chapters 10–12): bridges, veth pairs, bonds, VLANs, namespaces, NAT.
 //!
 //! Model results of the first six simulators match the former TypeScript models (`frontend/src/virtlab`) bit for bit — this is checked by
 //! differential tests against "golden" data (`tests/golden/virt.json`, exported by `frontend/scripts/virt-export.mjs`).
@@ -32,6 +33,7 @@ pub mod hv;
 pub mod labfile;
 pub mod lvm_board;
 pub mod migration;
+pub mod net_board;
 pub mod numa;
 pub mod ovirt_dc;
 pub mod ovirt_fence;

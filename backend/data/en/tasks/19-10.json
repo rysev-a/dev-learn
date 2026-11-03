@@ -3,6 +3,12 @@
  "chapter": 10,
  "tasks": [
   {
+   "id": "virt-sim-net-bridge",
+   "title": "Network board: bridge, veth, VLAN",
+   "statement": "Build the network of a Linux host the way an administrator does: namespaces, veth pairs, bridges, virtual machine ports and VLAN tags. The board works out which interfaces have a link, which segment each address is in and whether a ping gets through. Five scenarios: put a bridge between two containers, separate two groups of machines with VLANs on one bridge, find a port with a foreign tag, find a virtual machine on the wrong bridge and bring up a veth end that is down. The exercise is solved when all scenarios are solved.",
+   "hint": "Select an interface and read its state and the reason on the right. A veth end is alive only while its peer end is alive. Bridge ports with different VLAN tags are different segments; the tag is set in the parameters of the port, and the address belongs to the bridge or the machine itself, not to the port."
+  },
+  {
    "id": "la10-stp-states",
    "title": "A bridge and STP port states",
    "statement": "Model a bridge without VLANs. ports is a dictionary {port: state}, where the state is one of disabled, blocking, listening, learning, forwarding. frames is a list of [ingress_port, source_mac, destination_mac]. Write a function bridge_run(ports, frames): return a tuple (outs, fdb), where outs has one item per frame: the sorted list of ports the bridge sent the frame to (an empty list if the frame is dropped or not sent anywhere), and fdb is the final dictionary {mac: port}. Rules in order. A frame with an invalid source (the lowest bit of the first byte is 1, i.e. a group address, or 00:00:00:00:00:00) is dropped without learning. A frame on a disabled, blocking or listening port is dropped without learning. Otherwise the source is learned: fdb[source] = ingress port (an existing entry is overwritten). A frame on a learning port is dropped after learning. A frame on a forwarding port is forwarded: if the destination is a group address (lowest bit of the first byte is 1, including ff:ff:ff:ff:ff:ff) or is not in fdb, the frame is flooded to all forwarding ports except the ingress port; if the destination is in fdb, the frame goes only to its port, provided that it is not the ingress port and is in the forwarding state, otherwise it goes nowhere.",

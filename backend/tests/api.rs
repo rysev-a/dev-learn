@@ -187,7 +187,7 @@ async fn ovirt_simulators_are_verified_by_the_server() {
     let (st, body) = put(17, "virt-sim-ovirt-dc", all(&trace)).await;
     assert_eq!(st, StatusCode::NO_CONTENT, "{body}");
 
-    // the boards (oVirt chapters 17-25 of book 17, LVM chapters 16 and 20 of book 19): the reference boards are accepted, the starting ones and boards that break a rule are not
+    // the boards (oVirt chapters 17-25 of book 17, LVM chapters 16 and 20 and Linux network chapters 10-12 of book 19): the reference boards are accepted, the starting ones and boards that break a rule are not
     let mut boards: Vec<(u32, u32, String)> = vec![];
     for entry in std::fs::read_dir("data/labs/virt").unwrap() {
         let path = entry.unwrap().path();
@@ -195,15 +195,22 @@ async fn ovirt_simulators_are_verified_by_the_server() {
         let (book, chapter) = stem.split_once('-').map(|(b, c)| (b.parse::<u32>().unwrap(), c.parse::<u32>().unwrap())).unwrap();
         let file: Value = serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
         for t in file["tasks"].as_array().unwrap() {
-            if t["spec"]["sim"] == "ovirt_topo" || t["spec"]["sim"] == "lvm_board" {
+            if ["ovirt_topo", "lvm_board", "net_board"].iter().any(|sim| t["spec"]["sim"] == *sim) {
                 boards.push((book, chapter, t["id"].as_str().unwrap().to_string()));
             }
         }
     }
     boards.sort();
-    assert!(boards.len() >= 14, "every board exercise is found: {boards:?}");
-    for lvm in ["virt-sim-lvm-grow", "virt-sim-lvm-resilience", "virt-sim-lvm-snapshots"] {
-        assert!(boards.iter().any(|(b, _, t)| *b == 19 && t == lvm), "{lvm} is a board exercise of book 19");
+    assert!(boards.len() >= 17, "every board exercise is found: {boards:?}");
+    for board in [
+        "virt-sim-lvm-grow",
+        "virt-sim-lvm-resilience",
+        "virt-sim-lvm-snapshots",
+        "virt-sim-net-bridge",
+        "virt-sim-net-bond",
+        "virt-sim-net-nat",
+    ] {
+        assert!(boards.iter().any(|(b, _, t)| *b == 19 && t == board), "{board} is a board exercise of book 19");
     }
     for (book, chapter, task) in boards.iter().map(|(b, c, t)| (*b, *c, t.as_str())) {
         let put = |solution: Value| {

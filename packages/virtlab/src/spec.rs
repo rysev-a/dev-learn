@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::error::SpecError;
 use crate::goal::Goal;
-use crate::{ept, hv, lvm_board, migration, numa, ovirt_dc, ovirt_fence, ovirt_sched, ovirt_topo, qcow2, virtq};
+use crate::{ept, hv, lvm_board, migration, net_board, numa, ovirt_dc, ovirt_fence, ovirt_sched, ovirt_topo, qcow2, virtq};
 
 /// Exercise identifiers of book 17 that are not board packs (also `Task::id`).
 pub const BASE_LAB_IDS: [&str; 9] = [
@@ -29,6 +29,7 @@ pub fn lab_ids() -> Vec<&'static str> {
     let mut ids = BASE_LAB_IDS.to_vec();
     ids.extend(ovirt_topo::pack_ids());
     ids.extend(lvm_board::pack_ids());
+    ids.extend(net_board::pack_ids());
     ids
 }
 
@@ -116,6 +117,14 @@ pub enum Spec {
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
         solution: BTreeMap<String, lvm_board::Topology>,
     },
+    /// The Linux network board (book 19, chapters 10–12): the goal is to assemble a network in which the pings of the scenario go through.
+    NetBoard {
+        /// Scenarios.
+        scenarios: Vec<net_board::Scenario>,
+        /// Reference boards by scenario identifier (the server strips this field before sending the exercise to the client).
+        #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+        solution: BTreeMap<String, net_board::Topology>,
+    },
 }
 
 /// qcow2 base layer as a list → map.
@@ -151,6 +160,7 @@ impl Spec {
             Spec::OvirtSched { .. } => "ovirt_sched",
             Spec::OvirtTopo { .. } => "ovirt_topo",
             Spec::LvmBoard { .. } => "lvm_board",
+            Spec::NetBoard { .. } => "net_board",
         }
     }
 
@@ -168,6 +178,7 @@ impl Spec {
             Spec::OvirtSched { scenarios } => scenarios.iter().map(ovirt_sched::Scenario::as_goal).collect(),
             Spec::OvirtTopo { scenarios, .. } => scenarios.iter().map(ovirt_topo::Scenario::as_goal).collect(),
             Spec::LvmBoard { scenarios, .. } => scenarios.iter().map(lvm_board::Scenario::as_goal).collect(),
+            Spec::NetBoard { scenarios, .. } => scenarios.iter().map(net_board::Scenario::as_goal).collect(),
         }
     }
 
@@ -257,6 +268,16 @@ impl Spec {
                     }
                 }
             }
+            Spec::NetBoard { scenarios, .. } => {
+                for s in scenarios {
+                    if s.palette.is_empty() || s.goals.is_empty() {
+                        return Err(SpecError::new(i18n::trf!("scenario {0}: no palette or no goals", s.id)));
+                    }
+                    if let Some(problem) = net_board::problems(&s.start).into_iter().next() {
+                        return Err(SpecError::new(i18n::trf!("scenario {0}: the starting board is invalid: {1}", s.id, problem.text)));
+                    }
+                }
+            }
         }
         Ok(())
     }
@@ -281,9 +302,11 @@ pub fn builtin(id: &str) -> Option<Spec> {
         _ => {
             if let Some((scenarios, solution)) = ovirt_topo::pack(id) {
                 Spec::OvirtTopo { scenarios, solution }
-            } else {
-                let (scenarios, solution) = lvm_board::pack(id)?;
+            } else if let Some((scenarios, solution)) = lvm_board::pack(id) {
                 Spec::LvmBoard { scenarios, solution }
+            } else {
+                let (scenarios, solution) = net_board::pack(id)?;
+                Spec::NetBoard { scenarios, solution }
             }
         }
     })

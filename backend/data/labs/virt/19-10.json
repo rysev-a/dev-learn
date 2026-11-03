@@ -1,0 +1,1003 @@
+{
+  "book": 19,
+  "chapter": 10,
+  "lab": "virt",
+  "tasks": [
+    {
+      "id": "virt-sim-net-bridge",
+      "title": "Доска сети: мост, veth, VLAN",
+      "statement": "Соберите сеть Linux-хоста так, как это делает администратор: пространства имён, пары veth, мосты, порты виртуальных машин и метки VLAN. Доска сама выводит, у каких интерфейсов есть связь, в каком сегменте лежит каждый адрес и дойдёт ли пинг. Пять сценариев: поставить мост между двумя контейнерами, развести две группы машин по VLAN на одном мосту, найти порт с чужой меткой, найти виртуальную машину на чужом мосту и поднять упавший конец veth. Упражнение решено, когда решены все сценарии.",
+      "hint": "Выберите интерфейс и посмотрите справа его состояние и причину. Конец veth живёт, только пока жив и его конец-пара. Порты моста с разными метками VLAN — разные сегменты; метка порта задаётся в параметрах порта, а адрес принадлежит самому мосту или машине, не порту.",
+      "spec": {
+        "sim": "net_board",
+        "scenarios": [
+          {
+            "id": "two-namespaces",
+            "title": "A bridge for two namespaces",
+            "story": "Two containers, ns1 and ns2, are connected to the host with veth pairs and have addresses in the same network. The host ends of the pairs lead nowhere: the containers cannot see each other. Put a bridge in the host and make the host ends its ports.",
+            "goal": "ns1 and ns2 ping each other through a bridge in the host",
+            "hint": "A bridge is an object of the namespace it works in: link the host to it, then link both host ends of the veth pairs to the bridge as ports.",
+            "palette": [
+              "bridge"
+            ],
+            "max_nodes": 12,
+            "start": {
+              "nodes": [
+                {
+                  "id": "host",
+                  "kind": "netns",
+                  "name": "host",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "ns1",
+                  "kind": "netns",
+                  "name": "ns1",
+                  "x": 70.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "ns2",
+                  "kind": "netns",
+                  "name": "ns2",
+                  "x": 70.0,
+                  "y": 220.0
+                },
+                {
+                  "id": "v1h",
+                  "kind": "veth",
+                  "name": "veth1-host",
+                  "x": 550.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "v1c",
+                  "kind": "veth",
+                  "name": "veth1-ns1",
+                  "x": 550.0,
+                  "y": 140.0,
+                  "params": {
+                    "net": "a"
+                  }
+                },
+                {
+                  "id": "v2h",
+                  "kind": "veth",
+                  "name": "veth2-host",
+                  "x": 550.0,
+                  "y": 220.0
+                },
+                {
+                  "id": "v2c",
+                  "kind": "veth",
+                  "name": "veth2-ns2",
+                  "x": 550.0,
+                  "y": 300.0,
+                  "params": {
+                    "net": "a"
+                  }
+                }
+              ],
+              "edges": [
+                {
+                  "from": "host",
+                  "to": "v1h"
+                },
+                {
+                  "from": "ns1",
+                  "to": "v1c"
+                },
+                {
+                  "from": "v1h",
+                  "to": "v1c"
+                },
+                {
+                  "from": "host",
+                  "to": "v2h"
+                },
+                {
+                  "from": "ns2",
+                  "to": "v2c"
+                },
+                {
+                  "from": "v2h",
+                  "to": "v2c"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "ping",
+                "from": "ns1",
+                "to": "ns2"
+              },
+              {
+                "kind": "has",
+                "node": "bridge",
+                "min": 1
+              },
+              {
+                "kind": "healthy"
+              }
+            ]
+          },
+          {
+            "id": "two-groups",
+            "title": "Two groups on one bridge",
+            "story": "Four VMs are plugged into one bridge. vm1 and vm2 belong to the shop, vm3 and vm4 to the office: the two groups must not see each other. The bridge is VLAN-aware: every port puts its own VLAN tag on the frames.",
+            "goal": "vm1 and vm2 see each other, vm3 and vm4 see each other, the groups are isolated",
+            "hint": "Give the ports of the shop one VLAN tag and the ports of the office another one. Ports with different tags are different segments.",
+            "palette": [
+              "vm"
+            ],
+            "max_nodes": 10,
+            "start": {
+              "nodes": [
+                {
+                  "id": "host",
+                  "kind": "netns",
+                  "name": "host",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "br0",
+                  "kind": "bridge",
+                  "name": "br0",
+                  "x": 430.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "vm1",
+                  "kind": "vm",
+                  "name": "vm1",
+                  "x": 550.0,
+                  "y": 380.0,
+                  "params": {
+                    "net": "a"
+                  }
+                },
+                {
+                  "id": "vm2",
+                  "kind": "vm",
+                  "name": "vm2",
+                  "x": 550.0,
+                  "y": 460.0,
+                  "params": {
+                    "net": "a"
+                  }
+                },
+                {
+                  "id": "vm3",
+                  "kind": "vm",
+                  "name": "vm3",
+                  "x": 550.0,
+                  "y": 540.0,
+                  "params": {
+                    "net": "a"
+                  }
+                },
+                {
+                  "id": "vm4",
+                  "kind": "vm",
+                  "name": "vm4",
+                  "x": 550.0,
+                  "y": 620.0,
+                  "params": {
+                    "net": "a"
+                  }
+                }
+              ],
+              "edges": [
+                {
+                  "from": "host",
+                  "to": "br0"
+                },
+                {
+                  "from": "vm1",
+                  "to": "br0"
+                },
+                {
+                  "from": "vm2",
+                  "to": "br0"
+                },
+                {
+                  "from": "vm3",
+                  "to": "br0"
+                },
+                {
+                  "from": "vm4",
+                  "to": "br0"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "ping",
+                "from": "vm1",
+                "to": "vm2"
+              },
+              {
+                "kind": "ping",
+                "from": "vm3",
+                "to": "vm4"
+              },
+              {
+                "kind": "no_ping",
+                "from": "vm1",
+                "to": "vm3"
+              },
+              {
+                "kind": "no_ping",
+                "from": "vm2",
+                "to": "vm4"
+              },
+              {
+                "kind": "healthy"
+              }
+            ]
+          },
+          {
+            "id": "wrong-vlan",
+            "title": "A port in the wrong VLAN",
+            "story": "The shop is vm1, vm2 and vm3 (VLAN 10), the office is vm4 (VLAN 20). vm3 cannot reach the rest of the shop: its port was given the tag of the office.",
+            "goal": "vm3 joins the shop, and the office stays isolated",
+            "hint": "Look at the VLAN tag of the port of vm3. Do not simply remove the tags: vm4 must stay isolated.",
+            "palette": [
+              "vm"
+            ],
+            "max_nodes": 10,
+            "start": {
+              "nodes": [
+                {
+                  "id": "host",
+                  "kind": "netns",
+                  "name": "host",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "br0",
+                  "kind": "bridge",
+                  "name": "br0",
+                  "x": 430.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "vm1",
+                  "kind": "vm",
+                  "name": "vm1",
+                  "x": 550.0,
+                  "y": 380.0,
+                  "params": {
+                    "access_vlan": "10",
+                    "net": "a"
+                  }
+                },
+                {
+                  "id": "vm2",
+                  "kind": "vm",
+                  "name": "vm2",
+                  "x": 550.0,
+                  "y": 460.0,
+                  "params": {
+                    "access_vlan": "10",
+                    "net": "a"
+                  }
+                },
+                {
+                  "id": "vm3",
+                  "kind": "vm",
+                  "name": "vm3",
+                  "x": 550.0,
+                  "y": 540.0,
+                  "params": {
+                    "access_vlan": "20",
+                    "net": "a"
+                  }
+                },
+                {
+                  "id": "vm4",
+                  "kind": "vm",
+                  "name": "vm4",
+                  "x": 550.0,
+                  "y": 620.0,
+                  "params": {
+                    "access_vlan": "20",
+                    "net": "a"
+                  }
+                }
+              ],
+              "edges": [
+                {
+                  "from": "host",
+                  "to": "br0"
+                },
+                {
+                  "from": "vm1",
+                  "to": "br0"
+                },
+                {
+                  "from": "vm2",
+                  "to": "br0"
+                },
+                {
+                  "from": "vm3",
+                  "to": "br0"
+                },
+                {
+                  "from": "vm4",
+                  "to": "br0"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "ping",
+                "from": "vm1",
+                "to": "vm2"
+              },
+              {
+                "kind": "ping",
+                "from": "vm1",
+                "to": "vm3"
+              },
+              {
+                "kind": "no_ping",
+                "from": "vm1",
+                "to": "vm4"
+              },
+              {
+                "kind": "healthy"
+              }
+            ]
+          },
+          {
+            "id": "wrong-bridge",
+            "title": "The tap on the wrong bridge",
+            "story": "The host has two bridges, br0 for the production VMs and br1 for the test VMs. vm3 is a production machine, but its tap was plugged into the test bridge, so vm1 and vm2 cannot see it.",
+            "goal": "vm3 is on the production bridge with vm1 and vm2, and the test bridge stays separate",
+            "hint": "A tap is a port of exactly one bridge: remove the link to br1 and link the VM to br0.",
+            "palette": [
+              "vm"
+            ],
+            "max_nodes": 12,
+            "start": {
+              "nodes": [
+                {
+                  "id": "host",
+                  "kind": "netns",
+                  "name": "host",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "br0",
+                  "kind": "bridge",
+                  "name": "br0",
+                  "x": 430.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "br1",
+                  "kind": "bridge",
+                  "name": "br1",
+                  "x": 430.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "vm1",
+                  "kind": "vm",
+                  "name": "vm1",
+                  "x": 550.0,
+                  "y": 380.0,
+                  "params": {
+                    "net": "a"
+                  }
+                },
+                {
+                  "id": "vm2",
+                  "kind": "vm",
+                  "name": "vm2",
+                  "x": 550.0,
+                  "y": 460.0,
+                  "params": {
+                    "net": "a"
+                  }
+                },
+                {
+                  "id": "vm3",
+                  "kind": "vm",
+                  "name": "vm3",
+                  "x": 550.0,
+                  "y": 540.0,
+                  "params": {
+                    "net": "a"
+                  }
+                },
+                {
+                  "id": "vm4",
+                  "kind": "vm",
+                  "name": "vm4",
+                  "x": 550.0,
+                  "y": 620.0,
+                  "params": {
+                    "net": "a"
+                  }
+                }
+              ],
+              "edges": [
+                {
+                  "from": "host",
+                  "to": "br0"
+                },
+                {
+                  "from": "host",
+                  "to": "br1"
+                },
+                {
+                  "from": "vm1",
+                  "to": "br0"
+                },
+                {
+                  "from": "vm2",
+                  "to": "br0"
+                },
+                {
+                  "from": "vm3",
+                  "to": "br1"
+                },
+                {
+                  "from": "vm4",
+                  "to": "br1"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "ping",
+                "from": "vm1",
+                "to": "vm3"
+              },
+              {
+                "kind": "ping",
+                "from": "vm3",
+                "to": "vm2"
+              },
+              {
+                "kind": "no_ping",
+                "from": "vm1",
+                "to": "vm4"
+              },
+              {
+                "kind": "healthy"
+              }
+            ]
+          },
+          {
+            "id": "link-down",
+            "title": "The container has no link",
+            "story": "The container ns1 should reach the host through the address of the bridge br0, but the ping fails and the bridge has no carrier. A veth end has a link only when both ends of the pair are up.",
+            "goal": "ns1 pings the host, and every interface has a link",
+            "hint": "Look at the state of every interface on the board: the container end of the pair is down, and that takes the host end and the bridge down with it.",
+            "palette": [
+              "veth"
+            ],
+            "max_nodes": 8,
+            "start": {
+              "nodes": [
+                {
+                  "id": "host",
+                  "kind": "netns",
+                  "name": "host",
+                  "x": 70.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "ns1",
+                  "kind": "netns",
+                  "name": "ns1",
+                  "x": 70.0,
+                  "y": 140.0
+                },
+                {
+                  "id": "br0",
+                  "kind": "bridge",
+                  "name": "br0",
+                  "x": 430.0,
+                  "y": 60.0,
+                  "params": {
+                    "net": "a"
+                  }
+                },
+                {
+                  "id": "v1h",
+                  "kind": "veth",
+                  "name": "veth1-host",
+                  "x": 550.0,
+                  "y": 60.0
+                },
+                {
+                  "id": "v1c",
+                  "kind": "veth",
+                  "name": "veth1-ns1",
+                  "x": 550.0,
+                  "y": 140.0,
+                  "params": {
+                    "net": "a",
+                    "up": false
+                  }
+                }
+              ],
+              "edges": [
+                {
+                  "from": "host",
+                  "to": "br0"
+                },
+                {
+                  "from": "host",
+                  "to": "v1h"
+                },
+                {
+                  "from": "ns1",
+                  "to": "v1c"
+                },
+                {
+                  "from": "v1h",
+                  "to": "v1c"
+                },
+                {
+                  "from": "v1h",
+                  "to": "br0"
+                }
+              ]
+            },
+            "goals": [
+              {
+                "kind": "ping",
+                "from": "ns1",
+                "to": "host"
+              },
+              {
+                "kind": "healthy"
+              }
+            ]
+          }
+        ],
+        "solution": {
+          "link-down": {
+            "nodes": [
+              {
+                "id": "host",
+                "kind": "netns",
+                "name": "host",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "ns1",
+                "kind": "netns",
+                "name": "ns1",
+                "x": 70.0,
+                "y": 140.0
+              },
+              {
+                "id": "br0",
+                "kind": "bridge",
+                "name": "br0",
+                "x": 430.0,
+                "y": 60.0,
+                "params": {
+                  "net": "a"
+                }
+              },
+              {
+                "id": "v1h",
+                "kind": "veth",
+                "name": "veth1-host",
+                "x": 550.0,
+                "y": 60.0
+              },
+              {
+                "id": "v1c",
+                "kind": "veth",
+                "name": "veth1-ns1",
+                "x": 550.0,
+                "y": 140.0,
+                "params": {
+                  "net": "a"
+                }
+              }
+            ],
+            "edges": [
+              {
+                "from": "host",
+                "to": "br0"
+              },
+              {
+                "from": "host",
+                "to": "v1h"
+              },
+              {
+                "from": "ns1",
+                "to": "v1c"
+              },
+              {
+                "from": "v1h",
+                "to": "v1c"
+              },
+              {
+                "from": "v1h",
+                "to": "br0"
+              }
+            ]
+          },
+          "two-groups": {
+            "nodes": [
+              {
+                "id": "host",
+                "kind": "netns",
+                "name": "host",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "br0",
+                "kind": "bridge",
+                "name": "br0",
+                "x": 430.0,
+                "y": 60.0
+              },
+              {
+                "id": "vm1",
+                "kind": "vm",
+                "name": "vm1",
+                "x": 550.0,
+                "y": 380.0,
+                "params": {
+                  "access_vlan": "10",
+                  "net": "a"
+                }
+              },
+              {
+                "id": "vm2",
+                "kind": "vm",
+                "name": "vm2",
+                "x": 550.0,
+                "y": 460.0,
+                "params": {
+                  "access_vlan": "10",
+                  "net": "a"
+                }
+              },
+              {
+                "id": "vm3",
+                "kind": "vm",
+                "name": "vm3",
+                "x": 550.0,
+                "y": 540.0,
+                "params": {
+                  "access_vlan": "20",
+                  "net": "a"
+                }
+              },
+              {
+                "id": "vm4",
+                "kind": "vm",
+                "name": "vm4",
+                "x": 550.0,
+                "y": 620.0,
+                "params": {
+                  "access_vlan": "20",
+                  "net": "a"
+                }
+              }
+            ],
+            "edges": [
+              {
+                "from": "host",
+                "to": "br0"
+              },
+              {
+                "from": "vm1",
+                "to": "br0"
+              },
+              {
+                "from": "vm2",
+                "to": "br0"
+              },
+              {
+                "from": "vm3",
+                "to": "br0"
+              },
+              {
+                "from": "vm4",
+                "to": "br0"
+              }
+            ]
+          },
+          "two-namespaces": {
+            "nodes": [
+              {
+                "id": "host",
+                "kind": "netns",
+                "name": "host",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "ns1",
+                "kind": "netns",
+                "name": "ns1",
+                "x": 70.0,
+                "y": 140.0
+              },
+              {
+                "id": "ns2",
+                "kind": "netns",
+                "name": "ns2",
+                "x": 70.0,
+                "y": 220.0
+              },
+              {
+                "id": "v1h",
+                "kind": "veth",
+                "name": "veth1-host",
+                "x": 550.0,
+                "y": 60.0
+              },
+              {
+                "id": "v1c",
+                "kind": "veth",
+                "name": "veth1-ns1",
+                "x": 550.0,
+                "y": 140.0,
+                "params": {
+                  "net": "a"
+                }
+              },
+              {
+                "id": "v2h",
+                "kind": "veth",
+                "name": "veth2-host",
+                "x": 550.0,
+                "y": 220.0
+              },
+              {
+                "id": "v2c",
+                "kind": "veth",
+                "name": "veth2-ns2",
+                "x": 550.0,
+                "y": 300.0,
+                "params": {
+                  "net": "a"
+                }
+              },
+              {
+                "id": "br0",
+                "kind": "bridge",
+                "name": "br0",
+                "x": 430.0,
+                "y": 60.0
+              }
+            ],
+            "edges": [
+              {
+                "from": "host",
+                "to": "v1h"
+              },
+              {
+                "from": "ns1",
+                "to": "v1c"
+              },
+              {
+                "from": "v1h",
+                "to": "v1c"
+              },
+              {
+                "from": "host",
+                "to": "v2h"
+              },
+              {
+                "from": "ns2",
+                "to": "v2c"
+              },
+              {
+                "from": "v2h",
+                "to": "v2c"
+              },
+              {
+                "from": "host",
+                "to": "br0"
+              },
+              {
+                "from": "v1h",
+                "to": "br0"
+              },
+              {
+                "from": "v2h",
+                "to": "br0"
+              }
+            ]
+          },
+          "wrong-bridge": {
+            "nodes": [
+              {
+                "id": "host",
+                "kind": "netns",
+                "name": "host",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "br0",
+                "kind": "bridge",
+                "name": "br0",
+                "x": 430.0,
+                "y": 60.0
+              },
+              {
+                "id": "br1",
+                "kind": "bridge",
+                "name": "br1",
+                "x": 430.0,
+                "y": 140.0
+              },
+              {
+                "id": "vm1",
+                "kind": "vm",
+                "name": "vm1",
+                "x": 550.0,
+                "y": 380.0,
+                "params": {
+                  "net": "a"
+                }
+              },
+              {
+                "id": "vm2",
+                "kind": "vm",
+                "name": "vm2",
+                "x": 550.0,
+                "y": 460.0,
+                "params": {
+                  "net": "a"
+                }
+              },
+              {
+                "id": "vm3",
+                "kind": "vm",
+                "name": "vm3",
+                "x": 550.0,
+                "y": 540.0,
+                "params": {
+                  "net": "a"
+                }
+              },
+              {
+                "id": "vm4",
+                "kind": "vm",
+                "name": "vm4",
+                "x": 550.0,
+                "y": 620.0,
+                "params": {
+                  "net": "a"
+                }
+              }
+            ],
+            "edges": [
+              {
+                "from": "host",
+                "to": "br0"
+              },
+              {
+                "from": "host",
+                "to": "br1"
+              },
+              {
+                "from": "vm1",
+                "to": "br0"
+              },
+              {
+                "from": "vm2",
+                "to": "br0"
+              },
+              {
+                "from": "vm4",
+                "to": "br1"
+              },
+              {
+                "from": "vm3",
+                "to": "br0"
+              }
+            ]
+          },
+          "wrong-vlan": {
+            "nodes": [
+              {
+                "id": "host",
+                "kind": "netns",
+                "name": "host",
+                "x": 70.0,
+                "y": 60.0
+              },
+              {
+                "id": "br0",
+                "kind": "bridge",
+                "name": "br0",
+                "x": 430.0,
+                "y": 60.0
+              },
+              {
+                "id": "vm1",
+                "kind": "vm",
+                "name": "vm1",
+                "x": 550.0,
+                "y": 380.0,
+                "params": {
+                  "access_vlan": "10",
+                  "net": "a"
+                }
+              },
+              {
+                "id": "vm2",
+                "kind": "vm",
+                "name": "vm2",
+                "x": 550.0,
+                "y": 460.0,
+                "params": {
+                  "access_vlan": "10",
+                  "net": "a"
+                }
+              },
+              {
+                "id": "vm3",
+                "kind": "vm",
+                "name": "vm3",
+                "x": 550.0,
+                "y": 540.0,
+                "params": {
+                  "access_vlan": "10",
+                  "net": "a"
+                }
+              },
+              {
+                "id": "vm4",
+                "kind": "vm",
+                "name": "vm4",
+                "x": 550.0,
+                "y": 620.0,
+                "params": {
+                  "access_vlan": "20",
+                  "net": "a"
+                }
+              }
+            ],
+            "edges": [
+              {
+                "from": "host",
+                "to": "br0"
+              },
+              {
+                "from": "vm1",
+                "to": "br0"
+              },
+              {
+                "from": "vm2",
+                "to": "br0"
+              },
+              {
+                "from": "vm3",
+                "to": "br0"
+              },
+              {
+                "from": "vm4",
+                "to": "br0"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}
