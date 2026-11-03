@@ -119,17 +119,28 @@ impl Client {
 
     // --- voice recordings for slides (authoring tool) ---------------------------------------
 
-    /// Upload a slide recording to the server: the body is the file as is, the type comes from the `Blob`. The recording belongs to the interface language
-    /// (the server's `Accept-Language`); the response is the path on the server disk and the address the player plays it from. Administrators only.
-    pub async fn upload_record(&self, book: i64, chapter: i64, slide: usize, blob: &web_sys::Blob) -> Result<(String, String), ApiError> {
+    /// Upload a slide recording to the server as a new take: the body is the file as is, the type comes from the `Blob`. The recording belongs to the
+    /// interface language (the server's `Accept-Language`); the response is the path on the server disk and the slide's state. Administrators only.
+    pub async fn upload_record(&self, book: i64, chapter: i64, slide: usize, blob: &web_sys::Blob) -> Result<(String, Takes), ApiError> {
         let v = self.send(Method::POST, &format!("/api/records/{book}/{chapter}/{slide}"), Payload::Blob(blob)).await?;
-        let text = |key: &str| v.get(key).and_then(Value::as_str).unwrap_or_default().to_string();
-        Ok((text("path"), text("audio")))
+        let path = v.get("path").and_then(Value::as_str).unwrap_or_default().to_string();
+        let takes = serde_json::from_value(v).map_err(|e| ApiError { status: 0, message: i18n::trf!("Unexpected server response ({}): {}", "records", e) })?;
+        Ok((path, takes))
     }
 
-    /// Delete the slide's recording in the interface language. Administrators only; 404 if there is none.
-    pub async fn delete_record(&self, book: i64, chapter: i64, slide: usize) -> Result<(), ApiError> {
-        self.delete(&format!("/api/records/{book}/{chapter}/{slide}")).await
+    /// The slide's takes in the interface language. Administrators only.
+    pub async fn records(&self, book: i64, chapter: i64, slide: usize) -> Result<Takes, ApiError> {
+        self.get(&format!("/api/records/{book}/{chapter}/{slide}")).await
+    }
+
+    /// Choose the take that voices the slide.
+    pub async fn select_record(&self, book: i64, chapter: i64, slide: usize, take: i64) -> Result<Takes, ApiError> {
+        self.call(Method::PUT, &format!("/api/records/{book}/{chapter}/{slide}/selected"), Payload::Json(serde_json::json!({ "id": take }))).await
+    }
+
+    /// Delete a take (404 if there is none); the response is the slide's state.
+    pub async fn delete_record(&self, book: i64, chapter: i64, slide: usize, take: i64) -> Result<Takes, ApiError> {
+        self.call(Method::DELETE, &format!("/api/records/{book}/{chapter}/{slide}/{take}"), Payload::None).await
     }
 
     // --- progress -----------------------------------------------------------------------------

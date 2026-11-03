@@ -1,87 +1,106 @@
 import type { APIRequestContext, Page } from "@playwright/test";
 import { expect, loginViaApi, test } from "../../support/fixtures";
+import { ADMIN, clearRecords, record } from "../../support/records";
 import { assertCleanBut404, DM1, loadChapter } from "../../support/shell";
 
-/* Slide recordings (author tool, administrators only): one set per language, a delete button for the shown slide. The recordings are put
-   on the server through the API (a real microphone is not available in the test browser). */
-
-const ADMIN = { email: "programmer@mail.com", password: "programmer" };
-
-/** One second of silence as a 16-bit mono WAV. */
-function wav(): Buffer {
-  const data = Buffer.alloc(16000);
-  const head = Buffer.alloc(44);
-  head.write("RIFF", 0);
-  head.writeUInt32LE(36 + data.length, 4);
-  head.write("WAVEfmt ", 8);
-  head.writeUInt32LE(16, 16);
-  head.writeUInt16LE(1, 20);
-  head.writeUInt16LE(1, 22);
-  head.writeUInt32LE(8000, 24);
-  head.writeUInt32LE(16000, 28);
-  head.writeUInt16LE(2, 32);
-  head.writeUInt16LE(16, 34);
-  head.write("data", 36);
-  head.writeUInt32LE(data.length, 40);
-  return Buffer.concat([head, data]);
-}
-
-async function record(request: APIRequestContext, token: string, chapter: number, slide: number, lang: "ru" | "en") {
-  const res = await request.post(`/api/records/12/${chapter}/${slide}?lang=${lang}`, { headers: { Authorization: `Bearer ${token}`, "Content-Type": "audio/wav" }, data: wav() });
-  expect(res.ok(), `record ${lang} ${slide}: ${res.status()}`).toBeTruthy();
-}
+/* Slide recordings (author tool, administrators only): every Record is a new take, a set of takes per language, the burger next to "Play" opens
+   a window where the take that voices the slide is chosen and takes are deleted. Takes are mostly put on the server through the API;
+   one test records through the interface with the browser's fake microphone. */
 
 const durations = async (request: APIRequestContext, id: number, lang: "ru" | "en") => {
   const res = await request.get(`/api/chapters/${id}?lang=${lang}`);
   return ((await res.json()) as { lessons: { dur: number }[] }).lessons.slice(0, 3).map((l) => l.dur);
 };
 
-const del = (page: Page) => page.locator(".slide-rec-del");
+const burger = (page: Page) => page.locator(".slide-rec-menu");
+const dialog = (page: Page) => page.locator(".rd.open");
+const rows = (page: Page) => page.locator(".rd-row");
 
-test("the delete button is shown for a slide with a recording and removes only the recording of the interface language", async ({ page, request, guard }) => {
+test("the burger opens the window with the takes: the first is chosen, another can be chosen and deleted", async ({ page, request, guard }) => {
   const token = await loginViaApi(page, request, ADMIN);
   const ch = await loadChapter(request, DM1);
-  await record(request, token, ch.num, 0, "ru");
-  await record(request, token, ch.num, 1, "en");
+  await clearRecords(request, token, ch.num);
+  await record(request, token, ch.num, 0, "ru", 1);
+  await record(request, token, ch.num, 0, "ru", 2);
+  await record(request, token, ch.num, 1, "en", 1);
   await page.goto(`/book/12/chapter/${ch.id}`);
   await expect(page.locator(".slide-rec")).toBeVisible();
+  await expect(dialog(page)).toHaveCount(0);
 
-  // the Russian interface: slide 1 has a recording, slide 2 only has an English one
-  await expect(del(page)).toBeVisible();
+  // by default the first take voices the slide
+  expect(await durations(request, ch.id, "ru")).toEqual([1, 0, 0]);
+  await burger(page).click();
+  await expect(dialog(page)).toBeVisible();
+  await expect(rows(page)).toHaveCount(2);
+  await expect(rows(page).nth(0)).toHaveClass(/on/);
+  await expect(rows(page).nth(1)).not.toHaveClass(/on/);
+  await expect(rows(page).nth(0).locator(".rd-meta")).toContainText("0:01");
+  await expect(rows(page).nth(1).locator(".rd-meta")).toContainText("0:02");
+
+  // choosing the second one
+  await rows(page).nth(1).locator(".rd-pick").click();
+  await expect(rows(page).nth(1)).toHaveClass(/on/);
+  await expect(rows(page).nth(0)).not.toHaveClass(/on/);
+  expect(await durations(request, ch.id, "ru")).toEqual([2, 0, 0]);
+
+  // the window shows the shown slide: another slide has no takes in this language
+  await page.keyboard.press("Escape");
+  await expect(dialog(page)).toHaveCount(0);
   await page.locator(".slide-dot").nth(1).click();
-  await expect(del(page)).toHaveCount(0);
+  await burger(page).click();
+  await expect(page.locator(".rd-note")).toContainText("Записей пока нет");
+  await page.locator(".rd-backdrop").click({ position: { x: 5, y: 5 } });
+  await expect(dialog(page)).toHaveCount(0);
   await page.locator(".slide-dot").nth(0).click();
 
-  // cancelling the confirmation keeps the recording
+  // cancelling the confirmation keeps the take; deleting the chosen one makes the first voice the slide
+  await burger(page).click();
   page.once("dialog", (d) => void d.dismiss());
-  await del(page).click();
-  await expect(del(page)).toBeVisible();
+  await rows(page).nth(1).locator(".rd-del").click();
+  await expect(rows(page)).toHaveCount(2);
+  page.once("dialog", (d) => void d.accept());
+  await rows(page).nth(1).locator(".rd-del").click();
+  await expect(rows(page)).toHaveCount(1);
+  await expect(rows(page).nth(0)).toHaveClass(/on/);
   expect(await durations(request, ch.id, "ru")).toEqual([1, 0, 0]);
+  expect(await durations(request, ch.id, "en"), "the English take is untouched").toEqual([0, 1, 0]);
 
+  // deleting the last take: the slide is silent again
   page.once("dialog", (d) => void d.accept());
-  await del(page).click();
-  await expect(del(page)).toHaveCount(0);
-  await expect(page.locator(".slide-rec-status")).toHaveText("Запись удалена");
+  await rows(page).nth(0).locator(".rd-del").click();
+  await expect(page.locator(".rd-note")).toContainText("Записей пока нет");
   expect(await durations(request, ch.id, "ru")).toEqual([0, 0, 0]);
-  expect(await durations(request, ch.id, "en"), "the English recording is untouched").toEqual([0, 1, 0]);
+  await clearRecords(request, token, ch.num);
   assertCleanBut404(guard);
-
-  // clean up the English one through the English interface
-  await page.addInitScript(() => window.localStorage.setItem("cs-core-lang", "en"));
-  await page.goto(`/book/12/chapter/${ch.id}`);
-  await page.locator(".slide-dot").nth(1).click();
-  await expect(del(page)).toBeVisible();
-  page.once("dialog", (d) => void d.accept());
-  await del(page).click();
-  await expect(del(page)).toHaveCount(0);
-  expect(await durations(request, ch.id, "en")).toEqual([0, 0, 0]);
 });
 
-test("a student does not see the record and delete buttons", async ({ page, request }) => {
+test("the English interface has its own takes", async ({ page, request }) => {
+  const token = await loginViaApi(page, request, ADMIN);
+  const ch = await loadChapter(request, DM1);
+  await clearRecords(request, token, ch.num);
+  await record(request, token, ch.num, 0, "ru");
+  await record(request, token, ch.num, 1, "en");
+  await page.addInitScript(() => window.localStorage.setItem("cs-core-lang", "en"));
+  await page.goto(`/book/12/chapter/${ch.id}`);
+  await burger(page).click();
+  await expect(page.locator(".rd-note")).toContainText("No recordings yet"); // slide 1 has only a Russian take
+  await page.keyboard.press("Escape");
+  await page.locator(".slide-dot").nth(1).click();
+  await burger(page).click();
+  await expect(rows(page)).toHaveCount(1);
+  page.once("dialog", (d) => void d.accept());
+  await rows(page).nth(0).locator(".rd-del").click();
+  await expect(page.locator(".rd-note")).toContainText("No recordings yet");
+  expect(await durations(request, ch.id, "en")).toEqual([0, 0, 0]);
+  expect(await durations(request, ch.id, "ru"), "the Russian take is untouched").toEqual([1, 0, 0]);
+  await clearRecords(request, token, ch.num);
+});
+
+test("a student does not see the record button and the burger", async ({ page, request }) => {
   await loginViaApi(page, request);
   const ch = await loadChapter(request, DM1);
   await page.goto(`/book/12/chapter/${ch.id}`);
   await expect(page.locator(".slide-panel-head")).toBeVisible();
   await expect(page.locator(".slide-rec")).toHaveCount(0);
-  await expect(del(page)).toHaveCount(0);
+  await expect(burger(page)).toHaveCount(0);
 });

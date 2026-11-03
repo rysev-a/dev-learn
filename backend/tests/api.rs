@@ -3,7 +3,7 @@
 
 use axum::{
     body::Body,
-    http::{header, Method, Request, StatusCode},
+    http::{header, Method, Request, Response, StatusCode},
     Router,
 };
 use http_body_util::BodyExt;
@@ -702,22 +702,23 @@ async fn slide_recordings_are_saved_by_administrators_only() {
     let admin = body["token"].as_str().unwrap().to_string();
     let student = sign_in(&app, "student@mail.com").await;
 
-    // students and guests cannot write to disk
+    // students and guests cannot write to disk, list or delete
     assert_eq!(upload(&app, &student, "/api/records/13/1/2", "audio/webm;codecs=opus", b"webm").await.0, StatusCode::FORBIDDEN);
     assert_eq!(call(&app, Method::POST, "/api/records/13/1/2", None, None).await.0, StatusCode::UNAUTHORIZED);
+    assert_eq!(call(&app, Method::GET, "/api/records/13/1/2", Some(&student), None).await.0, StatusCode::FORBIDDEN);
 
-    // admin: the file goes to <book>/<chapter>/<slide>.<extension by type>
+    // admin: every upload is a new take <book>/<chapter>/<slide>/<take>.<extension by type>; takes are not replaced
     let (st, saved) = upload(&app, &admin, "/api/records/13/1/2", "audio/webm;codecs=opus", b"webm-bytes").await;
     assert_eq!(st, StatusCode::OK, "{saved}");
-    let path = dir.join("13").join("1").join("2.webm");
-    assert_eq!(saved["path"].as_str().unwrap(), path.to_string_lossy());
+    let take1 = dir.join("13").join("1").join("2").join("1.webm");
+    assert_eq!((saved["id"].as_i64(), saved["path"].as_str().unwrap()), (Some(1), take1.to_string_lossy().as_ref()));
     assert_eq!(saved["bytes"], 10);
-    assert_eq!(std::fs::read(&path).unwrap(), b"webm-bytes");
-
-    // a slide has one file: a new recording in another container replaces the old one
-    assert_eq!(upload(&app, &admin, "/api/records/13/1/2", "audio/mp4", b"m4a").await.0, StatusCode::OK);
-    assert!(!path.exists(), "the old webm is removed");
-    assert_eq!(std::fs::read(dir.join("13").join("1").join("2.m4a")).unwrap(), b"m4a");
+    assert_eq!(std::fs::read(&take1).unwrap(), b"webm-bytes");
+    assert_eq!(upload(&app, &admin, "/api/records/13/1/2", "audio/mp4", b"m4a").await.1["id"], 2);
+    assert!(take1.exists(), "the first take stays");
+    assert_eq!(std::fs::read(dir.join("13").join("1").join("2").join("2.m4a")).unwrap(), b"m4a");
+    // a format the player cannot seek in is kept on disk but is not offered as a take
+    assert_eq!(call(&app, Method::GET, "/api/records/13/1/2", Some(&admin), None).await.1["takes"], json!([]));
 
     // an unknown type and an empty body are rejected
     assert_eq!(upload(&app, &admin, "/api/records/13/1/3", "text/plain", b"x").await.0, StatusCode::UNPROCESSABLE_ENTITY);
@@ -727,63 +728,98 @@ async fn slide_recordings_are_saved_by_administrators_only() {
     // a WAV recording is the slide's voice-over: the chapter gets its address and duration, the file is served with Range (rewinding)
     let (_, course) = call(&app, Method::GET, "/api/books/13/course", None, None).await;
     let chapter_id = course.as_array().unwrap().iter().flat_map(|s| s["chapters"].as_array().unwrap().iter()).find(|c| c["num"] == 1).unwrap()["id"].clone();
-    let chapter = |app: &Router| {
-        let (app, uri) = (app.clone(), format!("/api/chapters/{chapter_id}"));
+    let chapter = |app: &Router, lang: &'static str| {
+        let (app, uri) = (app.clone(), format!("/api/chapters/{chapter_id}?lang={lang}"));
         async move { call(&app, Method::GET, &uri, None, None).await.1 }
     };
-    assert_eq!(chapter(&app).await["lessons"][0]["dur"], 0.0, "no recording - no sound");
-    let mut wav = Vec::new();
-    wav.extend_from_slice(b"RIFF");
-    wav.extend_from_slice(&(36u32 + 16000).to_le_bytes());
-    wav.extend_from_slice(b"WAVEfmt ");
-    wav.extend_from_slice(&[16, 0, 0, 0, 1, 0, 1, 0]);
-    wav.extend_from_slice(&8000u32.to_le_bytes());
-    wav.extend_from_slice(&16000u32.to_le_bytes());
-    wav.extend_from_slice(&[2, 0, 16, 0]);
-    wav.extend_from_slice(b"data");
-    wav.extend_from_slice(&16000u32.to_le_bytes());
-    wav.extend_from_slice(&vec![0u8; 16000]);
-    assert_eq!(upload(&app, &admin, "/api/records/13/1/0", "audio/wav", &wav).await.0, StatusCode::OK);
-    let lessons = chapter(&app).await["lessons"].clone();
+    assert_eq!(chapter(&app, "ru").await["lessons"][0]["dur"], 0.0, "no recording - no sound");
+    let wav_of = |seconds: usize| {
+        let data = vec![0u8; 16000 * seconds];
+        let mut wav = Vec::new();
+        wav.extend_from_slice(b"RIFF");
+        wav.extend_from_slice(&(36 + data.len() as u32).to_le_bytes());
+        wav.extend_from_slice(b"WAVEfmt ");
+        wav.extend_from_slice(&[16, 0, 0, 0, 1, 0, 1, 0]);
+        wav.extend_from_slice(&8000u32.to_le_bytes());
+        wav.extend_from_slice(&16000u32.to_le_bytes());
+        wav.extend_from_slice(&[2, 0, 16, 0]);
+        wav.extend_from_slice(b"data");
+        wav.extend_from_slice(&(data.len() as u32).to_le_bytes());
+        wav.extend_from_slice(&data);
+        wav
+    };
+    let first = upload(&app, &admin, "/api/records/13/1/0", "audio/wav", &wav_of(1)).await.1;
+    assert_eq!((first["id"].clone(), first["selected"].clone(), first["dur"].clone()), (json!(1), json!(1), json!(1.0)));
+    let lessons = chapter(&app, "ru").await["lessons"].clone();
     assert_eq!(lessons[0]["dur"], 1.0);
-    assert_eq!(lessons[0]["audio"], "/api/records/13/1/0/audio?lang=ru");
+    assert!(lessons[0]["audio"].as_str().unwrap().starts_with("/api/records/13/1/0/audio?lang=ru&take=1&v="), "{}", lessons[0]["audio"]);
     assert_eq!(lessons[1]["dur"], 0.0, "the other slides stay silent");
-    let req = Request::builder().uri("/api/records/13/1/0/audio?lang=ru").header(header::RANGE, "bytes=0-9").body(Body::empty()).unwrap();
-    let res = app.clone().oneshot(req).await.unwrap();
+    let ranged = |uri: &str| Request::builder().uri(uri.to_string()).header(header::RANGE, "bytes=0-9").body(Body::empty()).unwrap();
+    let res = app.clone().oneshot(ranged("/api/records/13/1/0/audio?lang=ru&take=1")).await.unwrap();
     assert_eq!(res.status(), StatusCode::PARTIAL_CONTENT);
     assert_eq!(res.headers()[header::CONTENT_TYPE], "audio/wav");
     assert_eq!(res.into_body().collect().await.unwrap().to_bytes().len(), 10);
     assert_eq!(call(&app, Method::GET, "/api/records/13/1/1/audio", None, None).await.0, StatusCode::NOT_FOUND);
 
+    // a second Record makes a second take; the first one keeps voicing the slide until another is chosen
+    let second = upload(&app, &admin, "/api/records/13/1/0", "audio/wav", &wav_of(2)).await.1;
+    assert_eq!((second["id"].clone(), second["selected"].clone(), second["dur"].clone()), (json!(2), json!(1), json!(1.0)));
+    assert_eq!(second["takes"].as_array().unwrap().iter().map(|t| (t["id"].as_i64().unwrap(), t["dur"].as_f64().unwrap())).collect::<Vec<_>>(), vec![(1, 1.0), (2, 2.0)]);
+    assert!(second["takes"][0]["at"].as_u64().unwrap() > 0);
+    assert_eq!(chapter(&app, "ru").await["lessons"][0]["dur"], 1.0);
+    assert_eq!(call(&app, Method::GET, "/api/records/13/1/0", Some(&admin), None).await.1["takes"].as_array().unwrap().len(), 2);
+
+    // choosing a take: it voices the slide (address and length change), a take that does not exist is refused, the choice is for administrators
+    assert_eq!(call(&app, Method::PUT, "/api/records/13/1/0/selected", Some(&student), Some(json!({ "id": 2 }))).await.0, StatusCode::FORBIDDEN);
+    assert_eq!(call(&app, Method::PUT, "/api/records/13/1/0/selected", Some(&admin), Some(json!({ "id": 9 }))).await.0, StatusCode::NOT_FOUND);
+    let (st, chosen) = call(&app, Method::PUT, "/api/records/13/1/0/selected", Some(&admin), Some(json!({ "id": 2 }))).await;
+    assert_eq!((st, chosen["selected"].clone(), chosen["dur"].clone()), (StatusCode::OK, json!(2), json!(2.0)));
+    let lessons = chapter(&app, "ru").await["lessons"].clone();
+    assert_eq!(lessons[0]["dur"], 2.0);
+    assert!(lessons[0]["audio"].as_str().unwrap().starts_with("/api/records/13/1/0/audio?lang=ru&take=2&v="));
+    // without `take` the audio route serves the chosen take, with it - the asked one
+    let len = |res: Response<Body>| async move { res.into_body().collect().await.unwrap().to_bytes().len() };
+    let whole = |uri: &'static str| Request::builder().uri(uri).body(Body::empty()).unwrap();
+    assert_eq!(len(app.clone().oneshot(whole("/api/records/13/1/0/audio?lang=ru")).await.unwrap()).await, 44 + 32000);
+    assert_eq!(len(app.clone().oneshot(whole("/api/records/13/1/0/audio?lang=ru&take=1")).await.unwrap()).await, 44 + 16000);
+
     // the English version has its own recordings: another folder, another address, the Russian ones are not touched
-    let chapter_en = |app: &Router| {
-        let (app, uri) = (app.clone(), format!("/api/chapters/{chapter_id}?lang=en"));
-        async move { call(&app, Method::GET, &uri, None, None).await.1 }
-    };
-    assert_eq!(chapter_en(&app).await["lessons"][0]["dur"], 0.0, "the Russian recording is not the English one");
-    let (st, saved) = upload(&app, &admin, "/api/records/13/1/1?lang=en", "audio/wav", &wav).await;
+    assert_eq!(chapter(&app, "en").await["lessons"][0]["dur"], 0.0, "the Russian recording is not the English one");
+    let (st, saved) = upload(&app, &admin, "/api/records/13/1/1?lang=en", "audio/wav", &wav_of(1)).await;
     assert_eq!(st, StatusCode::OK, "{saved}");
-    assert_eq!(saved["audio"], "/api/records/13/1/1/audio?lang=en");
-    assert!(dir.join("en").join("13").join("1").join("1.wav").is_file());
-    let lessons = chapter_en(&app).await["lessons"].clone();
-    assert_eq!(lessons[1]["dur"], 1.0);
-    assert_eq!(lessons[1]["audio"], "/api/records/13/1/1/audio?lang=en");
-    assert_eq!(lessons[0]["dur"], 0.0);
-    assert_eq!(chapter(&app).await["lessons"][1]["dur"], 0.0, "the Russian slide 2 stays silent");
+    assert!(saved["audio"].as_str().unwrap().starts_with("/api/records/13/1/1/audio?lang=en&take=1&v="));
+    assert!(dir.join("en").join("13").join("1").join("1").join("1.wav").is_file());
+    let lessons = chapter(&app, "en").await["lessons"].clone();
+    assert_eq!((lessons[1]["dur"].clone(), lessons[0]["dur"].clone()), (json!(1.0), json!(0.0)));
+    assert_eq!(chapter(&app, "ru").await["lessons"][1]["dur"], 0.0, "the Russian slide 2 stays silent");
     assert_eq!(call(&app, Method::GET, "/api/records/13/1/1/audio?lang=en", None, None).await.0, StatusCode::OK);
     assert_eq!(call(&app, Method::GET, "/api/records/13/1/1/audio?lang=ru", None, None).await.0, StatusCode::NOT_FOUND);
+    assert_eq!(call(&app, Method::GET, "/api/records/13/1/0?lang=en", Some(&admin), None).await.1["takes"], json!([]));
 
-    // deleting: administrators only, only the request language, a second delete finds nothing
-    assert_eq!(call(&app, Method::DELETE, "/api/records/13/1/0", Some(&student), None).await.0, StatusCode::FORBIDDEN);
-    assert_eq!(call(&app, Method::DELETE, "/api/records/13/1/0", None, None).await.0, StatusCode::UNAUTHORIZED);
-    assert_eq!(call(&app, Method::DELETE, "/api/records/13/1/0?lang=en", Some(&admin), None).await.0, StatusCode::NOT_FOUND, "no English recording of slide 1");
-    assert!(dir.join("13").join("1").join("0.wav").is_file());
-    assert_eq!(call(&app, Method::DELETE, "/api/records/13/1/0", Some(&admin), None).await.0, StatusCode::NO_CONTENT);
-    assert!(!dir.join("13").join("1").join("0.wav").exists());
-    assert_eq!(chapter(&app).await["lessons"][0]["dur"], 0.0, "no recording - no sound again");
-    assert_eq!(call(&app, Method::DELETE, "/api/records/13/1/0", Some(&admin), None).await.0, StatusCode::NOT_FOUND);
-    assert_eq!(call(&app, Method::DELETE, "/api/records/13/1/1?lang=en", Some(&admin), None).await.0, StatusCode::NO_CONTENT);
-    assert_eq!(chapter_en(&app).await["lessons"][1]["dur"], 0.0);
-    assert!(!dir.join("en").join("13").join("1").join("1.wav").exists());
+    // deleting a take: administrators only, only the request language, a second delete finds nothing; deleting the chosen take falls back to the first
+    assert_eq!(call(&app, Method::DELETE, "/api/records/13/1/0/2", Some(&student), None).await.0, StatusCode::FORBIDDEN);
+    assert_eq!(call(&app, Method::DELETE, "/api/records/13/1/0/2", None, None).await.0, StatusCode::UNAUTHORIZED);
+    assert_eq!(call(&app, Method::DELETE, "/api/records/13/1/0/1?lang=en", Some(&admin), None).await.0, StatusCode::NOT_FOUND, "no English take");
+    assert!(dir.join("13").join("1").join("0").join("1.wav").is_file());
+    let (st, after) = call(&app, Method::DELETE, "/api/records/13/1/0/2", Some(&admin), None).await;
+    assert_eq!((st, after["selected"].clone(), after["dur"].clone()), (StatusCode::OK, json!(1), json!(1.0)));
+    assert!(!dir.join("13").join("1").join("0").join("2.wav").exists());
+    assert!(!dir.join("13").join("1").join("0").join("selected").exists(), "the choice of a deleted take is forgotten");
+    assert_eq!(chapter(&app, "ru").await["lessons"][0]["dur"], 1.0);
+    assert_eq!(call(&app, Method::DELETE, "/api/records/13/1/0/2", Some(&admin), None).await.0, StatusCode::NOT_FOUND);
+    let (_, last) = call(&app, Method::DELETE, "/api/records/13/1/0/1", Some(&admin), None).await;
+    assert_eq!((last["selected"].clone(), last["dur"].clone()), (Value::Null, json!(0.0)));
+    assert_eq!(chapter(&app, "ru").await["lessons"][0]["dur"], 0.0, "no recording - no sound again");
+    assert!(!dir.join("13").join("1").join("0").exists(), "an empty slide folder goes away");
+    assert_eq!(call(&app, Method::DELETE, "/api/records/13/1/1/1?lang=en", Some(&admin), None).await.0, StatusCode::OK);
+    assert_eq!(chapter(&app, "en").await["lessons"][1]["dur"], 0.0);
+
+    // the earlier layout (one file per slide) is moved into takes at start
+    let old = dir.join("13").join("1");
+    std::fs::write(old.join("5.wav"), wav_of(1)).unwrap();
+    cs_core_backend::records::migrate(&dir);
+    assert!(!old.join("5.wav").exists());
+    assert!(old.join("5").join("1.wav").is_file());
+    assert_eq!(chapter(&app, "ru").await["lessons"][5]["dur"], 1.0);
     let _ = std::fs::remove_dir_all(&dir);
 }

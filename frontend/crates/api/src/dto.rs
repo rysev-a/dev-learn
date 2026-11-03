@@ -514,3 +514,23 @@ pub struct LabChapter {
     pub lab: String,
     pub tasks: Vec<LabTask>,
 }
+
+/// A recorded take of a slide (author tool).
+#[derive(Clone, Debug, PartialEq, Deserialize)]
+pub struct Take {
+    pub id: i64,
+    /// length, seconds
+    pub dur: f64,
+    /// time of recording, seconds since the epoch
+    pub at: u64,
+}
+
+/// The recordings of a slide in the interface language: the takes, the chosen one (it voices the slide) with its address and length.
+#[derive(Clone, Debug, Default, PartialEq, Deserialize)]
+pub struct Takes {
+    pub takes: Vec<Take>,
+    pub selected: Option<i64>,
+    pub audio: Option<String>,
+    #[serde(default)]
+    pub dur: f64,
+}

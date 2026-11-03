@@ -2,7 +2,7 @@
 
 use std::sync::Arc;
 
-use api::dto::Chapter;
+use api::dto::{Chapter, Takes};
 use content::Chapter as SlideChapter;
 use leptos::{prelude::*, task::spawn_local};
 use leptos_router::hooks::query_signal;
@@ -12,6 +12,7 @@ use super::ChapterCtx;
 use crate::{
     components::{
         blocks::DataSlide,
+        records_dialog::RecordsDialog,
         slides::{RecordCtl, SlidePanel},
         voice_popup::VoicePopup,
     },
@@ -144,9 +145,22 @@ fn Slides(book: i64, chapter: Chapter, deck: Deck) -> impl IntoView {
     // "Play + record" (administrators only): the slide plays from the current place, the microphone is recorded to a file on the server
     // (`media/records/<book>/<chapter>/<slide>`); recording ends with the "Stop" button or when the player leaves this slide -
     // then the player stops and the slide stays in place
+    let is_admin = expect_context::<Session>().identity.get_untracked().is_some_and(|i| i.roles.iter().any(|r| r == "admin"));
+    // the "Recordings of this slide" window opened by the burger next to "Play"
+    let menu = RwSignal::new(false);
+    // the sound of a slide after a recording, a choice or a deletion of a take: the chosen take's address and length; no take - the slide is read silently
+    let set_sound = move |i: usize, takes: &Takes| {
+        let entry = match (&takes.audio, takes.dur > 0.0) {
+            (Some(url), true) => (takes.dur, Some(url.clone())),
+            _ => (0.0, None),
+        };
+        let _ = parts.try_update(|p| {
+            if let Some(x) = p.get_mut(i) {
+                *x = entry;
+            }
+        });
+    };
     let record = {
-        let session = expect_context::<Session>();
-        let is_admin = session.identity.get_untracked().is_some_and(|i| i.roles.iter().any(|r| r == "admin"));
         let recording = RwSignal::new(None::<usize>);
         let status = RwSignal::new(None::<String>);
         let live = StoredValue::new_local(None::<recorder::Recording>);
@@ -170,19 +184,12 @@ fn Slides(book: i64, chapter: Chapter, deck: Deck) -> impl IntoView {
             status.set(Some(i18n::tr("Saving the recording…").to_string()));
             rec.stop(move |blob| {
                 // a WAV is rewound exactly and has a known length; from now on the slide is played with this sound
-                recorder::to_wav(blob, move |file, secs| {
+                recorder::to_wav(blob, move |file, _secs| {
                     spawn_local(async move {
                         let msg = match client().upload_record(book, num, i, &file).await {
-                            Ok((path, audio)) => {
-                                if let Some(secs) = secs.filter(|s| *s > 0.0).filter(|_| !audio.is_empty()) {
-                                    // the address already has `?lang=`; `v` makes the browser fetch the new file
-                                    let url = format!("{audio}&v={}", js_sys::Date::now() as u64);
-                                    let _ = parts.try_update(|p| {
-                                        if let Some(x) = p.get_mut(i) {
-                                            *x = ((secs * 10.0).round() / 10.0, Some(url));
-                                        }
-                                    });
-                                }
+                            // every recording is a new take; the first one voices the slide until another is chosen in the window
+                            Ok((path, takes)) => {
+                                set_sound(i, &takes);
                                 i18n::trf!("Saved: {}", path)
                             }
                             Err(e) => e.message,
@@ -218,32 +225,7 @@ fn Slides(book: i64, chapter: Chapter, deck: Deck) -> impl IntoView {
                 Err(e) => status.set(Some(e)),
             });
         });
-        // the shown slide has an author's recording (not the generated voice-over) in the interface language
-        let has = Signal::derive(move || parts.with(|p| p.get(idx.get()).and_then(|x| x.1.as_deref()).is_some_and(|u| u.starts_with("/api/records/"))));
-        let delete = Callback::new(move |()| {
-            let i = idx.get_untracked();
-            let asked = web_sys::window().and_then(|w| w.confirm_with_message(i18n::tr("Delete the recording of this slide?")).ok()).unwrap_or(false);
-            if !asked {
-                return;
-            }
-            player.stop();
-            status.set(None);
-            spawn_local(async move {
-                let msg = match client().delete_record(book, num, i).await {
-                    Ok(()) => {
-                        let _ = parts.try_update(|p| {
-                            if let Some(x) = p.get_mut(i) {
-                                *x = (0.0, None);
-                            }
-                        });
-                        i18n::tr("Recording deleted").to_string()
-                    }
-                    Err(e) => e.message,
-                };
-                let _ = status.try_set(Some(msg));
-            });
-        });
-        is_admin.then_some(RecordCtl { on: Signal::derive(move || recording.get().is_some()), toggle, status: status.into(), has, delete })
+        is_admin.then_some(RecordCtl { on: Signal::derive(move || recording.get().is_some()), toggle, status: status.into(), menu })
     };
     let on_play = Callback::new(move |()| {
         if player.playing.get_untracked().is_some() {
@@ -285,6 +267,7 @@ fn Slides(book: i64, chapter: Chapter, deck: Deck) -> impl IntoView {
     view! {
         <div>
             {popup}
+            {is_admin.then(|| view! { <RecordsDialog open=menu book=book chapter=num slide=idx on_change=Callback::new(move |(i, t): (usize, Takes)| { player.stop(); set_sound(i, &t) }) /> })}
             <SlidePanel idx=idx count=count titles=titles time=time playing=playing on_play=on_play on_pause=on_pause on_pick=on_pick stage=stage record=record on_seek=on_seek volume=player.volume on_volume=Callback::new(move |v| player.set_volume(v)) />
         </div>
     }

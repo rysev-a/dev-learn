@@ -128,8 +128,8 @@ async fn chapter(State(state): State<AppState>, lang: Lang, Path(chapter_id): Pa
             let id = s(l, "lid");
             let ord = i(l, "ord");
             // the author's recording of the slide wins over the generated voice-over; no file - `dur` is 0 and the player stays silent
-            let (audio, path) = match records::wav_path(&state.cfg.records_dir, recorded, book, num, ord) {
-                Some(p) => (records::audio_url(recorded, book, num, ord), Some(p)),
+            let (audio, path) = match records::selected(&state.cfg.records_dir, recorded, book, num, ord) {
+                Some(t) => (records::audio_url(recorded, book, num, ord, &t), Some(t.path)),
                 None => (format!("/api/lesson/{id}/audio"), audio_path(&state, &id)),
             };
             let dur = path.map(|p| wav::duration(&p)).unwrap_or(0.0);
