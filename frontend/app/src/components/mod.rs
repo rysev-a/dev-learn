@@ -4,6 +4,7 @@ pub mod code_editor;
 pub mod fs_tree;
 pub mod fullscreen;
 pub mod labs;
+pub mod mobile_menu;
 pub mod overload;
 pub mod results;
 pub mod slides;

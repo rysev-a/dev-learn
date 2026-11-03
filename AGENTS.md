@@ -406,6 +406,11 @@ instead of titles — a column of square icons in the shadcn/lucide style (24×2
 stroke 1.8; `components/BookIcon.tsx`, the icon is chosen by the name from the book's `icon` field, to add a new icon —
 add an entry to `ICONS`). The state is stored in `localStorage` (`cs-core-aside-collapsed`).
 
+**On a narrow screen (≤ 760 px) the side menus are not drawn in the page** (`.sidebar` and the chapter column `.lessons-menu` are `display: none`): the burger in the header
+(`components/mobile_menu.rs`, `Burger`) opens a drawer (`Drawer`, `.mm`) with the books; the book of the current page is expanded and shows its sections and chapters, a tap on another book expands it
+(the course is loaded on demand), a tap on a chapter opens it and closes the drawer, as do the backdrop, Escape and any navigation. On a wide screen the burger and the drawer are hidden by style.
+The e2e is `e2e/tests/shell/mobile-menu.spec.ts` (viewport 390 px).
+
 ## Chapter page: three tabs
 
 Each chapter opens with tabs, each with its own address (React Router,
