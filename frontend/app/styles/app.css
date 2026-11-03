@@ -3573,3 +3573,47 @@ g.fk .sx-key {
 .sd-note {
   flex-basis: 100%;
 }
+
+/* chapter position slider and volume in the player header */
+.slide-seek,
+.slide-vol-range {
+  height: 14px;
+  margin: 0;
+  accent-color: var(--s-accent);
+  cursor: pointer;
+}
+
+.slide-seek {
+  flex: 1;
+  min-width: 60px;
+}
+
+.slide-vol {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.slide-vol-range {
+  width: 72px;
+}
+
+.slide-vol-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px;
+  background: none;
+  border: none;
+  color: var(--s-muted);
+  cursor: pointer;
+}
+
+.slide-vol-btn:hover {
+  color: var(--s-accent);
+}
+
+@media (max-width: 640px) {
+  .slide-vol-range {
+    display: none;
+  }
+}

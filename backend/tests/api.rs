@@ -707,5 +707,36 @@ async fn slide_recordings_are_saved_by_administrators_only() {
     assert_eq!(upload(&app, &admin, "/api/records/13/1/3", "text/plain", b"x").await.0, StatusCode::UNPROCESSABLE_ENTITY);
     assert_eq!(upload(&app, &admin, "/api/records/13/1/3", "audio/webm", b"").await.0, StatusCode::UNPROCESSABLE_ENTITY);
     assert_eq!(upload(&app, &admin, "/api/records/0/1/3", "audio/webm", b"x").await.0, StatusCode::UNPROCESSABLE_ENTITY);
+
+    // a WAV recording is the slide's voice-over: the chapter gets its address and duration, the file is served with Range (rewinding)
+    let (_, course) = call(&app, Method::GET, "/api/books/13/course", None, None).await;
+    let chapter_id = course.as_array().unwrap().iter().flat_map(|s| s["chapters"].as_array().unwrap().iter()).find(|c| c["num"] == 1).unwrap()["id"].clone();
+    let chapter = |app: &Router| {
+        let (app, uri) = (app.clone(), format!("/api/chapters/{chapter_id}"));
+        async move { call(&app, Method::GET, &uri, None, None).await.1 }
+    };
+    assert_eq!(chapter(&app).await["lessons"][0]["dur"], 0.0, "no recording - no sound");
+    let mut wav = Vec::new();
+    wav.extend_from_slice(b"RIFF");
+    wav.extend_from_slice(&(36u32 + 16000).to_le_bytes());
+    wav.extend_from_slice(b"WAVEfmt ");
+    wav.extend_from_slice(&[16, 0, 0, 0, 1, 0, 1, 0]);
+    wav.extend_from_slice(&8000u32.to_le_bytes());
+    wav.extend_from_slice(&16000u32.to_le_bytes());
+    wav.extend_from_slice(&[2, 0, 16, 0]);
+    wav.extend_from_slice(b"data");
+    wav.extend_from_slice(&16000u32.to_le_bytes());
+    wav.extend_from_slice(&vec![0u8; 16000]);
+    assert_eq!(upload(&app, &admin, "/api/records/13/1/0", "audio/wav", &wav).await.0, StatusCode::OK);
+    let lessons = chapter(&app).await["lessons"].clone();
+    assert_eq!(lessons[0]["dur"], 1.0);
+    assert_eq!(lessons[0]["audio"], "/api/records/13/1/0/audio");
+    assert_eq!(lessons[1]["dur"], 0.0, "the other slides stay silent");
+    let req = Request::builder().uri("/api/records/13/1/0/audio").header(header::RANGE, "bytes=0-9").body(Body::empty()).unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    assert_eq!(res.status(), StatusCode::PARTIAL_CONTENT);
+    assert_eq!(res.headers()[header::CONTENT_TYPE], "audio/wav");
+    assert_eq!(res.into_body().collect().await.unwrap().to_bytes().len(), 10);
+    assert_eq!(call(&app, Method::GET, "/api/records/13/1/1/audio", None, None).await.0, StatusCode::NOT_FOUND);
     let _ = std::fs::remove_dir_all(&dir);
 }

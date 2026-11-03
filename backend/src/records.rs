@@ -4,12 +4,15 @@
 
 use auth::Identity;
 use axum::{
-    body::Bytes,
-    extract::{DefaultBodyLimit, Path, State},
+    body::{Body, Bytes},
+    extract::{DefaultBodyLimit, Path, Request, State},
     http::{header, HeaderMap},
-    routing::post,
+    response::Response,
+    routing::{get, post},
     Extension, Json, Router,
 };
+use tower::ServiceExt;
+use tower_http::services::ServeFile;
 use serde_json::{json, Value};
 
 use crate::{
@@ -22,6 +25,29 @@ const MAX_BYTES: usize = 64 * 1024 * 1024;
 
 pub fn private() -> Router<AppState> {
     Router::new().route("/api/records/{book}/{chapter}/{slide}", post(save).layer(DefaultBodyLimit::max(MAX_BYTES)))
+}
+
+/// Listening to a recording: a plain `<audio>` element cannot send the session header, so this route is public (like the lesson audio).
+pub fn public() -> Router<AppState> {
+    Router::new().route("/api/records/{book}/{chapter}/{slide}/audio", get(audio))
+}
+
+/// The recorded voice-over of a slide, if there is one in a format the player can seek in (`wav`; the browser converts its recording to it).
+pub fn wav_path(records_dir: &std::path::Path, book: i64, chapter: i64, slide: i64) -> Option<std::path::PathBuf> {
+    let p = records_dir.join(book.to_string()).join(chapter.to_string()).join(format!("{slide}.wav"));
+    p.is_file().then_some(p)
+}
+
+/// `GET /api/records/{book}/{chapter}/{slide}/audio` - the file with `Range` support (seeking in the player).
+async fn audio(State(state): State<AppState>, Path((book, chapter, slide)): Path<(i64, i64, i64)>, req: Request) -> ApiResult<Response> {
+    let path = wav_path(&state.cfg.records_dir, book, chapter, slide).ok_or_else(|| ApiError::not_found("Audio not found"))?;
+    serve(path, req).await
+}
+
+/// A file as a response with `Range`, `Content-Type` and `Last-Modified` (without it the browser cannot seek in the audio).
+pub async fn serve(path: std::path::PathBuf, req: Request) -> ApiResult<Response> {
+    let res = ServeFile::new(path).oneshot(req).await.map_err(|_| ApiError::not_found("Audio not found"))?;
+    Ok(res.map(Body::new))
 }
 
 /// File extension by the recording content type (`audio/webm;codecs=opus` -> `webm`); an unknown type is not accepted.

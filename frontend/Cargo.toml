@@ -27,6 +27,7 @@ web-sys = { version = "0.3", features = [
   "HtmlTextAreaElement", "KeyboardEvent", "Location", "MediaQueryList", "MouseEvent", "Node", "NodeList", "PointerEvent",
   "ResizeObserver", "ResizeObserverEntry", "Storage", "Window", "Navigator", "History", "WheelEvent", "SvgsvgElement",
   "Blob", "BlobPropertyBag", "HtmlAnchorElement", "Url",
+  "HtmlAudioElement", "HtmlMediaElement", "AudioContext", "AudioBuffer", "BaseAudioContext",
   "BlobEvent", "MediaDevices", "MediaRecorder", "MediaRecorderOptions", "MediaStream", "MediaStreamConstraints", "MediaStreamTrack",
 ] }
 
