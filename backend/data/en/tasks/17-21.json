@@ -139,6 +139,12 @@
    "title": "Where the NIC of a VM cannot be plugged",
    "statement": "The virtual NIC of a VM is plugged into a network by a link network → vm. It works only if that network is assigned to the host the VM runs on (host → vm and network → host). Write unplugged(board, vm): return None if the VM is not on any host; otherwise the sorted list of ids of the networks of its NICs that are not assigned to the host of the VM. The board is a dictionary {\"nodes\": [...], \"edges\": [...]}. A node is {\"id\": ..., \"kind\": ..., \"name\": ...}; a network may also have \"params\": {\"role\": ..., \"required\": ...}. kind is one of engine, data_center, cluster, host, network, storage_domain, vm. A link {\"from\": id, \"to\": id} always goes in the direction of oVirt: engine → data_center → cluster → host → vm; data_center → network → cluster, host, vm; engine → network; data_center → storage_domain → host, vm. The order of the nodes and edges lists matters where the text says \"first\".",
    "hint": "First the host of the VM (the source of the link host → vm), then the networks of the NICs."
+  },
+  {
+   "id": "ovb21-spread-networks",
+   "title": "Spread the networks over the clusters",
+   "statement": "Every network of a data center must be attached to every cluster of that data center (network → cluster) and assigned to every host of those clusters (network → host). The board is a dictionary {\"nodes\": [...], \"edges\": [...]}. A node is {\"id\": ..., \"kind\": ..., \"name\": ...}; a network also has \"params\": {\"role\": ..., \"required\": ...}. kind is one of engine, data_center, cluster, host, network, storage_domain, vm. A link {\"from\": id, \"to\": id} goes in the direction of oVirt: engine → data_center → cluster → host → vm; data_center → network → cluster, host, vm; engine → network; data_center → storage_domain → host, vm. Write fix(board) and return {\"add\": [[from, to], ...], \"remove\": [[from, to], ...]} — the links to add and the links to remove (the objects cannot be changed). The check runs your function on four different boards (a hard-coded answer will not work), shows every resulting board with its statuses and the goals of the scenario, and the solution is accepted when all the goals hold on all four boards. The same scenarios can be solved by hand on the boards of the matching exercises.",
+   "hint": "For each data center take its networks and clusters, and find the hosts of a cluster by the cluster → host links. Add only the links that are missing."
   }
  ]
 }

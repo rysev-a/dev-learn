@@ -140,6 +140,9 @@ async fn list_tasks(State(state): State<AppState>, lang: Lang, Path((book, chapt
                 }
             }
         }
+        if let Some(board) = crate::board_tasks::view(&join_task(r)) {
+            item["board"] = board;
+        }
         items.push(item);
     }
     Ok(Json(json!({ "tasks": items, "datasets": datasets })))

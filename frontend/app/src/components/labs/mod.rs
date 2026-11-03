@@ -16,6 +16,7 @@ mod net;
 mod riscv;
 mod sd;
 mod virt;
+pub use virt::TaskBoards;
 mod web;
 
 /// What the interface of a particular lab receives.

@@ -380,6 +380,73 @@ async fn progress_quiz_and_answers() {
     assert_eq!(call(&app, Method::DELETE, "/api/progress?scope=zzz", t, None).await.0, StatusCode::UNPROCESSABLE_ENTITY);
 }
 
+/// The printed boards of a `fix(board)` task for the given scenarios: `solved` — the reference boards, otherwise the starting ones.
+fn printed_boards(checks: &[(&str, &str)], solved: bool) -> String {
+    let positionless = |t: &virtlab::ovirt_topo::Topology| {
+        let mut v = serde_json::to_value(t).unwrap();
+        for n in v["nodes"].as_array_mut().unwrap() {
+            n.as_object_mut().unwrap().retain(|k, _| k != "x" && k != "y");
+        }
+        v.to_string()
+    };
+    checks
+        .iter()
+        .map(|(pack, scenario)| {
+            let (scenarios, solutions) = virtlab::ovirt_topo::pack(pack).unwrap();
+            let board = if solved { solutions[*scenario].clone() } else { scenarios.iter().find(|s| s.id == *scenario).unwrap().start.clone() };
+            positionless(&board)
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
+        + "\n"
+}
+
+#[tokio::test]
+async fn board_fix_tasks_are_judged_by_the_model() {
+    let app = app("secret").await;
+    let token = sign_in(&app, "boards@example.com").await;
+    let t = Some(token.as_str());
+    let (task, checks) = ("ovb21-spread-networks", [("virt-sim-ovirt-net-2", "unattached"), ("virt-sim-ovirt-net-2", "second-cluster"), ("virt-sim-ovirt-net-3", "two-nics"), ("virt-sim-ovirt-net-3", "silent-fallback")]);
+
+    // the task list tells the interface which scenarios are judged
+    let (_, list) = call(&app, Method::GET, "/api/exercises/17/21", t, None).await;
+    let item = list["tasks"].as_array().unwrap().iter().find(|x| x["id"] == task).expect("the fix task is listed");
+    assert_eq!(item["board"]["checks"].as_array().unwrap().len(), 4);
+    let level2 = list["tasks"].as_array().unwrap().iter().find(|x| x["id"] == "ovb21-host-status").expect("a data task");
+    assert!(level2["board"]["boards"].as_array().is_some_and(|b| b.len() >= 5), "the boards of the tests are shown beside the results of a data task: {level2}");
+
+    let ping = json!({ "name": "w1", "lanes": ["light"], "slots": 1 });
+    assert_eq!(call(&app, Method::POST, "/internal/worker/ping", Some("secret"), Some(ping)).await.0, StatusCode::NO_CONTENT);
+    for (solved, code) in [(false, "def fix(board):\n    return {}"), (true, "def fix(board):\n    return {'add': []}")] {
+        let (st, queued) = call(&app, Method::POST, "/api/exercises/run", t, Some(json!({ "book": 17, "chapter": 21, "task": task, "code": code }))).await;
+        assert_eq!(st, StatusCode::ACCEPTED, "{queued}");
+        let id = queued["id"].as_str().unwrap().to_string();
+        let (_, job) = call(&app, Method::POST, "/internal/worker/claim", Some("secret"), Some(json!({ "name": "w1", "lanes": ["light"], "wait": 0 }))).await;
+        assert_eq!(job["id"], id.as_str());
+        // the worker only reports what the driver printed; the verdict is the model's
+        let result = json!({ "status": "ok", "results": [{ "ok": false, "got": printed_boards(&checks, solved), "expected": "", "error": null }], "stdout": "", "stderr": "" });
+        let body = json!({ "name": "w1", "result": result });
+        assert_eq!(call(&app, Method::POST, &format!("/internal/worker/jobs/{id}/result"), Some("secret"), Some(body)).await.0, StatusCode::NO_CONTENT);
+        let (_, done) = call(&app, Method::GET, &format!("/api/exercises/run/{id}"), t, None).await;
+        assert_eq!(done["solved"], solved, "{done}");
+        assert_eq!(done["total"], 4);
+        assert_eq!(done["passed"], if solved { 4 } else { 0 });
+        assert!(done["results"][0]["board"]["nodes"].is_array(), "the repaired board comes back for the board panel");
+    }
+    let (_, state) = call(&app, Method::GET, "/api/exercises/17/21/state", t, None).await;
+    assert_eq!(state["status"][task], "ok");
+
+    // a crash keeps the sandbox's own message
+    let (_, queued) = call(&app, Method::POST, "/api/exercises/run", t, Some(json!({ "book": 17, "chapter": 21, "task": task, "code": "def fix(board):\n    return 1" }))).await;
+    let id = queued["id"].as_str().unwrap().to_string();
+    call(&app, Method::POST, "/internal/worker/claim", Some("secret"), Some(json!({ "name": "w1", "lanes": ["light"], "wait": 0 }))).await;
+    let crash = json!({ "status": "ok", "results": [{ "ok": false, "got": "", "expected": "", "error": "TypeError: fix(board) must return a dict" }], "stdout": "", "stderr": "" });
+    call(&app, Method::POST, &format!("/internal/worker/jobs/{id}/result"), Some("secret"), Some(json!({ "name": "w1", "result": crash }))).await;
+    let (_, done) = call(&app, Method::GET, &format!("/api/exercises/run/{id}"), t, None).await;
+    assert_eq!(done["solved"], false);
+    assert!(done["results"][0]["error"].as_str().unwrap().contains("TypeError"));
+}
+
 #[tokio::test]
 async fn code_jobs_go_through_the_worker_api() {
     let app = app("secret").await;

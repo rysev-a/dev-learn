@@ -16,7 +16,7 @@ use crate::{
     components::{
         code_editor::CodeEditor,
         fullscreen::{chapter_href, Fullscreen},
-        labs::LabHost,
+        labs::{LabHost, TaskBoards},
         overload::{Overload, OverloadNotice, OverloadState},
         results::{History, Results},
         sql_schema::SqlSchema,
@@ -361,6 +361,7 @@ fn CodeBody(book: i64, num: i64, tasks: Vec<Task>, datasets: HashMap<String, Sql
             };
             let hint_id = id.clone();
             let id_for_edit = id.clone();
+            let board = t.board.clone();
             view! {
                 <CodeEditor value=value on_input=Callback::new(move |code| edit(id_for_edit.clone(), code)) on_run=primary lang=lang_of(&t.mode) accepted=Signal::derive(move || accepted.get()) />
                 <div class="ex-row">
@@ -385,6 +386,7 @@ fn CodeBody(book: i64, num: i64, tasks: Vec<Task>, datasets: HashMap<String, Sql
                     (!t.hint.is_empty() && hints.with(|h| h.get(&t.id).copied().unwrap_or(false))).then(|| view! { <p class="ex-hint">{t.hint}</p> })
                 }}
                 <Results res=res running=running phase=Signal::from(phase) />
+                {board.map(|b| view! { <TaskBoards boards=b res=res /> })}
                 <History items=history current=Signal::derive(move || code_of(&task())) on_pick=Callback::new({
                     let id = id.clone();
                     move |code| edit(id.clone(), code)
@@ -434,7 +436,7 @@ mod tests {
     use super::*;
 
     fn task(id: &str) -> Task {
-        Task { id: id.into(), mode: "func".into(), title: String::new(), statement: String::new(), starter: String::new(), hint: String::new(), dataset: None }
+        Task { id: id.into(), mode: "func".into(), title: String::new(), statement: String::new(), starter: String::new(), hint: String::new(), dataset: None, board: None }
     }
 
     #[test]
@@ -465,7 +467,7 @@ mod tests {
 
     #[test]
     fn label_names_the_runtime_of_the_chapter() {
-        let t = |mode: &str| Task { id: "x".into(), mode: mode.into(), title: String::new(), statement: String::new(), starter: String::new(), hint: String::new(), dataset: None };
+        let t = |mode: &str| Task { id: "x".into(), mode: mode.into(), title: String::new(), statement: String::new(), starter: String::new(), hint: String::new(), dataset: None, board: None };
         assert_eq!(run_label(&[t("sql")]), "sql · docker");
         assert_eq!(run_label(&[t("func"), t("stdout")]), "python · docker");
         assert_eq!(run_label(&[t("lab")]), "interactive · in the browser");

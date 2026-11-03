@@ -1063,3 +1063,44 @@
 .vl-topo-hophead p.vl-no {
   color: var(--s-red);
 }
+
+/* boards beside the results of the Python tasks of the oVirt book (read-only pictures) */
+.vl-pic {
+  margin-top: 14px;
+  padding: 12px;
+  border: 1px solid var(--s-border);
+  border-radius: 10px;
+  background: var(--s-panel);
+}
+.vl-pic .vl-tabs {
+  margin: 8px 0;
+}
+.vl-pic-body {
+  display: grid;
+  gap: 8px;
+}
+.vl-pic-note {
+  margin: 0;
+  font-size: 13px;
+  color: var(--s-muted);
+}
+.vl-pic-toggle {
+  display: flex;
+  gap: 6px;
+}
+.vl-pic-scroll {
+  overflow-x: auto;
+}
+.vl-pic-svg {
+  display: block;
+  width: 100%;
+  min-width: 760px;
+  height: auto;
+  max-height: 460px;
+  background: var(--s-bg);
+  border: 1px solid var(--s-border);
+  border-radius: 8px;
+}
+.vl-pic-svg .vl-topo-node {
+  cursor: default;
+}

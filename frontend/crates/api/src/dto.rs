@@ -174,6 +174,25 @@ pub struct Task {
     pub hint: String,
     #[serde(default)]
     pub dataset: Option<String>,
+    /// boards shown beside the results (the oVirt board tasks of book 17)
+    #[serde(default)]
+    pub board: Option<TaskBoards>,
+}
+
+/// Boards of a code task: the boards of its tests (the answer is plain data) and the scenarios its repaired boards are judged by (the code returns a board).
+#[derive(Clone, Debug, Default, PartialEq, Deserialize)]
+pub struct TaskBoards {
+    #[serde(default)]
+    pub boards: Vec<Value>,
+    #[serde(default)]
+    pub checks: Vec<BoardCheck>,
+}
+
+/// One scenario of a pack, the way the server names it.
+#[derive(Clone, Debug, PartialEq, Deserialize)]
+pub struct BoardCheck {
+    pub pack: String,
+    pub scenario: String,
 }
 
 #[derive(Clone, Debug, PartialEq, Deserialize)]
@@ -312,6 +331,9 @@ pub struct TestResult {
     /// result kind: `rows` — SQL query tables (see `rows`), `text` — text (query plans)
     #[serde(default)]
     pub kind: Option<String>,
+    /// the board the code returned, with the model's verdict in `ok` (the board tasks)
+    #[serde(default)]
+    pub board: Option<Value>,
     #[serde(flatten)]
     pub rows: RowsView,
 }

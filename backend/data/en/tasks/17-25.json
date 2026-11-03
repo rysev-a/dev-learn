@@ -97,6 +97,12 @@
    "title": "Effective permissions",
    "statement": "Permissions in oVirt are granted by roles on objects. roles is a dictionary role → list of permissions. assignments is a list of tuples (subject, role, object), where the subject is a user or group name. path is a list of objects from the system to a virtual machine, for example [\"system\", \"dc1\", \"cl1\", \"vm1\"]: an assignment on any object in the path applies to the machine (permissions are inherited downward). Write a function effective_perms(user, groups, assignments, path, roles): return a sorted list without repeats of all permissions that the user, who belongs to groups, gets on the machine with the given path: take the assignments whose subject is the user or one of the groups and whose object is in path. A role missing from roles grants nothing.",
    "hint": "Build the set of subjects {user} | set(groups) and union the roles' permissions of matching assignments with |=."
+  },
+  {
+   "id": "ovb25-heal",
+   "title": "Automatic repair",
+   "statement": "Walk the board like a diagnosis: the engine must sit in every network with the management role (engine → network); a domain attached to no data center goes to the only data center; a network that no cluster has is attached to all clusters of its data center; and every host gets all the networks of its cluster and all the domains of its data center. The board is a dictionary {\"nodes\": [...], \"edges\": [...]}. A node is {\"id\": ..., \"kind\": ..., \"name\": ...}; a network also has \"params\": {\"role\": ..., \"required\": ...}. kind is one of engine, data_center, cluster, host, network, storage_domain, vm. A link {\"from\": id, \"to\": id} goes in the direction of oVirt: engine → data_center → cluster → host → vm; data_center → network → cluster, host, vm; engine → network; data_center → storage_domain → host, vm. Write fix(board) and return {\"add\": [[from, to], ...], \"remove\": [[from, to], ...]} — the links to add and the links to remove (the objects cannot be changed). The check runs your function on four different boards (a hard-coded answer will not work), shows every resulting board with its statuses and the goals of the scenario, and the solution is accepted when all the goals hold on all four boards. The same scenarios can be solved by hand on the boards of the matching exercises.",
+   "hint": "These are the earlier tasks in one: first the links of the engine, the domain and the network at the top level, then a loop over the hosts. The role of a network is params.role (vm by default)."
   }
  ]
 }

@@ -4,6 +4,7 @@
 
 pub mod answers;
 pub mod config;
+pub mod board_tasks;
 pub mod courses;
 pub mod db;
 pub mod error;

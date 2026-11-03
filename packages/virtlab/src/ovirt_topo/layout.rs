@@ -42,3 +42,14 @@ pub fn next_pos(t: &Topology, kind: Kind) -> (f64, f64) {
         .find(|(x, y)| !t.nodes.iter().any(|n| (n.x - x).abs() < NODE_W && (n.y - y).abs() < 70.0))
         .unwrap_or((x, y0))
 }
+
+/// Places the objects of a board that has no positions (task data): every object takes the first free place of its column, in the order of the list.
+pub fn auto_layout(t: &mut Topology) {
+    let mut placed = Topology { nodes: Vec::new(), edges: Vec::new() };
+    for n in &mut t.nodes {
+        let (x, y) = next_pos(&placed, n.kind);
+        n.x = x;
+        n.y = y;
+        placed.nodes.push(n.clone());
+    }
+}

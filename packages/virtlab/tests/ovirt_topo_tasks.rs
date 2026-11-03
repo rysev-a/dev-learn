@@ -425,3 +425,64 @@ fn the_generator_produces_enough_varied_cases() {
         .collect();
     assert_eq!(statuses.len(), 3, "{statuses:?}");
 }
+
+// ---------------------------------------------------------------- level 3: `fix(board)` tasks judged by the model
+
+/// `(task id, spec)` of the stored `ovb…` rows whose spec has a `board_check` (the code returns the repaired board).
+fn stored_fix_tasks(chapter: u32) -> Vec<(String, Value)> {
+    let text = std::fs::read_to_string(sql_path(chapter)).expect("sql file");
+    text.split("\nINSERT INTO tasks")
+        .filter_map(|stmt| {
+            let id = stmt.split_once(&format!("VALUES (17, {chapter}, '"))?.1.split('\'').next()?.to_string();
+            let open = stmt.rfind("'{\"driver\"")?;
+            let close = stmt.rfind('\'')?;
+            let spec = stmt[open + 1..close].replace("''", "'");
+            let value = serde_json::from_str::<Value>(&spec).unwrap_or_else(|e| panic!("{id}: spec is not JSON: {e}"));
+            value.get("board_check").is_some().then_some((id, value))
+        })
+        .collect()
+}
+
+#[test]
+fn fix_tasks_use_the_boards_of_their_scenarios_and_the_starting_boards_do_not_pass() {
+    let mut count = 0;
+    for chapter in [20, 21, 25] {
+        for (id, spec) in stored_fix_tasks(chapter) {
+            count += 1;
+            let checks = spec["board_check"].as_array().unwrap();
+            assert!(checks.len() >= 3, "{id}: a fix task is judged on several boards, or a hard-coded answer passes");
+            // the boards the driver hands to fix() are the starting boards of the scenarios, without positions
+            let driver = spec["driver"].as_str().unwrap();
+            let literal = driver.split_once("_json.loads(r\"\"\"").unwrap().1.split_once("\"\"\")").unwrap().0;
+            let given: Vec<Value> = serde_json::from_str(literal).unwrap_or_else(|e| panic!("{id}: boards in the driver: {e}"));
+            assert_eq!(given.len(), checks.len(), "{id}");
+            for (c, g) in checks.iter().zip(&given) {
+                let (pack, scenario) = (c["pack"].as_str().unwrap(), c["scenario"].as_str().unwrap());
+                let sc = virtlab::ovirt_topo::pack(pack).unwrap().0.into_iter().find(|s| s.id == scenario).unwrap_or_else(|| panic!("{id}: no {pack}/{scenario}"));
+                assert_eq!(board(g), { let mut b = sc.start.clone(); for n in &mut b.nodes { n.x = 0.0; n.y = 0.0; } b }, "{id}: the driver's board is not the start of {scenario}");
+                let line = serde_json::to_string(&arg(&sc.start)).unwrap();
+                let verdict = virtlab::ovirt_topo::judge(pack, scenario, &line).unwrap();
+                assert!(!verdict.reached, "{id}: the unrepaired {scenario} must not pass");
+            }
+            // the correct boards of the scenarios pass
+            for c in checks {
+                let (pack, scenario) = (c["pack"].as_str().unwrap(), c["scenario"].as_str().unwrap());
+                let (_, solutions) = virtlab::ovirt_topo::pack(pack).unwrap();
+                let line = serde_json::to_string(&arg(&solutions[scenario])).unwrap();
+                assert!(virtlab::ovirt_topo::judge(pack, scenario, &line).unwrap().reached, "{id}: the reference of {scenario}");
+            }
+        }
+    }
+    assert_eq!(count, 3, "one fix task in each of the chapters 20, 21 and 25");
+}
+
+#[test]
+fn judging_refuses_a_board_with_other_objects() {
+    let (scs, _) = virtlab::ovirt_topo::pack("virt-sim-ovirt-storage-2").unwrap();
+    let sc = scs.iter().find(|s| s.id == "no-connection").unwrap();
+    let mut t = sc.start.clone();
+    t.nodes.push(Node::new("extra", Kind::Host, "extra", 0.0, 0.0));
+    let verdict = virtlab::ovirt_topo::judge("virt-sim-ovirt-storage-2", "no-connection", &serde_json::to_string(&t).unwrap()).unwrap();
+    assert!(!verdict.reached && verdict.invalid.is_some());
+    assert!(virtlab::ovirt_topo::judge("virt-sim-ovirt-storage-2", "nope", "{}").is_err());
+}

@@ -15,6 +15,7 @@
 mod access;
 mod eval;
 mod goals;
+mod judge;
 mod layout;
 mod packs;
 mod params;
@@ -33,7 +34,8 @@ pub use eval::{
     VmStatus, VmWhy, Why,
 };
 pub use goals::{GoalResult, OpKind, Scenario, TopoGoal};
-pub use layout::{column, next_pos, NODE_H, NODE_W};
+pub use judge::{find as scenario_of, judge, Judgement};
+pub use layout::{auto_layout, column, next_pos, NODE_H, NODE_W};
 pub(crate) use params::raw_specs;
 pub use params::{
     param_error, param_specs, param_to_text, BackupType, ParamOption, ParamSpec, ParamTy, PermRole, Polarity,
@@ -237,9 +239,11 @@ pub struct Node {
     pub kind: Kind,
     /// Name shown on the board.
     pub name: String,
-    /// Position of the centre.
+    /// Position of the centre (boards given as task data have none: `auto_layout` places them).
+    #[serde(default)]
     pub x: f64,
     /// Position of the centre.
+    #[serde(default)]
     pub y: f64,
     /// Parameters (`role` and `required` of a network).
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]

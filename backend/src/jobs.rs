@@ -125,7 +125,10 @@ pub async fn finish(db: &Db, job_id: &str, result: Value, cache: bool) -> ApiRes
     let mut res = db.query("SELECT user, book, chapter, tid, code, key FROM exec_jobs WHERE jid = $j").bind(("j", job_id.to_string())).await?;
     let job = res.take::<Vec<Value>>(0)?.into_iter().next();
     let Some(job) = job else { return Ok(Value::Null) };
-    let result = normalize(&result);
+    let mut result = normalize(&result);
+    if let Some(task) = crate::exercises::find_task(db, i(&job, "book"), i(&job, "chapter"), &s(&job, "tid")).await? {
+        crate::board_tasks::judge(&task, &mut result);
+    }
     let items = result["results"].as_array().cloned().unwrap_or_default();
     let (total, passed) = (items.len() as i64, items.iter().filter(|r| r.get("ok").and_then(Value::as_bool) == Some(true)).count() as i64);
     let solved = result["status"] == "ok" && total > 0 && passed == total;
