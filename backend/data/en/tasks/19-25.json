@@ -1,0 +1,66 @@
+{
+ "book": 19,
+ "chapter": 25,
+ "tasks": [
+  {
+   "id": "la25-describe-domain",
+   "title": "Decoding info() and state()",
+   "statement": "A domain's info() method returns a list [state, maxMem, memory, nrVirtCpu, cpuTime]: maxMem and memory are in KiB, cpuTime is in nanoseconds. state() returns a pair [state, reason]. Write a function describe_domain(info, reason): info is the list from info(), reason is the second part of the pair from state(). Return a tuple of six values: the state name, the reason name, the maximum memory in MiB (integer division by 1024), the memory in MiB (the same), the vCPU count, and the CPU time in seconds rounded to two decimals. State names by number 0..7: nostate, running, blocked, paused, shutdown, shutoff, crashed, pmsuspended; a number outside that range gives unknown. Reason names depend on the state: running: 1 booted, 2 migrated, 3 restored, 4 from_snapshot, 5 unpaused; paused: 1 user, 2 migration, 3 save, 4 dump, 5 ioerror, 6 watchdog, 7 from_snapshot; shutoff: 1 shutdown, 2 destroyed, 3 crashed, 4 migrated, 5 saved, 6 failed, 7 from_snapshot; crashed: 1 panicked. Any other combination, reason 0 included, gives unknown.",
+   "hint": "Two tables: a list of state names and a dictionary of reason dictionaries; reasons.get(state, {}).get(reason, 'unknown')."
+  },
+  {
+   "id": "la25-cpu-percent",
+   "title": "CPU percent from two readings",
+   "statement": "A domain is polled periodically and you collect readings (seconds, cpuTime): the host clock time in seconds and the cumulative cpuTime counter in nanoseconds. Write a function cpu_percent(samples, vcpus): for every pair of neighbouring readings return the busy percentage of the guest's capacity, that is the cpuTime growth divided by (elapsed seconds x 1e9 x vcpus) and multiplied by 100, rounded to one decimal. Do not cap the value: hypervisor time is part of the counter too. If the time between readings does not grow (a difference of 0 or less) or the counter went down (the domain was restarted), that pair gives None. The answer is a list one item shorter than the number of readings; for fewer than two readings it is an empty list.",
+   "hint": "zip(samples, samples[1:]) gives the pairs; check dt <= 0 and dc < 0 before dividing."
+  },
+  {
+   "id": "la25-summarize-stats",
+   "title": "Flat keys of getAllDomainStats",
+   "statement": "conn.getAllDomainStats() returns a list of (domain, dictionary) pairs with flat keys. Here the pair holds the domain's name instead of the domain object. Write a function summarize_stats(records): return a dictionary name → dictionary with five keys. state is the state name for the number in state.state (numbers 0..7: nostate, running, blocked, paused, shutdown, shutoff, crashed, pmsuspended; a missing key or a number outside the range gives unknown). vcpus is vcpu.current (a missing key gives 0). mem_mib is balloon.current in KiB divided by 1024 with integer division (a missing key gives 0). disks is a list of tuples (name, bytes read, bytes written) for indexes 0 to block.count − 1 from the keys block.N.name, block.N.rd.bytes, block.N.wr.bytes; a missing name is an empty string, a missing number is 0; with no block.count the list is empty. nets is the same for network interfaces: tuples (name, rx, tx) from the keys net.count, net.N.name, net.N.rx.bytes, net.N.tx.bytes.",
+   "hint": "Build the key as 'block.%d.' % i plus the suffix and read it with s.get(key, default)."
+  },
+  {
+   "id": "la25-stop-calls",
+   "title": "Graceful stop with a deadline",
+   "statement": "A script stops a domain like this: if the domain is already off (state 5, shutoff), it does nothing. Otherwise it calls shutdown and then polls state() every interval seconds: at the moments interval, 2*interval, 3*interval and so on, while the moment does not exceed timeout. If a poll shows state 5, the script finishes. If time runs out and the domain is not off, it calls destroy. Write a function stop_calls(initial_state, timeout, interval, states): states are the states that successive polls will show (poll k sees states[k], and after the end of the list the last value repeats; an empty list means state 1 always). Return the list of calls in order: the strings shutdown, then state@T for every poll (T is the moment in seconds), and finally destroy if the domain never switched off. A domain that was off from the start gives an empty list.",
+   "hint": "A loop while t <= timeout; the state of poll k is states[min(k, len(states) - 1)]; destroy goes after the loop."
+  },
+  {
+   "id": "la25-track-events",
+   "title": "Events into a state table",
+   "statement": "A monitor keeps a table 'domain → last known state' from lifecycle events (conn, dom, event, detail). Write a function track_events(initial, events): initial is a dictionary name → tuple (state, persistent flag), events is a list of tuples (name, event, detail). Return the final dictionary name → state (a string). The rules of this model. event 0 (defined): an unknown domain appears as (shutoff, persistent), a known one becomes persistent and its state does not change. event 1 (undefined): the domain stops being persistent; if its state is shutoff the entry is removed, otherwise it stays (the domain lives on as a transient one). events 2 (started) and 4 (resumed): state running. event 3 (suspended): paused, and paused:ioerror for detail 2, paused:watchdog for detail 3. event 5 (stopped): a persistent domain gets shutoff, a transient one is removed from the table; an unknown domain is ignored. event 6 (shutdown): shutting-down. event 7 (pmsuspended): pmsuspended. event 8 (crashed): crashed. For events 2, 3, 4, 6, 7, 8 an unknown domain is added as a transient one. Any other event number is ignored.",
+   "hint": "Keep [state, persistent] as a list in a dictionary and change it by event number; keep only the states at the end."
+  },
+  {
+   "id": "la25-plan-attempts",
+   "title": "An error table and retries",
+   "statement": "An operation on a domain (op is start, stop or snapshot-delete) is run in several attempts. codes are the results of the attempts in order: None for success or the error's get_error_code(). Write a function plan_attempts(op, codes, max_retries): return the action log. The action table: None is ok; codes 5, 6, 39 (cannot connect, invalid connection, RPC error) are reconnect; codes 9 and 68 (operation failed, timeout) are retry; code 55 (operation invalid for the state) is ok for start and stop and fail for other operations; code 42 (no domain) is ok for stop and fail otherwise; code 72 (no snapshot) is ok for snapshot-delete and fail otherwise; any other code is fail. The actions ok and fail end the work: later attempts are not examined. The actions retry and reconnect spend the retry budget max_retries: if the budget is already used up, give-up goes to the log instead and the work ends. If the attempts run out earlier, the log is returned as is. The log is the list of action strings in attempt order.",
+   "hint": "An action function of (op, code) and a counter used; before retry/reconnect check used >= max_retries."
+  },
+  {
+   "id": "la25-snapshot-outline",
+   "title": "The snapshot tree",
+   "statement": "For every snapshot of a domain you know its name and its parent's name (getParent() on a root raises an error, so such a snapshot is written with parent None). Write a function snapshot_outline(snaps, current): snaps is a list of tuples (name, parent or None) in any order, current is the name of the current snapshot or any string that is not among the snapshots. Return the list of tree lines in depth-first order: roots alphabetically, and under each one its children alphabetically. A line is two spaces of indent per depth level and the name; the current snapshot gets a space and an asterisk after its name. A snapshot whose parent is not in the list counts as a root.",
+   "hint": "Build a parent → children dictionary, then a recursive walk(name, depth) over sorted(children)."
+  },
+  {
+   "id": "la25-memory-report",
+   "title": "A memoryStats report",
+   "statement": "dom.memoryStats() returns a dictionary with every size in KiB; some keys may be missing (the guest needs the balloon driver and statistics must be enabled). The keys: actual is the current balloon size, available is all memory the guest sees, unused is memory not used for anything (caches do not count as free), usable is how much can be taken without pushing the guest into swap (for Linux this is MemAvailable), rss is the resident memory of the QEMU process on the host. Write a function memory_report(stats, max_kib): max_kib is the domain's maximum memory from info(). Return a dictionary with four keys. used_pct is (available − unused) / available × 100 rounded to one decimal, and None if available is missing or 0, or unused is missing. real_used_pct is the same with usable instead of unused (None if the keys are missing or available is 0). ballooned_mib is (max_kib − actual) // 1024, where a missing actual is taken to equal max_kib. rss_mib is rss // 1024, or None if the key is missing.",
+   "hint": "stats.get(...) for each key; if avail and unused is not None guards against both zero and absence."
+  },
+  {
+   "id": "la25-counter-rates",
+   "title": "Rates from counters",
+   "statement": "blockStats() and interfaceStats() return cumulative counters; a field with the value −1 means the hypervisor does not support that statistic. After a domain restart the counters start from zero. Write a function counter_rates(samples): samples is a list of readings (seconds, value). For every pair of neighbouring readings return the rate in units per second rounded to one decimal. If the counter went down (the domain restarted), assume it was zeroed between the readings and grew to the new value: the growth equals the new value. If the time does not grow (a difference of 0 or less) or either of the two values is −1, the pair gives None. For fewer than two readings the answer is an empty list.",
+   "hint": "Order of checks: first dt and −1, then compare v1 >= v0 for an ordinary growth or a reset."
+  },
+  {
+   "id": "la25-domain-plan",
+   "title": "A plan from domain XML",
+   "statement": "A domain's XML from XMLDesc() is read with the xml.etree.ElementTree module. Write a function domain_plan(xml): xml is a string with a domain root. Return a dictionary with seven keys. name is the text of the name element. memory_kib is the value of memory in KiB: the element has an optional unit attribute, KiB by default; the valid units are b and bytes (1), KB (1000), k and KiB (1024), MB (10^6), M and MiB (1024^2), GB (10^9), G and GiB (1024^3), TB (10^12), T and TiB (1024^4) bytes; the result is divided by 1024, rounding up to a whole number. current_kib is the same for currentMemory, and if the element is missing it equals memory_kib. vcpus is the number in the vcpu element. current_vcpus is the value of its current attribute, or vcpus if the attribute is missing. disks is the sorted list of the dev values of the target elements inside every devices/disk (a cdrom counts too). next_disk is the first free virtio disk name: the names go vda, vdb, …, vdz, vdaa, vdab, … (after z comes aa, ab, …, az, ba, …), the first one not in disks.",
+   "hint": "root.find('vcpu').get('current'); rounding up: -(-nbytes // 1024); try names in a loop over an index i → letters."
+  }
+ ]
+}

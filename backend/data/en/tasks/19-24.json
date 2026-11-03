@@ -1,0 +1,66 @@
+{
+ "book": 19,
+ "chapter": 24,
+ "tasks": [
+  {
+   "id": "la24-list-all",
+   "title": "Domains by state",
+   "statement": "The output of virsh list --all is a table: a header line \" Id   Name   State\", a line of hyphens only, then one line per domain: a numeric Id (or a hyphen if the domain is not running), a name without spaces, and the state. The state may have several words (\"shut off\", \"in shutdown\"). Write a function domains_by_state(text): return a dictionary \"state → list of names sorted alphabetically\". Skip the header, the separator and empty lines; empty output gives an empty dictionary.",
+   "hint": "Split a line into three parts: s.split(None, 2) gives the Id, the name, and the rest as the state."
+  },
+  {
+   "id": "la24-domain-summary",
+   "title": "Memory and vCPUs from the domain XML",
+   "statement": "You get the XML description of a domain (the output of virsh dumpxml). The elements memory and currentMemory contain an integer in the unit given by the unit attribute; with no attribute the unit is KiB. The units that appear are: b or bytes (1 byte), KiB or k (1024 bytes), MiB or M, GiB or G (powers of 1024). If currentMemory is absent, it equals memory. The vcpu element holds the maximum number of vCPUs, and its current attribute (if present) tells how many are enabled at start, otherwise the same as the maximum. Write a function domain_summary(xml): return a tuple (name, memory_mib, current_mib, vcpu_max, vcpu_now). Round mebibytes up to a whole number; strip the spaces around the text of elements.",
+   "hint": "ElementTree: root.find('memory'), e.get('unit', 'KiB'). Convert to bytes by multiplying, then -(-n // 2**20) rounds up."
+  },
+  {
+   "id": "la24-validate-domain",
+   "title": "Validating a domain description",
+   "statement": "Write a function validate_domain(xml) that checks a domain XML against rules. Disks are the elements ./devices/disk, network cards are ./devices/interface. (1) dup-target:<dev> — two disks with the same target dev. (2) no-source:<dev> — a disk with type='file' (the source is the file attribute of source) or type='block' (the dev attribute of source) that has no source element or has an empty required attribute; the exception is device='cdrom', which needs no source (a disk without the device attribute counts as device='disk'; if a disk has no target, write ? instead of <dev>). (3) bus-mismatch:<dev> — the name starts with vd but the bus is not virtio; starts with hd but the bus is not ide; starts with sd but the bus is not scsi, sata, or usb (other prefixes such as xvd are not checked; disks without a bus are not checked). (4) dup-mac:<mac> — a repeated MAC address among the network cards, compared case-insensitively, the message holds the address in lower case. Skip cards without a mac. Return a sorted list of unique messages.",
+   "hint": "One pass over the disks: a set of seen devs, a dictionary of allowed buses by prefix. Collect messages in a set and call sorted() at the end."
+  },
+  {
+   "id": "la24-build-xml",
+   "title": "Build a domain XML",
+   "statement": "Write a function build_domain_xml(spec): spec is a dictionary with the keys name, memory_mib (an integer), vcpus (an integer), disks — a list of dictionaries {file, target} — and network — a libvirt network name or an empty string/None. Return a string of exactly this shape (indentation of two spaces per level, single quotes in attributes, lines joined by \\n, one \\n at the end): <domain type='kvm'>, <name>…</name>, <memory unit='KiB'>…</memory> (mebibytes times 1024), <vcpu>…</vcpu>, <os> with the nested <type>hvm</type> and <boot dev='hd'/>, then <devices> and in it, in order, all the disks and the network card, then the closing tags. A disk: <disk type='file' device='disk'> with the nested <driver name='qemu' type='…'/> (qcow2 if the path ends with .qcow2, otherwise raw), <source file='…'/> and <target dev='…' bus='…'/>; the bus follows the first two letters of target: vd — virtio, sd — sata, hd — ide. The card (if network is not empty): <interface type='network'> with <source network='…'/> and <model type='virtio'/>. In the name text escape & < >; in the values of the file and network attributes escape also the single quote as &apos;.",
+   "hint": "Build a list of lines and finish with '\\n'.join(lines) + '\\n'. Escaping: xml.sax.saxutils.escape(s, {\"'\": '&apos;'})."
+  },
+  {
+   "id": "la24-choose-pool",
+   "title": "Where to put a volume",
+   "statement": "You get descriptions of storage pools (the output of virsh pool-dumpxml): a root element pool with the type attribute and the elements name and available (free space; a number in the unit of the unit attribute — bytes, KiB, MiB, or GiB, bytes if there is no attribute; if the element is missing, count 0). Write a function choose_pool(pool_xmls, size_bytes): pick a pool for a new volume of size_bytes. Skip pools of the types iscsi, iscsi-direct, scsi, and mpath: volumes cannot be created in them through libvirt. Of the rest, those whose available is at least size_bytes fit; among the fitting ones take the pool with the smallest available (large chunks stay free), and on a tie the alphabetically smaller name. Return the pool name, or an empty string if nothing fits.",
+   "hint": "For each pool convert available to bytes and compare tuples (available, name); min gives the right choice."
+  },
+  {
+   "id": "la24-volume-report",
+   "title": "Volume sizes and overcommit",
+   "statement": "The output of virsh vol-list --pool NAME --details is a table: a header \" Name Path Type Capacity Allocation\", a line of hyphens, and one line per volume: name, path, type, then Capacity and Allocation, each a number with a decimal point and a unit (B, KiB, MiB, GiB, or TiB, powers of 1024, separated by a space). The name and path contain no spaces, so a volume line has exactly seven words. Capacity is the size the guest sees, Allocation is how much is really used on the host. Write a function volume_report(text, pool_gib): return a tuple (sum of Capacity in GiB, sum of Allocation in GiB, whether the pool is overcommitted), rounding the numbers to two decimals; the pool is overcommitted if the sum of Capacity is strictly greater than pool_gib. Skip lines that do not have seven words (the header, the separator, empty ones).",
+   "hint": "Multiply each value by the unit factor and add in bytes (Decimal is better), convert to GiB at the end."
+  },
+  {
+   "id": "la24-check-network",
+   "title": "Checking a libvirt network",
+   "statement": "You get the XML of a libvirt virtual network: an ip element with the attributes address (the gateway/bridge address) and netmask, and inside it dhcp with an optional range (start, end) and any number of host elements (mac, name, ip). Write a function check_network(xml): return a sorted list of unique messages. The range: range-outside — start or end is outside the subnet; range-order — start is greater than end; range-has-gateway — start <= the gateway address <= end (checked only if the order is right). Each host: if mac, name, or ip is missing — host-incomplete (such a host is not checked further); otherwise repeats among the checked hosts: dup-mac:<mac> (MAC compared case-insensitively, the message holds it in lower case), dup-name:<name>, dup-ip:<ip> (the message appears on the second and later repeats); then exactly one of: host-outside:<ip> (outside the subnet), host-gateway:<ip> (equals the gateway address), host-in-range:<ip> (inside the dynamic range, bounds included) — this is a rule of the task: keep static addresses out of the DHCP pool. Use the ipaddress module.",
+   "hint": "ipaddress.ip_interface('10.0.0.1/255.255.255.0') gives both the address (.ip) and the subnet (.network); addresses compare with < and <=."
+  },
+  {
+   "id": "la24-check-seed",
+   "title": "Checking a cloud-init seed",
+   "statement": "A NoCloud seed is two files: user-data and meta-data. Write a function check_seed(user_data, meta_data) (both are strings) that checks them against a small subset of the format and returns a sorted list of messages. user-data: the first line (without trailing spaces) must be exactly #cloud-config, otherwise user-data:header. The other lines (numbered from one, the header is line 1): empty ones and ones starting with # (after spaces) are skipped; only three shapes are allowed — \"key: value\" (the key is lower-case Latin letters, digits and _, not starting with a digit; the value is non-empty), \"key:\" (opens a list), and \"  - item\" (exactly two spaces, a hyphen, a space, a non-empty item), and an item is allowed only while a list is open: a list is opened by a \"key:\" line and closed by any following \"key…:\" line. Any other line is user-data:syntax:<line number>. Then: a list with no items — user-data:empty:<key>; the keys packages and runcmd given as a scalar (\"packages: nginx\") — user-data:list:<key>; ssh_pwauth as a scalar that is neither true nor false — user-data:bool:ssh_pwauth. meta-data: must contain a line of the form \"instance-id: value\" with no indentation and a non-empty value, otherwise meta-data:instance-id (lines with # and empty ones do not count).",
+   "hint": "Use regular expressions for a key with or without a value and for a list item. Keep a variable for the open list and an item counter per key."
+  },
+  {
+   "id": "la24-snapshot-delete",
+   "title": "Deleting a snapshot",
+   "statement": "The output of virsh snapshot-list DOMAIN --parent is a table: a header \" Name Creation Time State Parent\", a line of hyphens, and one line per snapshot: the name (the first word), the time (three words), the state, and the parent name (the last word; a hyphen if there is no parent). Snapshots are listed in creation order. Write a function delete_snapshot(table, name, with_children): return a list of tuples (name, parent) of the remaining snapshots in the same order, with an empty string as the parent of roots. With with_children=True (virsh snapshot-delete --children) the snapshot name and all its descendants at any depth are removed. With with_children=False the snapshot's changes are merged into its descendants: only it is removed, and its direct children get its parent as their new parent. If there is no snapshot name, the list stays as it was.",
+   "hint": "The name is the first word, the parent the last. Is a node a descendant: walk up through the parents until you meet name."
+  },
+  {
+   "id": "la24-lifecycle",
+   "title": "Domain lifecycle",
+   "statement": "A model of a domain's life under virsh commands. States: \"gone\" (there is no domain), \"shut off\", \"running\", \"paused\". The persistent flag says whether the domain has a stored definition. Commands: define — if there is no domain, it appears shut off and persistent; if there is one, it becomes persistent (the state does not change). start — only from \"shut off\" to \"running\". shutdown — only from \"running\": the domain powers off (if it is persistent, to \"shut off\"; a transient one disappears: \"gone\"). destroy — from \"running\" or \"paused\", the result is as for shutdown. suspend — from \"running\" to \"paused\"; resume — from \"paused\" to \"running\". undefine — only for an existing persistent domain: a shut-off one disappears (\"gone\", persistent False), a running or paused one keeps its state but becomes transient. Any command not allowed by the rules (including an unknown one) changes nothing and produces an error \"<command>:<state before the command>\". Write a function simulate_domain(state, persistent, commands): return a tuple (state, persistent, list of errors in order).",
+   "hint": "An if/elif chain on the command and the state, with the error record in else. Remember the state before the command."
+  }
+ ]
+}

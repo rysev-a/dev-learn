@@ -1,0 +1,66 @@
+{
+ "book": 19,
+ "chapter": 21,
+ "tasks": [
+  {
+   "id": "la21-lvs-sizes",
+   "title": "Active volumes from lvs JSON",
+   "statement": "The command lvs --reportformat json prints an object with a \"report\" array; every element of the array is an object whose \"lv\" array (it may be missing) holds the table rows, and all the values in the rows are strings. Write a function active_sizes(text, vg): text is the command output, vg is a group name. Return a dictionary volume name → size in mebibytes (an integer) for the volumes of group vg that are active (lv_attr has at least five characters and the fifth is \"a\") and not hidden (the name does not start with \"[\"). The lv_size value is a number with a decimal point that may be preceded by \"<\" (ignore it) and an optional suffix from k, m, g, t, p: powers of 1024 (k is KiB, m is MiB and so on). With no suffix the number is bytes. Round the result to the nearest integer, halves up. Consider all elements of \"report\".",
+   "hint": "json.loads, then two nested loops. Size: Fraction(number) * multiplier / 1024**2, rounding with int(x + Fraction(1, 2))."
+  },
+  {
+   "id": "la21-global-addrs",
+   "title": "Global addresses from ip -j addr",
+   "statement": "The output of ip -j addr is a JSON array of interface objects; each has ifname, operstate and an addr_info array (it may be missing) in which an address has family (\"inet\" or \"inet6\"), local, prefixlen and scope. Write a function global_addrs(text, family): text is the command output, family is \"inet\", \"inet6\" or \"any\". Return a dictionary interface name → list of \"address/prefix\" strings only for addresses with scope \"global\" of the requested family (\"any\" means either). Skip interfaces whose operstate is \"DOWN\" and do not include interfaces with no matching address. Inside a list put inet addresses first, then inet6, and inside a family use plain string order.",
+   "hint": "Read optional keys with .get; to sort, build pairs (0 or 1 by family, string)."
+  },
+  {
+   "id": "la21-default-gateway",
+   "title": "Default gateway from ip -j route",
+   "statement": "The output of ip -j route is a JSON array of routes; a route has dst and dev, while gateway, metric and flags are not always present. Write a function default_gateway(text): among the routes whose dst is \"default\" and that have a gateway key, choose the one with the smallest metric (a missing metric key means 0); routes whose flags contain \"linkdown\" are not considered; on equal metrics the route that comes earlier in the list wins. Return the list [gateway, dev] of the chosen route, or None if no route qualifies.",
+   "hint": "Walk the routes once and keep the best triple (metric, gateway, device); a strict \"less than\" keeps the first one on a tie."
+  },
+  {
+   "id": "la21-crowded-mounts",
+   "title": "Crowded mount points from df -P",
+   "statement": "The output of df -P is a header and one line per filesystem: Filesystem, a block count, Used, Available, Capacity (for example 53%) and Mounted on. The mount point is the rest of the line and may contain spaces (even several in a row). The block size is written in the second word of the header: 1024-blocks or 512-blocks. Write a function crowded_mounts(text, threshold): return a list of pairs [mount point, free bytes (Available multiplied by the block size)] for the lines whose Capacity is at least threshold percent, sorted by Capacity descending and, on a tie, by mount point. Skip lines that have \"-\" instead of a percentage; for an empty text return an empty list. The filesystem name contains no spaces.",
+   "hint": "line.split(None, 5) leaves the rest of the line untouched. Block size: int(header.split()[1].split('-')[0])."
+  },
+  {
+   "id": "la21-units-attention",
+   "title": "Units needing attention from systemctl show",
+   "statement": "The command systemctl show -p Id -p LoadState ... for several units prints blocks of Key=Value lines, the blocks separated by an empty line (there may be several empty lines between blocks). The value is everything after the first = sign and may itself contain =; ignore lines with no =. Write a function units_needing_attention(text, restart_limit): return a dictionary Id → reason. The reason is chosen by the first matching rule: \"not-found\" if LoadState is not-found; \"failed\" if ActiveState is failed; \"flapping\" if the NRestarts number (a missing or empty value counts as 0) is at least restart_limit. Skip a block with no Id; the other units are not in the dictionary.",
+   "hint": "re.split(r'\\n\\s*\\n', text) splits into blocks; line.split('=', 1) splits into key and value."
+  },
+  {
+   "id": "la21-ssh-argv",
+   "title": "A safe ssh command",
+   "statement": "The remote side receives the command as one string and runs it with the user's shell, so every argument must be quoted. Write a function ssh_argv(host, remote_args) that returns an argument list for running without a shell: [\"ssh\", \"-o\", \"BatchMode=yes\", host, string], where string is remote_args with every element quoted and all joined by one space. Quoting an element: a non-empty element made of the letters a-z A-Z, digits and the characters @ % + = : , . / _ - stays as is; any other element (including an empty one) is wrapped in single quotes, and each single quote inside it is replaced by '\"'\"'. The host must look like [user@]name: the user starts with a letter or _ and consists of letters, digits, _ and -; the name starts with a letter or digit and consists of letters, digits, dots and hyphens. Otherwise (including a name such as -oProxyCommand=...), or if remote_args is empty, return None.",
+   "hint": "Use re.fullmatch for the host; for the elements shlex.quote does exactly this, but make sure you understand the rule."
+  },
+  {
+   "id": "la21-classify-exit",
+   "title": "What this run result means",
+   "statement": "The result of running an external command is one of two kinds: [\"returned\", code] (the process exited with a return code) and [\"raised\", exception_name] (Python raised an exception). Write a function classify_exit(shell, outcome), where shell says whether the command was run through a shell (shell=True). Return a string: for exceptions \"missing\" (FileNotFoundError), \"not-executable\" (PermissionError), \"timeout\" (TimeoutExpired), otherwise \"error:\" and the exception name. For a code: 0 gives \"ok\"; a negative code -N means death by signal N and gives \"signal:NAME\"; when shell is True the shell reports 127 for \"not found\" (\"missing\"), 126 for \"not executable\" (\"not-executable\") and 128+N for signal N (above 128, up to 255); everything else gives \"failed:\" and the code. Take the signal name from the table 1 SIGHUP, 2 SIGINT, 3 SIGQUIT, 6 SIGABRT, 9 SIGKILL, 11 SIGSEGV, 13 SIGPIPE, 14 SIGALRM, 15 SIGTERM, and for any other number use the number itself (for example \"signal:34\"). Without a shell 127, 126 and 130 are ordinary program codes.",
+   "hint": "Exceptions first, then code 0, then negative codes, then the shell rules, failed last."
+  },
+  {
+   "id": "la21-replay",
+   "title": "A fake run for tests",
+   "statement": "Code that runs commands takes a run parameter and gets a fake one in tests. Write a function replay(script, calls): script is a list of entries [argv, code, stdout, stderr], calls is a list of calls (each a list of arguments). Each call takes the first not yet used entry, in script order, that has the same number of arguments and in which every argument equals the call's argument or is \"*\" (which matches anything); the entry is marked as used and gives the result [code, stdout, stderr]. If no entry fits, the call's result is None. Return the list [results in call order, the argv of the unused entries in script order].",
+   "hint": "Keep a list of \"used\" flags and for each call look for the first fitting entry."
+  },
+  {
+   "id": "la21-retry-plan",
+   "title": "Retries with a timeout on a fake clock",
+   "statement": "Simulate a retry loop without real time. outcomes are the prepared results of the attempts in order: [\"rc\", code, seconds] (the command returned code after that many seconds) or [\"hang\"] (the command never finishes). Write a function retry_plan(outcomes, attempts, timeout, base_delay, budget, retry_on). The clock starts at 0. Attempt k (from zero) takes outcomes[k]; if it is \"hang\" or its seconds exceed timeout, the command is killed on timeout: the clock advances by timeout, the attempt's verdict is \"timeout\", and it is a transient failure. Otherwise the clock advances by the seconds; code 0 ends the loop with verdict \"ok\"; a non-zero code gives verdict \"failed\", and if it is not in retry_on the loop ends at once with that verdict. After a transient failure, if the attempt is not the last, the loop sleeps base_delay * 2**k seconds before the next one, but if the clock plus that pause would exceed budget the loop ends with verdict \"budget\" and does not sleep. Return [verdict, number of attempts made, clock]. If the attempts run out, the verdict is that of the last attempt.",
+   "hint": "A loop over k; check the timeout before the code; \"transient\" is either a timeout or a non-zero code from retry_on."
+  },
+  {
+   "id": "la21-mounted-devices",
+   "title": "Devices and their usage: lsblk -J + df",
+   "statement": "The output of lsblk -J is an object {\"blockdevices\": [...]}; a device has name, type, mount points and an optional children array with nested devices. The mount points are either in a \"mountpoints\" list (newer util-linux versions; it can contain null) or in a single \"mountpoint\" value (a string or null). Write a function mounted_devices(lsblk_text, usage): usage is a dictionary mount point → usage percentage from df. Walk the whole tree and return a list [mount point, name, type, percentage] for every pair (mount point, device); the percentage comes from usage, or None if the mount point is not there. Skip mount points that start with \"[\" (for example \"[SWAP]\") and null. One device can appear in the tree several times (under different parents) — the pair (mount point, name) must be in the answer once. Sort the result by mount point, then by name.",
+   "hint": "A recursive walk over children; a dictionary keyed by (mount point, name) removes repeats; if the \"mountpoints\" key is missing, use [d.get('mountpoint')]."
+  }
+ ]
+}

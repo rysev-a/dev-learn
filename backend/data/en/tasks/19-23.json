@@ -1,0 +1,60 @@
+{
+ "book": 19,
+ "chapter": 23,
+ "tasks": [
+  {
+   "id": "la23-ensure-line",
+   "title": "A line in a file: ensure_line",
+   "statement": "Write a function ensure_line(text, line, regexp=None, state=\"present\", insertafter=None) modelled on the lineinfile module. A file is a string of lines each ending in \\n; one trailing \\n does not create an extra empty line. Return a tuple (new_text, changed). state=\"present\": if regexp is given, find the lines where re.search(regexp, line_of_file) succeeds; if there are any, replace the LAST of them with line (if it already equals line, nothing changes). If regexp is not given and the whole line is already in the file, nothing changes. When the line has to be inserted (no match, or no regexp): if insertafter is None or \"EOF\", at the end of the file; otherwise right after the LAST line where re.search(insertafter, line_of_file) succeeds, and at the end if there is none. insertafter is not used when a line is replaced. state=\"absent\": if regexp is given, remove ALL lines with re.search(regexp, line_of_file); otherwise remove all lines equal to line. If the content did not change, return the original text untouched and False. Otherwise the new text is all the lines, each ending in \\n, and True.",
+   "hint": "Split text.split(\"\\n\"), drop the last empty element, work with a list; if the list did not change, return the original text."
+  },
+  {
+   "id": "la23-plan",
+   "title": "Plan: desired against actual",
+   "statement": "Write a function plan(desired, actual): compare a host's desired state with its actual state and return a dictionary {\"changed\": bool, \"actions\": [...]}, where actions is a list of tuples (operation, name). desired: optional keys \"packages\" (a dictionary name → \"present\" or \"absent\"), \"users\" (the same), \"files\" (path → {\"content\": string, \"mode\": a string like \"0644\"}) and \"services\" (name → \"running\" or \"stopped\"). actual: \"packages\" is a list of installed names, \"users\" a list of existing ones, \"files\" is path → {\"content\", \"mode\"} (the file may be missing), \"services\" is name → \"running\"/\"stopped\" (a service absent from the dictionary counts as stopped). A missing key is an empty section. Action order: all packages first, then users, then files, then services; inside a section by name ascending. Rules: a package present and not installed → (\"install\", name); absent and installed → (\"remove\", name). A user likewise: (\"useradd\", name) and (\"userdel\", name). A file: missing or content differs → (\"write\", path); otherwise, if only mode differs → (\"chmod\", path). A service: desired running but not running → (\"start\", name); desired stopped but running → (\"stop\", name). Nothing unmentioned is touched (extra files and packages stay). changed is True when there are actions.",
+   "hint": "Four loops over sorted(desired) in the required order; collect the actions into one list, changed = bool(actions)."
+  },
+  {
+   "id": "la23-recap",
+   "title": "Parsing PLAY RECAP",
+   "statement": "Write a function parse_recap(text): parse the ansible-playbook summary and return a tuple (stats, bad). The summary starts with a line that begins with \"PLAY RECAP\"; if there is no such line, return ({}, []). The lines after it are read up to the first empty (whitespace-only) line. A host line looks like a name, spaces, a colon, spaces, and name=number pairs: \"web1       : ok=2    changed=1    unreachable=0    failed=0 ...\"; the name has no spaces, skip lines of another shape. stats is a dictionary host name → a dictionary with exactly seven keys ok, changed, unreachable, failed, skipped, rescued, ignored (integers; a counter missing from the line is 0; extra pairs are ignored). If a host occurs twice, the last line wins. bad is a sorted list of hosts with failed > 0 or unreachable > 0. Everything before the PLAY RECAP line and after the empty line is ignored.",
+   "hint": "re.match(r'^(\\S+)\\s+:\\s+(.*)$', line) gives the name and the rest; re.findall(r'(\\w+)=(\\d+)', rest) gives the counters."
+  },
+  {
+   "id": "la23-handlers",
+   "title": "Which handlers run",
+   "statement": "Simulate Ansible handlers on one host. Write a function run_handlers(handlers, tasks, force=False): handlers is the list of handler names in their definition order (names are unique), tasks is a list of triples (name, status, notify), where status is \"ok\", \"changed\", \"skipped\" or \"failed\" and notify is a list of handler names. Return the list of handler names in the order they run. Rules: tasks go in order. A task with status \"changed\" puts its notify names in the queue (names not in handlers are ignored; a repeated notification adds nothing). Tasks with another status put nothing in the queue. A task named \"meta: flush_handlers\" (its status is \"ok\") runs the queue at once and clears it. Running the queue means: each notified handler once, in the order of the handlers list, not in notification order. After the last task the queue is run the same way. If a task has the status \"failed\", processing stops: the remaining tasks are not considered; the queue is run only if force is True, otherwise the queued handlers do not run. Handlers already run earlier by a flush stay in the result.",
+   "hint": "Keep the queue in a set, and when running it walk the handlers list and take those in the set."
+  },
+  {
+   "id": "la23-retry",
+   "title": "Retries with a growing pause",
+   "statement": "Write a function retry_plan(outcomes, base, factor, cap, max_retries, max_elapsed) — a calculation of retries without real sleeping. outcomes is a list of attempt results by number: attempt number k (from zero) succeeds if k < len(outcomes) and outcomes[k] is True; attempts beyond the list fail. All numbers are integers. The course: the first attempt runs at once. If it succeeded, return (True, attempts, total_sleep). If it failed, look at how many retries have been made (r = attempts − 1). If r >= max_retries, give up. Otherwise the pause before the retry is delay = min(cap, base * factor ** r) (r is the number of retries already made). If total_sleep + delay is greater than max_elapsed, give up without sleeping; otherwise \"sleep\" (total_sleep += delay) and make the next attempt. When giving up, return (False, attempts, total_sleep). The pause has no randomness (no jitter).",
+   "hint": "A while True loop: an attempt, the success check, the r >= max_retries check, the delay calculation and the time-limit check."
+  },
+  {
+   "id": "la23-converge",
+   "title": "Does the automation converge",
+   "statement": "A model of the idempotence check. The state is a list of lines. Write a function converge(lines, steps, max_runs) (max_runs >= 1). steps is a list of steps [name, operation, arguments...]. A run is all the steps in order on the current list. The operations: [\"append\", line] — add the line at the end unconditionally; [\"ensure\", line] — add it at the end only if there is no such line yet; [\"replace\", old, new] — replace every line equal to old with new; [\"remove\", line] — remove all lines equal to the given one; [\"stamp\", prefix] — remove all lines that start with the prefix and add prefix + the run number (counted from 1, as a string) at the end. A step \"changed\" if the list after it differs from the list before it. After each run: if no step changed anything, stop and return (that_run_number, []). If max_runs is reached and the last run had changes, return (max_runs, names_of_the_steps_that_changed_in_the_last_run_in_step_order).",
+   "hint": "Copy the list before each step (before) and compare after it; collect the names of the changing steps per run."
+  },
+  {
+   "id": "la23-apply-diff",
+   "title": "Apply a unified diff",
+   "statement": "Check mode shows changes as a unified diff. Write a function apply_diff(old_text, diff_text) that applies such a diff to a text and returns the new text, or None on any mismatch. A text is lines ending in \\n; one trailing \\n does not create an empty line (the same for diff_text). Everything before the first hunk header (including --- and +++) is ignored. A hunk header: @@ -a,b +c,d @@, where \",b\" and \",d\" may be absent (then the number is 1). The hunk body is the lines up to the next header; each begins with a character: a space is context (the line must equal the current line of the old text), \"-\" is a line to delete (must equal), \"+\" is a line to add; lines beginning with a backslash (\"\\ No newline at end of file\") are skipped; any other line, an empty one included, is an error. The old part of a hunk starts at line a (counted from 1); if b is 0 it is an insertion after line a (a = 0 means the very beginning). The number of context plus deleted lines must equal b, context plus added must equal d. Hunks go in ascending order and must not overlap, otherwise None. Lines between hunks and after them are copied unchanged. If there are no hunks, return old_text as it is. The result is all the lines, each ending in \\n.",
+   "hint": "Regex ^@@ -(\\d+)(?:,(\\d+))? \\+(\\d+)(?:,(\\d+))? @@; a pointer ptr into the old text advances on context and deleted lines."
+  },
+  {
+   "id": "la23-host-vars",
+   "title": "Host variables from an inventory",
+   "statement": "Write a function host_vars(inv, host): return the final variables of a host by the Ansible precedence rules. inv repeats a YAML inventory as a dictionary: the top level is {\"all\": group}, a group is a dictionary with optional keys \"vars\" (a dictionary), \"hosts\" (host name → a dictionary of host variables or None) and \"children\" (group name → group). Group names do not repeat. The depth of a group: all has 0, its children 1, their children 2, and so on. A host belongs to a group if it is listed in its hosts or belongs to any of its child groups (to any depth). First the vars of all groups the host belongs to are merged in ascending order of (depth, group name); a later one overrides an earlier one. Then the host's own variables from each hosts entry that lists it are laid on top of everything, in the same group order (None and an empty dictionary add nothing). If the host is not in the inventory, return an empty dictionary.",
+   "hint": "Walk the tree recursively collecting (depth, name, group); sort; a function contains(group) checks hosts and children."
+  },
+  {
+   "id": "la23-exit-status",
+   "title": "Exit status for cron and systemd",
+   "statement": "A wrapper runs a playbook and must end with a code that cron and a systemd timer understand. Write a function exit_status(stats, audit): stats is a dictionary host → a dictionary of counters (keys ok, changed, unreachable, failed; a missing one counts as 0), audit is a bool (a check mode run that applies nothing). The table, checked in order (the first match wins): if any host has failed > 0 — 1; otherwise if any host has unreachable > 0 — 3; otherwise if any host has changed > 0 — 4 when audit=True (drift found) and 2 when audit=False (changes applied); otherwise — 0. An empty stats gives 0.",
+   "hint": "Three any(...) over stats.values() and an if chain in the right order."
+  }
+ ]
+}

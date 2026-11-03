@@ -1,0 +1,66 @@
+{
+ "book": 19,
+ "chapter": 22,
+ "tasks": [
+  {
+   "id": "la22-mode-string",
+   "title": "The ls -l mode string",
+   "statement": "Write mode_string(mode): given a file's st_mode integer (type bits included), return the 10-character string printed by ls -l and stat.filemode. The first character is the type from the top bits (mode & 0o170000): 0o140000 s, 0o120000 l, 0o100000 -, 0o060000 b, 0o040000 d, 0o020000 c, 0o010000 p, any other value ?. Then three triples of r, w, x or - for owner, group and others. The owner's x position shows s if setuid (0o4000) is set and x is set, and S if setuid is set without x; the group does the same with setgid (0o2000); the others' x position shows t if sticky (0o1000) is set together with x, and T without x.",
+   "hint": "For each of the three triples take (mode >> shift) & 7; the special bit changes only the third character of the triple."
+  },
+  {
+   "id": "la22-chmod",
+   "title": "Symbolic chmod with umask",
+   "statement": "Implement a simplified GNU chmod symbolic mode: apply_chmod(mode, spec, umask, is_dir) returns the new permission bits (an integer 0..0o7777, special bits included). spec is a comma-separated list of clauses applied left to right, each to the result of the previous one. A clause is zero or more who letters from u, g, o, a, followed by one or more actions; an action is an operator (+, -, =) followed by zero or more permission letters r, w, x, X, s, t or exactly one letter u, g or o. a means ugo; an empty who also means ugo, but then the rwx bits of umask are removed from value before the operator is applied. Each class owns its rwx bits and one special bit: u owns setuid 0o4000, g owns setgid 0o2000, o owns sticky 0o1000; affected is all the bits owned by the named classes. Letters r, w, x give 4, 2, 1 in every named class; X is like x, but only if is_dir is true or the current mode has any x bit; s gives 0o6000, t gives 0o1000; value is then intersected with affected, so o+s and u+t change nothing. A letter u, g or o instead of permissions copies that class's current rwx triple into every named class. Operator +: mode |= value; -: mode &= ~value; =: first clear all affected bits, then add value. The special chmod handling of setuid/setgid on directories is not modelled.",
+   "hint": "Parse a clause character by character: who first, then a loop of operator plus letters. For each action compute value, intersect it with affected, then apply the operator."
+  },
+  {
+   "id": "la22-safe-join",
+   "title": "Safe path join",
+   "statement": "Write safe_join(base, name, links): return the resolved absolute path of base/name if it lies inside the resolved base (or equals it), else None. base is a normalized absolute path without a trailing slash (or /), name came from outside. links maps the absolute path of each symbolic link to its target string (the target may be absolute or relative and may contain ..); any path not in links is an ordinary directory or file. Joining works like the / operator of pathlib: if name starts with /, the result is name itself, otherwise base + '/' + name. Resolution works like the Linux kernel: components are processed left to right; empty ones and . are skipped; .. removes the last component of the result accumulated so far (the root stays the root); if the accumulated path plus the next component is in links, that is a link expansion: a relative target is processed from the directory that contains the link, an absolute one from the root, and the rest of the original path continues after the target. More than 40 expansions in one resolution give None. base is resolved by the same rules too (more than 40 expansions there give None). The result is the resolved path: no /./, .. or repeated slashes, and the root is '/'.",
+   "hint": "Keep a stack of the remaining components: when a link expands, push the target's components back onto it. Compare as text: rj == rb or rj starts with rb + '/'."
+  },
+  {
+   "id": "la22-enospc",
+   "title": "Disk full: what is left",
+   "statement": "A script updates a file on a tiny disk, either in place or through a temporary file. Write enospc_outcome(files, ops, target, free): files maps absolute paths to text (one character is one byte), ops are the operations in order, target is the path of interest, free is the number of free bytes. Operations: (\"open_trunc\", p) creates p or truncates it to empty (the bytes of the old content become free); (\"write\", p, text) appends text to p if len(text) <= free (free decreases); otherwise only the first free characters are appended, free becomes 0 and the script dies with ENOSPC at this point, no later operation runs; (\"rename\", src, dst) moves src to dst, and the bytes of the previous dst, if it existed, become free; (\"unlink\", p) removes p and its bytes become free; any other operation (for example fsync) changes nothing. Return a tuple (the content of target, or None if the file does not exist, a sorted list of all other existing paths).",
+   "hint": "Keep a dictionary fs and a free counter; when space runs out append text[:free] and break."
+  },
+  {
+   "id": "la22-fsync-audit",
+   "title": "Audit of an atomic replace",
+   "statement": "Write fsync_audit(ops, mounts): find ordering mistakes in a sequence that replaces a file atomically. mounts is a list of mount points (\"/\" is always there); a path's filesystem is the longest mount point m such that the path equals m or starts with m + \"/\". ops are tuples: (\"write\", p) means data was written to p (the file is dirty); (\"fsync\", p) means p was flushed to disk (it becomes clean); (\"rename\", src, dst); (\"fsync_dir\", d). Rules; problems are appended in the order of events. On rename: if src is dirty, append \"DATA_NOT_SYNCED \" + src. Then, if the filesystems of src and dst differ, append \"EXDEV \" + src + \" \" + dst and the rename counts as not performed (nothing more happens for it). Otherwise the rename is performed: src's dirtiness moves to dst, and the directories of src and dst (a path's parent is everything before the last /, \"/\" for a file in the root) become pending for fsync_dir. fsync_dir d clears the pending state of d. At the end, for each directory still pending, in ascending order, append \"DIR_NOT_SYNCED \" + the directory. Return the list of problems.",
+   "hint": "Three collections: dirty files, pending directories and the list of problems. fs_of: loop over mounts and keep the longest match."
+  },
+  {
+   "id": "la22-lock-trace",
+   "title": "Lock file, stale lock and PIDs",
+   "statement": "Simulate the O_EXCL lock-file protocol. lock_trace(events, alive): events is a list of (pid, action), alive is a list of the PIDs of live processes at the start. At the start there is no lock file. Actions: \"acquire\": if there is no lock file, it is created with owner pid and the result is \"acquired\"; if the file exists, the owner's PID is read: if it is in the alive set, the result is \"busy\"; otherwise the lock is stale, the file is deleted and created again with owner pid, and the result is \"stolen\". \"release\": if the file exists and its owner is pid, the file is deleted and the result is \"released\", otherwise \"not-owner\" and the file is left alone. \"die\": pid leaves the alive set, the lock file stays, the result is \"died\". \"spawn\": pid joins the alive set (this is how the PID of a dead owner can go to an unrelated process), the result is \"spawned\". Return the list of results in event order.",
+   "hint": "Two variables are enough: owner (or None) and the alive set."
+  },
+  {
+   "id": "la22-flock-sim",
+   "title": "flock semantics",
+   "statement": "Simulate flock(2) for a single file. flock_sim(ops) returns a list of results, one per operation. Operations: (\"open\", fd) is a new open file description reached through descriptor fd; (\"dup\", fd, new_fd) makes new_fd point to the same description (dup or fork); (\"close\", fd) closes the descriptor, and the description's lock is released when the last descriptor leading to it is closed; (\"flock\", fd, mode, nonblock), where mode is \"SH\", \"EX\" or \"UN\". The result of open, dup and close is \"ok\". A lock belongs to the description, not to the descriptor. flock: first, in every case, the lock that the description already held is dropped (a conversion is not atomic), then for mode \"UN\" the result is \"ok\"; otherwise the request conflicts if another description holds \"EX\", or if \"EX\" is requested while another description holds any lock. A conflict gives \"EWOULDBLOCK\" if nonblock is true and \"BLOCKS\" if false (in both cases the lock is not taken); without a conflict the lock is taken and the result is \"ok\".",
+   "hint": "Two dictionaries: fd → description number and description number → mode. On close check whether other descriptors still lead to that description."
+  },
+  {
+   "id": "la22-move-steps",
+   "title": "What shutil.move does",
+   "statement": "Write move_steps(src, dst, tree, mounts): the list of steps that shutil.move(src, dst) performs. tree maps each existing path to its type (\"f\" file, \"d\" directory, \"l\" symbolic link), and src is in it. mounts are the mount points (\"/\" is always there); a path's filesystem is the longest mount point m such that the path equals m or starts with m + \"/\" (the same for a path that does not exist). If dst (without trailing slashes) is in tree and is a directory, the target is real = that path + \"/\" + the last component of src; if real is already in tree, return [(\"error\", \"exists\", real)]; otherwise real = dst. If src is a directory and dst (with a trailing slash added) lies inside src (starts with src + \"/\"), return [(\"rename\", src, real, \"EINVAL\"), (\"error\", \"into-itself\", real)]. If the filesystems of src and real are the same, there is one step: (\"rename\", src, real). Otherwise the first step is (\"rename\", src, real, \"EXDEV\") and then the fallback: for a file (\"copy2\", src, real), (\"unlink\", src); for a directory (\"copytree\", src, real), (\"rmtree\", src); for a link (\"symlink\", src, real), (\"unlink\", src).",
+   "hint": "The order of checks is the same as in shutil.move: target directory, existence, nesting, then the filesystem comparison."
+  },
+  {
+   "id": "la22-copy-plan",
+   "title": "Is there room for copytree",
+   "statement": "Write copy_plan(entries, free, block, reserve, symlinks): estimate whether a copy of a tree will fit. entries is a list of (path, kind, size). Kind \"d\" is a directory and takes one block; \"f\" is a regular file of size bytes; \"h\" is another name of a hard link to an already counted file: copytree copies each name as a separate file, so it counts like \"f\"; \"l\" is a symbolic link, and size is the size of the file it points to. A file takes ceil(size / block) blocks of block bytes (an empty file takes 0 blocks). If symlinks is false, copytree copies the content of a link's target as a regular file, and \"l\" counts like \"f\"; if true, the link is recreated and takes nothing in this model. need is the sum over all entries. If free - need >= reserve, return (\"ok\", need); otherwise (\"ENOSPC\", need + reserve - free), the number of bytes that are missing.",
+   "hint": "Round up without floats: -(-size // block) * block."
+  },
+  {
+   "id": "la22-walk-plan",
+   "title": "os.walk order and pruning",
+   "statement": "Write walk_plan(tree, root, prune, topdown): the list of triples (dirpath, dirnames, filenames) in the order in which os.walk(root, topdown=topdown, followlinks=False) yields them, if scandir returns names in ascending order. tree maps a directory path to a dictionary name → kind: \"f\" file, \"d\" directory, \"ld\" symbolic link to a directory, \"lf\" symbolic link to a file; every directory of kind \"d\" that is linked from tree is itself present in tree. dirnames holds the names of kinds \"d\" and \"ld\", filenames the names of kinds \"f\" and \"lf\", both lists sorted. A subdirectory's path is dirpath + \"/\" + name. Links \"ld\" are in dirnames, but os.walk does not enter them. With topdown true, the caller removes every name in the list prune (at any level, \"d\" and \"ld\" alike) from dirnames before descending: the triple holds the already pruned list, and only the remaining \"d\" are entered. With topdown false, a directory's triple is yielded after the triples of all its subdirectories of kind \"d\", and the list cannot be pruned: prune has no effect and dirnames is complete.",
+   "hint": "A recursive visit(path): with topdown record first, then descend; otherwise the reverse. Prune dirs only when topdown."
+  }
+ ]
+}
