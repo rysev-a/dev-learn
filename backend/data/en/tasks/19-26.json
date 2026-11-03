@@ -1,0 +1,74 @@
+{
+ "book": 19,
+ "chapter": 26,
+ "tasks": [
+  {
+   "id": "la26-read-full",
+   "title": "read_full: reading exactly n bytes",
+   "statement": "A single read call may return fewer bytes than requested, or be interrupted by a signal. Write read_full(fd, buf, n): it reads exactly n bytes in a loop and returns the number of bytes read. It returns fewer than n only at end of file (read returned 0). Repeat on EINTR, and return any other error as -1 with the same errno. For n equal to zero it must not call the kernel at all. The checker replaces read (the linker option --wrap=read) with a model of the kernel: it hands out data in portions of 3, 1, 5 and 7 bytes, injects EINTR and an EIO error, and passes other descriptors to the real read.",
+   "hint": "A loop while (got < n); read(fd, buf + got, n - got); on r < 0 with errno == EINTR do continue; r == 0 means break.",
+   "starter": "#include <unistd.h>\n#include <errno.h>\n#include <stddef.h>\n#include <sys/types.h>\n\n/* Read exactly n bytes from fd into buf.\n   Return the number of bytes read (fewer than n only at end of file)\n   or -1 with errno on a real error. */\nssize_t read_full(int fd, void *buf, size_t n) {\n    return -1;\n}\n"
+  },
+  {
+   "id": "la26-write-all",
+   "title": "write_all: writing without losses",
+   "statement": "The write call can also store less than asked, or return EINTR. Write write_all(fd, buf, n): write all n bytes in a loop, moving the pointer past the written part. Repeat on EINTR. Return any other error (for example ENOSPC, EAGAIN of a non-blocking descriptor, EPIPE on a closed pipe) as -1 with the same errno; there is no need to undo what is already written. For n equal to zero return 0. The checker replaces write (--wrap=write) with a sink model that takes portions of 2, 1, 4 and 3 bytes and injects EINTR, ENOSPC and EAGAIN failures.",
+   "hint": "The same loop as in read_full, but the counter grows by what write returned; a zero return for n > 0 does not occur here.",
+   "starter": "#include <unistd.h>\n#include <errno.h>\n#include <stddef.h>\n#include <sys/types.h>\n\n/* Write all n bytes to fd. Return 0 on success\n   or -1 with errno on error. */\nint write_all(int fd, const void *buf, size_t n) {\n    return -1;\n}\n"
+  },
+  {
+   "id": "la26-raw-slurp",
+   "title": "A raw call: -errno instead of -1",
+   "statement": "The syscall function of libc itself returns -1 and puts the reason in errno, while the kernel actually returns a negative code. Write raw_slurp(path, buf, cap): open the file with syscall(SYS_openat, AT_FDCWD, path, O_RDONLY | O_CLOEXEC), read up to cap bytes once with syscall(SYS_read, ...) and close with syscall(SYS_close, ...). Return the number of bytes read or the -errno of the first failing call (for example -2 for ENOENT). Close the descriptor whatever happens, even if read failed. The wrappers open, read and close are not allowed; aarch64 has no SYS_open, so we use SYS_openat. The checker opens a missing path, a directory (read gives EISDIR) and a path through a regular file (ENOTDIR), and watches for descriptor leaks.",
+   "hint": "long fd = syscall(SYS_openat, AT_FDCWD, path, O_RDONLY | O_CLOEXEC); on fd < 0 return -errno. Save errno from read before calling close.",
+   "starter": "#include <unistd.h>\n#include <fcntl.h>\n#include <errno.h>\n#include <stddef.h>\n#include <sys/syscall.h>\n\n/* Open path, read up to cap bytes once, close.\n   Only through syscall(SYS_openat, ...), SYS_read, SYS_close.\n   Return the byte count or the -errno of the first failing call;\n   close the descriptor whatever happens. */\nlong raw_slurp(const char *path, char *buf, size_t cap) {\n    return -1;\n}\n"
+  },
+  {
+   "id": "la26-load-text",
+   "title": "Cleanup that keeps errno",
+   "statement": "Write load_text(path, buf, cap): open the file with open(path, O_RDONLY | O_CLOEXEC), read up to cap-1 bytes once, put a zero byte at the end and close the file. Return the number of bytes read or -1 with the errno of the FIRST failure. The main trap: if read failed and the close in the cleanup fails too, errno comes from close; the cause must be saved and restored. If read succeeded but close returned an error, return -1 with the errno from close (that is how a deferred write error shows up on network file systems). The checker replaces open, read and close (--wrap) with a model of virtual files: a working one, one with a read error (EIO), one with a close error (EIO) and an inaccessible one (EACCES), and counts how many descriptors stay open.",
+   "hint": "In the read error branch: int saved = errno; close(fd); errno = saved; return -1;",
+   "starter": "#include <unistd.h>\n#include <fcntl.h>\n#include <errno.h>\n#include <stddef.h>\n\n/* Open path, read up to cap-1 bytes once, put a NUL at the end,\n   close. Return the byte count or -1 with the errno of the FIRST\n   failure. Close the descriptor whatever happens; a failing close\n   must not overwrite the cause of an earlier error. If only close\n   fails, return -1 with its errno. */\nint load_text(const char *path, char *buf, size_t cap) {\n    return -1;\n}\n"
+  },
+  {
+   "id": "la26-redirect",
+   "title": "Redirecting output with dup2",
+   "statement": "Write run_redirected(path, fn): call fn() so that everything it writes to descriptor 1 (write(1, ...)) lands in the file path. Create or truncate the file (O_CREAT | O_TRUNC, mode 0644). Save the old descriptor 1 with dup, replace it with dup2, and after fn() put it back and close the extra descriptors: right after the call the next open must give the same number as before it. Return 0 on success and -1 if the file could not be opened (standard output stays untouched then). freopen is not allowed. The checker works with real files.",
+   "hint": "open, dup(1), dup2(fd, 1), close(fd), fn(), dup2(saved, 1), close(saved). On errors in the middle, close what you already opened.",
+   "starter": "#include <unistd.h>\n#include <fcntl.h>\n\n/* Run fn() so that everything it writes to descriptor 1 goes\n   into the file path (create or truncate, mode 0644).\n   Afterwards descriptor 1 must be the old terminal (pipe) again\n   and no extra descriptors left open. Return 0 or -1. */\nint run_redirected(const char *path, void (*fn)(void)) {\n    return -1;\n}\n"
+  },
+  {
+   "id": "la26-open-flags",
+   "title": "open flags and umask",
+   "statement": "Write two functions. open_new(path) creates a NEW file for writing only with mode 0600 and the close-on-exec flag; if the file already exists, the call must fail with EEXIST (the existence check and the creation must be one kernel action, not an access plus open pair). open_log(path) opens a log for writing only: it creates it when missing with mode 0640, and every write must land at the end of the file even if several descriptors point to it; the close-on-exec flag is required as well. The kernel computes the final mode as mode & ~umask, and the checker changes the umask between calls. Both functions return a descriptor or -1.",
+   "hint": "O_WRONLY | O_CREAT | O_EXCL | O_CLOEXEC and O_WRONLY | O_CREAT | O_APPEND | O_CLOEXEC; the mode is the third argument of open.",
+   "starter": "#include <fcntl.h>\n#include <unistd.h>\n#include <sys/stat.h>\n\n/* Create a NEW file for writing, mode 0600, close on exec.\n   If the file exists, return -1 (errno = EEXIST). */\nint open_new(const char *path) {\n    return -1;\n}\n\n/* Open a log for appending only: create it if missing (mode 0640),\n   every write goes to the end, close on exec. */\nint open_log(const char *path) {\n    return -1;\n}\n"
+  },
+  {
+   "id": "la26-tail-bytes",
+   "title": "tail: the end of a file with a call budget",
+   "statement": "Write tail_bytes(fd, k, out): copy the last k bytes of the file into out (the whole file if it is shorter) and return the byte count or -1. The file can be megabytes long, so reading it from the start is not allowed: use lseek(fd, 0, SEEK_END) to learn the size and pread (or lseek and read) for the tail itself. The kernel model (--wrap=lseek,read,pread) hands over at most 4096 bytes per call, counts the calls and the bytes passed: the number of calls must not exceed 2 + ceil(tail / 4096), and no more bytes than the size of the tail may be transferred. The model holds a file of a million bytes and an empty file; k may exceed the file size.",
+   "hint": "Size = lseek(fd, 0, SEEK_END); want = min(k, size); loop pread(fd, out + got, want - got, size - want + got) while got < want.",
+   "starter": "#include <unistd.h>\n#include <errno.h>\n#include <stddef.h>\n#include <sys/types.h>\n\n/* Copy the last k bytes of file fd into out (the whole file if it is\n   shorter than k). Return the byte count or -1. The file can be huge:\n   read only the tail, the number of system calls must grow with the\n   size of the tail, not of the file. */\nlong tail_bytes(int fd, size_t k, char *out) {\n    return -1;\n}\n"
+  },
+  {
+   "id": "la26-drain",
+   "title": "Non-blocking read: EAGAIN and the end",
+   "statement": "The descriptor fd is non-blocking. Write drain(fd, buf, cap, eof): read in a loop until one of three things happens: the data runs out (read returned -1 with EAGAIN or EWOULDBLOCK, which is not an error), the file ends (read returned 0) or the buffer of cap bytes is full. Store 1 in *eof only for end of file, otherwise 0. Return the number of bytes read or -1 with errno on a real error (for example EBADF). Repeat on EINTR. The checker uses a real pipe: empty, with data, overfilling the buffer and with the write end closed.",
+   "hint": "Three different outcomes of read < 0: EINTR means continue, EAGAIN means break (not an error), anything else means return -1. Never ask for more than cap - got.",
+   "starter": "#include <unistd.h>\n#include <errno.h>\n#include <stddef.h>\n#include <sys/types.h>\n\n/* fd is non-blocking. Read until the data runs out (EAGAIN), the file\n   ends (read returned 0) or buf is full (cap bytes).\n   *eof = 1 only at end of file, otherwise 0. Return the number of bytes\n   read, or -1 with errno on a real error. EAGAIN is not an error. */\nssize_t drain(int fd, char *buf, size_t cap, int *eof) {\n    return -1;\n}\n"
+  },
+  {
+   "id": "la26-strace-failures",
+   "title": "Failed calls in a strace log",
+   "statement": "Write failed_calls(lines): lines are lines of a strace log (with or without -f, -tt, -T). Return a list of pairs (call name, errno name) for every call that ended with the result -1 and an error name (E...), in line order. A line may begin with a pid as \"[pid  4242] \" or \"4242  \" and with a timestamp \"15:14:20.434758 \". The result stands at the end of the line after \") = \", possibly followed by \"<0.000012>\" (the duration). A long call in the middle of which strace printed lines of other processes is written as two lines: \"... <unfinished ...>\" (no result, skip it) and \"<... read resumed>...) = -1 EINTR (...)\", where the name comes from the words \"<... read resumed>\". Skip signal lines \"--- ... ---\" and exit lines \"+++ ... +++\", results other than -1 (including \"= ? ERESTART...\") and text inside string arguments: \"write(2, \\\"x = -1 EIO\\\", 10) = 10\" is not an error.",
+   "hint": "The result is after the last occurrence of \") = \" (rsplit); strip the trailing \"<...>\"; find the call name with a regular expression on \"<... (\\w+) resumed>\" or \"name(\"."
+  },
+  {
+   "id": "la26-strace-summary",
+   "title": "The strace -c table",
+   "statement": "The output of strace -c is a table with the columns \"% time, seconds, usecs/call, calls, errors, syscall\". The errors column is blank for calls without errors, the other columns are filled; the header and the lines of dashes are not data; the last row with the name total (it may be missing) holds the overall numbers. Write strace_summary(lines) and return a tuple (total calls, total errors, list_with_errors, busiest): the totals come from the total row, and if there is none, they are the sums over the rows; list_with_errors holds pairs (name, errors) only for calls that had errors, by descending number of errors, ties by name; busiest is the name of the call with the largest calls (ties: first alphabetically) or None if there is no data.",
+   "hint": "Split the row with split(): a row with errors has 6 words, one without has 5; the name is the last word. Skip lines that start with \"%\" or \"-\"."
+  }
+ ]
+}
