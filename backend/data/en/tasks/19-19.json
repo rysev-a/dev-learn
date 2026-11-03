@@ -1,0 +1,66 @@
+{
+ "book": 19,
+ "chapter": 19,
+ "tasks": [
+  {
+   "id": "la19-exports-access",
+   "title": "Access by /etc/exports",
+   "statement": "Write a function export_access(text, path, client, uid): text is the content of /etc/exports, path is the path the client wants to mount, client is a dictionary {'name': full name, 'ip': IPv4 address, 'netgroups': list of the netgroups the client belongs to}, uid is the user on the client. Return a tuple (mode, uid on the server) or None when there is no access. The file format: a comment runs from # to the end of the line (strip it in every physical line); a line that ends with \\ (after the comment is removed) continues on the next line; empty lines are skipped. A line is the export path and clients separated by spaces; a client may be followed immediately by '(options,separated,by,commas)'. For a path the export with the longest path that equals path or is its parent on a path-component boundary applies ('/' is a parent of every path); lines with the same export path are merged in file order. Among the clients of that export the most specific matching type wins, whatever the line order: 0 - a single host (name without case, or the client's IP address, or a short name without dots equal to the first label of the client's name), 1 - a network 'address/mask' (a length or a dotted mask, host bits ignored), 2 - a wildcard with * ? [ ] (compared with the client name without case, * also matches dots, wildcards are not applied to the IP), 3 - '@group' (the client is in the group), 4 - exactly '*'. Inside one type the first one in file order wins. Options: ro or rw (default ro; the last one wins), root_squash or no_root_squash (default root_squash), all_squash or no_all_squash, anonuid=N (default 65534); other options are ignored. The server uid is anonuid if all_squash is on or (uid is 0 and root_squash applies), otherwise the client uid.",
+   "hint": "First join the lines and split them into (path, client, options); then choose the export for the path and walk its clients, remembering the best type and its options."
+  },
+  {
+   "id": "la19-exportfs-audit",
+   "title": "Auditing exportfs -v",
+   "statement": "text is the output of exportfs -v. Each export is a path and a client with options in parentheses: 'path<tab>client(options)', and if the path is longer than 14 characters, 'path', a newline, two tabs and 'client(options)'. A client without restriction is printed as <world>. Write a function audit(text): return a list of [path, client, code] in the order of the records; the codes of one record come in alphabetical order. Codes: 'async' (async is among the options), 'insecure' (insecure is there), 'root-open' (no_root_squash and the client is not a single host: <world>, a network with /, a wildcard with * ? [ or a @group), 'rw-world' (the client is <world> and rw is set), 'subtree-check' (no_subtree_check is not among the options: when checking is on, exportfs prints no token for it). Compare options as whole tokens. Skip empty lines.",
+   "hint": "A line without indentation starts a new path (the client may follow the path on the same line); an indented line is a client of the previous path. Options sit between the first '(' and the last ')'."
+  },
+  {
+   "id": "la19-fstab-nfs",
+   "title": "NFS lines in fstab",
+   "statement": "Write a function check_fstab(text): text is /etc/fstab. Skip comment lines (first non-blank character #) and empty lines; fields are separated by spaces or tabs. A line is an NFS line if the first field contains ':/' or the third field is nfs or nfs4; ignore all other lines. For an NFS line return pairs [line number (from 1), code] in line order, and for one line in the order of this list. 'fields': not 4 to 6 fields (no other checks are made for such a line); 'type': the third field is neither nfs nor nfs4; 'spec': the first field is not 'host:/path' (a host is a name of letters, digits, dots and hyphens starting with a letter or digit, or an IPv6 address in square brackets; the path starts with /); 'nfs4-vers': the type is nfs4 and the options contain vers or nfsvers (with any value); 'hard-soft': hard together with (soft or softerr); 'bad-number': timeo, retrans, rsize or wsize without an integer greater than zero (once per line); 'passno': a sixth field exists and it is not 0; 'soft-rw': soft or softerr is present and ro is not. Compare option names by the part before '='.",
+   "hint": "Split the line with split(); the checks run in the given order and 'fields' stops the analysis of the line."
+  },
+  {
+   "id": "la19-info-chain",
+   "title": "A chain from qemu-img info",
+   "statement": "text is the output of 'qemu-img info --backing-chain --output=json' (a JSON array of objects from the top image to the base) or of 'qemu-img info --output=json' (one object). Write a function chain_report(text): return a dictionary {'depth': the number of images, 'images': a list of [file name without directory, format, virtual-size, actual-size (0 if the key is absent)] from the top down, 'total_actual': the sum of actual-size, 'issues': a sorted list of strings 'code:name'}. Codes: 'no-backing-format' (the image has backing-filename but no backing-filename-format); 'dirty' (dirty-flag is true); 'corrupt' (format-specific.data.corrupt is true); 'broken-link' (the image is not the last one and its backing-filename without the directory differs from the name of the next image or is missing); 'shrunk' (the link is fine, but the virtual-size of the next image is larger than this one's); 'not-expanded' (the last image of the output still has a backing-filename). Names are the last path component. Each code is reported at most once per image.",
+   "hint": "json.loads, then one pass over the images; if the result is not a list, wrap the object in a list."
+  },
+  {
+   "id": "la19-read-source",
+   "title": "Where a cluster is read from",
+   "statement": "A chain of qcow2 images is a list layers from the top image to the base: [name, virtual_size in bytes, ranges]. ranges is a string of comma-separated items: 'N' (cluster N), 'A-B' (clusters A to B inclusive), with an optional letter z at the end ('4z', '6-9z'): such a cluster is allocated as a zero cluster. A later mention of a cluster in the same string replaces an earlier one; an empty string means nothing is allocated. A cluster is allocated in an image only if its start (number * cluster_size) is below the virtual_size of that image. Write a function read_sources(layers, cluster_size, offsets): for every guest offset return the name of the first image from the top where cluster offset // cluster_size is allocated with data; 'zeros' if a zero cluster is found first or the cluster is in no image; 'out-of-range' if the offset is negative or not below the virtual_size of the top image.",
+   "hint": "Turn the ranges into a cluster -> 'data'/'zero' dictionary for each image, then for every offset walk from the top down to the first image that has the cluster."
+  },
+  {
+   "id": "la19-commit-rebase",
+   "title": "commit and rebase on a chain model",
+   "statement": "An image is a layer [name, backing (a name or None), data: a list of [cluster, value] pairs]; a value is a data tag (0 is an explicitly zero allocated cluster). The guest view of image X is a list of n values for clusters 0..n-1: for every cluster the value of the first layer in the chain X, backing of X, ... where the cluster is allocated, and 0 if there is no such layer. Write a function chain_ops(layers, ops, image, n): run the operations in order and return {'view': the guest view of image, 'alloc': {layer name: sorted list of allocated clusters}} for all layers. Operations: ['write', name, cluster, value] - write into the layer; ['commit', name] - like 'qemu-img commit': all clusters of the layer are written into its backing (replacing), the layer becomes empty but stays linked to its backing (if there is no backing the operation is skipped); ['rebase', name, new_backing or None, 'safe'|'unsafe'] - like 'qemu-img rebase -b' and 'rebase -u -b': in safe mode for every cluster 0..n-1 that is not allocated in the layer and whose value in the guest view of the old backing (None - all zeros) differs from the view of the new backing (None - all zeros), the value of the old view is copied into the layer (including 0); then (in both modes) the backing of the layer is replaced with the new one.",
+   "hint": "Keep the layers in a dictionary name -> [backing, {cluster: value}] and compute a view with a function view(name) that walks down the backing links."
+  },
+  {
+   "id": "la19-measure-plan",
+   "title": "Planning with qemu-img measure",
+   "statement": "images is a list of pairs [name, output of 'qemu-img measure']. The output has the lines 'required size: N', 'fully allocated size: N' and, not always, 'bitmaps size: N'. Write a function plan_import(images, free, mode, unit): free is the free space of the storage in bytes, mode is 'thin' (required size is used) or 'full' (fully allocated size is used), bitmaps size is added to the size (0 if the line is absent), then the size is rounded up to a multiple of unit. Images are processed in order: if the size is not larger than the remaining space, the image is accepted and the space shrinks, otherwise it is skipped (later images are still checked). Return {'placed': names of the accepted, 'skipped': names of the skipped, 'free_left': the space left}.",
+   "hint": "Parse every output line with a 'name: number' regular expression; rounding up is -(-x // unit) * unit."
+  },
+  {
+   "id": "la19-loop-report",
+   "title": "A report from losetup -a",
+   "statement": "text is the output of 'losetup -a'. A device line: '/dev/loopN: [device]:inode (file)'; ' (lost)' may follow the device name immediately, after ')' there may come ', offset N' and ', sizelimit N'; without superuser rights the fields look like '[]:' without numbers and the inode is empty. If the file is deleted the kernel appends ' (deleted)' to the path. A path may contain parentheses and spaces. Ignore all other lines. Write a function loop_report(text, existing): existing is how many nodes /dev/loop0..loop(existing-1) already exist. Return a dictionary: 'used' - the sorted numbers of devices in use; 'next' - the name of the device with the smallest free number (what 'losetup -f' would return); 'new' - true if that number is not less than existing (the device will have to be created); 'duplicates' - {file: [devices in ascending number]} for files attached to two or more devices (the path without ' (deleted)'); 'deleted' and 'lost' - the devices carrying those marks, in ascending number; 'offsets' - {device: offset} only where offset is greater than zero.",
+   "hint": "One regular expression per line: the number, the optional (lost), the two numbers in [], the path greedily up to the last ')' before the offset/sizelimit tail."
+  },
+  {
+   "id": "la19-sparse-report",
+   "title": "Sparse files from stat",
+   "statement": "text is the output of one or more stat commands (GNU coreutils) one after another. A record starts with the line '  File: name' (old versions quote the name with ‘…’ or '…': strip one pair) and contains the line '  Size: N<tab>Blocks: B  IO Block: M  type'; blocks are 512 bytes (st_blocks). Consider only records of the type 'regular file' or 'regular empty file'. Write a function sparse_report(text): return {'files': a list of [name, size, allocated bytes (B*512), status, saved] in order, 'total_apparent': the sum of size, 'total_allocated': the sum of allocated}. The status is 'empty' if size is 0; 'hole' if allocated is 0 while size is greater than 0; 'sparse' if allocated is less than size; otherwise 'full'. saved is size minus allocated, but not less than 0.",
+   "hint": "Two regular expressions: one for 'File:' and one for the 'Size: ... Blocks: ... IO Block: ... type' line; the type is the rest of the line."
+  },
+  {
+   "id": "la19-nfs-outages",
+   "title": "NFS outages from the kernel log",
+   "statement": "text is the output of 'journalctl -k -o short-iso': lines '2026-11-03T14:02:11+0000 host kernel: message'. The interesting messages are 'nfs: server NAME not responding, still trying', 'nfs: server NAME not responding, timed out' and 'nfs: server NAME OK'; ignore all other lines. An outage of a server begins with the first of the two 'not responding' messages (while an outage is open, repeated ones do not open a new one) and ends with the nearest 'OK' of that server; an 'OK' with no open outage is ignored. Write a function nfs_outages(text): return a dictionary {server: {'outages': [[start, end, seconds]], 'timeouts': the number of 'timed out' messages}} only for servers that have at least one outage; start and end are the time strings as in the journal, seconds is the integer difference in UTC (mind the zone offset); for an unclosed outage the end and seconds are None. Outages are in order of their start.",
+   "hint": "Keep one dictionary of open outages per server; parse the time with datetime.strptime(s, '%Y-%m-%dT%H:%M:%S%z')."
+  }
+ ]
+}

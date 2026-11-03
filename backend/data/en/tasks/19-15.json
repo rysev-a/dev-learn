@@ -1,0 +1,66 @@
+{
+ "book": 19,
+ "chapter": 15,
+ "tasks": [
+  {
+   "id": "la15-unallocated",
+   "title": "Unallocated space on disks",
+   "statement": "You get the output of lsblk -b (sizes in bytes, a tree drawn with ├─ └─ │ and the columns NAME MAJ:MIN RM SIZE RO TYPE MOUNTPOINTS). Write a function unallocated(text): for every top-level device of type disk compute the free space — the disk size minus the sum of the sizes of its DIRECT children (rows one level deeper; grandchildren, such as logical volumes inside a partition, do not count). Return a list of tuples (disk_name, free_bytes) in output order, but only for disks with more than 4 MiB (4194304 bytes) free: smaller gaps are the partition table and alignment. Skip devices of other types (loop, rom, etc.) together with their children. A row's depth is the length of its prefix of tree characters and spaces divided by 2. Ignore rows that do not look like a device (for example a continuation of the mount point list, which has only a path). An empty output (header only) gives an empty list.",
+   "hint": "Parse each row with a regex: the prefix of «│├└─ », the name, MAJ:MIN, RM, size, RO, type. Walk the rows, summing depth-1 sizes after each depth-0 row."
+  },
+  {
+   "id": "la15-fstab-lint",
+   "title": "fstab house-rules lint",
+   "statement": "Write a function fstab_lint(fstab): the text of /etc/fstab → a list of problems as strings \"<line number>:<code>\" (numbers start at 1 and count every line of the file, including blank ones and comments). Skip blank lines and lines starting with # (after indentation). Split the others into fields on spaces and tabs. Rules: if there are fewer than 3 or more than 6 fields — code fields, and no other check runs for that line. Otherwise, in this order: unstable-name — the first field is /dev/sd…, /dev/vd…, /dev/xvd…, /dev/hd… (letters, then optional digits) or /dev/nvmeXnY or /dev/nvmeXnYpZ (such names depend on detection order); bad-mountpoint — the second field does not start with / (for type swap the value none is also allowed); bad-pass — any of the 5th and 6th fields is not all digits, or the 6th is greater than 2; root-pass — the mount point is / (not swap) and the 6th field is missing or not 1; dup-mount — the same mount point (not swap, starting with /) already appeared on an earlier line of the file (remember it after checking the line, including lines with other problems, but not lines with the code fields). Print one line's problems in the order given; lines go in increasing number. No problems — an empty list.",
+   "hint": "Number the lines with enumerate(…, 1), keep a set of mount points already seen; a regex for the unstable names: ^/dev/((sd|vd|xvd|hd)[a-z]+\\d*|nvme\\d+n\\d+(p\\d+)?)$."
+  },
+  {
+   "id": "la15-boot-blockers",
+   "title": "What drops the boot into emergency mode",
+   "statement": "systemd mounts fstab entries as required: if an entry's device is not found, the boot falls into emergency mode, except for entries with the options nofail or noauto. Write a function boot_blockers(fstab, blkid): fstab is the text of /etc/fstab, blkid is the output of blkid (lines like /dev/sda1: UUID=\"…\" TYPE=\"ext4\" PARTUUID=\"…\"; values in double quotes may contain spaces). Return a list of fstab line numbers (from 1, every line counts, including comments and blank ones) of entries that block the boot. An entry blocks if it has at least 3 fields, its option list (the 4th field, comma separated) has neither nofail nor noauto, and its source (the 1st field) is not found. A source of the form UUID=, LABEL=, PARTUUID=, PARTLABEL= is found if some blkid device has a tag with exactly that value (compared as strings, case matters; the fstab value may be in double quotes, and \\040 in it means a space). A source starting with /dev/ is found if that name is among the blkid devices. All other sources (nas:/export, //srv/share, tmpfs, etc.) count as found. Skip lines with fewer than 3 fields.",
+   "hint": "Parse blkid with the regex (\\w+)=\"([^\"]*)\" into a dictionary of tags per device; for fstab check the options first, then the kind of the source."
+  },
+  {
+   "id": "la15-layout-fit",
+   "title": "Does the layout fit",
+   "statement": "Write a function check_layout(table, sector_size, disk_bytes, sizes_mib): table is \"gpt\" or \"msdos\", sector_size is the logical sector size in bytes (512 or 4096), disk_bytes is the disk size in bytes, sizes_mib are the wanted partition sizes in MiB in order. Partitions follow each other with no gaps; the first starts at 1 MiB (alignment), a partition's end is its start plus its size (in bytes, the end is exclusive). Return a status for each partition: too_many — its index (from 0) is not less than the maximum number of table entries (gpt: 128, msdos: 4 primary partitions); otherwise over_limit — msdos only: the end is beyond 2**32 sectors (that is, more than 2**32 * sector_size bytes); otherwise no_space — the end is beyond the usable space; otherwise ok. The usable space of msdos is the whole disk (disk_bytes); for gpt the end of the disk must keep the backup copy: 16384 bytes of the entry table plus one sector of header, and the boundary is rounded down to a whole MiB: ((disk_bytes − 16384 − sector_size) // 1 MiB) * 1 MiB. The next partition starts at the previous one's end regardless of its status. Return a list of statuses of the same length as sizes_mib.",
+   "hint": "Keep a running start (1 MiB); at each step compute the end and test the conditions in the order too_many, over_limit, no_space."
+  },
+  {
+   "id": "la15-resize-plan",
+   "title": "A resize plan",
+   "statement": "Write a function resize_plan(fs, mounted, current_gib, target_gib): return the list of steps (strings) for changing the size of a filesystem on a partition. Rules. If the sizes are equal — an empty list. If fs is neither ext4 nor xfs, or target_gib is not above zero — [\"impossible\"]. Growing: for ext4 — [\"extend-partition\", \"resize2fs\"] (online works, mounting does not matter); for xfs — \"extend-partition\", then \"mount\" (only if the filesystem is not mounted: xfs_growfs works only on a mounted one), then \"xfs_growfs\". Shrinking: xfs cannot be shrunk — [\"impossible\"]; ext4 is shrunk only unmounted: \"umount\" (if mounted), \"e2fsck\", \"resize2fs\", \"shrink-partition\" (the partition is reduced only after the filesystem), and finally \"mount\" (if it was mounted). The parameter mounted is True or False.",
+   "hint": "Handle equality and unsupported cases first, then the growing and shrinking branches by filesystem type; the order of steps is in the statement."
+  },
+  {
+   "id": "la15-df-du-gap",
+   "title": "Why df and du disagree",
+   "statement": "The filesystem is full according to df, and du shows much less. Write a function space_gap(df_size, df_used, df_avail, du_total, open_deleted). All numbers are bytes: df_size, df_used, df_avail are the Size, Used, Avail columns of df -B1; du_total is the sum of du over all visible files of this filesystem; open_deleted is the list of sizes of deleted but still open files (what lsof +L1 shows). Return a tuple of four numbers: (deleted, unexplained, reserved, use_pct), where deleted is the sum of open_deleted; unexplained is the gap df_used − du_total minus deleted (it may be negative); reserved is the blocks reserved for root: df_size − df_used − df_avail; use_pct is df's Use% value: df_used * 100 / (df_used + df_avail), rounded UP to an integer (0 if the denominator is zero). Use integer arithmetic.",
+   "hint": "Ceil without floats: (100*used + base − 1) // base."
+  },
+  {
+   "id": "la15-dup-uuid",
+   "title": "Clones with the same UUID",
+   "statement": "A disk image was copied whole, and now two devices have the same filesystem UUID. Write a function duplicate_uuids(blkid): blkid is the output of blkid (lines like /dev/sda1: UUID=\"…\" TYPE=\"ext4\" …; tags are NAME=\"value\" pairs, values may contain spaces). Return a list of tuples (uuid, [devices]) sorted by UUID, for every UUID found on at least two devices; devices go in the order they appear in the text. Exception: members of a multi-device filesystem (for example btrfs) share one UUID but have different UUID_SUB values — if every device of the group has a UUID_SUB tag and all those values are distinct, do not report the group. Compare the UUID tag strictly as a string (\"7B2E-4F1A\" and \"7b2e-4f1a\" differ); UUID_SUB is a separate tag, not equal to UUID. Ignore lines without a UUID tag. No duplicates — an empty list.",
+   "hint": "Extract tags with the regex (\\w+)=\"([^\"]*)\" into a dictionary: then UUID and UUID_SUB never get mixed up. Group by UUID, keeping UUID_SUB next to the device."
+  },
+  {
+   "id": "la15-inode-alerts",
+   "title": "Running out of inodes before space",
+   "statement": "Write a function inode_alerts(df_i, df_h, threshold): df_i is the output of df -i (columns Filesystem Inodes IUsed IFree IUse% Mounted on), df_h is the output of df -h (Filesystem Size Used Avail Use% Mounted on), threshold is a percentage. Return a list of tuples (mount_point, iuse, kind) for filesystems whose IUse% is not below the threshold. iuse is the number of percent without the % sign; kind is \"both\" if the Use% column of df -h for the same mount point is also at least 90, otherwise \"inodes\" (also \"inodes\" if the mount point is not in df -h). Skip filesystems where IUse% holds a «-» instead of a number (they have no inodes). The mount point is everything after the 5th column (it may contain spaces). Sort the list by iuse descending, ties by mount point alphabetically. The first line of each output is a header.",
+   "hint": "First build a dictionary mount point → Use% from df -h; then walk df -i: t[4] is IUse%, join t[5:] with spaces."
+  },
+  {
+   "id": "la15-mount-options",
+   "title": "Effective mount options",
+   "statement": "mount joins the options from fstab and from the command line: the last of the conflicting ones wins, and command-line options come after those of fstab. Write a function effective_options(fstab_opts, cmdline_opts): both strings are comma-separated lists (either may be empty). The word defaults expands in place to rw,suid,dev,exec,auto,nouser,async. Options conflict if they belong to the same group: (rw, ro), (suid, nosuid), (dev, nodev), (exec, noexec), (auto, noauto), (user, nouser), (async, sync), (noatime, relatime, strictatime) — or have the same name before the = sign (for example errors=continue and errors=remount-ro). Go over the options left to right (fstab first, then the command line): a new option removes earlier ones of its group or with the same name from the result and is appended at the end. Exact repeats collapse too (the last one stays). Return the final list in the order the options remain.",
+   "hint": "Compute an option's conflict key (the group or the name before =) and when appending remove everything with the same key from the result."
+  },
+  {
+   "id": "la15-partition-map",
+   "title": "Disks and partitions from kernel names",
+   "statement": "Write a function partition_map(names): names is a list of block device names (a /dev/ prefix is allowed, any order, repeats possible). Return a dictionary «disk name → list of partition numbers sorted ascending». Naming rules: for disks sd…, vd…, xvd…, hd… (letters, for example sda, sdaa) the partition number is simply appended as digits (sda1, sdaa12); for disks whose name ends in a digit — nvme0n1, mmcblk0, loop0 — the letter p stands between the name and the number (nvme0n1p3, mmcblk0p2, loop0p1). Any other name (dm-0, sr0, md0, vg0-root, nvme0n1 without p, etc.) is a whole device without partitions. A whole disk that has no partitions in the list goes into the dictionary with an empty list. Sort the numbers as numbers (sda2 before sda10) and drop repeats.",
+   "hint": "Two regexes: ((?:sd|vd|xvd|hd)[a-z]+)(\\d+) and (nvme\\d+n\\d+|mmcblk\\d+|loop\\d+)p(\\d+); a dictionary of sets, sorted at the end."
+  }
+ ]
+}

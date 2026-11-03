@@ -1,0 +1,66 @@
+{
+ "book": 19,
+ "chapter": 20,
+ "tasks": [
+  {
+   "id": "la20-itemize",
+   "title": "Parsing rsync -i output",
+   "statement": "text is the output of rsync with --itemize-changes. Write a function itemize_summary(text): return a dictionary with five keys new, updated, linked, attrs, deleted, whose values are lists of names in order of appearance. An itemize line is 11 characters YXcstpoguax, a space, and the name. Y: < or > (a file was transferred), c (an item was created or changed, such as a directory or a link), h (a hard link), . (nothing transferred, attributes may have changed). X: f, d, L, D, S. The other 9 characters: + everywhere means the item was created; dots and spaces mean nothing changed; letters and ? mean a change. Rules. A line starting with *deleting gives a name for deleted (the name is everything after that word, stripped). Y equal to h: the name goes to linked. Y equal to . : skip directories (X equal to d); for the others, if the 9 characters contain a letter or + or ?, the name goes to attrs, otherwise skip it. Y equal to <, > or c: if all 9 characters are + the name goes to new (directories and links included), otherwise if X is not d the name goes to updated, otherwise skip it. For symbolic links and hard links the name is printed with a tail ' -> target' or ' => target': drop the tail. Skip lines that do not fit the format (the header, the totals, blank lines).",
+   "hint": "The regular expression ^([<>ch.])([fdLDS])([.+?a-zA-Z ]{9}) (.*)$ parses a line; test for deleting first."
+  },
+  {
+   "id": "la20-trailing-slash",
+   "title": "Where the file lands: the rsync slash",
+   "statement": "cmd is an rsync command line, for example 'rsync -av /srv/www /backup/'. Write a function final_path(cmd, rel): return the list of final paths of the file rel (a path inside the source; an empty string means the source itself), one for each source, in the order they are written. The words of the command line are split on spaces; skip the word rsync and the words that start with - (no option takes a separate argument); the last remaining word is the destination, the others are sources. Take the destination without trailing slashes. A source that ends with /, or equals ., or ends with /. is copied by its contents: the path is destination/rel (for an empty rel, just the destination). Any other source is copied together with its last name component: destination/name/rel (for an empty rel, destination/name).",
+   "hint": "For a source without a slash take src.rstrip('/').split('/')[-1] as the name; strip the destination's slashes once at the start."
+  },
+  {
+   "id": "la20-filter-rules",
+   "title": "rsync filters: what is transferred",
+   "statement": "rules is a list of filter rules like '+ pattern' (include) or '- pattern' (exclude), paths is a list of paths relative to the transfer root; directories end with /. Write a function transferred(rules, paths): return the paths (in the original order) that will be transferred. For every path all its parent directories are checked, then the path itself: the first matching rule wins, and if nothing matches the item is included; if any parent directory is excluded the path is not transferred. A pattern (after '+ ' or '- '): if it starts with /, it is anchored to the transfer root and that / is dropped; if it ends with /, it matches only directories and that / is dropped. If the remainder contains / or **, the pattern is compared with the whole path (without the trailing /): an anchored one from the start, an unanchored one from the end at a component boundary. Otherwise the pattern is compared only with the last name component (an anchored one only with a one-component path). Wildcards: * is any characters except /, ** is any characters including /, ? is one character except /; everything else is literal (no bracket classes).",
+   "hint": "Translate the pattern into a regular expression character by character (** before *), check the parents with a loop over the path prefixes."
+  },
+  {
+   "id": "la20-link-dest",
+   "title": "Disk use of --link-dest snapshots",
+   "statement": "snapshots is a list of snapshots from oldest to newest; a snapshot is a dictionary path -> [size in bytes, mtime]. Each snapshot was made by rsync with --link-dest pointing at the previous snapshot: a file present in the previous snapshot with the same size and mtime becomes a hard link to the same inode, all other files are copied into a new inode (including a file that existed in an earlier snapshot but was missing from the previous one). The first snapshot is copied in full. Write a function link_dest_disk(snapshots): return a tuple (added, freed) of two lists, one entry per snapshot. added[i] is the sum of sizes of files copied into new inodes when snapshot i was made. freed[i] is the sum of sizes of the files of snapshot i whose inodes no other snapshot uses (the space freed if only snapshot i is deleted). Every inode is counted once.",
+   "hint": "Give every file an inode number: inherit it from the previous snapshot when [size, mtime] match, otherwise issue a new one."
+  },
+  {
+   "id": "la20-restic-forget",
+   "title": "Simulating restic forget",
+   "statement": "snapshots is a list of [id, time 'YYYY-MM-DD hh:mm:ss'], policy is a dictionary with optional keys last, hourly, daily, weekly, monthly, yearly (integers n >= 0; a missing key equals 0). Write a function restic_forget(snapshots, policy): return the list of snapshot ids that forget will remove, from oldest to newest. The restic semantics: the rule last n keeps the n newest snapshots. The rule hourly/daily/weekly/monthly/yearly n keeps the newest snapshot in each of the n most recent calendar periods that contain at least one snapshot (periods without snapshots are skipped and not counted). Periods: an hour (date and hour), a day (date), an ISO week (Monday through Sunday), a month, a year. A snapshot stays if at least one rule keeps it. If all rules are zero or missing, nothing is removed. Ignore grouping by host and paths.",
+   "hint": "Sort newest first; for each rule walk the list, remember the previous period, and count only a change of period."
+  },
+  {
+   "id": "la20-restore-chain",
+   "title": "The restore chain",
+   "statement": "backups is a list of copies [id, kind, moment, ok], kind is 'full', 'incr', or 'diff', moment is an integer (minutes), ok is True/False. The disk is lost at moment t; you must restore to the latest possible state. Write a function restore_chain(backups, t): return the list of copy ids in the order to apply them. Rules. Only copies with a moment not later than t are considered. The base is the latest successful full; if there is none, return an empty list. Then the copies after the base are scanned in order of moment: a successful incr is appended to the chain; a failed incr breaks the chain (it and every following incr are unusable, but the scan of diff copies goes on); a successful diff replaces the whole chain with itself (a diff depends only on the base); a failed diff and any full after the base are ignored. The result is the base id followed by the chain ids.",
+   "hint": "Keep a broken flag: after a failed incr add no more incr, but handle diff as usual."
+  },
+  {
+   "id": "la20-lvm-snapshot-size",
+   "title": "Sizing LVM snapshots for a backup",
+   "statement": "The backup copies volumes one after another at a constant speed copy_mib_s (MiB/s); all snapshots are created at moment 0, and a volume's snapshot is removed when its copy has finished. volumes is a list of [name, volume size, used, writes], everything in MiB, writes is the MiB/s the application writes to this volume (worst case: every written MiB is a new block in the snapshot). Write a function lvm_snapshot_plan(volumes, copy_mib_s, margin_pct, extent_mib, vg_free_mib): for each volume the snapshot lifetime is ceil(the sum of 'used' from the first volume through this one / copy_mib_s) seconds; ceil(writes * lifetime * (100 + margin_pct) / 100) MiB will change; the snapshot size is that number rounded up to a multiple of extent_mib (at least one extent), but not more than the volume size rounded up to a multiple of extent_mib. Do all rounding-up divisions on integers. Return a tuple (a list of [name, snapshot size], the sum of the sizes, whether the snapshots fit into vg_free_mib).",
+   "hint": "Integer round-up: -(-a // b). Keep a running total of 'used'."
+  },
+  {
+   "id": "la20-manifest-diff",
+   "title": "Comparing checksum manifests",
+   "statement": "original is the checksum manifest taken at backup time, restored is the manifest after the restore; both are in the sha256sum format: a line is 'sum' + two spaces + path (text mode) or 'sum' + a space + '*' + path (binary mode). The sum is a hexadecimal string of any length, case does not matter (lowercase it). Skip blank lines, lines starting with # and lines not in the format. Strip leading './' from a path (however many). If a path occurs in a manifest several times, the last line wins. Write a function manifest_diff(original, restored): return a dictionary with the keys missing (paths in original but not in restored), extra (in restored but not in original), changed (in both, sums differ); the lists are sorted ascending.",
+   "hint": "Parse each manifest into a dictionary path -> sum with the regular expression ^([0-9a-fA-F]+) [ *](.*)$."
+  },
+  {
+   "id": "la20-exit-status",
+   "title": "Judging a nightly backup by exit codes",
+   "statement": "steps is a list of [program, exit code] for the steps of a nightly script, in order. The severity of a step is ok, warning, or fail. The table. rsync: 0 is ok, 24 (files vanished while reading) is warning, everything else (23 included) is fail. tar: 0 is ok, 1 (files changed while being read) is warning, anything else is fail. restic (the backup command): 0 is ok, 3 (some files could not be read) is warning, anything else is fail. borg: 0 is ok, 1 is warning, anything else (2 and 128 + N, killed by a signal, included) is fail. Any other program: 0 is ok, anything else is fail. Write a function nightly_status(steps): return a tuple (overall, indexes of the steps that are not ok in ascending order); overall is the worst severity (fail is worse than warning is worse than ok); for an empty list the overall is ok.",
+   "hint": "A dictionary program -> {code: severity}, defaulting to ok for 0 and fail otherwise; severities 0/1/2 are easy to compare with max."
+  },
+  {
+   "id": "la20-timer-catchup",
+   "title": "Missed timer runs",
+   "statement": "A systemd timer scheduled for 'every day at minute-th minute of the day' (minute from 0 to 1439) works while the server is up. Time is in minutes from the start of day zero; the horizon is days days, i.e. minutes 0 .. days*1440 - 1. downtimes is a list of [off, on] (the server is off from off inclusive to on exclusive; the intervals do not overlap). Scheduled runs are at the minutes d*1440 + minute for d from 0 to days - 1. A run that falls into a downtime is skipped. If persistent is True (Persistent=true), then after every downtime in which at least one run fell, the service starts immediately at the minute of power-on - once per downtime, however many runs were missed - provided that minute is inside the horizon. If runs coincide at one minute, it counts once. Write a function timer_runs(minute, downtimes, days, persistent): return the sorted list of minutes at which the service ran. Ignore random delays and AccuracySec.",
+   "hint": "First the ordinary runs outside downtimes, then for each downtime check whether a run fell into [off, on); the result is a set."
+  }
+ ]
+}

@@ -1,0 +1,66 @@
+{
+ "book": 19,
+ "chapter": 18,
+ "tasks": [
+  {
+   "id": "la18-degraded-maps",
+   "title": "Degraded multipath maps",
+   "statement": "Write a function degraded_maps(text): text is the output of multipath -ll. A map header starts in the first column and contains a dm-N token (for example \"mpatha (3600...) dm-2 LIO-ORG,disk1\" or, when there is no alias, \"3600... dm-3 NETAPP,LUN C-Mode\"); the map name is the first token of the header. A path line has H:C:T:L, the disk name, major:minor and three states: the dm state, the checker state (may be two words, such as \"i/o pending\") and the online state, preceded by tree characters \"|\", \"`\", \"-\", \"+\" and spaces. A path is healthy only if the dm state is active, the checker state is ready or ghost, and the online state is running; everything else (failed, faulty, shaky, i/o pending, delayed, offline...) is unhealthy. Ignore all other lines (size=..., group lines, warnings). Return a dictionary {map name: [names of unhealthy disks in order of appearance]} only for maps with at least one unhealthy path.",
+   "hint": "Two regular expressions: the header (a dm-N token after an optional parenthesized WWID) and the path (four colon-separated numbers, disk, major:minor, then three states; take the middle one non-greedily)."
+  },
+  {
+   "id": "la18-active-paths",
+   "title": "Which paths carry I/O",
+   "statement": "Write a function active_paths(policy, paths, failback, events). paths is a list of [name, priority], initially all paths are up. Path groups: policy 'multibus' is one group of all paths in list order; 'failover' is one group per path; 'group_by_prio' is one group per priority value, with the paths in list order inside a group. Groups (except multibus) are ordered by descending priority, ties in list order. Exactly one group is active: at first the first one in group order. events is a list of [t, name, 'down' or 'up'], processed in order. After each event: if the active group has no working paths left, active becomes the first group that has a working path (if there is none, no group is active); otherwise with failback 'immediate' active becomes the first group with a working path (return to the best one), and with 'manual' it stays as it was. Return a list of [t, list of working paths of the active group in group order] for each event (an empty list if there is no active group).",
+   "hint": "Build the list of groups once; for each event update the set of working paths and recompute the index of the active group by the rules."
+  },
+  {
+   "id": "la18-queueing",
+   "title": "Queueing when all paths are lost",
+   "statement": "Write a function io_outcomes(no_path_retry, polling_interval, t_down, t_up, ios). All paths of a map are unavailable from t_down (inclusive) until t_up (exclusive; None means the path never came back). ios are the moments when requests arrive. no_path_retry is the string 'fail' (no queueing), the string 'queue' (unlimited queueing), or a number or numeric string N: the queue lives for N polling intervals, that is until deadline = t_down + N * polling_interval, after which it is disabled and the requests held in it fail. For each request return: 'ok' if it arrived before t_down or at t_up or later; 'delayed' if it arrived during the outage, was queued and will complete after the path returns (the path returned no later than the deadline, or the queue is unlimited); 'failed' if the request gets an error (it arrived at the deadline or later, or the queue is disabled before the path returns, or the mode is 'fail'); 'hung' if the queue is unlimited and the path never returned. N = 0 is the same as 'fail'.",
+   "hint": "Compute the deadline first (there is none for 'queue'), then handle each moment: outside the outage, after the deadline, before the deadline."
+  },
+  {
+   "id": "la18-path-selector",
+   "title": "Path selector decisions",
+   "statement": "Write a function pick_paths(selector, repeat, paths, events). paths are the names of the paths of one group in order, all working. events is a list of events: ['io', size] is a new request (a path must be chosen) and ['done', path, size] means a request of that size completed on that path. Selectors: 'round-robin' uses the current path in a cycle and moves to the next one after every repeat requests (the first path is the first in the list); 'queue-length' picks the path with the fewest requests in flight; 'service-time' picks the path with the smallest total size of requests in flight in bytes (all paths are considered equally fast, the size of the new request is not added). Ties in queue-length and service-time go to the first of the equals in the list. The chosen path gets the request in flight; 'done' decreases the counters. Return the list of chosen paths for the 'io' events in order.",
+   "hint": "Keep a request count and a byte sum for each path; for round-robin keep an index and a counter of requests on the current path; min() over a list returns the first minimum."
+  },
+  {
+   "id": "la18-missing-sessions",
+   "title": "Missing iSCSI sessions",
+   "statement": "Write a function missing_sessions(text, expected). text is the output of iscsiadm -m session: lines like \"tcp: [1] 10.0.0.1:3260,1 iqn... (non-flash)\" (older versions have no colon after tcp and no parenthesized tail; IPv6 addresses are in square brackets: \"[fd00::1]:3260,1\"); the message \"iscsiadm: No active sessions.\" contains no sessions. The number after the comma is the portal group tag, which is dropped in comparison. expected is a dictionary {target name: [portals]}, a portal is written as \"address:port\" or without a port (then the port is 3260; for IPv6 it is \"[address]\"). Return a sorted list of [target, portal] pairs (portal with its port) for which there is no session with the same target and portal. Equal pairs are not repeated in the result.",
+   "hint": "A session line: split() gives [driver, [sid], portal,tag, target, ...]; drop the tag with rsplit(',', 1). Add the default port to the expected portals before comparing."
+  },
+  {
+   "id": "la18-session-health",
+   "title": "iSCSI session health",
+   "statement": "Write a function session_health(text). text is the output of iscsiadm -m session -P 3 (or -P 1): lines with tabs and arbitrary other lines. A line \"Target: <name> (non-flash)\" sets the current target (drop the parenthesized suffix); several sessions may follow one Target heading. Each line \"Current Portal: address:port,tag\" starts a new session (the portal is without the tag); its block then contains \"SID: n\", \"iSCSI Connection State: ...\", \"iSCSI Session State: ...\" and for each disk \"Attached scsi disk sdX<tabs>State: ...\". The verdict of a session: 'connection: <state>' if the connection state is not \"LOGGED IN\"; otherwise 'session: <state>' if the session state is not \"LOGGED_IN\"; otherwise 'disk <name>: <state>' for the first disk whose state is not \"running\"; otherwise 'ok'. Return a list of [sid (a number), target, portal, verdict] sorted by sid.",
+   "hint": "Walk over the lines with strip(); create a record on \"Current Portal:\" and append the other fields to the last record. A disk is caught by a regular expression on \"Attached scsi disk\"."
+  },
+  {
+   "id": "la18-iqn-check",
+   "title": "Validating iSCSI names",
+   "statement": "Write a function check_iscsi_names(names): for each name in the list return one verdict string, checking in order. 'length' if the name is empty or longer than 223 bytes in UTF-8. 'type' if the name starts with neither \"iqn.\" nor \"eui.\". For \"eui.\": exactly 16 hexadecimal digits (any case) must follow the prefix, otherwise 'eui', otherwise 'ok'. For \"iqn.\" (RFC 3720): 'case' if the name has an uppercase ASCII letter; 'chars' if it has a character outside a-z, 0-9, \"-\", \".\", \":\"; then the part before the first colon must look like \"yyyy-mm.domain\" with the month 01-12, otherwise 'date'; the domain (a reversed domain name) is labels of a-z, 0-9 and \"-\" separated by dots, a label is non-empty and does not start or end with a hyphen, otherwise 'domain'; if a colon is present but the string after it is empty it is 'suffix'; otherwise 'ok'.",
+   "hint": "Make the check of one name a separate function; check the domain with a fullmatch regular expression and the date with match and groups."
+  },
+  {
+   "id": "la18-effective-settings",
+   "title": "Effective multipath.conf settings",
+   "statement": "Write a function effective_settings(defaults, devices, overrides, multipaths, device, keys). A parameter takes its value from the strongest section that sets it; the order from weak to strong is: built-in values, defaults, devices, overrides, multipaths. Built-in values: path_grouping_policy='failover', path_selector='service-time 0', failback='manual', no_path_retry='fail', user_friendly_names='no', polling_interval='5'. defaults and overrides are dictionaries {parameter: value}. devices is a list of entries {'vendor': regex, 'product': regex, 'set': dictionary} in order of increasing priority (the built-in hardware table comes first); every entry matches where both re.search(vendor, device['vendor']) and re.search(product, device['product']) find a match, and a later entry beats an earlier one. multipaths is a dictionary {wwid: dictionary}, the section applies on an exact match of device['wwid']. Return a dictionary {key: value or None} for every key in keys.",
+   "hint": "Start from the dictionary of built-in values and update it in turn: defaults, the matching devices in order, overrides, multipaths.get(wwid, {})."
+  },
+  {
+   "id": "la18-blacklist",
+   "title": "The multipath blacklist",
+   "statement": "Write a function usable_devices(config, devices). devices is a list of dictionaries {'devnode', 'wwid', 'vendor', 'product'}. config = {'blacklist': {...}, 'exceptions': {...}} (either section may lack some keys); inside a section the keys are: 'devnode' is a list of regular expressions for the device name, 'wwid' is a list of regular expressions for the WWID, 'device' is a list of {'vendor': regex, 'product': regex} (a device matches if both match). Matching is re.search. The criteria devnode, device and wwid are checked independently: a criterion excludes a device if it matches the blacklist of that criterion and does not match the exceptions (blacklist_exceptions) of the same criterion. A device is excluded if at least one criterion excludes it (an exception by wwid does not save it from a blacklist by devnode). Return the devnode of the devices that multipath uses, in list order.",
+   "hint": "Write a helper hit(section, criterion, device) and for the three criteria check \"in the blacklist and not in the exceptions\"."
+  },
+  {
+   "id": "la18-friendly-names",
+   "title": "Friendly map names",
+   "statement": "Write a function friendly_names(bindings, prefix, aliases, wwids, user_friendly): bindings is the text of the file /etc/multipath/bindings (lines \"alias WWID\"; everything after \"#\" is a comment; blank and incomplete lines are skipped; for a repeated WWID the first one is valid). aliases is a dictionary {wwid: alias} from the multipaths section. The map name for a WWID is determined as follows: the alias from aliases (always wins); otherwise, if user_friendly is 'yes', the binding from bindings, and if there is none, a new name prefix + letters, where the number id = 1, 2, ... is written in letters a..z, aa, ab, ... (id 26 is z, id 27 is aa, id 53 is ba) and the smallest id whose name is not yet taken is used: all aliases in bindings are taken (so gaps between them are filled) and so are the names handed out in this call; otherwise (user_friendly is not 'yes') the WWID itself. The wwids are processed in order. Return a dictionary {wwid: name}.",
+   "hint": "Number to letters: while i >= 1: i -= 1; letter = chr(97 + i % 26); i //= 26 (letters are prepended). Add to the set of taken names at every allocation."
+  }
+ ]
+}
