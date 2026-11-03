@@ -34,12 +34,24 @@ pub struct RecordCtl {
     pub toggle: Callback<()>,
     /// short status: "Saving...", "Saved: ...", microphone or server error
     pub status: Signal<Option<String>>,
+    /// the shown slide has a recording (the delete button is shown)
+    pub has: Signal<bool>,
+    /// delete the shown slide's recording (the page asks for confirmation)
+    pub delete: Callback<()>,
 }
 
 fn record_icon() -> impl IntoView {
     view! {
         <svg width="11" height="11" viewBox="0 0 12 12" fill="currentColor">
             <circle cx="6" cy="6" r="4.5" class="rec-dot" />
+        </svg>
+    }
+}
+
+fn trash_icon() -> impl IntoView {
+    view! {
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1L5 6M10 11v6M14 11v6" />
         </svg>
     }
 }
@@ -125,7 +137,12 @@ pub fn SlidePanel(
             <span class="s-time-mono">{move || { let (t, d) = time.get(); format!("{} / {}", fmt_time(t), fmt_time(d)) }}</span>
             {record.map(|r| view! {
                 <span class="slide-rec-status" title=move || r.status.get().unwrap_or_default()>{move || r.status.get()}</span>
-                <button class="slide-btn slide-rec" class:on=move || r.on.get() on:click=move |_| r.toggle.run(()) title=move || if r.on.get() { i18n::tr("Stop recording") } else { i18n::tr("Play and record the voice-over of this slide") }>
+                {move || (r.has.get() && !r.on.get()).then(|| view! {
+                    <button class="slide-btn slide-rec-del" on:click=move |_| r.delete.run(()) title=i18n::tr("Delete the recording of this slide") aria-label=i18n::tr("Delete the recording of this slide")>
+                        {trash_icon()}
+                    </button>
+                })}
+                <button class="slide-btn slide-rec" class:on=move || r.on.get() on:click=move |_| r.toggle.run(()) title=move || if r.on.get() { i18n::tr("Stop recording").to_string() } else { i18n::trf!("Play and record the voice-over of this slide ({})", i18n::locale().code().to_uppercase()) }>
                     {move || if r.on.get() { stop_icon().into_any() } else { record_icon().into_any() }}
                     <span>{move || if r.on.get() { i18n::tr("Stop") } else { i18n::tr("Record") }}</span>
                 </button>

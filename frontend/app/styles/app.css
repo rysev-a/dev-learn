@@ -1121,6 +1121,16 @@ h2 {
   fill: var(--s-red);
 }
 
+.slide-btn.slide-rec-del {
+  padding-left: 9px;
+  padding-right: 9px;
+}
+
+.slide-btn.slide-rec-del:hover {
+  color: var(--s-red);
+  border-color: var(--s-red);
+}
+
 .slide-btn.slide-rec.on {
   color: var(--s-red);
   border-color: var(--s-red);
