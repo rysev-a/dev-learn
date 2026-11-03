@@ -708,6 +708,8 @@ extras" (15 nested virtualization, 16 practice with QEMU/KVM and observability).
 
 ## Book 19 "Linux Administration" (ru «Администрирование Linux»): written in sections
 
+**State (3.11.2026): sections A (chapters 1–4: SSH and sudo, packages, systemd, logs) and B (5–8: limits and OOM, cgroups v2, namespaces, Docker) are written, 80 `func` tasks; C–H are next.**
+
 It sits between "Computer Networks" and "Virtualization" (id 19, slug `ladm`, field `ord` = 7, `audio_prefix` = `ladm-ch`, icon `server`, slides directory `linux-admin`). The plan of the whole book (32 chapters in sections A–H, the practice kinds, the order of work) is `docs/linux-admin-plan.md`; **the plan was approved on 3.11.2026**.
 The book is about administering a server by hand without a screen, not about how the system is built (that is "Diving into Unix") and not about protocols (that is "Computer Networks"): where a topic is already there, a chapter links to it in one sentence. The facts of every chapter are checked against primary documentation (man pages, freedesktop.org, kernel.org, libvirt.org, qemu.org), as was done for oVirt.
 

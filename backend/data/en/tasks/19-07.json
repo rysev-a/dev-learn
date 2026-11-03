@@ -1,0 +1,60 @@
+{
+ "book": 19,
+ "chapter": 7,
+ "tasks": [
+  {
+   "id": "la7-lsns-report",
+   "title": "An lsns summary by type",
+   "statement": "The input is the output of lsns with no arguments: columns NS TYPE NPROCS PID USER COMMAND, the first line is a header. The COMMAND field may contain spaces. Write a function lsns_report(text): return a list of tuples (type, number_of_rows, sum_of_NPROCS), one for every type that appears, sorted by type name. Skip blank lines and the header; empty output gives [].",
+   "hint": "line.split(None, 5) keeps COMMAND whole; a data row starts with a number."
+  },
+  {
+   "id": "la7-shared-namespaces",
+   "title": "Namespaces two processes share",
+   "statement": "You get two texts: the output of ls -l /proc/PID/ns for two processes. A link line looks like “lrwxrwxrwx 1 root root 0 Nov  3 10:15 net -> 'net:[4026531840]'”; the quotes around the target may be present or absent. Skip lines without “ -> ” (for example “total 0”). The entry name is the last word before “ -> ”, the target is everything after “ -> ” without spaces and single quotes. Write a function shared_namespaces(a, b): return a sorted list of the names that appear in both texts and whose targets are equal (pid_for_children and time_for_children are separate names).",
+   "hint": "Parse each text into a dictionary name -> target, then intersect the keys."
+  },
+  {
+   "id": "la7-translate-id",
+   "title": "Translating an ID through uid_map",
+   "statement": "A uid_map (or gid_map) file has lines of three numbers: “inside outside length”, separated by spaces of any width. A line describes the ranges [inside, inside+length) and [outside, outside+length), with the same offset in both. Write a function translate_id(map_text, ident, direction). For direction = \"in2out\" return the outside number for the number ident taken inside the namespace, or -1 if the map does not describe it inside. For direction = \"out2in\" return the inside number for the number ident taken outside, or 65534 if the map does not describe it outside (this is how a process sees an unmapped number by default).",
+   "hint": "In every line check a <= ident < a + n (or b <= ident < b + n) and add the offset."
+  },
+  {
+   "id": "la7-validate-map",
+   "title": "Is a uid_map write allowed",
+   "statement": "We model a write to /proc/PID/uid_map or gid_map. Arguments: map_text is the text being written; writer is a dictionary {\"privileged\": bool, \"euid\": number, \"kind\": \"uid\" or \"gid\", \"setgroups_deny\": bool, \"written\": bool}; parent is a list of [start, length] pairs of the numbers that exist in the parent namespace. Write a function validate_map(map_text, writer, parent): return \"ok\", \"EINVAL\" or \"EPERM\". The checks, in order: 1) written is true: \"EPERM\" (the map is written once); 2) no lines at all, more than 340 lines, a line that is not three non-negative integers, a length below 1, overlapping ranges inside or overlapping ranges outside: \"EINVAL\"; 3) an outside range that does not fit entirely within one range of parent: \"EPERM\"; 4) if the writer is not privileged (no CAP_SETUID/CAP_SETGID in the parent): there must be exactly one line, of length 1, whose outside number equals the writer's euid, and for kind = \"gid\" setgroups_deny must be true; otherwise \"EPERM\". Otherwise \"ok\".",
+   "hint": "First parse the lines into triples, then check in order; for overlaps sort the ranges by start."
+  },
+  {
+   "id": "la7-netns-ids",
+   "title": "Ids in ip netns list",
+   "statement": "The output of ip netns list has one line per namespace: “name” or “name (id: N)” when the namespace has an identifier N. Write a function netns_ids(text): return a dictionary name → identifier for all namespaces. Give those without an identifier one the way “ip netns set name auto” does in our model: in line order, each gets the smallest non-negative number that is not yet taken (taken ones are those in the text and those already assigned). Skip blank lines and ignore spaces at the edges of a line.",
+   "hint": "First collect the taken numbers from the whole text, then walk the lines without a number in order."
+  },
+  {
+   "id": "la7-runtime-ns",
+   "title": "A container's namespaces from its options",
+   "statement": "A Docker-like runtime gets the argument list of a run command. Write a function runtime_ns(args, userns_remap): return a dictionary with the keys \"mnt\", \"pid\", \"net\", \"uts\", \"ipc\", \"user\"; each value is \"new\" (the container has its own namespace), \"host\" (shared with the host) or \"container:NAME\" (shared with another container, the string exactly as in the argument). Rules. mnt is always \"new\". The options --pid, --uts, --ipc, --network (and its synonym --net) take the value either after = or as the next argument: \"--pid=host\" or \"--pid\", \"host\". The value \"host\" gives \"host\"; for pid, ipc and net a value starting with \"container:\" gives it whole; anything else (including a missing option, bridge, none, private, a user-defined network name) gives \"new\". For user: \"--userns=host\" (or \"--userns\", \"host\") gives \"host\"; without it the answer is \"new\" if the daemon runs with user remapping (userns_remap is true) and \"host\" otherwise. If an option is repeated, the last one wins. Ignore the other arguments (--name, -p, --hostname, --privileged, the image and their values).",
+   "hint": "Walk the list by index: if the argument equals an option, the value is the next one; if it starts with “option=”, the value follows the sign."
+  },
+  {
+   "id": "la7-unshare-flags",
+   "title": "unshare flags for a goal",
+   "statement": "Choose the unshare flags. The function unshare_flags(want, proc, root, privileged): want is a list of the namespaces needed from \"mnt\", \"uts\", \"ipc\", \"net\", \"pid\", \"cgroup\", \"time\", \"user\"; proc says whether a fresh /proc is needed; root says whether you must be root inside (without being root outside); privileged says whether root runs the command. Return a sorted list of unique long flags. Mapping: mnt → --mount, uts → --uts, ipc → --ipc, net → --net, pid → --pid, cgroup → --cgroup, time → --time, user → --user. Rules: pid adds --fork; proc adds --mount-proc and removes --mount (it is implied); root replaces --user with --map-root-user (which implies a user namespace); an unprivileged run that needs any namespace other than user, or a fresh /proc, gets --user added (unless --map-root-user is on).",
+   "hint": "Build a set of flags, apply the rules one by one, and end with sorted()."
+  },
+  {
+   "id": "la7-nspid-map",
+   "title": "Host PID versus PID inside",
+   "statement": "You get a list of texts: fragments of /proc/PID/status of different processes, as the host sees them. Each has an “NSpid:” line with the process numbers in all PID namespaces it belongs to: the first number is the number on the host, the last is the number in the innermost namespace; the numbers are separated by tabs or spaces. The other lines (Name:, Pid:, NStgid: and so on) are not needed; the NStgid, NSpgid and NSsid lines, which look similar, do not count. Write a function pid_pairs(statuses): return a list of tuples (host_number, inner_number), only for processes whose NSpid has at least two numbers (that is, which live in a nested namespace), sorted by the host number. Skip texts without an NSpid line.",
+   "hint": "Look for a line that starts exactly with “NSpid:”, split the rest with split() and take the first and the last items."
+  },
+  {
+   "id": "la7-timens-clock",
+   "title": "A clock inside a time namespace",
+   "statement": "The file /proc/PID/timens_offsets has lines “clock seconds nanoseconds”, where clock is monotonic or boottime; seconds may be negative, nanoseconds are non-negative. In our model, a clock reading inside the namespace equals the host's reading plus the offset (seconds·10^9 + nanoseconds). The realtime clock is not virtualized: inside, the reading is the same as on the host. If the file has no line for the clock, the offset is 0. Write a function timens_clock(offsets_text, clock, host_ns): clock is monotonic, boottime or realtime, host_ns is the host's reading in nanoseconds; return the reading inside the namespace in nanoseconds, or -1 if the result would be negative.",
+   "hint": "Parse lines into a dictionary clock -> (sec, ns), then host_ns + sec*10**9 + ns."
+  }
+ ]
+}

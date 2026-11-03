@@ -1,0 +1,66 @@
+{
+ "book": 19,
+ "chapter": 8,
+ "tasks": [
+  {
+   "id": "la8-inspect-summary",
+   "title": "A summary from docker inspect",
+   "statement": "Write a function inspect_summary(text): text is the output of docker inspect for one container (a JSON array with one object, as the command prints it). Return a dictionary with the keys: memory_mb - HostConfig.Memory in whole MiB (floor division), None if there is no limit (0); cpus - HostConfig.NanoCpus / 1e9 rounded to 2 digits, None if 0; pids - HostConfig.PidsLimit, None if it is null, 0 or negative; oom_killed - State.OOMKilled; exit_code - State.ExitCode; ip - the first non-empty IPAddress among NetworkSettings.Networks, networks are visited in alphabetical order of their names, otherwise an empty string; rw_binds - a sorted list of the Destination of every mount with Type bind and RW true.",
+   "hint": "json.loads(text)[0]; networks - sorted(nets); do not forget the zero case for memory_mb."
+  },
+  {
+   "id": "la8-stats-report",
+   "title": "A docker stats report",
+   "statement": "Write a function stats_report(text, cpu_pct, mem_pct): text is the output of docker stats --no-stream with the header CONTAINER ID, NAME, CPU %, MEM USAGE / LIMIT, MEM %, NET I/O, BLOCK I/O, PIDS; columns are separated by two or more spaces, single spaces may occur inside a column. Return a dictionary: hot - the names of containers in table order whose CPU % is at least cpu_pct or whose MEM % is at least mem_pct; used_mib - the sum of the used memory (the part before /) of all containers in MiB, rounded to 1 digit. Memory units: B, KiB, MiB, GiB, TiB (powers of 1024); the number may be fractional.",
+   "hint": "re.split(r'\\s{2,}', line.strip()) gives the columns; convert memory to MiB through a dictionary of units."
+  },
+  {
+   "id": "la8-ps-ports",
+   "title": "Ports from docker ps",
+   "statement": "Write a function published_ports(text): text is the output of docker ps with the header CONTAINER ID, IMAGE, COMMAND, CREATED, STATUS, PORTS, NAMES. Columns are aligned with spaces, values may contain spaces and may be empty, so cut the lines at the positions of the header words. Return a dictionary {name: sorted list of unique host port numbers} only for containers whose STATUS starts with Up. A published port is an item like 0.0.0.0:8080->80/tcp, [::]:8080->80/tcp or 127.0.0.1:5353->53/udp; the host port may be a range such as 9000-9002 (then include every port of the range). Skip items without -> (for example 3306/tcp). A container with no published ports gets an empty list. An empty table gives {}.",
+   "hint": "header.index('STATUS') and so on give the column bounds; the host port is what follows the last ':' in the part before '->'."
+  },
+  {
+   "id": "la8-run-flags",
+   "title": "docker run flags to cgroup files",
+   "statement": "Write a function cgroup_files(flags): flags is a list of strings, each one docker run flag with its value, as --memory=512m or --memory 512m (also the short -m 512m); ignore other flags (--rm, -d, --name=web ...). Return a dictionary {cgroup v2 file: value string}. A size is an integer with an optional suffix k, m or g (powers of 1024, case-insensitive, a b may follow the suffix); with no suffix it is bytes. --memory (if above 0) gives memory.max in bytes and also memory.swap.max: if --memory-swap is unset or 0, the same as memory; if -1, max; otherwise --memory-swap minus --memory. --cpus (if above 0) gives cpu.max as 'quota 100000', where quota = round(cpus * 100000). --pids-limit gives pids.max: the number, and 0 or negative values give max. --cpuset-cpus gives cpuset.cpus as is. Assume the host has swap.",
+   "hint": "re.match(r'(-{1,2}[A-Za-z-]+)(?:[= ](.*))?$', flag); for sizes re.fullmatch(r'(\\d+)([kmg]?)b?', s.lower())."
+  },
+  {
+   "id": "la8-overlay-mount",
+   "title": "Layers from a mount line",
+   "statement": "Write a function overlay_layers(line): line is one line of mount output for an overlay, for example 'overlay on <directory> type overlay (rw,relatime,lowerdir=...,upperdir=...,workdir=...)'. The options in parentheses are separated by commas, an option may have a value after the first =. A layer's name is the last component of the path, but if the path ends in diff, merged or work, it is the second to last (so .../overlay2/<id>/diff gives <id>, and l/ABC gives ABC). Return a dictionary: id - the layer name for the mounted directory (the path after 'on ' up to ' type '), layers - the layer names from lowerdir from the lowest (the image base) to the topmost; remember that in lowerdir the topmost layer is written first; writable - True if there is an upperdir option. If there is no lowerdir, layers is an empty list.",
+   "hint": "The options are line[line.rindex('(')+1:line.rindex(')')].split(','); then lowerdir.split(':') and reverse."
+  },
+  {
+   "id": "la8-overlay-sim",
+   "title": "Copy-up and whiteouts",
+   "statement": "Model overlayfs on files. Write a function overlay_ops(lowers, upper, ops): lowers is a list of dictionaries {path: content} for the read-only layers in lowerdir order (the first is the topmost); upper is the dictionary of the writable layer. A None value in a layer is a whiteout: the file with that path is hidden from everything below it. The visible content of a path comes from the first layer (upper first, then lowers in order) that has the path; if it holds None, there is no file. Operations: ['append', path, text] - if the file is visible, text is appended to it: if it does not lie in upper, a copy-up of the whole file is done first (copy_ups += 1) and then the text is appended in upper; if there is no file (including under a whiteout), it is created in upper with that text without a copy-up. ['rm', path] - if the file is not visible, nothing; if the path is visible in the lowers (the first of the lowers that holds it has a non-None value), a whiteout (None) is put into upper; otherwise the path is simply deleted from upper. Return a dictionary: merged - {path: content} of all visible files, copy_ups - the number of copy-ups, whiteouts - a sorted list of the paths that hold None in upper.",
+   "hint": "A lookup(path) function: upper, then lowers in order; 'visible in the lowers' means the first lowers layer with that key holds a non-None value."
+  },
+  {
+   "id": "la8-exit-codes",
+   "title": "What an exit code means",
+   "statement": "Write a function classify_exits(events): events is a list of pairs (the container's exit code, the OOMKilled flag from docker inspect). For each pair return a string by the first matching rule: code 0 - 'ok'; 125 - 'docker-error'; 126 - 'cannot-invoke'; 127 - 'not-found'; code 137 with OOMKilled True - 'oom-killed'; codes 129-192 mean signal number code-128: 1 SIGHUP, 2 SIGINT, 3 SIGQUIT, 6 SIGABRT, 7 SIGBUS, 9 SIGKILL, 11 SIGSEGV, 13 SIGPIPE, 15 SIGTERM, and 'signal-N' for other numbers (N is the signal number); codes 1-124 - 'error-code'; everything else (128 and above 192) - 'exit-code'. Return the list of strings in the same order.",
+   "hint": "The order of checks matters: 125-127 before the signal range, and 137 with OOM before a plain SIGKILL."
+  },
+  {
+   "id": "la8-compose-limits",
+   "title": "Checking compose limits",
+   "statement": "Write a function check_limits(services, host): services is a dictionary {name: {'limits': {...}, 'reservations': {...}}} in the spirit of deploy.resources in a compose file (either of the two keys may be missing; limits may hold cpus, memory, pids, reservations hold cpus, memory); host is {'memory_mb': number, 'cpus': number}. Memory is a string like '512M' or '1g' (an integer with an optional suffix k, m, g, case-insensitive, a b may follow the suffix; with no suffix it is bytes; powers of 1024); cpus is a string or a number, for example '0.50'. Return a list of problem strings. For each service in alphabetical order of names, in this order: '<name>: no memory limit', '<name>: no cpu limit', '<name>: no pids limit' (if the value is missing from limits); '<name>: memory reservation exceeds limit' (if both are set and the reservation is above the limit); '<name>: cpu reservation exceeds limit' (the same for cpus). Then the host-wide problems: if the sum of the memory limits of all services (those that have one) is above the host memory - 'host: memory limits total X MiB, host has Y MiB' (X is the sum in MiB, floor division; Y is memory_mb); then, if the sum of the cpus limits is above the host cpus - 'host: cpu limits total X, host has Y' (format the numbers with %g).",
+   "hint": "One size parser mem(s) with a regular expression; accumulate the sums in the same loop over sorted(services)."
+  },
+  {
+   "id": "la8-socket-risk",
+   "title": "How dangerous are docker run flags",
+   "statement": "Write a function socket_risk(args): args is the list of words of a docker run command (options only, without the image). Return the risk level for the host: 'low', 'medium', 'high' or 'root-equivalent' (the highest applies). Rules. root-equivalent: --privileged; a bind mount whose source has the file name docker.sock (with :ro or without it: access to the socket still lets you control the daemon); a bind mount of the root / that is not read-only. high: --pid=host, --net=host or --network=host; --cap-add SYS_ADMIN or ALL (case-insensitive, the prefix CAP_ is allowed); a read-only bind mount of the root /; a writable bind mount of /etc, /proc, /sys, /dev, /root or /var/lib/docker or of any path inside them. medium: any other writable bind mount. low: everything else (no options, named volumes, read-only bind mounts). A flag's value may be a separate word (-v SRC:DST) or follow = (--volume=SRC:DST, --pid=host, --cap-add=ALL). Volume flags: -v and --volume of the form SOURCE:DESTINATION[:options], options separated by commas, ro means read-only; the source is a bind mount if it starts with /, otherwise it is a named volume. --mount: key=value pairs separated by commas; only type=bind counts, the source is in source or src, read-only when readonly (or readonly=true, ro=true, 1) is present. Ignore a trailing / of the source.",
+   "hint": "Walk args by index: -v, --volume, --mount and --cap-add take their value from the next word, for the rest look for '='."
+  },
+  {
+   "id": "la8-shared-ns",
+   "title": "Shared namespaces",
+   "statement": "Write a function shared_namespaces(listing_a, listing_b): each argument is the output of ls -l /proc/PID/ns for one process, lines like 'lrwxrwxrwx 1 root root 0 Nov  3 10:15 net -> 'net:[4026531840]'' (the quotes around the link target may be absent; skip the 'total 0' line and any line without such a link). A namespace name is the word before ->, including ones like pid_for_children; the inode number is the number in square brackets. Return a sorted list of the names that are present in both outputs and have the same inode number (those processes share the namespace). A name missing from one output is not shared.",
+   "hint": "re.search(r\"(\\w+) -> '?\\w+:\\[(\\d+)\\]'?\\s*$\", line) on each line; then intersect by name with equal numbers."
+  }
+ ]
+}

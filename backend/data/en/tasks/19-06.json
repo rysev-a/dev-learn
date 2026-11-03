@@ -1,0 +1,66 @@
+{
+ "book": 19,
+ "chapter": 6,
+ "tasks": [
+  {
+   "id": "la6-subtree-write",
+   "title": "Writing to cgroup.subtree_control",
+   "statement": "A model of writing to cgroup.subtree_control. Write a function apply_subtree_control(controllers, current, request): controllers is the content of this group's cgroup.controllers (names separated by spaces, the order matters), current is the current content of its cgroup.subtree_control (names separated by spaces, may be an empty string), request is what is written: tokens separated by spaces, each '+name' or '-name'. Tokens are applied in order. The write is rejected as a whole (nothing changes) if a token does not start with + or -, the name is empty, or the name is not in controllers. Return the new content of cgroup.subtree_control as a string: the enabled controllers separated by single spaces in the order in which they are listed in controllers; on rejection return None. '-name' for a controller that is not enabled is allowed and does nothing; an empty request changes nothing.",
+   "hint": "Validate all tokens first, then apply them; build the result by walking controllers.split()."
+  },
+  {
+   "id": "la6-validate-tree",
+   "title": "Validating a cgroup tree",
+   "statement": "Write a function validate_tree(root_controllers, cgroups): root_controllers is the list of controllers available at the root; cgroups is a dictionary path -> {\"procs\": the number of processes directly in the group, \"subtree\": the list of controllers from its cgroup.subtree_control}. Paths look like \"/\", \"/a\", \"/a/b\"; the parent of \"/a/b\" is \"/a\", the parent of \"/a\" is \"/\". A group that is not in the dictionary counts as empty: no processes and no enabled controllers. Find the violations and return a sorted list of tuples (path, reason). Reasons: \"internal-process\" - a non-root group has procs > 0 and a non-empty subtree; \"not-available:NAME\" - the controller NAME is enabled in the root's subtree but is not in root_controllers; \"not-enabled-in-parent:NAME\" - the controller NAME is enabled in the subtree of a non-root group but not in the subtree of its parent. One group may break several rules, each violation is a separate tuple. Sort the tuples with ordinary comparison.",
+   "hint": "For each path find the parent (rsplit('/', 1)); for the root the 'parent' is root_controllers."
+  },
+  {
+   "id": "la6-cpu-max",
+   "title": "CPUQuota to cpu.max",
+   "statement": "A model of translating unit properties into the file cpu.max. Write a function cpu_max(assignments): assignments is a list of 'Name=Value' strings applied in order (a later assignment wins). Only CPUQuota and CPUQuotaPeriodSec count, other names are ignored. CPUQuota is a number with an optional decimal part and a % sign, for example '150%' or '12.5%'; an empty value removes the quota. CPUQuotaPeriodSec is an integer with the suffix us, ms or s ('500us', '20ms', '1s'); an empty value restores the default period of 100ms. The period in microseconds is clamped to the range 1000 to 1000000. The quota in microseconds = percent * period / 100, rounded up to an integer; if it comes out below 1000 it becomes 1000. Return the string for cpu.max: 'quota period', or 'max period' when there is no quota. Use fractions (fractions.Fraction), not float.",
+   "hint": "Fraction('12.5') is exact; round up with math.ceil. Suffixes: us=1, ms=1000, s=1000000."
+  },
+  {
+   "id": "la6-cpu-stat-delta",
+   "title": "The difference of two cpu.stat reads",
+   "statement": "Write a function cpu_stat_delta(before, after): before and after are the content of one group's cpu.stat file at two moments (lines 'key number'). Return a tuple (periods, throttled, throttled_pct, cpu_ms): periods is the growth of nr_periods, throttled the growth of nr_throttled, throttled_pct the share of periods in which the group was held back, in percent (100 * throttled / periods), rounded by round to one decimal place, or 0.0 when periods == 0; cpu_ms is the growth of usage_usec integer-divided by 1000. Missing keys count as zero (a group without the cpu controller has no nr_periods and nr_throttled lines). A growth below zero (the counters were reset) counts as zero.",
+   "hint": "Parse each text into a dictionary with split(); the growth is max(0, after.get(k, 0) - before.get(k, 0))."
+  },
+  {
+   "id": "la6-effective-limit",
+   "title": "The effective limit in a tree",
+   "statement": "Write a function effective_limit(limits, path): limits is a dictionary path -> the string from the file memory.max (or memory.high) of that group: either 'max' (no limit) or a number of bytes in decimal. Paths look like '/', '/a', '/a/b'. Groups that are not in the dictionary count as 'max'. The effective limit of the group path is the smallest of the limits of the group itself and all its ancestors up to the root '/'. Return a tuple (limit, path): the limit as an integer number of bytes and the path of the group whose limit applies; if several groups have the same limit, take the one closer to the root. If there is no limit anywhere, return ('max', '').",
+   "hint": "Build the chain of ancestors from the root down to path and walk it, updating the minimum only on a strict decrease."
+  },
+  {
+   "id": "la6-memory-verdicts",
+   "title": "What happened to a group's memory",
+   "statement": "Write a function memory_verdicts(before, after): before and after are the content of one group's memory.events file at two moments (lines 'key number'; the keys are low, high, max, oom, oom_kill and, on newer kernels, oom_group_kill; a missing key counts as zero). For every key take the growth (treat a negative one as zero) and return a list of verdicts in this order: 'group-kill' - the growth of oom_group_kill is above zero; 'oom-killed' - the growth of oom_kill is above zero; 'oom-no-kill' - the growth of oom is above zero and the growth of oom_kill is zero; 'hit-max' - the growth of max is above zero; 'throttled-high' - the growth of high is above zero; 'reclaimed-low' - the growth of low is above zero. If nothing grew, return an empty list.",
+   "hint": "Parse both texts into dictionaries and compute the growth per key; then test the conditions in order."
+  },
+  {
+   "id": "la6-cgls-procs",
+   "title": "Processes per group from systemd-cgls",
+   "statement": "Write a function procs_by_cgroup(text): text is the output of systemd-cgls. The first line 'Control group /:' is skipped. After that comes the tree: a line is either a group name or a process; every line starts with a prefix made of the characters '│', '├', '└', '─' and spaces, and the prefix length divided by 2 is the depth (the root '-.slice' has no prefix, depth 0). A process is a line where after the prefix comes a number (the PID) followed by a space or the end of the line; the process belongs to the nearest group above it with a depth one less. Everything else after the prefix is a group name. A group's path: the root '-.slice' gives '/', the others give '/' plus the group names from depth 1 down to it, joined with '/'. Return a dictionary path -> list of PIDs (integers in order of appearance) only for groups that have processes directly in them.",
+   "hint": "Keep a stack of names by depth: names[depth] = name; a process at depth d belongs to names[d-1]."
+  },
+  {
+   "id": "la6-cgtop-own-memory",
+   "title": "Own memory of groups from systemd-cgtop",
+   "statement": "Write a function top_own_memory(output, n): output is the output of 'systemd-cgtop -b -n 1' (the first line is the header, skip it). In each following line the columns separated by spaces are: the group path, Tasks, %CPU, Memory, Input/s, Output/s; the value '-' means no data. Memory is a number with an optional unit B, K, M, G or T (powers of 1024; a decimal part is allowed, 'B' or no unit means bytes), for example '1.5G', '512.0M', '0B'. A group's memory in cgtop includes the memory of its child groups. For every group (except the root '/') that has a Memory value compute its own memory: the group's Memory minus the sum of the Memory of its direct child groups from the same output (a child without data counts as zero; the parent of '/a/b' is '/a'); the result is not below zero. Return the n groups with the largest own memory as a list of tuples (path, bytes) with an integer number of bytes, in descending order, and by path on a tie. Bytes = value * multiplier; the numbers in the tests are exact.",
+   "hint": "First a dictionary path -> bytes, then for each path subtract the children; sort by the key (-bytes, path)."
+  },
+  {
+   "id": "la6-props-to-files",
+   "title": "Unit properties to cgroup files",
+   "statement": "A model of translating unit properties into the content of group files. Write a function props_to_files(props, ram, pid_max, devices): props is a list of 'Name=Value' strings applied in order; ram is the host's memory in bytes; pid_max is the number used for percentages in TasksMax; devices is a dictionary device path -> 'MAJ:MIN'. Return a dictionary file name -> content (a string). Rules. A size is an integer with an optional suffix K, M, G, T (powers of 1024) or 'infinity'. MemoryLow, MemoryHigh, MemoryMax -> memory.low, memory.high, memory.max: a size, or 'N%' = ram * N // 100, or 'infinity' -> 'max'. MemorySwapMax -> memory.swap.max: a size or 'infinity' -> 'max' (no percentages). CPUWeight -> cpu.weight: an integer as it is; 'idle' gives the file cpu.idle with the value '1' (and no cpu.weight). IOWeight -> io.weight: 'default N'. TasksMax -> pids.max: an integer, 'N%' = pid_max * N // 100, or 'infinity' -> 'max'. IOReadBandwidthMax, IOWriteBandwidthMax, IOReadIOPSMax, IOWriteIOPSMax -> lines of the file io.max: the value is 'DEVICE LIMIT', the limit is an integer with a suffix K, M, G, T (powers of 1000) or 'infinity' -> 'max'; the keys are rbps, wbps, riops, wiops. For each device there is one line 'MAJ:MIN key=limit ...' with the keys in the order rbps, wbps, riops, wiops (only those set), the lines in the file are sorted by (major, minor) as numbers and joined with newlines. A repeated assignment of the same property (for a device: the same property and device) replaces the previous one. An empty value resets the property (for the four io.max properties: all their entries); a reset property does not appear in the result. Other names are ignored.",
+   "hint": "Keep a dictionary single[name] and a dictionary io[(device, key)]; a reset deletes entries; build the files at the end."
+  },
+  {
+   "id": "la6-unit-cgroup-path",
+   "title": "A unit's cgroup path",
+   "statement": "A model of how systemd places units in the cgroup tree. Write a function unit_cgroup(unit, slice): unit is the unit name, slice is the value of Slice= or an empty string if not set. A slice name made of words joined by dashes describes the path from the root: 'a-b-c.slice' lies in 'a-b.slice', which lies in 'a.slice', which lies in the root; the root slice is called '-.slice' and its path is '/'. The path of the slice itself: '/a.slice/a-b.slice/a-b-c.slice'. If unit itself ends in .slice, its path is computed from its name alone and slice is ignored. For other units (.service, .scope and so on) the path = the slice's path + '/' + the unit name (in the root, just '/' + the name). If slice is empty: an instance service (a name like 'template@instance.service') goes to the slice 'system-template.slice', all other units go to 'system.slice'. Return the path string. Dashes inside unit names (not slice names) do not matter.",
+   "hint": "Slice path: split the name without .slice on '-' and accumulate 'a', 'a-b', ... with the .slice suffix."
+  }
+ ]
+}

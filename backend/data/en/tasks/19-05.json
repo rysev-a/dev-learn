@@ -1,0 +1,66 @@
+{
+ "book": 19,
+ "chapter": 5,
+ "tasks": [
+  {
+   "id": "la5-parse-proc-limits",
+   "title": "Parsing /proc/PID/limits",
+   "statement": "Write a function parse_limits(text): text is the content of a /proc/PID/limits file. The first line is the header: \"Limit\", \"Soft Limit\", \"Hard Limit\", \"Units\" start at fixed columns. Take the column positions from the header: soft = text.index(\"Soft Limit\"), hard = text.index(\"Hard Limit\"), units = text.index(\"Units\") (in the first line). For every following non-blank line: the name is the slice of the line up to soft, stripped (names contain spaces), the soft value is the slice [soft:hard], the hard value is [hard:units], the units are everything from units to the end of the line (an empty string if the line is shorter or has no units); all slices are stripped. A value is either the word unlimited or a decimal number. Return a dictionary {name: [soft, hard, units]} where a number is converted to int and unlimited stays the string \"unlimited\". For an empty text, or a text with no data lines, return {}.",
+   "hint": "Work with header = text.splitlines()[0] and slices line[a:b]; a blank data line is line.strip() == ''."
+  },
+  {
+   "id": "la5-near-limits",
+   "title": "Processes near a limit (prlimit)",
+   "statement": "Write a function near_limits(text, usage, percent): text is the output of prlimit --pid PID: the header \"RESOURCE DESCRIPTION SOFT HARD UNITS\" and lines \"RESOURCE description soft hard [units]\". In a line the columns are separated by spaces, the description contains spaces and hyphens, and the resources NICE and RTPRIO have no units. So parse a line by words: the first word is the resource name; from the end: if the last word is neither a number nor unlimited, it is the units, drop it; then the last word is the hard value and the one before it is the soft value. usage is a dictionary {resource name: how much is used now}. For every resource that is in both usage and the output and whose soft value is a number greater than zero (unlimited and 0 are skipped), compute p = used * 100 // soft (integer division). Return a list of [name, p] for the resources with p >= percent, sorted by p descending, and by name ascending on equal p. Skip the header and unknown resources.",
+   "hint": "tokens = line.split(); test tokens[-1].isdigit() or tokens[-1] == 'unlimited'. Sort with key=lambda x: (-x[1], x[0])."
+  },
+  {
+   "id": "la5-pam-limit",
+   "title": "A session limit from limits.conf",
+   "statement": "Write a function pam_limit(main, dropins, user, groups, item, defaults, nr_open): a model of how pam_limits computes a login session's limit. main is the text of /etc/security/limits.conf, dropins is a list of [file_name, text] pairs from limits.d (in arbitrary order), user is the user name, groups is the list of the user's groups, item is the limit name (for example \"nofile\"), defaults is the [soft, hard] the process had before the files were applied, nr_open is the value of fs.nr_open. The files are applied in order: first main, then the drop-in files whose names end in .conf, by ascending name (plain string comparison). In every file skip blank lines and lines starting with #. A line is split on whitespace into the fields domain type item value; skip lines with fewer than four fields (ignore extra fields). Consider a line only if item matches and the domain fits: the user name user (source 0), \"@group\" where group is in groups (source 1), or \"*\" (source 3); skip other domains. The type is soft, hard or - (both); another type skips the line. The value is an integer made of digits, or -1, unlimited, infinity (no limit); anything else skips the line. No limit means the word \"unlimited\", except for nofile, where it means the value nr_open. The write rule: for each of the two quantities (soft and hard) the source of the last write is remembered, initially 9; a new line assigns the quantity if its source is less than or equal to the remembered one, and remembers it. A more specific source wins regardless of line order, and on equal sources the later line wins. The types - and plain soft/hard work independently for each quantity. Return [soft, hard].",
+   "hint": "Keep soft, hard and two source counters ss, hs = 9, 9; the write condition is src <= ss."
+  },
+  {
+   "id": "la5-service-limit",
+   "title": "A systemd service limit",
+   "statement": "Write a function service_limit(manager, unit, item, inherited): a model of choosing a limit for a systemd service (/etc/security/limits.conf does not apply to it). manager is the text of system.conf, unit is the final text of the unit (drop-ins already merged), item is one of \"NOFILE\", \"NPROC\", \"CORE\", \"MEMLOCK\", inherited is the [soft, hard] the manager would pass on without any settings. Parsing: skip blank lines and lines starting with # or ;; [Name] opens a section; every other line Key=Value is split at the first =, spaces around are stripped; ignore lines without =. From the unit take the last assignment of the key \"Limit\" + item in the [Service] section; if there is none, take the last assignment of \"DefaultLimit\" + item in the [Manager] section of the file manager (keys in other sections are ignored). If there is none either, the built-in value applies: for NOFILE [1024, 524288], for MEMLOCK [8388608, 8388608], for the others inherited. The value: \"N\" sets the soft and hard values both to N; \"S:H\" sets soft S and hard H; the word infinity stays the string \"infinity\". A number may have a suffix K, M, G or T (powers of 1024), but only for MEMLOCK and CORE. The tests contain no empty values. Return [soft, hard].",
+   "hint": "One function last(text, section, key); then a chain: unit, manager, built-in. Suffixes: a dictionary {'K': 1024, ...}."
+  },
+  {
+   "id": "la5-oom-victim",
+   "title": "The OOM killer's victim",
+   "statement": "Write a function oom_victim(procs, totalpages): a model of how the kernel picks a victim. procs is a list of processes in walk order [pid, comm, rss, swap, pgtables_bytes, oom_score_adj]: rss and swap are in pages, pgtables_bytes is in bytes, oom_score_adj is a number from -1000 to 1000. totalpages is RAM plus swap in pages. A page is 4096 bytes. A process's score is points = rss + swap + pgtables_bytes // 4096, then adj = oom_score_adj * (totalpages // 1000) is added: points += adj (a score may be negative). Processes with oom_score_adj equal to -1000 are not considered. The victim is the process with the highest score; on equal scores the one later in the list is chosen. Return [pid, points] of the victim, or None if there is nothing to consider.",
+   "hint": "A loop with best = None; compare points >= best_points (not >) so the later one wins a tie."
+  },
+  {
+   "id": "la5-oom-report",
+   "title": "Parsing an OOM report from the kernel log",
+   "statement": "Write a function oom_events(text): text is a fragment of the kernel log (dmesg, dmesg -T or journalctl -k). Each message may have a prefix: either \"[...]\" in square brackets (kernel time or a dmesg -T date) and spaces, or a journal prefix \"Nov 03 12:00:00 host kernel: \" (a three-letter month, a day number, a time HH:MM:SS, the host name, \"kernel:\" and a space), or nothing. Remove the prefix and the spaces at both ends; then look only at the message. Consider three kinds of lines. (1) \"NAME invoked oom-killer: ...\" remembers invoker = NAME (everything before \" invoked oom-killer:\", the name may contain spaces). (2) A line starting with \"oom-kill:\" that contains \"task_memcg=PATH\" (the path runs up to a comma) remembers cgroup = PATH. (3) \"REASON: Killed process PID (NAME) total-vm:TkB, anon-rss:AkB, file-rss:FkB, shmem-rss:SkB, UID:U pgtables:PkB oom_score_adj:J\" creates an event (numbers are decimal, J may be negative, NAME may contain spaces). An event is a dictionary with the keys: invoker (the remembered invoker or an empty string), scope (\"cgroup\" if REASON starts with \"Memory cgroup\", otherwise \"system\"), pid (int), comm (NAME), rss_kb (A + F + S, int), oom_score_adj (int), uid (int), cgroup (the remembered cgroup or an empty string). After an event is created the remembered invoker and cgroup are reset to empty strings. Ignore all other lines. Return the list of events in order of appearance.",
+   "hint": "Use re.sub for the two prefix kinds, then re.match for the three patterns; catch NAME with (.*) before ') total-vm'."
+  },
+  {
+   "id": "la5-cpu-shares",
+   "title": "CPU shares by nice value",
+   "statement": "Write a function cpu_shares(tasks): tasks is a list of [name, nice] for processes that are all runnable at the same time on one CPU (all in the same scheduler group). A process's weight comes from the kernel scheduler's table: for nice -20 to 19 in order the weights are 88761, 71755, 56483, 46273, 36291, 29154, 23254, 18705, 14949, 11916, 9548, 7620, 6100, 4904, 3906, 3121, 2501, 1991, 1586, 1277, 1024, 820, 655, 526, 423, 335, 272, 215, 172, 137, 110, 87, 70, 56, 45, 36, 29, 23, 18, 15 (nice 0 has weight 1024). Clamp a nice value outside -20..19 to the nearest bound. A process's share in permille is weight * 1000 // the sum of all weights (integer division). Return a list of [name, share] in the order of the input list; for an empty list return an empty list.",
+   "hint": "The table index is max(-20, min(19, nice)) + 20."
+  },
+  {
+   "id": "la5-renice-check",
+   "title": "Can nice be changed",
+   "statement": "Write a function renice_result(caller_uid, target_rlimit_nice, target_uid, current, requested): a model of setpriority(2) for a process with the user ID caller_uid (0 is privileged, it has CAP_SYS_NICE) that changes the nice value of a process owned by target_uid. current is the target's present nice value, requested is the requested one, target_rlimit_nice is the target's soft RLIMIT_NICE (in ulimit -e units: the ceiling is 20 minus nice). The rules, in this order. (1) The requested value is clamped to -20..19. (2) If the caller is unprivileged and caller_uid is not equal to target_uid, the result is \"EPERM\". (3) If the new value is less than current, the caller is unprivileged and 20 - new > target_rlimit_nice, the result is \"EACCES\". (4) Otherwise the result is \"ok:\" followed by the new value, for example \"ok:-5\". Raising nice, or leaving it unchanged, is always allowed to the owner.",
+   "hint": "Privilege is simply caller_uid == 0. The order of checks matters: EPERM first, then EACCES."
+  },
+  {
+   "id": "la5-limits-conf-errors",
+   "title": "Validating limits.conf lines",
+   "statement": "Write a function limits_errors(text): text is a file in the limits.conf style. Skip blank lines and lines starting with # (after spaces), but number the lines consecutively from 1. The other lines are split on whitespace into fields. For every line find the first error in this order and return a pair [line_number, code]: (1) \"fields\" - the number of fields is not exactly four; (2) \"type\" - the second field is not soft, hard or -; (3) \"item\" - the third field is not in the list core, data, fsize, memlock, nofile, rss, stack, cpu, nproc, as, maxlogins, maxsyslogins, nonewprivs, priority, locks, sigpending, msgqueue, nice, rtprio, rttime; (4) \"domain\" - the first field starts with % while item is neither maxlogins nor maxsyslogins; (5) \"value\" - the value does not fit: for nice an integer from -20 to 19, for nonewprivs 0 or 1, for priority an integer, possibly negative (the words unlimited and infinity are not allowed), for all the others, rtprio included, an integer made of digits, or -1, unlimited or infinity. Correct lines are not in the result. Return the list of pairs in line order.",
+   "hint": "Check one after another: len(f) != 4, f[1] in (...), f[2] in ITEMS, ... For nice use int(value) in a try block."
+  },
+  {
+   "id": "la5-overcommit",
+   "title": "Overcommit and CommitLimit",
+   "statement": "Write a function overcommit(mode, ram_kb, swap_kb, ratio, kbytes, committed_kb, request_kb): a model of the kernel's memory accounting. mode is vm.overcommit_memory (0, 1 or 2), ram_kb is RAM, swap_kb is swap, ratio is vm.overcommit_ratio (percent), kbytes is vm.overcommit_kbytes (if greater than zero it is used instead of ratio), committed_kb is what is already committed (Committed_AS), request_kb is the new allocation request, everything in kilobytes (huge pages are ignored). CommitLimit equals swap_kb plus (kbytes if kbytes > 0, otherwise ram_kb * ratio // 100). The decision: with mode 1 the request is always allowed; with mode 2 it is allowed if committed_kb + request_kb <= CommitLimit; with mode 0 (the heuristic) it is allowed if request_kb <= ram_kb + swap_kb, that is, only an obvious excess by a single request is refused. Return [CommitLimit, allowed], where allowed is True or False. CommitLimit is returned for any mode (/proc/meminfo always has it too).",
+   "hint": "Compute limit first; then branch on mode."
+  }
+ ]
+}
