@@ -14,3 +14,9 @@ generated once at the end, when all chapters of all books are ready. For now the
 - The voice is kokoro-ru (`sveta`); one chapter (13 parts) is synthesized in 1.5–2 minutes.
 - After the voice-over, the `cues` in the slides must be recalculated from the pauses in the wav (currently they are based on the share of characters), and the running backend
   must be restarted: it caches durations.
+
+## English reference voice (7.11.2026)
+
+The one exception to the "no audio" rule: `voice/synth.py` reads the English textbook with Kokoro (American English, voice `af_heart`) so the author can listen to a model and
+repeat it. It is made on request per chapter or book (`uv run --script voice/synth.py 12 -c 1`), the files are git-ignored (`backend/data/audio/`), and a take recorded by the author takes
+the place of the machine voice on the slide. See "Recording a voice for a slide" in `AGENTS.md`.

@@ -29,6 +29,10 @@ will later be spoken off-screen":
   ("yu-ti-ef-eight", "system-dee"), no "see the figure" and no code inside a paragraph — code lives on the slides;
 - the remaining "one paragraph = one scene = one part" rules stay: the structure must be ready for voice-over.
 
+**One exception (7.11.2026): the English reference voice.** The author records the English version of the course in their own voice and repeats a machine reading first,
+so the English textbook may be read by Kokoro with `voice/synth.py` (see "Recording a voice for a slide"), a chapter or a book at a time, on request. It is a model to listen to, not the course voice-over:
+the rest of this rule stands (no Russian voice-over, no `cues` from wav, no audio status file), and a rewritten English paragraph is simply read again with `--force`.
+
 ## Repository structure
 
 - `backend/` — backend (section "Backend"); `backend/data/` — course data; `frontend/` — Leptos frontend; `packages/` — shared crates;
@@ -304,6 +308,11 @@ voice-over, the Russian one the Russian, and a book that has no English translat
 In the interface, next to "Play" and "Record" there is a burger (`.slide-rec-menu`) that opens the "Recordings of this slide" window (`components/records_dialog.rs`, `.rd`): the takes of the shown slide (number, length, time), a tap on a row makes it the voice-over, the trash button deletes it
 at once (no confirmation); the page updates the sound of the slide from the response (`set_sound` in `theory.rs`). The player address of a take is `/api/records/{book}/{chapter}/{slide}/audio?lang=<code>&take=<id>&v=<time of recording>` (the language and the take are in the query because `<audio src>` sends no headers,
 `v` defeats the cache when a take number is used again; without `take` the route serves the chosen one). e2e: `e2e/tests/shell/record.spec.ts` (takes through the API) and `record-ui.spec.ts` (recording through the interface with the browser's fake microphone); the e2e server writes to `e2e/.records`.
+
+**The reference voice for the English text:** `voice/synth.py` (a `uv run --script` file with its own dependencies, Python 3.12/3.13: Kokoro-82M, voice `af_heart` by default, American English; the model, ~330 MB, is downloaded on the first run) reads the paragraphs of `backend/data/en/textbook`
+and writes one wav per slide to `AUDIO_DIR/<lesson id>.wav` (default `backend/data/audio`, git-ignored), where the lesson id is the one the seed gives (`uuid5` of `en:<audio_prefix><chapter>-l<slide>`; the script computes it the same way and `--list` prints the ids to compare with `GET /api/chapters/{id}?lang=en`).
+`uv run --script voice/synth.py 12 -c 1` (a chapter), `… 12` (a book), `-s N` (one slide), `--speed 0.9`, `--voice`, `--force`; ready files are skipped. The player plays this file for a slide that has no recorded take (a take of the author wins), so the author listens to the model first and then records.
+The backend needs no restart (the length of a file is read on each request), the page needs a reload. The Russian engine is `voice/engine.py` and has no batch script yet.
 
 **Recording time:** a recording lasts as long as the slide is shown without sound — the reading time of its text, `estimate_seconds` (14 characters per second, at least 3 s) — whatever take the slide already has (the player is started with the estimated durations and no files, `Player::silent`);
 it ends by itself at the end of the paragraph or with "Stop". While recording, a pop-up at the top right (`.rec-timer`, `RecordCtl::left`) counts the time left down; "Back" and "Forward" are disabled.
