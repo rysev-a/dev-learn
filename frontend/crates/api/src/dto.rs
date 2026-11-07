@@ -536,6 +536,9 @@ pub struct Take {
     pub dur: f64,
     /// time of recording, seconds since the epoch
     pub at: u64,
+    /// the name of the voice if a machine read this take (`voice/synth.py`); `None` for the author's own recording
+    #[serde(default)]
+    pub machine: Option<String>,
     /// the pronunciation check of this take, if it was made
     #[serde(default)]
     pub assessment: Option<Assessment>,

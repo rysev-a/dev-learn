@@ -3873,6 +3873,10 @@ g.fk .sx-key {
   background: var(--s-green);
 }
 
+.rd-row.machine .rd-name {
+  font-style: italic;
+}
+
 .rd-radio {
   flex-shrink: 0;
   width: 14px;

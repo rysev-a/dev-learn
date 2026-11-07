@@ -18,5 +18,5 @@ generated once at the end, when all chapters of all books are ready. For now the
 ## English reference voice (7.11.2026)
 
 The one exception to the "no audio" rule: `voice/synth.py` reads the English textbook with Kokoro (American English, voice `af_heart`) so the author can listen to a model and
-repeat it. It is made on request per chapter or book (`uv run --script voice/synth.py 12 -c 1`), the files are git-ignored (`backend/data/audio/`), and a take recorded by the author takes
-the place of the machine voice on the slide. See "Recording a voice for a slide" in `AGENTS.md`.
+repeat it. It is made on request per chapter or book (`uv run --script voice/synth.py 12 -c 1`), each reading is a take of the slide marked "Machine voice" in the recordings window (files in `media/records`, git-ignored), chosen or deleted like the author's own
+takes. See "Recording a voice for a slide" in `AGENTS.md`.

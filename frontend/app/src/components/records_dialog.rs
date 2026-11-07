@@ -1,5 +1,5 @@
 //! "Recordings of this slide" window (author tool, administrators only): the takes of the shown slide in the interface language, a choice of the
-//! one that voices the slide (by default the first), a pronunciation check of each take (scores, the weak words and sounds) and a trash
+//! one that voices the slide (by default the first; a take read by a machine voice is marked as such), a pronunciation check of each take (scores, the weak words and sounds) and a trash
 //! button for each (it deletes at once, without a confirmation).
 
 use api::dto::{AssessedWord, Assessment, Take, Takes};
@@ -213,7 +213,7 @@ pub fn RecordsDialog(open: RwSignal<bool>, book: i64, chapter: i64, #[prop(into)
         }
         takes
             .into_iter()
-            .map(|Take { id, dur, at, assessment }| {
+            .map(|Take { id, dur, at, assessment, machine }| {
                 let on = selected == Some(id);
                 let running = move || checking.get() == Some(id);
                 let open = move || expanded.get() == Some(id);
@@ -221,12 +221,13 @@ pub fn RecordsDialog(open: RwSignal<bool>, book: i64, chapter: i64, #[prop(into)
                 let detail = assessment.map(|a| move || open().then(|| assessment_view(&a, move || check(id), Signal::derive(move || checking.get().is_some()))));
                 view! {
                     <li class="rd-item">
-                        <div class="rd-row" class:on=on>
+                        <div class="rd-row" class:on=on class:machine=machine.is_some()>
                             <button class="rd-pick" disabled=move || busy.get() aria-pressed=on.to_string() title=i18n::tr("Use this recording for the voice-over") on:click=move |_| if !on { choose(id) }>
                                 <span class="rd-radio" class:on=on></span>
-                                <span class="rd-name">{i18n::trf!("Recording {}", id)}</span>
+                                <span class="rd-name">{if machine.is_some() { i18n::tr("Machine voice").to_string() } else { i18n::trf!("Recording {}", id) }}</span>
                                 <span class="rd-meta">{fmt_time(dur)}" · "{when(at)}</span>
                             </button>
+                            {machine.is_none().then(|| view! {
                             <button
                                 class="rd-check"
                                 class:open=open
@@ -245,6 +246,7 @@ pub fn RecordsDialog(open: RwSignal<bool>, book: i64, chapter: i64, #[prop(into)
                                     (false, None) => view! { {check_icon()}<span class="rd-check-label">{i18n::tr("Check pronunciation")}</span> }.into_any(),
                                 }}
                             </button>
+                            })}
                             <button class="rd-del" disabled=move || busy.get() title=i18n::tr("Delete the recording") aria-label=i18n::tr("Delete the recording") on:click=move |_| remove(id)>
                                 {trash_icon()}
                             </button>
