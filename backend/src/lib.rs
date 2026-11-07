@@ -19,6 +19,7 @@ pub mod records;
 pub mod schema_view;
 pub mod seed;
 pub mod slides;
+pub mod speech;
 pub mod wav;
 pub mod worker_api;
 

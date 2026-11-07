@@ -3930,6 +3930,208 @@ g.fk .sx-key {
   color: var(--s-red);
 }
 
+/* ---------- pronunciation check of a take: the button, the scores, the text with weak words, what to work on ---------- */
+
+.rd-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rd-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--s-border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--s-muted);
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+
+.rd-check:hover:not(:disabled),
+.rd-check.open {
+  color: var(--s-text);
+  border-color: var(--s-accent-a45);
+}
+
+.rd-check:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.rd-score {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.rd-score.ok,
+.rd-metric dd.ok,
+.rd-weak-score.ok {
+  color: var(--s-accent);
+}
+
+.rd-score.mid,
+.rd-metric dd.mid,
+.rd-weak-score.mid {
+  color: var(--s-amber);
+}
+
+.rd-score.low,
+.rd-metric dd.low,
+.rd-weak-score.low {
+  color: var(--s-red);
+}
+
+.rd-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--s-border);
+  border-radius: 10px;
+}
+
+.rd-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin: 0;
+}
+
+.rd-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rd-metric dt {
+  color: var(--s-muted);
+  font-size: 11.5px;
+}
+
+.rd-metric dd {
+  margin: 0;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.rd-text {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: var(--s-text);
+}
+
+.rd-w.mid {
+  color: var(--s-amber);
+}
+
+.rd-w.low {
+  color: var(--s-red);
+  font-weight: 600;
+}
+
+.rd-w.skip {
+  color: var(--s-red);
+  text-decoration: line-through;
+}
+
+.rd-w.extra {
+  color: var(--s-amber);
+  text-decoration: underline wavy;
+}
+
+.rd-sub {
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--s-muted);
+}
+
+.rd-weak-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rd-weak {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  font-size: 13.5px;
+}
+
+.rd-weak-word {
+  font-weight: 600;
+  color: var(--s-text);
+}
+
+.rd-weak-score {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.rd-tag {
+  padding: 1px 7px;
+  border: 1px solid var(--s-amber-a45);
+  border-radius: 999px;
+  background: var(--s-amber-bg);
+  color: var(--s-amber);
+  font-size: 11.5px;
+}
+
+.rd-weak-sounds {
+  color: var(--s-muted);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 12px;
+  white-space: pre-wrap;
+}
+
+.rd-again {
+  align-self: flex-start;
+  padding: 6px 12px;
+  border: 1px solid var(--s-border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--s-muted);
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+
+.rd-again:hover:not(:disabled) {
+  color: var(--s-text);
+  border-color: var(--s-accent-a45);
+}
+
+.rd-again:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+@media (max-width: 520px) {
+  .rd-check-label {
+    display: none;
+  }
+
+  .rd-check:has(.rd-check-label:only-child) .rd-check-label {
+    display: inline;
+  }
+}
+
 /* ---------- pop-up at the top right while a slide is recorded: the countdown to the end of the slide ---------- */
 
 .rec-timer {

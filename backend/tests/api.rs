@@ -21,6 +21,7 @@ async fn app(worker_token: &str) -> Router {
         static_dir: None,
         worker_token: worker_token.into(),
         seed: "auto".into(),
+        speech: None,
     };
     let database = db::memory().await.unwrap();
     build(database, cfg).await.unwrap().0
@@ -710,6 +711,7 @@ async fn slide_recordings_are_saved_by_administrators_only() {
         static_dir: None,
         worker_token: "".into(),
         seed: "auto".into(),
+        speech: None,
     };
     let database = db::memory().await.unwrap();
     let app = build(database.clone(), cfg).await.unwrap().0;
@@ -839,4 +841,192 @@ async fn slide_recordings_are_saved_by_administrators_only() {
     assert!(old.join("5").join("1.wav").is_file());
     assert_eq!(chapter(&app, "ru").await["lessons"][5]["dur"], 1.0);
     let _ = std::fs::remove_dir_all(&dir);
+}
+
+/// What the stand-in speech service saw in a request.
+#[derive(Default, Clone)]
+struct Seen {
+    key: String,
+    content_type: String,
+    query: String,
+    /// the pronunciation parameters; `Null` for a plain recognition request
+    params: Value,
+    audio_bytes: usize,
+}
+
+/// What a stand-in speech service remembers and says.
+#[derive(Default)]
+struct Speaking {
+    seen: Vec<Seen>,
+    /// the words "heard" by the plain recognition requests, one answer per request in order
+    heard: Vec<String>,
+}
+
+/// A stand-in for the speech service: remembers the requests and answers them; returns its address. With `reply` every request gets it; without it a
+/// plain recognition request gets the next of `Speaking::heard` and a pronunciation request gets every word of its reference text scored 90.
+async fn fake_speech(reply: Option<Value>) -> (String, std::sync::Arc<std::sync::Mutex<Speaking>>) {
+    use axum::{body::Bytes, extract::State, http::{HeaderMap, Uri}, routing::post, Json};
+    use base64::Engine;
+    type Shared = (std::sync::Arc<std::sync::Mutex<Speaking>>, Option<Value>);
+    async fn handler(State((state, reply)): State<Shared>, uri: Uri, headers: HeaderMap, body: Bytes) -> Json<Value> {
+        let text = |name: &str| headers.get(name).and_then(|v| v.to_str().ok()).unwrap_or("").to_string();
+        let params: Value = match headers.get("pronunciation-assessment") {
+            Some(h) => serde_json::from_slice(&base64::engine::general_purpose::STANDARD.decode(h.as_bytes()).unwrap()).unwrap(),
+            None => Value::Null,
+        };
+        let mut state = state.lock().unwrap();
+        state.seen.push(Seen { key: text("ocp-apim-subscription-key"), content_type: text("content-type"), query: uri.query().unwrap_or("").to_string(), params: params.clone(), audio_bytes: body.len() });
+        if let Some(reply) = reply {
+            return Json(reply);
+        }
+        if params.is_null() {
+            let plain = state.seen.iter().filter(|s| s.params.is_null()).count() - 1;
+            return Json(json!({ "RecognitionStatus": "Success", "NBest": [{ "Lexical": state.heard[plain] }] }));
+        }
+        let words: Vec<Value> = params["ReferenceText"].as_str().unwrap().split_whitespace().map(|w| json!({ "Word": w, "AccuracyScore": 90.0, "ErrorType": "None", "Phonemes": [] })).collect();
+        Json(json!({ "RecognitionStatus": "Success", "NBest": [{ "PronScore": 80.0, "AccuracyScore": 90.0, "FluencyScore": 70.0, "CompletenessScore": 100.0, "Words": words }] }))
+    }
+    let state = std::sync::Arc::new(std::sync::Mutex::new(Speaking::default()));
+    let service = Router::new().route("/speech/recognition/conversation/cognitiveservices/v1", post(handler)).with_state((state.clone(), reply));
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let address = format!("http://{}", listener.local_addr().unwrap());
+    tokio::spawn(async move { axum::serve(listener, service).await.unwrap() });
+    (address, state)
+}
+
+/// An app with an administrator who can check pronunciation against the stand-in service; returns the app, the administrator's token and the records folder.
+async fn app_with_speech(address: &str, name: &str) -> (Router, String, std::path::PathBuf) {
+    let dir = std::env::temp_dir().join(format!("cs-core-{name}-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    let cfg = Config {
+        bind: "127.0.0.1:0".into(),
+        surreal_url: "memory".into(),
+        data_dir: std::path::PathBuf::from("data"),
+        audio_dir: std::env::temp_dir().join("cs-core-rs-test-audio"),
+        records_dir: dir.clone(),
+        static_dir: None,
+        worker_token: "".into(),
+        seed: "auto".into(),
+        speech: Some(cs_core_backend::speech::Speech::new("test-key", address)),
+    };
+    let database = db::memory().await.unwrap();
+    let app = build(database.clone(), cfg).await.unwrap().0;
+    auth::Auth::new(database).ensure_admin("author@mail.com", "correct-horse-1").await.unwrap();
+    let (_, body) = call(&app, Method::POST, "/api/auth/login", None, Some(json!({ "email": "author@mail.com", "password": "correct-horse-1" }))).await;
+    let admin = body["token"].as_str().unwrap().to_string();
+    (app, admin, dir)
+}
+
+/// Silence of the given length as a 48 kHz mono 16-bit WAV, as the browser records it.
+fn silence_48k(seconds: usize) -> Vec<u8> {
+    let data = vec![0u8; 2 * 48000 * seconds];
+    let mut wav = Vec::new();
+    wav.extend_from_slice(b"RIFF");
+    wav.extend_from_slice(&(36 + data.len() as u32).to_le_bytes());
+    wav.extend_from_slice(b"WAVEfmt ");
+    wav.extend_from_slice(&[16, 0, 0, 0, 1, 0, 1, 0]);
+    wav.extend_from_slice(&48000u32.to_le_bytes());
+    wav.extend_from_slice(&96000u32.to_le_bytes());
+    wav.extend_from_slice(&[2, 0, 16, 0]);
+    wav.extend_from_slice(b"data");
+    wav.extend_from_slice(&(data.len() as u32).to_le_bytes());
+    wav.extend_from_slice(&data);
+    wav
+}
+
+/// The English text of the first slide of chapter 1 of book 12.
+async fn first_slide_text(app: &Router) -> String {
+    let (_, course) = call(app, Method::GET, "/api/books/12/course?lang=en", None, None).await;
+    let chapter_id = course.as_array().unwrap().iter().flat_map(|s| s["chapters"].as_array().unwrap().iter()).find(|c| c["num"] == 1).unwrap()["id"].clone();
+    let (_, chapter) = call(app, Method::GET, &format!("/api/chapters/{chapter_id}?lang=en"), None, None).await;
+    chapter["lessons"][0]["text"].as_str().unwrap().to_string()
+}
+
+#[tokio::test]
+async fn the_pronunciation_of_a_take_is_checked_by_the_speech_service() {
+    let reply = json!({
+        "RecognitionStatus": "Success",
+        "NBest": [{
+            "PronScore": 91.24, "AccuracyScore": 90.0, "FluencyScore": 95.0, "CompletenessScore": 100.0, "ProsodyScore": 80.0,
+            "Words": [
+                { "Word": "think", "AccuracyScore": 52.0, "ErrorType": "Mispronunciation", "Phonemes": [{ "Phoneme": "θ", "AccuracyScore": 20.0 }, { "Phoneme": "ɪ", "AccuracyScore": 90.0 }] },
+                { "Word": "set", "AccuracyScore": 100.0, "ErrorType": "None", "Phonemes": [], "Feedback": { "Prosody": { "Break": { "ErrorTypes": ["UnexpectedBreak"] } } } }
+            ]
+        }]
+    });
+    let (address, speaking) = fake_speech(Some(reply)).await;
+    let (app, admin, dir) = app_with_speech(&address, "assess").await;
+    let student = sign_in(&app, "student@mail.com").await;
+    let wav = silence_48k(1);
+    let (st, saved) = upload(&app, &admin, "/api/records/12/1/0?lang=en", "audio/wav", &wav).await;
+    assert_eq!(st, StatusCode::OK, "{saved}");
+    assert!(saved["takes"][0]["assessment"].is_null(), "a new take is not checked yet");
+
+    // only administrators check; a take that does not exist is refused
+    assert_eq!(call(&app, Method::POST, "/api/records/12/1/0/1/assess?lang=en", Some(&student), None).await.0, StatusCode::FORBIDDEN);
+    assert_eq!(call(&app, Method::POST, "/api/records/12/1/0/9/assess?lang=en", Some(&admin), None).await.0, StatusCode::NOT_FOUND);
+
+    let (st, result) = call(&app, Method::POST, "/api/records/12/1/0/1/assess?lang=en", Some(&admin), None).await;
+    assert_eq!(st, StatusCode::OK, "{result}");
+    assert_eq!((result["pron"].clone(), result["accuracy"].clone(), result["prosody"].clone()), (json!(91.2), json!(90.0), json!(80.0)));
+    assert_eq!((result["words"][0]["word"].clone(), result["words"][0]["error"].clone(), result["words"][0]["phonemes"][0]["phoneme"].clone()), (json!("think"), json!("Mispronunciation"), json!("θ")));
+    assert_eq!(result["words"][1]["pause"], "UnexpectedBreak");
+
+    // the service got the key, the English text of the slide, and the sound as 16 kHz mono PCM
+    let text = first_slide_text(&app).await;
+    let seen = speaking.lock().unwrap().seen.clone();
+    assert_eq!(seen.len(), 1, "a short take is one request");
+    let seen = seen[0].clone();
+    assert_eq!(seen.key, "test-key");
+    assert_eq!(seen.params["ReferenceText"], text.as_str());
+    assert!(!seen.params["ReferenceText"].as_str().unwrap().is_empty());
+    assert_eq!((seen.params["EnableProsodyAssessment"].clone(), seen.params["PhonemeAlphabet"].clone(), seen.params["Granularity"].clone()), (json!(true), json!("IPA"), json!("Phoneme")));
+    assert_eq!(seen.content_type, "audio/wav; codecs=audio/pcm; samplerate=16000");
+    assert!(seen.query.contains("language=en-US"), "{}", seen.query);
+    assert_eq!(seen.audio_bytes, 44 + 2 * 16000, "one second at 16 kHz, 16-bit mono");
+
+    // the result stays with the take
+    let (_, listed) = call(&app, Method::GET, "/api/records/12/1/0?lang=en", Some(&admin), None).await;
+    assert_eq!(listed["takes"][0]["assessment"], result);
+    assert!(dir.join("en").join("12").join("1").join("0").join("1.score.json").is_file());
+
+    // deleting the take deletes its check, and a new take with the same number starts clean
+    let (st, after) = call(&app, Method::DELETE, "/api/records/12/1/0/1?lang=en", Some(&admin), None).await;
+    assert_eq!(st, StatusCode::OK, "{after}");
+    assert!(!dir.join("en").join("12").join("1").join("0").join("1.score.json").exists());
+    let (_, again) = upload(&app, &admin, "/api/records/12/1/0?lang=en", "audio/wav", &wav).await;
+    assert_eq!(again["id"], 1);
+    assert!(again["takes"][0]["assessment"].is_null());
+}
+
+#[tokio::test]
+async fn a_long_take_is_checked_in_parts_cut_at_pauses() {
+    let (address, speaking) = fake_speech(None).await;
+    let (app, admin, _dir) = app_with_speech(&address, "assess-long").await;
+    let text = first_slide_text(&app).await;
+    let words: Vec<&str> = text.split_whitespace().collect();
+    assert!(words.len() > 60, "the slide text is long enough to be split in three: {}", words.len());
+    // sixty seconds of silence: cut in the middle of the quiet window of each part, 21 s + 21 s + 18 s
+    let (cut1, cut2) = (words.len() * 2 / 5, words.len() * 4 / 5);
+    speaking.lock().unwrap().heard = vec![words[..cut1].join(" ").to_lowercase(), words[cut1..cut2].join(" ").to_lowercase()];
+
+    let (st, saved) = upload(&app, &admin, "/api/records/12/1/0?lang=en", "audio/wav", &silence_48k(60)).await;
+    assert_eq!(st, StatusCode::OK, "{saved}");
+    let (st, result) = call(&app, Method::POST, "/api/records/12/1/0/1/assess?lang=en", Some(&admin), None).await;
+    assert_eq!(st, StatusCode::OK, "{result}");
+
+    let seen = speaking.lock().unwrap().seen.clone();
+    let plain: Vec<&Seen> = seen.iter().filter(|s| s.params.is_null()).collect();
+    let scored: Vec<&Seen> = seen.iter().filter(|s| !s.params.is_null()).collect();
+    assert_eq!((plain.len(), scored.len()), (2, 3), "two parts are listened to without the text, three are scored");
+    // every part is no longer than the service takes, the parts together are the whole take
+    let seconds = |s: &&Seen| (s.audio_bytes - 44) as f64 / 32000.0;
+    assert!(seen.iter().all(|s| seconds(&s) <= 26.0), "{:?}", seen.iter().map(|s| seconds(&s)).collect::<Vec<_>>());
+    assert!((scored.iter().map(seconds).sum::<f64>() - 60.0).abs() < 0.1);
+    // every part is scored against its own words of the text, in order, none lost
+    let references: Vec<String> = scored.iter().map(|s| s.params["ReferenceText"].as_str().unwrap().to_string()).collect();
+    assert_eq!(references, vec![words[..cut1].join(" "), words[cut1..cut2].join(" "), words[cut2..].join(" ")]);
+    let merged: Vec<&str> = result["words"].as_array().unwrap().iter().map(|w| w["word"].as_str().unwrap()).collect();
+    assert_eq!(merged, words);
+    assert_eq!((result["pron"].clone(), result["completeness"].clone()), (json!(80.0), json!(100.0)));
 }

@@ -3,6 +3,7 @@
 //! `records_dir/en/<book>/<chapter>/…` for the English one (the language is the one the book is served in: a book without a translation
 //! into the request language is Russian, and so is its recording). Each "Record" makes a new take; the take that voices the slide is the
 //! chosen one (file `selected` next to the takes), by default the first. Only administrators write to or delete from the server disk.
+//! The pronunciation check of a take (`speech.rs`) is kept next to it as `<take>.score.json` and goes away with the take.
 
 use std::path::{Path as FsPath, PathBuf};
 
@@ -12,7 +13,7 @@ use axum::{
     extract::{DefaultBodyLimit, Path, Request, State},
     http::{header, HeaderMap},
     response::Response,
-    routing::{delete, get, put},
+    routing::{delete, get, post, put},
     Extension, Json, Router,
 };
 use serde::Deserialize;
@@ -24,7 +25,7 @@ use crate::{
     error::{ApiError, ApiResult},
     lang::{self, Lang},
     progress::check_range,
-    wav, AppState,
+    speech, wav, AppState,
 };
 
 const MAX_BYTES: usize = 64 * 1024 * 1024;
@@ -36,6 +37,7 @@ pub fn private() -> Router<AppState> {
         .route("/api/records/{book}/{chapter}/{slide}", get(list).post(save).layer(DefaultBodyLimit::max(MAX_BYTES)))
         .route("/api/records/{book}/{chapter}/{slide}/selected", put(select))
         .route("/api/records/{book}/{chapter}/{slide}/{take}", delete(remove))
+        .route("/api/records/{book}/{chapter}/{slide}/{take}/assess", post(assess))
 }
 
 /// Listening to a recording: a plain `<audio>` element cannot send the session header, so this route is public (like the lesson audio).
@@ -91,6 +93,15 @@ pub fn audio_url(lang: Lang, book: i64, chapter: i64, slide: i64, take: &Take) -
     format!("/api/records/{book}/{chapter}/{slide}/audio?lang={}&take={}&v={}", lang.code(), take.id, take.at)
 }
 
+fn score_file(records_dir: &FsPath, lang: Lang, book: i64, chapter: i64, slide: i64, take: i64) -> PathBuf {
+    slide_dir(records_dir, lang, book, chapter, slide).join(format!("{take}.score.json"))
+}
+
+/// The saved pronunciation check of a take, if it was made.
+fn stored_assessment(records_dir: &FsPath, lang: Lang, book: i64, chapter: i64, slide: i64, take: i64) -> Value {
+    std::fs::read_to_string(score_file(records_dir, lang, book, chapter, slide, take)).ok().and_then(|s| serde_json::from_str(&s).ok()).unwrap_or(Value::Null)
+}
+
 fn rounded(seconds: f64) -> f64 {
     (seconds * 10.0).round() / 10.0
 }
@@ -99,7 +110,7 @@ fn rounded(seconds: f64) -> f64 {
 fn state_json(records_dir: &FsPath, lang: Lang, book: i64, chapter: i64, slide: i64) -> Value {
     let listed: Vec<Value> = takes(records_dir, lang, book, chapter, slide)
         .iter()
-        .map(|t| json!({ "id": t.id, "dur": rounded(wav::duration(&t.path)), "at": t.at }))
+        .map(|t| json!({ "id": t.id, "dur": rounded(wav::duration(&t.path)), "at": t.at, "assessment": stored_assessment(records_dir, lang, book, chapter, slide, t.id) }))
         .collect();
     match selected(records_dir, lang, book, chapter, slide) {
         Some(t) => json!({ "takes": listed, "selected": t.id, "audio": audio_url(lang, book, chapter, slide, &t), "dur": rounded(wav::duration(&t.path)) }),
@@ -230,6 +241,7 @@ async fn remove(State(state): State<AppState>, Extension(me): Extension<Identity
                 removed += 1;
             }
         }
+        let _ = std::fs::remove_file(dir.join(format!("{take}.score.json")));
         let chosen = std::fs::read_to_string(dir.join(SELECTED)).ok().and_then(|s| s.trim().parse::<i64>().ok());
         if chosen == Some(take) {
             let _ = std::fs::remove_file(dir.join(SELECTED));
@@ -245,6 +257,42 @@ async fn remove(State(state): State<AppState>, Extension(me): Extension<Identity
     }
     tracing::info!("slide recording deleted {lang:?} {book}/{chapter}/{slide}: take {take}");
     Ok(Json(state_json(&records, lang, book, chapter, slide)))
+}
+
+/// The slide's paragraph in the language of the recording: what the author reads, and the text the pronunciation is checked against.
+async fn lesson_text(state: &AppState, lang: Lang, book: i64, chapter: i64, slide: i64) -> ApiResult<String> {
+    let (lessons, cond) = lang::source("lessons", lang != Lang::Ru);
+    let mut res = state.db.query("SELECT VALUE cid FROM chapters WHERE bid = $b AND num = $n").bind(("b", book)).bind(("n", chapter)).await?;
+    let cid: Vec<i64> = res.take(0)?;
+    let cid = cid.first().copied().ok_or_else(|| ApiError::not_found("Chapter not found"))?;
+    let mut res = state.db.query(format!("SELECT VALUE text FROM {lessons} WHERE cid = $c AND ord = $o{cond}")).bind(("c", cid)).bind(("o", slide)).bind(("l", lang.code())).await?;
+    let text: Vec<String> = res.take(0)?;
+    text.into_iter().next().ok_or_else(|| ApiError::not_found("Slide not found"))
+}
+
+/// `POST /api/records/{book}/{chapter}/{slide}/{take}/assess` - checks the pronunciation of a take against the slide's text with the speech
+/// service, saves the result next to the take and returns it (administrators only). A new check replaces the previous one.
+async fn assess(State(state): State<AppState>, Extension(me): Extension<Identity>, lang: Lang, Path((book, chapter, slide, take)): Path<(i64, i64, i64, i64)>) -> ApiResult<Json<Value>> {
+    admin_only(&me, book, chapter, slide)?;
+    let service = state.cfg.speech.clone().ok_or_else(|| ApiError::new(503, "The pronunciation service is not configured"))?;
+    let lang = recorded_lang(&state, lang, book).await?;
+    let records = state.cfg.records_dir.clone();
+    let found = takes(&records, lang, book, chapter, slide).into_iter().find(|t| t.id == take).ok_or_else(|| ApiError::not_found("Recording not found"))?;
+    if wav::duration(&found.path) > speech::MAX_SECONDS {
+        return Err(ApiError::invalid("The recording is longer than two minutes"));
+    }
+    let text = lesson_text(&state, lang, book, chapter, slide).await?;
+    let path = found.path.clone();
+    let samples = tokio::task::spawn_blocking(move || wav::speech_samples(&path))
+        .await
+        .map_err(|e| anyhow::anyhow!("converting recording: {e}"))?
+        .ok_or_else(|| ApiError::invalid("The recording cannot be read"))?;
+    let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(0, |d| d.as_secs());
+    let result = service.assess(&samples, &text, lang, now).await?;
+    let file = score_file(&records, lang, book, chapter, slide, take);
+    std::fs::write(&file, result.to_string()).map_err(|e| anyhow::anyhow!("writing {}: {e}", file.display()))?;
+    tracing::info!("slide recording checked {lang:?} {book}/{chapter}/{slide}: take {take}, pronunciation {}", result["pron"]);
+    Ok(Json(result))
 }
 
 /// One-time move of the earlier layout (one file per slide, `<chapter>/<slide>.<ext>`) into takes (`<chapter>/<slide>/1.<ext>`);

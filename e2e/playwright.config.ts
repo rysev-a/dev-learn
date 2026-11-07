@@ -43,6 +43,9 @@ export default defineConfig({
       DEMO_ADMIN_EMAIL: "programmer@mail.com",
       DEMO_ADMIN_PASSWORD: "programmer",
       RECORDS_DIR: path.join(root, "e2e", ".records"),
+      // the pronunciation service is never really called: a dead address (a developer's .env may hold a real key)
+      AZURE_SPEECH_KEY: "e2e-key",
+      AZURE_SPEECH_ENDPOINT: "http://127.0.0.1:9",
       RUST_LOG: "warn",
     },
   },
