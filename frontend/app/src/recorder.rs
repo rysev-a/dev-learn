@@ -11,6 +11,15 @@ use web_sys::{AudioBuffer, AudioContext, Blob, BlobEvent, BlobPropertyBag, Media
 /// Containers by preference; if the browser supports none - its default.
 const MIME_TYPES: [&str; 3] = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4"];
 
+/// The microphone is already recording this long before the slide starts to play (the button shows "loading" meanwhile): the first word is not cut off
+/// by the start-up of the recorder, however early the author begins to speak.
+pub const LEAD_MS: u32 = 2000;
+/// The slide's reading time is extended by this much when it is recorded, so that the last word is not cut off by the end of the slide.
+pub const TAIL_SECONDS: f64 = 3.0;
+/// Silence kept before the first and after the last sound when the recording is trimmed.
+const KEEP_BEFORE: f64 = 0.3;
+const KEEP_AFTER: f64 = 0.6;
+
 /// Recording in progress: the microphone is taken, chunks accumulate until stop.
 pub struct Recording {
     stream: MediaStream,
@@ -138,6 +147,25 @@ pub fn encode_wav(samples: &[f32], rate: u32) -> Vec<u8> {
     out
 }
 
+/// The part of the recording that holds the speech: from `KEEP_BEFORE` seconds before the first sound to `KEEP_AFTER` after the last one. The recording
+/// starts earlier than the slide and ends later (see `LEAD_MS`, `TAIL_SECONDS`); the take must start where the voice starts, or the voice would lag behind the slide.
+/// A sound is 30 ms above a level 26 dB under the loudest one, so a click or a breath does not count; a recording with no sound at all is kept whole.
+pub fn speech_range(samples: &[f32], rate: u32) -> std::ops::Range<usize> {
+    let whole = 0..samples.len();
+    let window = (rate as usize / 100).max(1); // 10 ms
+    let levels: Vec<f32> = samples.chunks(window).map(|c| (c.iter().map(|s| s * s).sum::<f32>() / c.len() as f32).sqrt()).collect();
+    let peak = levels.iter().copied().fold(0.0, f32::max);
+    if peak < 0.005 {
+        return whole;
+    }
+    let level = (peak * 0.05).max(0.004);
+    let loud = |at: usize| levels[at..at + 3].iter().all(|l| *l > level);
+    let (Some(first), Some(last)) = ((0..levels.len().saturating_sub(2)).find(|&i| loud(i)), (0..levels.len().saturating_sub(2)).rev().find(|&i| loud(i))) else { return whole };
+    let start = (first * window).saturating_sub((KEEP_BEFORE * rate as f64) as usize);
+    let end = ((last + 3) * window + (KEEP_AFTER * rate as f64) as usize).min(samples.len());
+    start..end
+}
+
 fn mono(buffer: &AudioBuffer) -> Vec<f32> {
     let channels: Vec<Vec<f32>> = (0..buffer.number_of_channels()).filter_map(|c| buffer.get_channel_data(c).ok()).collect();
     let Some(first) = channels.first() else { return Vec::new() };
@@ -169,6 +197,7 @@ pub fn to_wav(blob: Blob, done: impl FnOnce(Blob, Option<f64>) + 'static) {
                     let _ = ctx_done.close(); // browsers allow only a few audio contexts at a time
                     let Ok(buffer) = decoded.dyn_into::<AudioBuffer>() else { return };
                     let (samples, rate) = (mono(&buffer), buffer.sample_rate() as u32);
+                    let samples = samples[speech_range(&samples, rate)].to_vec();
                     let wav = encode_wav(&samples, rate);
                     let parts = Array::of1(&js_sys::Uint8Array::from(&wav[..]));
                     let options = BlobPropertyBag::new();
@@ -192,7 +221,42 @@ pub fn to_wav(blob: Blob, done: impl FnOnce(Blob, Option<f64>) + 'static) {
 
 #[cfg(test)]
 mod tests {
-    use super::encode_wav;
+    use super::{encode_wav, speech_range};
+
+    /// `silence` seconds of a faint hiss, `speech` seconds of a tone, `silence` again (8 kHz).
+    fn clip(before: f64, speech: f64, after: f64) -> Vec<f32> {
+        let n = |s: f64| (s * 8000.0) as usize;
+        let hiss = |i: usize| if i % 2 == 0 { 0.001 } else { -0.001 };
+        let mut v: Vec<f32> = (0..n(before)).map(hiss).collect();
+        v.extend((0..n(speech)).map(|i| 0.3 * (i as f32 * 0.2).sin()));
+        v.extend((0..n(after)).map(hiss));
+        v
+    }
+
+    #[test]
+    fn the_silence_around_the_speech_is_cut_but_a_margin_stays() {
+        let v = clip(2.0, 1.0, 3.0);
+        let r = speech_range(&v, 8000);
+        let (start, end) = (r.start as f64 / 8000.0, r.end as f64 / 8000.0);
+        assert!((start - 1.7).abs() < 0.05, "starts 0.3 s before the voice, got {start}");
+        assert!((end - 3.6).abs() < 0.05, "ends 0.6 s after the voice, got {end}");
+    }
+
+    #[test]
+    fn a_click_is_not_speech_and_early_speech_is_kept_from_its_start() {
+        let mut v = clip(2.0, 1.0, 1.0);
+        v[3000] = 0.9; // a click at 0.375 s, far from the voice
+        assert!(speech_range(&v, 8000).start > 8000, "the click does not hold the start back");
+        let early = clip(0.1, 1.0, 1.0); // the voice begins at once: nothing before it to cut
+        assert_eq!(speech_range(&early, 8000).start, 0);
+    }
+
+    #[test]
+    fn a_recording_without_sound_is_kept_whole() {
+        let v = clip(2.0, 0.0, 0.0);
+        assert_eq!(speech_range(&v, 8000), 0..v.len());
+        assert_eq!(speech_range(&[], 8000), 0..0);
+    }
 
     #[test]
     fn wav_has_a_header_and_clamped_16_bit_samples() {

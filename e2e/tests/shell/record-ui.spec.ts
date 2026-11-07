@@ -3,7 +3,8 @@ import { DM1, loadChapter } from "../../support/shell";
 import { ADMIN, clearRecords, record } from "../../support/records";
 
 /* Recording through the interface with the browser's fake microphone: every "Record" is a new take, the first one stays the voice-over; the recording lasts
-   as long as the slide is shown (its reading time), not as long as an earlier take, and a countdown pop-up is shown at the top right. */
+   as long as the slide is shown (its reading time plus a tail of three seconds), not as long as an earlier take, and a countdown pop-up is shown at the top right;
+   for two seconds after "Record" the button is "loading" while the microphone already records. */
 
 test.use({ launchOptions: { args: ["--use-fake-device-for-media-stream", "--use-fake-ui-for-media-stream"] }, permissions: ["microphone"] });
 
@@ -16,7 +17,12 @@ test("every Record makes a new take", async ({ page, request }) => {
   const status = page.locator(".slide-rec-status");
   for (const n of [2, 3]) {
     await page.locator(".slide-rec").click(); // start
+    // the microphone records already, the button looks busy for two seconds (no pop-up), then the slide starts
+    await expect(page.locator(".slide-rec.loading")).toBeDisabled();
+    await expect(page.locator(".slide-rec-menu")).toBeDisabled();
+    await expect(page.locator(".rec-timer")).toHaveCount(0);
     await expect(page.locator(".slide-rec.on")).toBeVisible();
+    await expect(page.locator(".slide-rec.loading")).toHaveCount(0);
     const timer = page.locator(".rec-timer");
     await expect(timer).toBeVisible();
     const box = (await timer.boundingBox())!;
@@ -28,6 +34,7 @@ test("every Record makes a new take", async ({ page, request }) => {
       return m * 60 + sec;
     };
     const before = await left();
+    expect(before, "the reading time of the slide plus the three seconds of the tail").toBeGreaterThanOrEqual(6);
     await page.waitForTimeout(2500);
     await expect(page.locator(".slide-rec.on"), "still recording after the earlier take's length").toBeVisible();
     expect(await left(), "the countdown goes down").toBeLessThan(before);

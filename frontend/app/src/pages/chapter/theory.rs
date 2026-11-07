@@ -4,6 +4,7 @@ use std::sync::Arc;
 
 use api::dto::{Chapter, Takes};
 use content::Chapter as SlideChapter;
+use gloo_timers::future::TimeoutFuture;
 use leptos::{prelude::*, task::spawn_local};
 use leptos_router::hooks::query_signal;
 use scene::{provide_env, SceneEnv};
@@ -193,6 +194,8 @@ fn Slides(book: i64, chapter: Chapter, deck: Deck) -> impl IntoView {
     };
     let record = {
         let recording = RwSignal::new(None::<usize>);
+        // the first moments after "Record": the microphone already records, the button shows "loading", the slide has not started yet
+        let starting = RwSignal::new(false);
         let status = RwSignal::new(None::<String>);
         let live = StoredValue::new_local(None::<recorder::Recording>);
         on_cleanup(move || {
@@ -237,31 +240,53 @@ fn Slides(book: i64, chapter: Chapter, deck: Deck) -> impl IntoView {
                 }
             }
         });
-        let timings = reading.clone();
-        let toggle = Callback::new(move |()| {
-            if recording.get_untracked().is_some() {
-                return finish();
-            }
-            let i = idx.get_untracked();
+        // the slide is recorded a little longer than its reading time, so that the last word is not cut off
+        let timings: Vec<f64> = reading.iter().map(|d| d + recorder::TAIL_SECONDS).collect();
+        let toggle = Callback::new({
             let timings = timings.clone();
-            status.set(Some(i18n::tr("Microphone…").to_string()));
-            recorder::start(move |res| match res {
-                Ok(rec) => {
-                    live.set_value(Some(rec));
-                    status.set(None);
-                    // the slide is shown for its reading time whatever sound it has now: an earlier take must not shorten the recording
-                    player.silent.set(true);
-                    player.start(timings.clone(), vec![None; timings.len()], i);
-                    set_manual.set(None);
-                    recording.set(Some(i));
+            move |()| {
+                if recording.get_untracked().is_some() {
+                    return finish();
                 }
-                Err(e) => status.set(Some(e)),
-            });
+                if starting.get_untracked() {
+                    return;
+                }
+                let i = idx.get_untracked();
+                let timings = timings.clone();
+                status.set(Some(i18n::tr("Microphone…").to_string()));
+                starting.set(true);
+                recorder::start(move |res| match res {
+                    Ok(rec) => {
+                        live.set_value(Some(rec));
+                        status.set(None);
+                        // the earlier playback must not get into the recording; the slide stays where it is
+                        set_manual.set(Some(i));
+                        player.stop();
+                        // the microphone is recording already, the slide begins after a pause: the start of the speech is not lost
+                        spawn_local(async move {
+                            TimeoutFuture::new(recorder::LEAD_MS).await;
+                            let _ = starting.try_set(false);
+                            // cancelled meanwhile (the page was left): the microphone has been released, nothing to start
+                            if live.try_with_value(|v| v.is_none()).unwrap_or(true) {
+                                return;
+                            }
+                            // the slide is shown for its reading time whatever sound it has now: an earlier take must not shorten the recording
+                            player.silent.set(true);
+                            player.start(timings.clone(), vec![None; timings.len()], i);
+                            set_manual.set(None);
+                            recording.set(Some(i));
+                        });
+                    }
+                    Err(e) => {
+                        starting.set(false);
+                        status.set(Some(e));
+                    }
+                });
+            }
         });
         // seconds left of the slide while it is being recorded
-        let timings = reading.clone();
         let left = Signal::derive(move || recording.get().map(|i| (timings.get(i).copied().unwrap_or(0.0) - player.t.get()).max(0.0)));
-        is_admin.then_some(RecordCtl { on: Signal::derive(move || recording.get().is_some()), toggle, status: status.into(), menu, left })
+        is_admin.then_some(RecordCtl { on: Signal::derive(move || recording.get().is_some() || starting.get()), starting: starting.into(), toggle, status: status.into(), menu, left })
     };
     let on_play = Callback::new(move |()| {
         if player.playing.get_untracked().is_some() {
