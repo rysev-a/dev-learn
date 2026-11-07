@@ -7,42 +7,36 @@
 #     "en-core-web-sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl",
 # ]
 # ///
-"""English reference voice-over: the paragraphs of the English textbook read by Kokoro (American English), one wav per slide.
+"""English reference voice-over: the paragraphs of the English textbook read by Kokoro (American English), one take per slide.
 
-The wav files go where the backend looks for the lesson audio (`AUDIO_DIR`, by default `backend/data/audio`) under the lesson id the seed computes,
-so the player reads a slide with this voice until the author's own recording of the slide is chosen. It is a model to listen to and repeat, not the final voice-over.
+The reading is added to the slide's recordings (`RECORDS_DIR`, by default `media/records`: `en/<book>/<chapter>/<slide>/<take>.wav`) as an ordinary take
+marked by a file `<take>.machine` with the voice's name. The recordings window lists it as "Machine voice" next to the author's own takes; it can be chosen
+as the slide's voice-over, deleted and replaced like them. It is a model to listen to and repeat, not the final voice-over.
 
     uv run --script voice/synth.py 12 --chapter 1          # book 12, chapter 1 (all its slides)
     uv run --script voice/synth.py 12                      # the whole book
-    uv run --script voice/synth.py 12 -c 1 -s 0 --force    # one slide, again
-    uv run --script voice/synth.py 12 -c 1 --list          # slides and their ids, nothing is synthesized
+    uv run --script voice/synth.py 12 -c 1 -s 0 --force    # one slide, again (the same take is replaced)
+    uv run --script voice/synth.py 12 -c 1 --list          # slides and their takes, nothing is synthesized
 
-Ready files are skipped (`--force` makes them again). The model (Kokoro-82M, ~330 MB) is downloaded on the first run. It needs Python 3.12 or 3.13
-(the dependencies of its English text processing do not build on 3.14 yet), `uv` finds it by itself. The Russian voice-over engine is `engine.py`.
+A slide that already has a machine take is skipped (`--force` reads it again). A new take gets the next free number, so the author's takes keep theirs and
+the first take of a slide (the default voice-over) is not changed when it already exists. The model (Kokoro-82M, ~330 MB) is downloaded on the first run.
+It needs Python 3.12 or 3.13 (the dependencies of its English text processing do not build on 3.14 yet), `uv` finds it by itself.
+The Russian voice-over engine is `engine.py`.
 """
+
+from __future__ import annotations
 
 import argparse
 import os
 import re
-import sqlite3
 import sys
 import time
-import uuid
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "backend" / "data"
-# the same namespace as `NS` in backend/src/seed.rs: lesson ids must match the ones the seed gives the lessons
-NS = uuid.UUID(int=0xD3A7C0DE_0000_4000_8000_4B6F6B6F726F)
 SAMPLE_RATE = 24000
 DEFAULT_VOICE = "af_heart"
-
-
-def audio_prefixes() -> dict[int, str]:
-    """`audio_prefix` of every book from `backend/data/sql/books.sql` (executed in memory, as the seed does)."""
-    db = sqlite3.connect(":memory:")
-    db.executescript((DATA / "sql" / "books.sql").read_text(encoding="utf-8"))
-    return {bid: prefix for bid, prefix in db.execute("SELECT id, audio_prefix FROM books")}
 
 
 def parse_textbooks(directory: Path) -> dict[int, dict[int, list[str]]]:
@@ -74,9 +68,24 @@ def parse_textbooks(directory: Path) -> dict[int, dict[int, list[str]]]:
     return books
 
 
-def lesson_id(lang: str, prefix: str, chapter: int, slide: int) -> str:
-    """The id the seed gives a lesson of a translated book (`<lang>:<prefix><chapter>-l<slide>`, a uuid5 without dashes)."""
-    return uuid.uuid5(NS, f"{lang}:{prefix}{chapter}-l{slide}").hex
+def slide_dir(records: Path, lang: str, book: int, chapter: int, slide: int) -> Path:
+    """Where the takes of a slide live, as in `backend/src/records.rs`: Russian is the root, another language has its own folder."""
+    base = records if lang == "ru" else records / lang
+    return base / str(book) / str(chapter) / str(slide)
+
+
+def machine_take(directory: Path) -> int | None:
+    """The number of the slide's machine take (a wav with a `.machine` marker), if there is one."""
+    for marker in sorted(directory.glob("*.machine")) if directory.is_dir() else []:
+        if marker.stem.isdigit() and marker.with_suffix(".wav").exists():
+            return int(marker.stem)
+    return None
+
+
+def next_take(directory: Path) -> int:
+    """The next free take number: after every numbered file of the folder (takes, markers and scores), as the backend numbers a new recording."""
+    used = [int(p.name.split(".")[0]) for p in directory.iterdir() if p.name.split(".")[0].isdigit()] if directory.is_dir() else []
+    return max(used, default=0) + 1
 
 
 def main() -> None:
@@ -88,51 +97,50 @@ def main() -> None:
     ap.add_argument("--speed", type=float, default=1.0, help="speaking speed, 1.0 is normal; slower (0.85-0.95) is easier to repeat")
     ap.add_argument("--force", action="store_true", help="synthesize again the slides that already have a file")
     ap.add_argument("--list", action="store_true", help="only list the slides, their ids and whether a file exists")
-    ap.add_argument("--audio-dir", default=os.environ.get("AUDIO_DIR") or str(DATA / "audio"), help="where the wav files go (default: AUDIO_DIR or backend/data/audio)")
+    ap.add_argument("--records-dir", default=os.environ.get("RECORDS_DIR") or str(ROOT / "media" / "records"), help="the recordings folder of the backend (default: RECORDS_DIR or media/records)")
     args = ap.parse_args()
 
     lang = "en"
     books = parse_textbooks(DATA / lang / "textbook")
     if args.book not in books:
         raise SystemExit(f"book {args.book} has no English textbook in {DATA / lang / 'textbook'}")
-    prefix = audio_prefixes().get(args.book) or f"b{args.book}-ch"
     chapters = books[args.book]
     wanted = args.chapter or sorted(chapters)
     for num in wanted:
         if num not in chapters:
             raise SystemExit(f"book {args.book} has no chapter {num} (there are {min(chapters)}..{max(chapters)})")
 
-    audio_dir = Path(args.audio_dir)
+    records = Path(args.records_dir)
     todo = []
     for num in wanted:
         for slide, text in enumerate(chapters[num]):
             if args.slide is not None and slide != args.slide:
                 continue
-            path = audio_dir / f"{lesson_id(lang, prefix, num, slide)}.wav"
-            todo.append((num, slide, text, path))
+            todo.append((num, slide, text, slide_dir(records, lang, args.book, num, slide)))
     if args.slide is not None and not todo:
         raise SystemExit(f"no slide {args.slide} in the chosen chapters")
 
     if args.list:
-        for num, slide, text, path in todo:
-            print(f"{args.book}/{num}/{slide}  {path.name}  {'ready' if path.exists() else '-'}  {len(text)} chars")
+        for num, slide, text, directory in todo:
+            machine = machine_take(directory)
+            own = len([p for p in directory.glob("*.wav") if p.stem.isdigit()]) - (machine is not None) if directory.is_dir() else 0
+            print(f"{args.book}/{num}/{slide}  machine take: {machine if machine else '-'}  own takes: {own}  {len(text)} chars")
         return
 
-    todo = [t for t in todo if args.force or not t[3].exists()]
+    todo = [t for t in todo if args.force or machine_take(t[3]) is None]
     if not todo:
-        print("nothing to do: every slide has a file (--force makes them again)")
+        print("nothing to do: every slide has a machine take (--force reads them again)")
         return
 
     import numpy as np
     import soundfile as sf
     from kokoro import KPipeline
 
-    audio_dir.mkdir(parents=True, exist_ok=True)
     started = time.time()
     pipeline = KPipeline(lang_code="a", repo_id="hexgrad/Kokoro-82M")  # "a" - American English
     print(f"model ready in {time.time() - started:.0f} s; {len(todo)} slides, voice {args.voice}, speed {args.speed}", flush=True)
     total = 0.0
-    for num, slide, text, path in todo:
+    for num, slide, text, directory in todo:
         began = time.time()
         # Kokoro reads a paragraph as sentence-sized pieces; the pieces are joined as they come (the pauses are the model's own)
         text = re.sub(r"\s+", " ", text).strip()
@@ -140,14 +148,19 @@ def main() -> None:
         if not pieces:
             raise SystemExit(f"{args.book}/{num}/{slide}: nothing was synthesized")
         samples = np.concatenate(pieces)
-        # write to a temporary name and rename, so a half-written file is never served
-        tmp = path.with_suffix(".part")
+        directory.mkdir(parents=True, exist_ok=True)
+        take = machine_take(directory) or next_take(directory)
+        wav = directory / f"{take}.wav"
+        # the marker first, then the wav under its final name in one step: the backend lists a take by its wav, so it never sees a half-made take
+        (directory / f"{take}.machine").write_text(args.voice, encoding="utf-8")
+        (directory / f"{take}.score.json").unlink(missing_ok=True)  # a check of the replaced reading does not belong to the new one
+        tmp = directory / f"{take}.part"
         sf.write(str(tmp), samples, SAMPLE_RATE, format="WAV", subtype="PCM_16")
-        tmp.replace(path)
+        tmp.replace(wav)
         seconds = len(samples) / SAMPLE_RATE
         total += seconds
-        print(f"{args.book}/{num}/{slide}: {seconds:5.1f} s of sound in {time.time() - began:4.1f} s -> {path.name}", flush=True)
-    print(f"done: {total / 60:.1f} min of sound in {time.time() - started:.0f} s; files in {audio_dir}")
+        print(f"{args.book}/{num}/{slide}: {seconds:5.1f} s of sound in {time.time() - began:4.1f} s -> take {take}", flush=True)
+    print(f"done: {total / 60:.1f} min of sound in {time.time() - started:.0f} s; takes in {records / lang}")
 
 
 if __name__ == "__main__":

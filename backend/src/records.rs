@@ -4,6 +4,8 @@
 //! into the request language is Russian, and so is its recording). Each "Record" makes a new take; the take that voices the slide is the
 //! chosen one (file `selected` next to the takes), by default the first. Only administrators write to or delete from the server disk.
 //! The pronunciation check of a take (`speech.rs`) is kept next to it as `<take>.score.json` and goes away with the take.
+//! A take made by a machine voice (`voice/synth.py`) is an ordinary take with a marker file `<take>.machine` (the voice's name): the list shows it
+//! as "Machine voice", it can be chosen, deleted and replaced like the author's own recordings.
 
 use std::path::{Path as FsPath, PathBuf};
 
@@ -61,6 +63,8 @@ pub struct Take {
     pub path: PathBuf,
     /// time of recording, seconds since the epoch
     pub at: u64,
+    /// the name of the voice if the take was read by a machine (`voice/synth.py`), `None` for the author's own recording
+    pub machine: Option<String>,
 }
 
 /// The takes of a slide, by number.
@@ -72,7 +76,8 @@ pub fn takes(records_dir: &FsPath, lang: Lang, book: i64, chapter: i64, slide: i
             let path = e.path();
             (path.extension()?.to_str()? == "wav").then_some(())?;
             let at = std::fs::metadata(&path).and_then(|m| m.modified()).ok().and_then(|m| m.duration_since(std::time::UNIX_EPOCH).ok()).map_or(0, |d| d.as_secs());
-            Some(Take { id: path.file_stem()?.to_str()?.parse().ok()?, path, at })
+            let machine = std::fs::read_to_string(path.with_extension("machine")).ok().map(|v| v.trim().to_string());
+            Some(Take { id: path.file_stem()?.to_str()?.parse().ok()?, path, at, machine })
         })
         .collect();
     all.sort_by_key(|t| t.id);
@@ -110,7 +115,7 @@ fn rounded(seconds: f64) -> f64 {
 fn state_json(records_dir: &FsPath, lang: Lang, book: i64, chapter: i64, slide: i64) -> Value {
     let listed: Vec<Value> = takes(records_dir, lang, book, chapter, slide)
         .iter()
-        .map(|t| json!({ "id": t.id, "dur": rounded(wav::duration(&t.path)), "at": t.at, "assessment": stored_assessment(records_dir, lang, book, chapter, slide, t.id) }))
+        .map(|t| json!({ "id": t.id, "dur": rounded(wav::duration(&t.path)), "at": t.at, "machine": t.machine, "assessment": stored_assessment(records_dir, lang, book, chapter, slide, t.id) }))
         .collect();
     match selected(records_dir, lang, book, chapter, slide) {
         Some(t) => json!({ "takes": listed, "selected": t.id, "audio": audio_url(lang, book, chapter, slide, &t), "dur": rounded(wav::duration(&t.path)) }),

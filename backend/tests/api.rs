@@ -1030,3 +1030,35 @@ async fn a_long_take_is_checked_in_parts_cut_at_pauses() {
     assert_eq!(merged, words);
     assert_eq!((result["pron"].clone(), result["completeness"].clone()), (json!(80.0), json!(100.0)));
 }
+
+#[tokio::test]
+async fn a_take_read_by_a_machine_is_listed_like_a_recording() {
+    // `voice/synth.py` puts a wav and a `.machine` marker (the voice's name) into the slide's folder
+    let (app, admin, dir) = app_with_speech("http://127.0.0.1:9", "machine").await;
+    let slide = dir.join("en").join("12").join("1").join("0");
+    std::fs::create_dir_all(&slide).unwrap();
+    std::fs::write(slide.join("1.wav"), silence_48k(1)).unwrap();
+    std::fs::write(slide.join("1.machine"), "af_heart").unwrap();
+
+    let (st, list) = call(&app, Method::GET, "/api/records/12/1/0?lang=en", Some(&admin), None).await;
+    assert_eq!(st, StatusCode::OK, "{list}");
+    assert_eq!((list["takes"][0]["id"].clone(), list["takes"][0]["machine"].clone(), list["takes"][0]["dur"].clone()), (json!(1), json!("af_heart"), json!(1.0)));
+    assert_eq!(list["selected"], 1, "the first take voices the slide, a machine one too");
+    assert!(list["audio"].as_str().unwrap().starts_with("/api/records/12/1/0/audio?lang=en&take=1&v="));
+    // the Russian version has no such take
+    assert_eq!(call(&app, Method::GET, "/api/records/12/1/0?lang=ru", Some(&admin), None).await.1["takes"], json!([]));
+
+    // the author's own recording is the next take, is not marked, and does not take the slide over
+    let (_, saved) = upload(&app, &admin, "/api/records/12/1/0?lang=en", "audio/wav", &silence_48k(2)).await;
+    assert_eq!(saved["id"], 2);
+    assert!(saved["takes"][1]["machine"].is_null());
+    assert_eq!(saved["selected"], 1);
+
+    // choosing and deleting work for the machine take as for any other; its marker goes with it
+    assert_eq!(call(&app, Method::PUT, "/api/records/12/1/0/selected?lang=en", Some(&admin), Some(json!({ "id": 1 }))).await.0, StatusCode::OK);
+    let (st, after) = call(&app, Method::DELETE, "/api/records/12/1/0/1?lang=en", Some(&admin), None).await;
+    assert_eq!(st, StatusCode::OK, "{after}");
+    assert!(!slide.join("1.machine").exists() && !slide.join("1.wav").exists());
+    assert_eq!((after["takes"].as_array().unwrap().len(), after["selected"].clone()), (1, json!(2)));
+    assert!(after["takes"][0]["machine"].is_null());
+}
