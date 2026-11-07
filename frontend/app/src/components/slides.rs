@@ -28,8 +28,10 @@ fn pause_icon() -> impl IntoView {
 /// "Play + record": plays the slide while recording the voice to a file on the server (author tool, administrators only).
 #[derive(Clone, Copy)]
 pub struct RecordCtl {
-    /// recording in progress
+    /// recording in progress (or about to start: the jumps are off)
     pub on: Signal<bool>,
+    /// the first moments of a recording: the microphone is on, the slide has not started - the button shows "loading"
+    pub starting: Signal<bool>,
     /// start recording the shown slide or stop the one in progress
     pub toggle: Callback<()>,
     /// short status: "Saving...", "Saved: ...", microphone or server error
@@ -44,6 +46,14 @@ fn record_icon() -> impl IntoView {
     view! {
         <svg width="11" height="11" viewBox="0 0 12 12" fill="currentColor">
             <circle cx="6" cy="6" r="4.5" class="rec-dot" />
+        </svg>
+    }
+}
+
+fn spinner_icon() -> impl IntoView {
+    view! {
+        <svg class="rec-spinner" width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+            <path d="M6 1.2a4.8 4.8 0 1 1-4.8 4.8" />
         </svg>
     }
 }
@@ -179,9 +189,17 @@ pub fn SlidePanel(
             <span class="s-time-mono">{move || { let (t, d) = time.get(); format!("{} / {}", fmt_time(t), fmt_time(d)) }}</span>
             {record.map(|r| view! {
                 <span class="slide-rec-status" title=move || r.status.get().unwrap_or_default()>{move || r.status.get()}</span>
-                <button class="slide-btn slide-rec" class:on=move || r.on.get() on:click=move |_| r.toggle.run(()) title=move || if r.on.get() { i18n::tr("Stop recording").to_string() } else { i18n::trf!("Play and record a new voice-over of this slide ({})", i18n::locale().code().to_uppercase()) }>
-                    {move || if r.on.get() { stop_icon().into_any() } else { record_icon().into_any() }}
-                    <span>{move || if r.on.get() { i18n::tr("Stop") } else { i18n::tr("Record") }}</span>
+                <button
+                    class="slide-btn slide-rec"
+                    class:on=move || r.on.get() && !r.starting.get()
+                    class:loading=move || r.starting.get()
+                    disabled=move || r.starting.get()
+                    aria-busy=move || r.starting.get().to_string()
+                    on:click=move |_| r.toggle.run(())
+                    title=move || if r.starting.get() { i18n::tr("Starting the recording…").to_string() } else if r.on.get() { i18n::tr("Stop recording").to_string() } else { i18n::trf!("Play and record a new voice-over of this slide ({})", i18n::locale().code().to_uppercase()) }
+                >
+                    {move || if r.starting.get() { spinner_icon().into_any() } else if r.on.get() { stop_icon().into_any() } else { record_icon().into_any() }}
+                    <span>{move || if r.on.get() && !r.starting.get() { i18n::tr("Stop") } else { i18n::tr("Record") }}</span>
                 </button>
                 <button class="slide-btn slide-rec-menu" disabled=move || r.on.get() on:click=move |_| r.menu.set(true) title=i18n::tr("Recordings of this slide") aria-label=i18n::tr("Recordings of this slide")>
                     {menu_icon()}

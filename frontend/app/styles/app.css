@@ -1141,6 +1141,23 @@ h2 {
   animation: slide-rec-blink 1.2s steps(2, start) infinite;
 }
 
+/* the first two seconds after "Record": the microphone already records, the button looks busy (as if it hung for a moment) */
+.slide-btn.slide-rec.loading {
+  opacity: 1;
+  cursor: progress;
+  color: var(--s-muted);
+}
+
+.slide-btn.slide-rec .rec-spinner {
+  animation: rec-spin 0.8s linear infinite;
+}
+
+@keyframes rec-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @keyframes slide-rec-blink {
   to {
     visibility: hidden;
@@ -1150,6 +1167,10 @@ h2 {
 @media (prefers-reduced-motion: reduce) {
   .slide-btn.slide-rec.on svg {
     animation: none;
+  }
+
+  .slide-btn.slide-rec .rec-spinner {
+    animation-duration: 2.4s;
   }
 }
 
