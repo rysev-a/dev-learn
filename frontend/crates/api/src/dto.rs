@@ -536,6 +536,45 @@ pub struct Take {
     pub dur: f64,
     /// time of recording, seconds since the epoch
     pub at: u64,
+    /// the pronunciation check of this take, if it was made
+    #[serde(default)]
+    pub assessment: Option<Assessment>,
+}
+
+/// The pronunciation check of a take (scores are 0..100): the whole take and every word of the text.
+#[derive(Clone, Debug, PartialEq, Deserialize)]
+pub struct Assessment {
+    /// time of the check, seconds since the epoch
+    pub at: u64,
+    /// the overall score
+    pub pron: f64,
+    pub accuracy: f64,
+    pub fluency: f64,
+    pub completeness: f64,
+    /// rhythm and intonation; English only
+    #[serde(default)]
+    pub prosody: Option<f64>,
+    #[serde(default)]
+    pub words: Vec<AssessedWord>,
+}
+
+/// A word of the text with its score. `error` is `None`, `Omission` (not said), `Insertion` (extra) or `Mispronunciation`;
+/// `pause` is `None`, `UnexpectedBreak` or `MissingBreak`.
+#[derive(Clone, Debug, PartialEq, Deserialize)]
+pub struct AssessedWord {
+    pub word: String,
+    pub accuracy: f64,
+    pub error: String,
+    pub pause: String,
+    #[serde(default)]
+    pub phonemes: Vec<AssessedPhoneme>,
+}
+
+/// A sound of a word (IPA for English) and how well it was pronounced.
+#[derive(Clone, Debug, PartialEq, Deserialize)]
+pub struct AssessedPhoneme {
+    pub phoneme: String,
+    pub accuracy: f64,
 }
 
 /// The recordings of a slide in the interface language: the takes, the chosen one (it voices the slide) with its address and length.

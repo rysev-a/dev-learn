@@ -17,6 +17,8 @@ pub struct Config {
     pub worker_token: String,
     /// `auto` - reseed the course if the sources changed; `always`; `off`
     pub seed: String,
+    /// pronunciation check of the recordings (`AZURE_SPEECH_KEY`/`AZURE_SPEECH_KEY_1`/`_2`, `AZURE_SPEECH_REGION`); `None` - not configured
+    pub speech: Option<crate::speech::Speech>,
 }
 
 fn env_or(key: &str, default: &str) -> String {
@@ -39,6 +41,7 @@ impl Config {
             static_dir,
             worker_token: std::env::var("CS_CORE_WORKER_TOKEN").unwrap_or_default(),
             seed: env_or("SEED", "auto"),
+            speech: crate::speech::Speech::from_env(),
         }
     }
 

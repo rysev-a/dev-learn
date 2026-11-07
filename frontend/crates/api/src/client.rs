@@ -138,6 +138,11 @@ impl Client {
         self.call(Method::PUT, &format!("/api/records/{book}/{chapter}/{slide}/selected"), Payload::Json(serde_json::json!({ "id": take }))).await
     }
 
+    /// Check the pronunciation of a take against the slide's text (the speech service); the result is saved with the take.
+    pub async fn assess_record(&self, book: i64, chapter: i64, slide: usize, take: i64) -> Result<Assessment, ApiError> {
+        self.call(Method::POST, &format!("/api/records/{book}/{chapter}/{slide}/{take}/assess"), Payload::None).await
+    }
+
     /// Delete a take (404 if there is none); the response is the slide's state.
     pub async fn delete_record(&self, book: i64, chapter: i64, slide: usize, take: i64) -> Result<Takes, ApiError> {
         self.call(Method::DELETE, &format!("/api/records/{book}/{chapter}/{slide}/{take}"), Payload::None).await
